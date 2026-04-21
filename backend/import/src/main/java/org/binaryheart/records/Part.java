@@ -1,4 +1,4 @@
-package org.binaryheart.types;
+package org.binaryheart.records;
 
 import org.binaryheart.enums.PartType;
 
