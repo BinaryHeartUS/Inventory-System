@@ -2,5 +2,6 @@ package org.binaryheart.enums;
 
 public enum StorageType {
     SSD,
-    HDD
+    HDD,
+    FLASH_STORAGE
 }
