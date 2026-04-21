@@ -1,7 +1,5 @@
 package org.binaryheart.records;
 
-import org.binaryheart.enums.PartType;
-
-public record Part(PartType type, String name, Integer quantity) {
+public record Part(String name, Integer quantity) {
 
 }
