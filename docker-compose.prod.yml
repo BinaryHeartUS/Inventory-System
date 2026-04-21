@@ -1,13 +1,11 @@
 services:
   db:
     image: postgres:16
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_DB: inventory
       POSTGRES_USER: binaryheart
-      POSTGRES_PASSWORD: changeme
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./sql/migrations:/docker-entrypoint-initdb.d
@@ -19,28 +17,24 @@ services:
 
   backend:
     build: ./backend
-    restart: unless-stopped
+    restart: always
     depends_on:
       db:
         condition: service_healthy
     environment:
       DB_URL: jdbc:postgresql://db:5432/inventory
       DB_USER: binaryheart
-      DB_PASSWORD: changeme
-    ports:
-      - "8080:8080"
+      DB_PASSWORD: ${DB_PASSWORD}
 
   frontend:
-    build: ./frontend
-    restart: unless-stopped
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: always
     depends_on:
       - backend
-    environment:
-      VITE_API_TARGET: http://backend:8080
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend/src:/app/src
+      - "80:80"
 
 volumes:
   postgres_data:
