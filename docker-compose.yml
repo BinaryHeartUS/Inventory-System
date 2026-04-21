@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: binaryheart
+      POSTGRES_PASSWORD: changeme
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/migrations:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:
