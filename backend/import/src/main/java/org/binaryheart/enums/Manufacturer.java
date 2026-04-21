@@ -8,5 +8,6 @@ public enum Manufacturer {
     ASUS,
     ACER,
     MICROSOFT,
-    TOSHIBA
+    TOSHIBA,
+    SAMSUNG
 }
