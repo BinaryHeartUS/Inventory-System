@@ -9,5 +9,7 @@ public enum Manufacturer {
     ACER,
     MICROSOFT,
     TOSHIBA,
-    SAMSUNG
+    SAMSUNG,
+    COOLERMASTER,
+    ZOTAC
 }
