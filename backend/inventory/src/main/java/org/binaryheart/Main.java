@@ -1,7 +1,11 @@
 package org.binaryheart;
 
+import io.javalin.Javalin;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        Javalin app = Javalin.create().start(8080);
+
+        app.get("/api/health", ctx -> ctx.result("OK"));
     }
 }
