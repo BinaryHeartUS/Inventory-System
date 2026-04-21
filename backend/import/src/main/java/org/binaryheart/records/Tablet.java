@@ -8,14 +8,14 @@ import org.binaryheart.enums.Status;
 import org.binaryheart.enums.WorkingBattery;
 
 public record Tablet(
-        String name,
-        int ID,
-        Manufacturer manufacturer,
-        int yearReleased,
-        String notes,
-        ChargerStatus chargerIncluded,
-        WorkingBattery workingBattery,
-        Status currentStatus,
-        Date dateUpdated) {
+                String name,
+                Integer ID,
+                Manufacturer manufacturer,
+                Integer yearReleased,
+                String notes,
+                ChargerStatus chargerIncluded,
+                WorkingBattery workingBattery,
+                Status currentStatus,
+                Date dateUpdated) {
 
 }

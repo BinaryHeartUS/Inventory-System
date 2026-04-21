@@ -6,12 +6,12 @@ import org.binaryheart.enums.Manufacturer;
 import org.binaryheart.enums.Status;
 
 public record Desktop(
-                String name,
-                int ID,
-                Manufacturer manufacturer,
-                int yearReleased,
-                String notes,
-                Status currentStatus,
-                Date dateUpdated) {
+        String name,
+        Integer ID,
+        Manufacturer manufacturer,
+        Integer yearReleased,
+        String notes,
+        Status currentStatus,
+        Date dateUpdated) {
 
 }

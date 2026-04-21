@@ -6,17 +6,17 @@ import org.binaryheart.enums.StorageType;
 import org.binaryheart.enums.TypeOfDevice;
 
 public record ReadyToDonate(
-                String deviceName,
-                TypeOfDevice typeOfDevice,
-                int estimatedYear,
-                String cpu,
-                OperatingSystem os,
-                int ramAmount,
-                RamGeneration ramGeneration,
-                int storageCapacity,
-                StorageType storageType,
-                int estimatedValue,
-                String notes,
-                int ID) {
+        String deviceName,
+        TypeOfDevice typeOfDevice,
+        Integer estimatedYear,
+        String cpu,
+        OperatingSystem os,
+        Integer ramAmount,
+        RamGeneration ramGeneration,
+        Integer storageCapacity,
+        StorageType storageType,
+        Integer estimatedValue,
+        String notes,
+        Integer ID) {
 
 }

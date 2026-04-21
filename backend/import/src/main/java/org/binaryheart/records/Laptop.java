@@ -8,13 +8,13 @@ import org.binaryheart.enums.Status;
 import org.binaryheart.enums.WorkingBattery;
 
 public record Laptop(
-        String name,
-        int ID,
-        Manufacturer manufacturer,
-        int yearReleased,
-        String notes,
-        ChargerStatus hasCharger,
-        WorkingBattery hasWorkingBattery,
-        Status currentStatus,
-        Date dateUpdated) {
+                String name,
+                Integer ID,
+                Manufacturer manufacturer,
+                Integer yearReleased,
+                String notes,
+                ChargerStatus hasCharger,
+                WorkingBattery hasWorkingBattery,
+                Status currentStatus,
+                Date dateUpdated) {
 }
