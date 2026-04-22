@@ -55,8 +55,6 @@ services:
       VITE_API_TARGET: http://backend:8080
     ports:
       - "5173:5173"
-    volumes:
-      - ./frontend/src:/app/src
 
 volumes:
   postgres_data:

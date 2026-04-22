@@ -21,4 +21,5 @@
 | ----------- | ------------------------------------------------------------- |
 | Frontend    | http://localhost:5173                                         |
 | Backend API | http://localhost:8080                                         |
+| Swagger UI  | http://localhost:8080/swagger                                 |
 | Database    | `localhost:5432` — database: `inventory`, user: `binaryheart` |
