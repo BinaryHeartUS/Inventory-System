@@ -1,7 +1,5 @@
 package org.binaryheart.enums;
 
 public enum TypeOfDevice {
-    LAPTOP,
-    DESKTOP,
-    TABLET
+    LAPTOP, DESKTOP, TABLET, UNKNOWN
 }

@@ -1,6 +1,5 @@
 package org.binaryheart.enums;
 
 public enum WorkingBattery {
-    YES,
-    NO
+    YES, NO, UNKNOWN
 }

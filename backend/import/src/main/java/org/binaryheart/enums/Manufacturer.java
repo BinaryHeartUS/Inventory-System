@@ -11,7 +11,8 @@ public enum Manufacturer {
     TOSHIBA("Toshiba"),
     SAMSUNG("Samsung"),
     COOLERMASTER("Cooler Master"),
-    ZOTAC("Zotac");
+    ZOTAC("Zotac"),
+    UNKNOWN("Unknown");
 
     private final String databaseValue;
 
