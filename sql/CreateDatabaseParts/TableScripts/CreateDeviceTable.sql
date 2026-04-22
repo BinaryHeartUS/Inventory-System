@@ -1,0 +1,21 @@
+create table Device (
+ID integer primary key,
+foreign key (ID) references Asset(ID),
+Manufacturer Manufacturer NOT NULL,
+Model varchar(30) NOT NULL,
+Year integer NOT NULL,
+CHECK (Year >= 1980 AND Year <= EXTRACT(YEAR FROM CURRENT_DATE)),
+CPU varchar(30) NULL,
+RAM integer DEFAULT 0 NOT NULL,
+CHECK (RAM >= 0),
+Storage_Amount integer DEFAULT 0 NOT NULL,
+CHECK (Storage_Amount >= 0),
+Storage_Type StorageType NULL,
+Status Status NOT NULL,
+Value Integer DEFAULT 0 NOT NULL,
+CHECK (Value >= 0),
+Recipient_ID Integer NULL,
+foreign key (Recipient_ID) references Party(ID),
+Chapter_ID Integer NOT NULL,
+foreign key (Chapter_ID) references Chapter(ID)
+);

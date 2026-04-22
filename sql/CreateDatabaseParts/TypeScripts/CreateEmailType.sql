@@ -1,0 +1,1 @@
+create domain email_type as varchar(100);

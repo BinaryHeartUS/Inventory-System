@@ -1,0 +1,1 @@
+create domain name_type as varchar(50);
