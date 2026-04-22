@@ -90,7 +90,7 @@ public class ExcelReader {
                 DatabaseImporter.addReadyToDonateLaptop(item, chapterId);
             }
             case TABLET -> {
-                // DatabaseImporter.addReadyToDonateTablet(item, chapterId);
+                DatabaseImporter.addReadyToDonateTablet(item, chapterId);
             }
             default -> System.err.println("Unknown device type for Ready To Donate record: " + item.typeOfDevice());
             }

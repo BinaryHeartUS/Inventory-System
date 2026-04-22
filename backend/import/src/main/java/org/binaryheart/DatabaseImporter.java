@@ -9,6 +9,7 @@ import java.util.List;
 import org.binaryheart.enums.ChargerStatus;
 import org.binaryheart.enums.Manufacturer;
 import org.binaryheart.enums.Status;
+import org.binaryheart.enums.WorkingBattery;
 import org.binaryheart.records.Desktop;
 import org.binaryheart.records.Laptop;
 import org.binaryheart.records.ReadyToDonate;
@@ -114,6 +115,40 @@ public class DatabaseImporter {
             stmt.setNull(14, java.sql.Types.INTEGER);
             stmt.setNull(15, java.sql.Types.INTEGER);
             stmt.setNull(16, java.sql.Types.BOOLEAN);
+
+            stmt.execute();
+
+            addNote(item.notes(), LocalDate.now(), item.ID());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addReadyToDonateTablet(ReadyToDonate item, int chapterId) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall(
+                "call Insert_Tablet(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?)")) {
+            stmt.setInt(1, chapterId);
+            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(3, item.deviceName());
+            stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
+            stmt.setString(5, Status.READY_TO_DONATE.getDatabaseValue());
+            stmt.setString(6, ChargerStatus.UNKNOWN.getDatabaseValue());
+            stmt.setString(7, WorkingBattery.UNKNOWN.getDatabaseValue());
+            stmt.setInt(8, item.ID());
+            stmt.setString(9, item.cpu());
+            stmt.setInt(10, item.ramAmount());
+            stmt.setString(11, item.ramGeneration().getDatabaseValue());
+            stmt.setInt(12, item.storageCapacity());
+            stmt.setString(13, item.storageType().getDatabaseValue());
+            stmt.setDouble(14, item.estimatedValue());
+            stmt.setNull(15, java.sql.Types.DATE);
+            stmt.setNull(16, java.sql.Types.INTEGER);
+            stmt.setNull(17, java.sql.Types.INTEGER);
 
             stmt.execute();
 
