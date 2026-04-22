@@ -1,4 +1,4 @@
-package org.binaryheart.services;
+package org.binaryheart;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,7 +13,7 @@ public class DatabaseConnectionService {
 
     private static Connection connection = null;
 
-    public static boolean connect(String user, String pass) {
+    public static boolean connect() {
         try {
             connection = DriverManager.getConnection(URL, USER, PASSWORD);
             return true;
