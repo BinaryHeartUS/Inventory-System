@@ -2,8 +2,8 @@ package org.binaryheart;
 
 import java.lang.reflect.RecordComponent;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -39,7 +39,7 @@ public class SheetReader<T extends Record> {
         for (int i = 0; i < components.length; i++) {
             Cell cell = row.getCell(i);
             values[i] = getCorrectFormatFor(cell, components[i].getType());
-            if (i == 0 && values[i] == null) {
+            if (i == 0 && (values[i] == null || (values[i] instanceof String str && str.strip().equals("")))) {
                 return null;
             }
         }
@@ -69,8 +69,10 @@ public class SheetReader<T extends Record> {
             return cell.getNumericCellValue();
         if (type == boolean.class || type == Boolean.class)
             return cell.getBooleanCellValue();
-        if (type == LocalDate.class)
-            return cell.getLocalDateTimeCellValue().toLocalDate();
+        if (type == LocalDate.class) {
+            LocalDateTime ldt = cell.getLocalDateTimeCellValue();
+            return ldt == null ? null : ldt.toLocalDate();
+        }
 
         if (type.isEnum()) {
             String cellValue = cell.getStringCellValue().toUpperCase().replace(" ", "_");

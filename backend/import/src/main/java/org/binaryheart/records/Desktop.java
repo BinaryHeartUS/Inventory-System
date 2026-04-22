@@ -15,5 +15,8 @@ public record Desktop(String name, Integer ID, Manufacturer manufacturer, Intege
         if (manufacturer == null) {
             manufacturer = Manufacturer.UNKNOWN;
         }
+        if (currentStatus == null) {
+            currentStatus = Status.UNKNOWN;
+        }
     }
 }

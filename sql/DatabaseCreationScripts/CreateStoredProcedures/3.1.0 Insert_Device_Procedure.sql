@@ -1,11 +1,11 @@
 CREATE OR REPLACE PROCEDURE Insert_Device(
     IN p_Chapter_ID INTEGER,
     IN p_Manufacturer Manufacturer,
-    IN p_Model varchar(30),
+    IN p_Model varchar(50),
     IN p_Year INTEGER,
     IN p_Status Status,
     INOUT p_Asset_ID INTEGER = NULL,
-    IN p_CPU varchar(30) = NULL,
+    IN p_CPU varchar(50) = NULL,
     IN p_RAM INTEGER = 0,
     IN p_RAM_Generation Ram_Generation = NULL,
     IN p_Storage_Amount INTEGER = 0,

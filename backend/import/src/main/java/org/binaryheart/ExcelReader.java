@@ -71,6 +71,7 @@ public class ExcelReader {
 
     private static void importLaptops(Workbook workbook, int chapterId) {
         List<Laptop> laptops = getRecords("Laptops", workbook, Laptop.class);
+        DatabaseImporter.addLaptopsToDatabase(laptops, chapterId);
     }
 
     private static void importTablets(Workbook workbook, int chapterId) {
@@ -79,6 +80,20 @@ public class ExcelReader {
 
     private static void importReadyToDonate(Workbook workbook, int chapterId) {
         List<ReadyToDonate> readyToDonate = getRecords("Ready To Donate", workbook, ReadyToDonate.class);
+        for (ReadyToDonate item : readyToDonate) {
+            switch (item.typeOfDevice()) {
+            case DESKTOP -> {
+                DatabaseImporter.addReadyToDonateDesktop(item, chapterId);
+            }
+            case LAPTOP -> {
+                DatabaseImporter.addReadyToDonateLaptop(item, chapterId);
+            }
+            case TABLET -> {
+                // DatabaseImporter.addReadyToDonateTablet(item, chapterId);
+            }
+            default -> System.err.println("Unknown device type for Ready To Donate record: " + item.typeOfDevice());
+            }
+        }
     }
 
     private static void importDonated(Workbook workbook, int chapterId) {

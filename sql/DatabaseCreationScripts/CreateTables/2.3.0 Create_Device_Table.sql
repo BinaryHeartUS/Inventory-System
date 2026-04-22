@@ -5,7 +5,7 @@ create table Device (
     Model VARCHAR(50) NOT NULL,
     Year INTEGER NULL,
     CHECK (Year >= 1980 AND Year <= EXTRACT(YEAR FROM CURRENT_DATE)),
-    CPU VARCHAR(30) NULL,
+    CPU VARCHAR(50) NULL,
     RAM INTEGER DEFAULT 0 NOT NULL,
     RAM_Generation RAM_Generation NULL,
     CHECK (RAM >= 0),
