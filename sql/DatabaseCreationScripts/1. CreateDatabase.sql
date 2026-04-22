@@ -114,10 +114,8 @@ create table Device (
     Value          Integer      DEFAULT 0 NOT NULL,
     CHECK (Value >= 0),
     Recipient_ID   Integer      NULL,
-    Chapter_ID     Integer      NOT NULL,
     foreign key (ID)           references Asset(ID),
     foreign key (Recipient_ID) references Party(ID),
-    foreign key (Chapter_ID)   references Chapter(ID)
 );
 
 create table Part (
