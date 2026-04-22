@@ -3,6 +3,7 @@ package org.binaryheart;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.binaryheart.records.Desktop;
@@ -25,7 +26,25 @@ public class DatabaseImporter {
                 // Desktop's Notes string and DateUpdated are not yet read in (those would be
                 // added to the Notes table, not the Desktop table)
                 stmt.execute();
+
+                addNote(desktop.notes(), desktop.dateUpdated(), desktop.ID());
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addNote(String note, LocalDate dateUpdated, int assetID) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+
+        try (Connection conn = DatabaseConnectionService.getConnection()) {
+            CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?)");
+            stmt.setString(1, note);
+            stmt.setObject(2, dateUpdated);
+            stmt.setInt(3, assetID);
+            stmt.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }

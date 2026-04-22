@@ -26,6 +26,10 @@ public class ExcelReader {
 
             int chapterId = DatabaseImporter.addChapter("Rose-Hulman Institute of Technology");
 
+            if (!DatabaseConnectionService.isConnected()) {
+                DatabaseConnectionService.connect();
+            }
+
             importDesktops(workbook, chapterId);
             importLaptops(workbook, chapterId);
             importTablets(workbook, chapterId);

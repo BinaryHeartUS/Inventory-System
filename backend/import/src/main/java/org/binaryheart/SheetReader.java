@@ -1,6 +1,7 @@
 package org.binaryheart;
 
 import java.lang.reflect.RecordComponent;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -68,8 +69,8 @@ public class SheetReader<T extends Record> {
             return cell.getNumericCellValue();
         if (type == boolean.class || type == Boolean.class)
             return cell.getBooleanCellValue();
-        if (type == Date.class)
-            return cell.getDateCellValue();
+        if (type == LocalDate.class)
+            return cell.getLocalDateTimeCellValue().toLocalDate();
 
         if (type.isEnum()) {
             String cellValue = cell.getStringCellValue().toUpperCase().replace(" ", "_");
