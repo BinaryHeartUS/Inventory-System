@@ -14,3 +14,11 @@
    ```bash
    docker compose up
    ```
+
+## Accessing the App
+
+| Service     | URL                                                           |
+| ----------- | ------------------------------------------------------------- |
+| Frontend    | http://localhost:5173                                         |
+| Backend API | http://localhost:8080                                         |
+| Database    | `localhost:5432` — database: `inventory`, user: `binaryheart` |

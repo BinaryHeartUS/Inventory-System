@@ -10,12 +10,28 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./sql/migrations:/docker-entrypoint-initdb.d
+      - ./sql/DatabaseCreationScripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U binaryheart -d inventory"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  importer:
+    build:
+      context: ./backend
+      dockerfile: import/Dockerfile
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/inventory
+      DB_USER: binaryheart
+      DB_PASSWORD: changeme
+      IMPORT_FILE_PATH: /data/OldInventorySystem.xlsx
+    volumes:
+      - ./data:/data
 
   backend:
     build: ./backend

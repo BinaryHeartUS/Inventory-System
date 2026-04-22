@@ -15,7 +15,11 @@ import org.binaryheart.records.Tablet;
 
 public class ExcelReader {
     public static void main(String[] args) {
-        Workbook workbook = readExcelFile("data/OldInventorySystem.xlsx");
+        String filePath = System.getenv("IMPORT_FILE_PATH") != null // Check if the environment variable is set, if not
+                                                                    // use the default path
+                ? System.getenv("IMPORT_FILE_PATH")
+                : "data/OldInventorySystem.xlsx";
+        Workbook workbook = readExcelFile(filePath);
 
         List<Laptop> laptops = getRecords("Laptops", workbook, Laptop.class);
         List<Tablet> tablets = getRecords("Tablets", workbook, Tablet.class);
