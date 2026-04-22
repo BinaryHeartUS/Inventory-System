@@ -33,6 +33,9 @@ public class ExcelReader {
             importDonated(workbook, chapterId);
             importParts(workbook, chapterId);
 
+            if (DatabaseConnectionService.isConnected()) {
+                DatabaseConnectionService.closeConnection();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
