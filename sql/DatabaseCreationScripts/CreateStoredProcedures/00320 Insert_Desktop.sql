@@ -1,0 +1,27 @@
+CREATE OR REPLACE PROCEDURE Insert_Desktop(
+    IN p_Chapter_ID INTEGER,
+    IN p_Manufacturer Manufacturer,
+    IN p_Model varchar(30),
+    IN p_Year INTEGER,
+    IN p_Status Status,
+    INOUT p_Asset_ID INTEGER = NULL,
+    IN p_CPU varchar(30) = NULL,
+    IN p_RAM INTEGER = 0,
+    IN p_RAM_Generation ram_generation = NULL,
+    IN p_Storage_Amount INTEGER = 0,
+    IN p_Storage_Type StorageType = NULL,
+    IN p_Value MONEY DEFAULT '0',
+    IN p_Aquisition_Date DATE = NULL,
+    IN p_Recipient_ID INTEGER = NULL,
+    IN p_Donor_ID INTEGER = NULL,
+    IN p_HasWifi boolean = NULL
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    CALL Insert_Device(p_Chapter_ID, p_Manufacturer, p_Model, p_Year, p_Status, p_Asset_ID, p_CPU, p_RAM, p_RAM_Generation, p_Storage_Amount, p_Storage_Type, p_Value, p_Aquisition_Date, p_Recipient_ID, p_Donor_ID);
+
+    INSERT INTO Desktop(ID, HasWifi)
+    VALUES (p_Asset_ID, p_HasWifi);
+END;
+$$;

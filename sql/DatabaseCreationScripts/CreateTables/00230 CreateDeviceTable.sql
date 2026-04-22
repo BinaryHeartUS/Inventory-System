@@ -13,7 +13,6 @@ Storage_Amount integer DEFAULT 0 NOT NULL,
 CHECK (Storage_Amount >= 0),
 Storage_Type StorageType NULL,
 Status Status NOT NULL,
-CHECK (Value >= 0),
 Recipient_ID Integer NULL,
 foreign key (Recipient_ID) references Party(ID)
 );
