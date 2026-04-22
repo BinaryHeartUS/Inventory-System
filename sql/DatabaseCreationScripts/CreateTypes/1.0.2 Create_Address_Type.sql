@@ -1,4 +1,4 @@
-create type address as (
+CREATE TYPE Address AS (
     street VARCHAR(100),
     city VARCHAR(50),
     state VARCHAR(50),

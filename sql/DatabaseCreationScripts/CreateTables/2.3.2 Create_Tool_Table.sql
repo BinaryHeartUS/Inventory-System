@@ -1,0 +1,5 @@
+create table Tool (
+    ID INTEGER NOT NULL PRIMARY KEY,
+    Type VARCHAR(20) NOT NULL,
+    FOREIGN KEY (ID) REFERENCES Asset(ID)
+);
