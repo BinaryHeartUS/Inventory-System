@@ -1,2 +1,2 @@
 create type StorageType
-as enum ('SSD', 'HDD');
+as enum ('SSD', 'HDD', 'Flash Storage', 'Unknown');

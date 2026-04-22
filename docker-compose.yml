@@ -20,8 +20,8 @@ services:
 
   importer:
     build:
-      context: ./backend
-      dockerfile: import/Dockerfile
+      context: .
+      dockerfile: backend/import/Dockerfile
     restart: "no"
     depends_on:
       db:
@@ -31,8 +31,6 @@ services:
       DB_USER: importer
       DB_PASSWORD: changeme_importer
       IMPORT_FILE_PATH: /data/OldInventorySystem.xlsx
-    volumes:
-      - ./data:/data
 
   backend:
     build: ./backend
