@@ -38,6 +38,9 @@ as enum ('Not Started', 'In Progress', 'Ready to Donate', 'Donated');
 create type StorageType
 as enum ('SSD', 'HDD');
 
+create type ram_generation
+as enum ('DDR2', 'DDR3', 'DDR4', 'DDR5');
+
 
 -- ------------------------------------------------------------
 -- BASE TABLES (no foreign-key dependencies on other tables)
@@ -107,11 +110,11 @@ create table Device (
     CPU            varchar(30)  NULL,
     RAM            integer      DEFAULT 0 NOT NULL,
     CHECK (RAM >= 0),
+    RAM_Generation ram_generation NULL,
     Storage_Amount integer      DEFAULT 0 NOT NULL,
     CHECK (Storage_Amount >= 0),
     Storage_Type   StorageType  NULL,
     Status         Status       NOT NULL,
-    Value          Integer      DEFAULT 0 NOT NULL,
     CHECK (Value >= 0),
     Recipient_ID   Integer      NULL,
     foreign key (ID)           references Asset(ID),
