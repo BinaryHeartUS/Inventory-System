@@ -104,7 +104,7 @@ create table Asset (
 create table Device (
     ID             integer     primary key,
     Manufacturer   Manufacturer NOT NULL,
-    Model          varchar(30)  NOT NULL,
+    Model          varchar(50)  NOT NULL,
     Year           integer      NOT NULL,
     CHECK (Year >= 1980 AND Year <= EXTRACT(YEAR FROM CURRENT_DATE)),
     CPU            varchar(30)  NULL,
