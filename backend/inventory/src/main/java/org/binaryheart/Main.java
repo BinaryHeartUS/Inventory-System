@@ -4,9 +4,8 @@ import io.javalin.Javalin;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 
-import org.binaryheart.controllers.DataRetrievalController;
+import org.binaryheart.controllers.DeviceCountController;
 import org.binaryheart.controllers.HealthController;
-import org.binaryheart.controllers.TableAdditionController;
 
 import static io.javalin.apibuilder.ApiBuilder.path;
 
@@ -21,8 +20,7 @@ public class Main {
             config.registerPlugin(new SwaggerPlugin());
             config.routes.apiBuilder(() -> {
                 path("/api", HealthController::registerRoutes);
-                path("/tables", TableAdditionController::registerRoutes);
-                path("/tables", DataRetrievalController::registerRoutes);
+                path("/api/devices", DeviceCountController::registerRoutes);
             });
         }).start(8080);
     }
