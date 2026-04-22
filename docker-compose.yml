@@ -28,8 +28,8 @@ services:
         condition: service_healthy
     environment:
       DB_URL: jdbc:postgresql://db:5432/inventory
-      DB_USER: binaryheart
-      DB_PASSWORD: changeme
+      DB_USER: importer
+      DB_PASSWORD: changeme_importer
       IMPORT_FILE_PATH: /data/OldInventorySystem.xlsx
     volumes:
       - ./data:/data
