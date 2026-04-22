@@ -1,22 +1,41 @@
 package org.binaryheart.controllers;
 
 import io.javalin.http.Context;
+import io.javalin.openapi.*;
+import org.binaryheart.services.HealthService;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 
 public class HealthController {
+
+    private static final HealthService service = new HealthService();
 
     public static void registerRoutes() {
         get("/health", HealthController::health);
         get("/ping", HealthController::ping);
     }
 
+    @OpenApi(
+            path = "/api/health",
+            methods = { HttpMethod.GET },
+            tags = { "Health" },
+            summary = "Health check",
+            responses = { @OpenApiResponse(
+                    status = "200",
+                    description = "Service is up") })
     public static void health(Context ctx) {
-        ctx.result("OK");
+        ctx.result(service.health());
     }
 
+    @OpenApi(
+            path = "/api/ping",
+            methods = { HttpMethod.GET },
+            tags = { "Health" },
+            summary = "Ping",
+            responses = { @OpenApiResponse(
+                    status = "200",
+                    description = "Returns pong") })
     public static void ping(Context ctx) {
-        System.out.println("Ping received from frontend!");
-        ctx.result("pong");
+        ctx.result(service.ping());
     }
 }
