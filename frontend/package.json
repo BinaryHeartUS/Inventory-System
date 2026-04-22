@@ -4,11 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run generate-types && vite",
-    "build": "npm run generate-types && tsc -b && vite build",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "generate-types": "openapi-typescript ../backend/inventory/target/classes/openapi-plugin/openapi-default.json -o src/types/api.generated.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
@@ -27,7 +26,6 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
-    "openapi-typescript": "^7.13.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.9"
