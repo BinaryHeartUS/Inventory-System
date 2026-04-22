@@ -13,5 +13,4 @@ public record Desktop(
         String notes,
         Status currentStatus,
         Date dateUpdated) {
-
 }
