@@ -24,11 +24,11 @@ public class ExcelReader {
                 return;
             }
 
-            int chapterId = DatabaseImporter.addChapter("Rose-Hulman Institute of Technology");
-
             if (!DatabaseConnectionService.isConnected()) {
                 DatabaseConnectionService.connect();
             }
+
+            int chapterId = DatabaseImporter.addChapter("Rose-Hulman Institute of Technology");
 
             importDesktops(workbook, chapterId);
             importLaptops(workbook, chapterId);

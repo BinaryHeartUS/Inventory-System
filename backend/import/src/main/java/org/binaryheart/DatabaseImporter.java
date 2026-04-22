@@ -14,8 +14,8 @@ public class DatabaseImporter {
             DatabaseConnectionService.connect();
         }
 
-        try (Connection conn = DatabaseConnectionService.getConnection()) {
-            CallableStatement stmt = conn.prepareCall("call Insert_Desktop(?, ?::Manufacturer, ?, ?, ?::Status, ?)");
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Desktop(?, ?::Manufacturer, ?, ?, ?::Status, ?)")) {
             for (Desktop desktop : desktops) {
                 stmt.setInt(1, chapterID);
                 stmt.setString(2, desktop.manufacturer().getDatabaseValue());
@@ -39,8 +39,8 @@ public class DatabaseImporter {
             DatabaseConnectionService.connect();
         }
 
-        try (Connection conn = DatabaseConnectionService.getConnection()) {
-            CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?)");
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?)")) {
             stmt.setString(1, note);
             stmt.setObject(2, dateUpdated);
             stmt.setInt(3, assetID);
@@ -54,8 +54,8 @@ public class DatabaseImporter {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
-        try (Connection conn = DatabaseConnectionService.getConnection()) {
-            CallableStatement stmt = conn.prepareCall("call Insert_Chapter(?, ?)");
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Chapter(?, ?)")) {
             stmt.setString(1, chapterName);
             stmt.registerOutParameter(2, java.sql.Types.INTEGER);
             stmt.execute();
