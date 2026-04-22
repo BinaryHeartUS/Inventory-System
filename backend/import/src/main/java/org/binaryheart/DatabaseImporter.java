@@ -12,6 +12,7 @@ import org.binaryheart.enums.Status;
 import org.binaryheart.records.Desktop;
 import org.binaryheart.records.Laptop;
 import org.binaryheart.records.ReadyToDonate;
+import org.binaryheart.records.Tablet;
 
 public class DatabaseImporter {
     public static void addDesktopsToDatabase(List<Desktop> desktops, int chapterID) {
@@ -57,6 +58,32 @@ public class DatabaseImporter {
                 stmt.execute();
 
                 addNote(laptop.notes(), laptop.dateUpdated(), laptop.ID());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addTabletsToDatabase(List<Tablet> tablets, int chapterID) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall(
+                "call Insert_Tablet(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?)")) {
+            for (Tablet tablet : tablets) {
+                stmt.setInt(1, chapterID);
+                stmt.setString(2, tablet.manufacturer().getDatabaseValue());
+                stmt.setString(3, tablet.name());
+                stmt.setObject(4, tablet.yearReleased(), java.sql.Types.INTEGER);
+                stmt.setString(5, tablet.currentStatus().getDatabaseValue());
+                stmt.setString(6, tablet.chargerIncluded().getDatabaseValue());
+                stmt.setString(7, tablet.workingBattery().getDatabaseValue());
+                stmt.setInt(8, tablet.ID());
+                stmt.execute();
+
+                addNote(tablet.notes(), tablet.dateUpdated(), tablet.ID());
             }
         } catch (SQLException e) {
             e.printStackTrace();

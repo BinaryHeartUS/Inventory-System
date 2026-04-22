@@ -76,6 +76,7 @@ public class ExcelReader {
 
     private static void importTablets(Workbook workbook, int chapterId) {
         List<Tablet> tablets = getRecords("Tablets", workbook, Tablet.class);
+        DatabaseImporter.addTabletsToDatabase(tablets, chapterId);
     }
 
     private static void importReadyToDonate(Workbook workbook, int chapterId) {

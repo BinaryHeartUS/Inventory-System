@@ -1,6 +1,6 @@
 create table Tablet (
     ID INTEGER PRIMARY KEY,
     FOREIGN KEY (ID) REFERENCES Device(ID),
-    Includes_charger BOOLEAN NOT NULL,
-    Has_Cellular BOOLEAN NOT NULL
+    Includes_Charger Charger_Status NOT NULL,
+    Working_Battery Working_Battery NOT NULL
 );
