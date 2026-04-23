@@ -93,7 +93,18 @@ public class DeviceController {
                                       "manufacturer": "DELL",
                                       "model": "Optiplex 7010",
                                       "year": 2022,
-                                      "status": "NOT_STARTED"
+                                      "status": "NOT_STARTED",
+                                      "assetId": null,
+                                      "cpu": null,
+                                      "ram": null,
+                                      "ramGeneration": null,
+                                      "storageAmount": null,
+                                      "storageType": null,
+                                      "value": null,
+                                      "acquisitionDate": null,
+                                      "recipientId": null,
+                                      "donorId": null,
+                                      "hasWifi": null
                                     }""") }),
             responses = { @OpenApiResponse(
                     status = "201",
