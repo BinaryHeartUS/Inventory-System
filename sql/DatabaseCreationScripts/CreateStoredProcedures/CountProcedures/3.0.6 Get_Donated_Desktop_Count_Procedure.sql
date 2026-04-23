@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE Get_Tablet_Count(
+CREATE OR REPLACE PROCEDURE Get_Donated_Desktop_Count(
     OUT p_count INTEGER
 )
 LANGUAGE plpgsql
