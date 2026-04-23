@@ -338,8 +338,7 @@ public class DatabaseImporter {
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn
                 .prepareCall("call Insert_Part(?, ?, ?::Part_Type, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
-            // NEED TO ACTUALLY SET PARAMETERS HERE
-            stmt.execute();
+            // NEED TO ACTUALLY SET PARAMETERS AND EXECUTE SQL HERE
         } catch (SQLException e) {
             e.printStackTrace();
         }
