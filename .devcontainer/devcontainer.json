@@ -24,6 +24,5 @@
       }
     }
   },
-  "postCreateCommand": "sudo usermod -aG docker $(whoami) && cd frontend && npm install",
-  "forwardPorts": [5173, 8080, 5432]
+  "postCreateCommand": "sudo usermod -aG docker $(whoami) && cd frontend && npm install"
 }
