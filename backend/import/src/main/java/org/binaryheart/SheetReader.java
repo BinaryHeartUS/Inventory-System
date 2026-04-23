@@ -94,6 +94,8 @@ public class SheetReader<T extends Record> {
                 return ChargerStatus.valueOf(cellValue);
             if (type == WorkingBattery.class)
                 return WorkingBattery.valueOf(cellValue);
+            if (type == PartType.class)
+                return PartType.valueOf(cellValue);
         }
 
         throw new IllegalArgumentException("Unsupported data type: " + type);

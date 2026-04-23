@@ -16,6 +16,6 @@ BEGIN
     CALL Insert_Asset(p_Chapter_ID, p_Part_ID, p_Acquisition_Date, p_Value, p_Donor_ID);
 
     INSERT INTO Part(ID, Type, Description, Was_Purchased, Contained_In)
-    VALUES (p_Part_ID, p_Type, p_Description, p_Was_Purchased, p_Contained_In)
+    VALUES (p_Part_ID, p_Type, p_Description, p_Was_Purchased, p_Contained_In);
 END;
 $$;
