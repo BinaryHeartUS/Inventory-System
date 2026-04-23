@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.binaryheart.enums.ChargerStatus;
-import org.binaryheart.enums.Manufacturer;
 import org.binaryheart.enums.Status;
 import org.binaryheart.enums.WorkingBattery;
 import org.binaryheart.records.Desktop;
@@ -24,10 +23,10 @@ public class DatabaseImporter {
         }
 
         Connection conn = DatabaseConnectionService.getConnection();
-        try (CallableStatement stmt = conn.prepareCall("call Insert_Desktop(?, ?::Manufacturer, ?, ?, ?::Status, ?)")) {
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Desktop(?, ?, ?, ?, ?::Status, ?)")) {
             for (Desktop desktop : desktops) {
                 stmt.setInt(1, chapterID);
-                stmt.setString(2, desktop.manufacturer().getDatabaseValue());
+                stmt.setString(2, desktop.manufacturer());
                 stmt.setString(3, desktop.name());
                 stmt.setObject(4, desktop.yearReleased(), java.sql.Types.INTEGER);
                 stmt.setString(5, desktop.currentStatus().getDatabaseValue());
@@ -49,10 +48,10 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn
-                .prepareCall("call Insert_Laptop(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?)")) {
+                .prepareCall("call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?)")) {
             for (Laptop laptop : laptops) {
                 stmt.setInt(1, chapterID);
-                stmt.setString(2, laptop.manufacturer().getDatabaseValue());
+                stmt.setString(2, laptop.manufacturer());
                 stmt.setString(3, laptop.name());
                 stmt.setObject(4, laptop.yearReleased(), java.sql.Types.INTEGER);
                 stmt.setString(5, laptop.currentStatus().getDatabaseValue());
@@ -73,11 +72,11 @@ public class DatabaseImporter {
         }
 
         Connection conn = DatabaseConnectionService.getConnection();
-        try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Tablet(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?)")) {
+        try (CallableStatement stmt = conn
+                .prepareCall("call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?)")) {
             for (Tablet tablet : tablets) {
                 stmt.setInt(1, chapterID);
-                stmt.setString(2, tablet.manufacturer().getDatabaseValue());
+                stmt.setString(2, tablet.manufacturer());
                 stmt.setString(3, tablet.name());
                 stmt.setObject(4, tablet.yearReleased(), java.sql.Types.INTEGER);
                 stmt.setString(5, tablet.currentStatus().getDatabaseValue());
@@ -100,18 +99,18 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Desktop(?, ?::Manufacturer, ?, ?, ?::Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?)")) {
+                "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
-            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(2, "Unknown");
             stmt.setString(3, item.deviceName());
             stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
             stmt.setString(5, Status.READY_TO_DONATE.getDatabaseValue());
             stmt.setInt(6, item.ID());
             stmt.setString(7, item.cpu());
             stmt.setInt(8, item.ramAmount());
-            stmt.setString(9, item.ramGeneration().getDatabaseValue());
+            stmt.setString(9, item.ramGeneration());
             stmt.setInt(10, item.storageCapacity());
-            stmt.setString(11, item.storageType().getDatabaseValue());
+            stmt.setString(11, item.storageType());
             stmt.setDouble(12, item.estimatedValue());
             stmt.setNull(13, java.sql.Types.DATE);
             stmt.setNull(14, java.sql.Types.INTEGER);
@@ -133,9 +132,9 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Tablet(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?)")) {
+                "call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
-            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(2, "Unknown");
             stmt.setString(3, item.deviceName());
             stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
             stmt.setString(5, Status.READY_TO_DONATE.getDatabaseValue());
@@ -144,9 +143,9 @@ public class DatabaseImporter {
             stmt.setInt(8, item.ID());
             stmt.setString(9, item.cpu());
             stmt.setInt(10, item.ramAmount());
-            stmt.setString(11, item.ramGeneration().getDatabaseValue());
+            stmt.setString(11, item.ramGeneration());
             stmt.setInt(12, item.storageCapacity());
-            stmt.setString(13, item.storageType().getDatabaseValue());
+            stmt.setString(13, item.storageType());
             stmt.setDouble(14, item.estimatedValue());
             stmt.setNull(15, java.sql.Types.DATE);
             stmt.setNull(16, java.sql.Types.INTEGER);
@@ -167,9 +166,9 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Laptop(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
+                "call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
-            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(2, "Unknown");
             stmt.setString(3, item.deviceName());
             stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
             stmt.setString(5, Status.READY_TO_DONATE.getDatabaseValue());
@@ -177,9 +176,9 @@ public class DatabaseImporter {
             stmt.setInt(7, item.ID());
             stmt.setString(8, item.cpu());
             stmt.setInt(9, item.ramAmount());
-            stmt.setString(10, item.ramGeneration().getDatabaseValue());
+            stmt.setString(10, item.ramGeneration());
             stmt.setInt(11, item.storageCapacity());
-            stmt.setString(12, item.storageType().getDatabaseValue());
+            stmt.setString(12, item.storageType());
             stmt.setDouble(13, item.estimatedValue());
             stmt.setNull(14, java.sql.Types.DATE);
             stmt.setNull(15, java.sql.Types.INTEGER);
@@ -202,9 +201,9 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Desktop(?, ?::Manufacturer, ?, ?, ?::Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?)")) {
+                "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
-            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(2, "Unknown");
             stmt.setString(3, item.deviceName());
             stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
             stmt.setString(5, Status.DONATED.getDatabaseValue());
@@ -212,9 +211,9 @@ public class DatabaseImporter {
             stmt.registerOutParameter(6, java.sql.Types.INTEGER);
             stmt.setString(7, item.cpu());
             stmt.setInt(8, item.ramAmount());
-            stmt.setString(9, item.ramGeneration().getDatabaseValue());
+            stmt.setString(9, item.ramGeneration());
             stmt.setInt(10, item.storageCapacity());
-            stmt.setString(11, item.storageType().getDatabaseValue());
+            stmt.setString(11, item.storageType());
             stmt.setDouble(12, item.estimatedValue());
             stmt.setNull(13, java.sql.Types.DATE);
             stmt.setNull(14, java.sql.Types.INTEGER);
@@ -236,9 +235,9 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Tablet(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?)")) {
+                "call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
-            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(2, "Unknown");
             stmt.setString(3, item.deviceName());
             stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
             stmt.setString(5, Status.DONATED.getDatabaseValue());
@@ -248,9 +247,9 @@ public class DatabaseImporter {
             stmt.registerOutParameter(8, java.sql.Types.INTEGER);
             stmt.setString(9, item.cpu());
             stmt.setInt(10, item.ramAmount());
-            stmt.setString(11, item.ramGeneration().getDatabaseValue());
+            stmt.setString(11, item.ramGeneration());
             stmt.setInt(12, item.storageCapacity());
-            stmt.setString(13, item.storageType().getDatabaseValue());
+            stmt.setString(13, item.storageType());
             stmt.setDouble(14, item.estimatedValue());
             stmt.setNull(15, java.sql.Types.DATE);
             stmt.setNull(16, java.sql.Types.INTEGER);
@@ -271,9 +270,9 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Laptop(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
+                "call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
-            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(2, "Unknown");
             stmt.setString(3, item.deviceName());
             stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
             stmt.setString(5, Status.DONATED.getDatabaseValue());
@@ -282,9 +281,9 @@ public class DatabaseImporter {
             stmt.registerOutParameter(7, java.sql.Types.INTEGER);
             stmt.setString(8, item.cpu());
             stmt.setInt(9, item.ramAmount());
-            stmt.setString(10, item.ramGeneration().getDatabaseValue());
+            stmt.setString(10, item.ramGeneration());
             stmt.setInt(11, item.storageCapacity());
-            stmt.setString(12, item.storageType().getDatabaseValue());
+            stmt.setString(12, item.storageType());
             stmt.setDouble(13, item.estimatedValue());
             stmt.setNull(14, java.sql.Types.DATE);
             stmt.setNull(15, java.sql.Types.INTEGER);
@@ -337,13 +336,12 @@ public class DatabaseImporter {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        try (CallableStatement stmt = conn
-                .prepareCall("call Insert_Part(?, ?, ?::Part_Type, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
             for (Part part : parts) {
                 for (int i = 0; i < part.quantity(); i++) {
                     stmt.setInt(1, chapterID);
                     stmt.setNull(2, java.sql.Types.INTEGER);
-                    stmt.setString(3, part.type().getDatabaseValue());
+                    stmt.setString(3, part.type());
                     stmt.setString(4, part.description());
                     stmt.setBoolean(5, part.wasDonated().equals("N"));
                     stmt.setNull(6, java.sql.Types.INTEGER);

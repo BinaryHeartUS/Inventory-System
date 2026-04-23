@@ -1,13 +1,11 @@
 package org.binaryheart.records;
 
 import org.binaryheart.enums.OperatingSystem;
-import org.binaryheart.enums.RamGeneration;
-import org.binaryheart.enums.StorageType;
 import org.binaryheart.enums.TypeOfDevice;
 
 public record ReadyToDonate(String deviceName, TypeOfDevice typeOfDevice, Integer estimatedYear, String cpu,
-        OperatingSystem os, Integer ramAmount, RamGeneration ramGeneration, Integer storageCapacity,
-        StorageType storageType, Integer estimatedValue, String notes, Integer ID) {
+        OperatingSystem os, Integer ramAmount, String ramGeneration, Integer storageCapacity, String storageType,
+        Integer estimatedValue, String notes, Integer ID) {
     public ReadyToDonate {
         if (deviceName == null || deviceName.strip().equals("")) {
             throw new IllegalArgumentException("Device name cannot be null");
@@ -22,10 +20,10 @@ public record ReadyToDonate(String deviceName, TypeOfDevice typeOfDevice, Intege
             os = OperatingSystem.UNKNOWN;
         }
         if (ramGeneration == null) {
-            ramGeneration = RamGeneration.UNKNOWN;
+            ramGeneration = "Unknown";
         }
         if (storageType == null) {
-            storageType = StorageType.UNKNOWN;
+            storageType = "Unknown";
         }
     }
 }

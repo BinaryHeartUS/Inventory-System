@@ -63,9 +63,9 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Insert_Desktop(?, ?::Manufacturer, ?, ?, ?::Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?)");
+                "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
-        stmt.setString(2, request.manufacturer().getDatabaseValue());
+        stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
         stmt.setInt(4, request.year());
         stmt.setString(5, request.status().getDatabaseValue());
@@ -85,7 +85,7 @@ public class DeviceRepository {
             stmt.setInt(8, 0);
         }
         if (request.ramGeneration() != null) {
-            stmt.setString(9, request.ramGeneration().getDatabaseValue());
+            stmt.setString(9, request.ramGeneration());
         } else {
             stmt.setNull(9, java.sql.Types.VARCHAR);
         }
@@ -95,7 +95,7 @@ public class DeviceRepository {
             stmt.setInt(10, 0);
         }
         if (request.storageType() != null) {
-            stmt.setString(11, request.storageType().getDatabaseValue());
+            stmt.setString(11, request.storageType());
         } else {
             stmt.setNull(11, java.sql.Types.VARCHAR);
         }
@@ -133,9 +133,9 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Insert_Laptop(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?, ?)");
+                "call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
-        stmt.setString(2, request.manufacturer().getDatabaseValue());
+        stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
         stmt.setInt(4, request.year());
         stmt.setString(5, request.status().getDatabaseValue());
@@ -156,7 +156,7 @@ public class DeviceRepository {
             stmt.setInt(9, 0);
         }
         if (request.ramGeneration() != null) {
-            stmt.setString(10, request.ramGeneration().getDatabaseValue());
+            stmt.setString(10, request.ramGeneration());
         } else {
             stmt.setNull(10, java.sql.Types.VARCHAR);
         }
@@ -166,7 +166,7 @@ public class DeviceRepository {
             stmt.setInt(11, 0);
         }
         if (request.storageType() != null) {
-            stmt.setString(12, request.storageType().getDatabaseValue());
+            stmt.setString(12, request.storageType());
         } else {
             stmt.setNull(12, java.sql.Types.VARCHAR);
         }

@@ -123,8 +123,8 @@ public class DeviceController {
     public static void insertDesktop(Context ctx) {
         InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 
-        if (request.chapterId() == 0 || request.manufacturer() == null || request.model() == null || request.year() == 0
-                || request.status() == null) {
+        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
+                || request.model() == null || request.year() == 0 || request.status() == null) {
             ctx.status(400).result("Missing required parameters");
             return;
         }
@@ -205,8 +205,9 @@ public class DeviceController {
     public static void insertLaptop(Context ctx) {
         InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
 
-        if (request.chapterId() == 0 || request.manufacturer() == null || request.model() == null || request.year() == 0
-                || request.status() == null || request.includesCharger() == null) {
+        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
+                || request.model() == null || request.year() == 0 || request.status() == null
+                || request.includesCharger() == null) {
             ctx.status(400).result("Missing required parameters");
             return;
         }

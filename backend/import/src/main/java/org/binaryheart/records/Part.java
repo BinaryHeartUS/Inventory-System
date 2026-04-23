@@ -1,11 +1,9 @@
 package org.binaryheart.records;
 
-import org.binaryheart.enums.PartType;
-
-public record Part(PartType type, String description, Integer quantity, String wasDonated, Double value) {
+public record Part(String type, String description, Integer quantity, String wasDonated, Double value) {
     public Part {
         if (type == null) {
-            type = PartType.OTHER;
+            type = "Other";
         }
         if (description == null)
             description = "";

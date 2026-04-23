@@ -2,10 +2,9 @@ package org.binaryheart.records;
 
 import java.time.LocalDate;
 
-import org.binaryheart.enums.Manufacturer;
 import org.binaryheart.enums.Status;
 
-public record Desktop(String name, Integer ID, Manufacturer manufacturer, Integer yearReleased, String notes,
+public record Desktop(String name, Integer ID, String manufacturer, Integer yearReleased, String notes,
         Status currentStatus, LocalDate dateUpdated) {
 
     public Desktop {
@@ -13,7 +12,7 @@ public record Desktop(String name, Integer ID, Manufacturer manufacturer, Intege
             throw new IllegalArgumentException("Name cannot be null");
         }
         if (manufacturer == null) {
-            manufacturer = Manufacturer.UNKNOWN;
+            manufacturer = "Unknown";
         }
         if (currentStatus == null) {
             currentStatus = Status.UNKNOWN;

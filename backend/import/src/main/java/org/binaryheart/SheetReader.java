@@ -78,24 +78,16 @@ public class SheetReader<T extends Record> {
             String cellValue = cell.getStringCellValue().toUpperCase().replace(" ", "_");
             if (cellValue.isEmpty())
                 return null;
-            if (type == Manufacturer.class)
-                return Manufacturer.valueOf(cellValue);
             if (type == OperatingSystem.class)
                 return OperatingSystem.valueOf(cellValue);
             if (type == Status.class)
                 return Status.valueOf(cellValue);
-            if (type == RamGeneration.class)
-                return RamGeneration.valueOf(cellValue);
-            if (type == StorageType.class)
-                return StorageType.valueOf(cellValue);
             if (type == TypeOfDevice.class)
                 return TypeOfDevice.valueOf(cellValue);
             if (type == ChargerStatus.class)
                 return ChargerStatus.valueOf(cellValue);
             if (type == WorkingBattery.class)
                 return WorkingBattery.valueOf(cellValue);
-            if (type == PartType.class)
-                return PartType.valueOf(cellValue);
         }
 
         throw new IllegalArgumentException("Unsupported data type: " + type);
