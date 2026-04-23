@@ -5,7 +5,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     SELECT COUNT(*) INTO p_count 
-    FROM Tablet d
+    FROM Desktop d
     JOIN Device ON d.ID = Device.ID
     WHERE Device.status = 'Ready To Donate';
 END;
