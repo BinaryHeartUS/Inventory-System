@@ -99,6 +99,20 @@ public class ExcelReader {
 
     private static void importDonated(Workbook workbook, int chapterId) {
         List<Donated> donated = getRecords("Donated", workbook, Donated.class);
+        for (Donated item : donated) {
+            switch (item.typeOfDevice()) {
+            case DESKTOP -> {
+                DatabaseImporter.addDonatedDesktop(item, chapterId);
+            }
+            case LAPTOP -> {
+                DatabaseImporter.addDonatedLaptop(item, chapterId);
+            }
+            case TABLET -> {
+                DatabaseImporter.addDonatedTablet(item, chapterId);
+            }
+            default -> System.err.println("Unknown device type for Donated record: " + item.typeOfDevice());
+            }
+        }
     }
 
     private static void importParts(Workbook workbook, int chapterId) {

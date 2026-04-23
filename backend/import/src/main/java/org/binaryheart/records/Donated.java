@@ -7,12 +7,12 @@ import org.binaryheart.enums.RamGeneration;
 import org.binaryheart.enums.StorageType;
 import org.binaryheart.enums.TypeOfDevice;
 
-public record Donated(String name, TypeOfDevice typeOfDevice, Integer estimatedYear, String cpu, OperatingSystem os,
-        Integer ramAmount, RamGeneration ramGeneration, Integer storageCapacity, StorageType storageType,
-        Integer estimatedValue, String notes, LocalDate dateDonated, String recipient) {
+public record Donated(String deviceName, TypeOfDevice typeOfDevice, Integer estimatedYear, String cpu,
+        OperatingSystem os, Integer ramAmount, RamGeneration ramGeneration, Integer storageCapacity,
+        StorageType storageType, Integer estimatedValue, String notes, LocalDate dateDonated, String recipient) {
     public Donated {
-        if (name == null || name.strip().equals("")) {
-            throw new IllegalArgumentException("Name cannot be null");
+        if (deviceName == null || deviceName.strip().equals("")) {
+            throw new IllegalArgumentException("Device name cannot be null");
         }
         if (typeOfDevice == null) {
             throw new IllegalArgumentException("Type of device cannot be null");

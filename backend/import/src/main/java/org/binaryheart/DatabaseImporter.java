@@ -14,6 +14,7 @@ import org.binaryheart.records.Desktop;
 import org.binaryheart.records.Laptop;
 import org.binaryheart.records.ReadyToDonate;
 import org.binaryheart.records.Tablet;
+import org.binaryheart.records.Donated;
 
 public class DatabaseImporter {
     public static void addDesktopsToDatabase(List<Desktop> desktops, int chapterID) {
@@ -188,6 +189,111 @@ public class DatabaseImporter {
             stmt.execute();
 
             addNote(item.notes(), LocalDate.now(), item.ID());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addDonatedDesktop(Donated item, int chapterId) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall(
+                "call Insert_Desktop(?, ?::Manufacturer, ?, ?, ?::Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?)")) {
+            stmt.setInt(1, chapterId);
+            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(3, item.deviceName());
+            stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
+            stmt.setString(5, Status.DONATED.getDatabaseValue());
+            stmt.setNull(6, java.sql.Types.INTEGER);
+            stmt.registerOutParameter(6, java.sql.Types.INTEGER);
+            stmt.setString(7, item.cpu());
+            stmt.setInt(8, item.ramAmount());
+            stmt.setString(9, item.ramGeneration().getDatabaseValue());
+            stmt.setInt(10, item.storageCapacity());
+            stmt.setString(11, item.storageType().getDatabaseValue());
+            stmt.setDouble(12, item.estimatedValue());
+            stmt.setNull(13, java.sql.Types.DATE);
+            stmt.setNull(14, java.sql.Types.INTEGER);
+            stmt.setNull(15, java.sql.Types.INTEGER);
+            stmt.setNull(16, java.sql.Types.BOOLEAN);
+
+            stmt.execute();
+
+            addNote(item.notes(), LocalDate.now(), stmt.getInt(6));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addDonatedTablet(Donated item, int chapterId) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall(
+                "call Insert_Tablet(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?)")) {
+            stmt.setInt(1, chapterId);
+            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(3, item.deviceName());
+            stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
+            stmt.setString(5, Status.DONATED.getDatabaseValue());
+            stmt.setString(6, ChargerStatus.UNKNOWN.getDatabaseValue());
+            stmt.setString(7, WorkingBattery.UNKNOWN.getDatabaseValue());
+            stmt.setNull(8, java.sql.Types.INTEGER);
+            stmt.registerOutParameter(8, java.sql.Types.INTEGER);
+            stmt.setString(9, item.cpu());
+            stmt.setInt(10, item.ramAmount());
+            stmt.setString(11, item.ramGeneration().getDatabaseValue());
+            stmt.setInt(12, item.storageCapacity());
+            stmt.setString(13, item.storageType().getDatabaseValue());
+            stmt.setDouble(14, item.estimatedValue());
+            stmt.setNull(15, java.sql.Types.DATE);
+            stmt.setNull(16, java.sql.Types.INTEGER);
+            stmt.setNull(17, java.sql.Types.INTEGER);
+
+            stmt.execute();
+
+            addNote(item.notes(), LocalDate.now(), stmt.getInt(8));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addDonatedLaptop(Donated item, int chapterId) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall(
+                "call Insert_Laptop(?, ?::Manufacturer, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?::Ram_Generation, ?, ?::Storage_Type, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
+            stmt.setInt(1, chapterId);
+            stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
+            stmt.setString(3, item.deviceName());
+            stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
+            stmt.setString(5, Status.READY_TO_DONATE.getDatabaseValue());
+            stmt.setString(6, ChargerStatus.UNKNOWN.getDatabaseValue());
+            stmt.setNull(7, java.sql.Types.INTEGER);
+            stmt.registerOutParameter(7, java.sql.Types.INTEGER);
+            stmt.setString(8, item.cpu());
+            stmt.setInt(9, item.ramAmount());
+            stmt.setString(10, item.ramGeneration().getDatabaseValue());
+            stmt.setInt(11, item.storageCapacity());
+            stmt.setString(12, item.storageType().getDatabaseValue());
+            stmt.setDouble(13, item.estimatedValue());
+            stmt.setNull(14, java.sql.Types.DATE);
+            stmt.setNull(15, java.sql.Types.INTEGER);
+            stmt.setNull(16, java.sql.Types.INTEGER);
+            stmt.setNull(17, java.sql.Types.INTEGER);
+            stmt.setNull(18, java.sql.Types.INTEGER);
+
+            stmt.execute();
+
+            addNote(item.notes(), LocalDate.now(), stmt.getInt(7));
         } catch (SQLException e) {
             e.printStackTrace();
         }
