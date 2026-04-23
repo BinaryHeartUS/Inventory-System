@@ -12,5 +12,4 @@ public enum TypeOfDevice {
     public String getDatabaseValue() {
         return databaseValue;
     }
-
 }

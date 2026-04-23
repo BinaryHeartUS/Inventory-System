@@ -1,16 +1,15 @@
 package org.binaryheart.enums;
 
-public enum StorageType {
-    SSD("SSD"), HDD("HDD"), FLASH_STORAGE("Flash Storage"), UNKNOWN("Unknown");
+public enum WorkingBattery {
+    YES("Yes"), NO("No"), UNKNOWN("Unknown");
 
     private final String databaseValue;
 
-    StorageType(String databaseValue) {
+    WorkingBattery(String databaseValue) {
         this.databaseValue = databaseValue;
     }
 
     public String getDatabaseValue() {
         return databaseValue;
     }
-
 }
