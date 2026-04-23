@@ -276,7 +276,7 @@ public class DatabaseImporter {
             stmt.setString(2, Manufacturer.UNKNOWN.getDatabaseValue());
             stmt.setString(3, item.deviceName());
             stmt.setObject(4, item.estimatedYear(), java.sql.Types.INTEGER);
-            stmt.setString(5, Status.READY_TO_DONATE.getDatabaseValue());
+            stmt.setString(5, Status.DONATED.getDatabaseValue());
             stmt.setString(6, ChargerStatus.UNKNOWN.getDatabaseValue());
             stmt.setNull(7, java.sql.Types.INTEGER);
             stmt.registerOutParameter(7, java.sql.Types.INTEGER);
@@ -332,7 +332,7 @@ public class DatabaseImporter {
         }
     }
 
-    public static void addPart(List<Part> parts, int chapterID) {
+    public static void addParts(List<Part> parts, int chapterID) {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
@@ -340,16 +340,18 @@ public class DatabaseImporter {
         try (CallableStatement stmt = conn
                 .prepareCall("call Insert_Part(?, ?, ?::Part_Type, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
             for (Part part : parts) {
-                stmt.setInt(1, chapterID);
-                stmt.setNull(2, java.sql.Types.INTEGER);
-                stmt.setString(3, part.type().getDatabaseValue());
-                stmt.setString(4, part.description());
-                // stmt.setBoolean(5, [[was purchased]]);
-                stmt.setNull(6, java.sql.Types.INTEGER);
-                // stmt.setDate(7, [[date acquired]]);
-                // stmt.setFloat(8, [[value]]);
-                // stmt.setInt(9, [[donor id]]);
-                stmt.execute();
+                for (int i = 0; i < part.quantity(); i++) {
+                    stmt.setInt(1, chapterID);
+                    stmt.setNull(2, java.sql.Types.INTEGER);
+                    stmt.setString(3, part.type().getDatabaseValue());
+                    stmt.setString(4, part.description());
+                    stmt.setBoolean(5, part.wasDonated().equals("N"));
+                    stmt.setNull(6, java.sql.Types.INTEGER);
+                    stmt.setNull(7, java.sql.Types.DATE);
+                    stmt.setDouble(8, part.value());
+                    stmt.setNull(9, java.sql.Types.INTEGER);
+                    stmt.execute();
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

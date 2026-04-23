@@ -26,6 +26,9 @@ public record Donated(String deviceName, TypeOfDevice typeOfDevice, Integer esti
         if (os == null) {
             os = OperatingSystem.UNKNOWN;
         }
+        if (ramAmount == null) {
+            ramAmount = 0;
+        }
         if (ramGeneration == null) {
             ramGeneration = RamGeneration.UNKNOWN;
         }
