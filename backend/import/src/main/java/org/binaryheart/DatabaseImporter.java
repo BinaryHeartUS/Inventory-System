@@ -330,4 +330,18 @@ public class DatabaseImporter {
             return -1;
         }
     }
+
+    public static void addPart(String partName) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn
+                .prepareCall("call Insert_Part(?, ?, ?::Part_Type, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
+            // NEED TO ACTUALLY SET PARAMETERS HERE
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

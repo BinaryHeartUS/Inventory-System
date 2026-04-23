@@ -117,5 +117,6 @@ public class ExcelReader {
 
     private static void importParts(Workbook workbook, int chapterId) {
         List<Part> parts = getRecords("Parts", workbook, Part.class);
+
     }
 }
