@@ -12,6 +12,7 @@ import org.binaryheart.enums.Status;
 import org.binaryheart.enums.WorkingBattery;
 import org.binaryheart.records.Desktop;
 import org.binaryheart.records.Laptop;
+import org.binaryheart.records.Part;
 import org.binaryheart.records.ReadyToDonate;
 import org.binaryheart.records.Tablet;
 import org.binaryheart.records.Donated;
@@ -328,6 +329,30 @@ public class DatabaseImporter {
         } catch (SQLException e) {
             e.printStackTrace();
             return -1;
+        }
+    }
+
+    public static void addPart(List<Part> parts, int chapterID) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn
+                .prepareCall("call Insert_Part(?, ?, ?::Part_Type, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
+            for (Part part : parts) {
+                stmt.setInt(1, chapterID);
+                stmt.setNull(2, java.sql.Types.INTEGER);
+                stmt.setString(3, part.type().getDatabaseValue());
+                stmt.setString(4, part.description());
+                // stmt.setBoolean(5, [[was purchased]]);
+                stmt.setNull(6, java.sql.Types.INTEGER);
+                // stmt.setDate(7, [[date acquired]]);
+                // stmt.setFloat(8, [[value]]);
+                // stmt.setInt(9, [[donor id]]);
+                stmt.execute();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
