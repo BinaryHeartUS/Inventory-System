@@ -5,6 +5,7 @@ import io.javalin.openapi.*;
 
 import org.binaryheart.Exceptions.DuplicateKeyException;
 import org.binaryheart.requests.InsertDesktopRequest;
+import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.services.DeviceService;
 
 import java.sql.SQLException;
@@ -19,6 +20,7 @@ public class DeviceController {
     public static void registerRoutes() {
         get("/count/{type}", DeviceController::getDeviceCount);
         post("/add/desktop", DeviceController::insertDesktop);
+        post("/add/laptop", DeviceController::insertLaptop);
     }
 
     @OpenApi(
@@ -81,7 +83,7 @@ public class DeviceController {
             path = "/api/devices/add/desktop",
             methods = { HttpMethod.POST },
             tags = { "Devices" },
-            summary = "Add a new desktop device",
+            summary = "Add a new desktop to the database",
             description = "Adds a desktop with the specified attributes",
             requestBody = @OpenApiRequestBody(
                     required = true,
@@ -156,4 +158,95 @@ public class DeviceController {
             ctx.status(500).result("Database error: " + e.getMessage());
         }
     }
+
+    @OpenApi(
+            path = "/api/devices/add/laptop",
+            methods = { HttpMethod.POST },
+            tags = { "Devices" },
+            summary = "Add a new laptop to the database",
+            description = "Adds a laptop with the specified attributes",
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = InsertLaptopRequest.class,
+                            example = """
+                                    {
+                                      "chapterId": 1,
+                                      "manufacturer": "DELL",
+                                      "model": "Optiplex 7010",
+                                      "year": 2022,
+                                      "status": "NOT_STARTED",
+                                      "includesCharger": "INCLUDED",
+                                      "assetId": null,
+                                      "cpu": null,
+                                      "ram": null,
+                                      "ramGeneration": null,
+                                      "storageAmount": null,
+                                      "storageType": null,
+                                      "value": null,
+                                      "acquisitionDate": null,
+                                      "recipientId": null,
+                                      "donorId": null,
+                                      "designBatteryCapacity": null,
+                                      "actualBatteryCapacity": null
+                                    }""") }),
+            responses = { @OpenApiResponse(
+                    status = "201",
+                    description = "Laptop added successfully"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Missing required parameters"),
+                    @OpenApiResponse(
+                            status = "409",
+                            description = "Asset ID already exists"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void insertLaptop(Context ctx) {
+        InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
+
+        if (request.chapterId() == 0 || request.manufacturer() == null || request.model() == null || request.year() == 0
+                || request.status() == null || request.includesCharger() == null) {
+            ctx.status(400).result("Missing required parameters");
+            return;
+        }
+        if (request.ram() != null && request.ram() <= 0) {
+            ctx.status(400).result("RAM amount must be positive or not specified");
+            return;
+        }
+        if (request.storageAmount() != null && request.storageAmount() <= 0) {
+            ctx.status(400).result("Storage amount must be positive or not specified");
+            return;
+        }
+        if (request.value() != null && request.value() < 0) {
+            ctx.status(400).result("Value must be non-negative or not specified");
+            return;
+        }
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+            ctx.status(400).result("Acquisition date cannot be in the future");
+            return;
+        }
+        if (request.assetId() != null && request.assetId() <= 0) {
+            ctx.status(400).result("Asset ID must be positive or not specified");
+            return;
+        }
+        if (request.designBatteryCapacity() != null && request.designBatteryCapacity() <= 0) {
+            ctx.status(400).result("Design battery capacity must be positive or not specified");
+            return;
+        }
+        if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
+            ctx.status(400).result("Actual battery capacity must be non-negative or not specified");
+            return;
+        }
+
+        try {
+            service.insertLaptop(request);
+            ctx.status(201).result("Laptop added successfully");
+        } catch (DuplicateKeyException e) {
+            ctx.status(409).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+    }
+
 }

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import org.binaryheart.Exceptions.DuplicateKeyException;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
+import org.binaryheart.requests.InsertLaptopRequest;
 
 public class DeviceService {
 
@@ -52,6 +53,19 @@ public class DeviceService {
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 System.err.println("Duplicate entry for desktop: " + request.model());
+                throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
+            } else {
+                throw new SQLException(e.getMessage());
+            }
+        }
+    }
+
+    public void insertLaptop(InsertLaptopRequest request) throws SQLException {
+        try {
+            repository.insertLaptop(request);
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                System.err.println("Duplicate entry for laptop: " + request.model());
                 throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
             } else {
                 throw new SQLException(e.getMessage());
