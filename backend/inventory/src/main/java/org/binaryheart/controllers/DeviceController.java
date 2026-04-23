@@ -18,7 +18,7 @@ public class DeviceController {
 
     public static void registerRoutes() {
         get("/count/{type}", DeviceController::getDeviceCount);
-        post("/add/desktop", DeviceController::InsertDesktop);
+        post("/add/desktop", DeviceController::insertDesktop);
     }
 
     @OpenApi(
@@ -107,7 +107,7 @@ public class DeviceController {
                     @OpenApiResponse(
                             status = "500",
                             description = "Database error") })
-    public static void InsertDesktop(Context ctx) {
+    public static void insertDesktop(Context ctx) {
         InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 
         if (request.chapterId() == 0 || request.manufacturer() == null || request.model() == null || request.year() == 0
