@@ -40,8 +40,8 @@ services:
         condition: service_healthy
     environment:
       DB_URL: jdbc:postgresql://db:5432/inventory
-      DB_USER: binaryheart
-      DB_PASSWORD: changeme
+      DB_USER: api_user
+      DB_PASSWORD: changeme_api_user
     ports:
       - "8080:8080"
 

@@ -15,10 +15,11 @@ SQL scripts should have file name of the format `x.x.x script_name.sql`, detaile
 
 The first digit signifies the major category of script, for example:
 
+- 0.0.0 is user creation
 - 1.0.0 is type creation
 - 2.0.0 is table creation
 - 3.0.0 is stored procedure creation
-- 4.0.0 is other scripts (e.g. user creation)
+- 4.0.0 is other scripts (currently unused)
 
 ### Second Digit
 
