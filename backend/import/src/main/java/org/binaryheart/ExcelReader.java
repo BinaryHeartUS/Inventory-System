@@ -12,6 +12,7 @@ import org.binaryheart.records.Laptop;
 import org.binaryheart.records.Part;
 import org.binaryheart.records.ReadyToDonate;
 import org.binaryheart.records.Tablet;
+import org.binaryheart.records.Tool;
 
 public class ExcelReader {
     public static void main(String[] args) {
@@ -36,6 +37,7 @@ public class ExcelReader {
             importReadyToDonate(workbook, chapterId);
             importDonated(workbook, chapterId);
             importParts(workbook, chapterId);
+            importTools(workbook, chapterId);
 
             if (DatabaseConnectionService.isConnected()) {
                 DatabaseConnectionService.closeConnection();
@@ -118,5 +120,10 @@ public class ExcelReader {
     private static void importParts(Workbook workbook, int chapterId) {
         List<Part> parts = getRecords("Parts", workbook, Part.class);
         DatabaseImporter.addParts(parts, chapterId);
+    }
+
+    private static void importTools(Workbook workbook, int chapterID) {
+        List<Tool> tools = getRecords("Tools", workbook, Tool.class);
+        DatabaseImporter.addTools(tools, chapterID);
     }
 }

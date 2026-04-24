@@ -14,6 +14,7 @@ import org.binaryheart.records.Laptop;
 import org.binaryheart.records.Part;
 import org.binaryheart.records.ReadyToDonate;
 import org.binaryheart.records.Tablet;
+import org.binaryheart.records.Tool;
 import org.binaryheart.records.Donated;
 
 public class DatabaseImporter {
@@ -348,6 +349,29 @@ public class DatabaseImporter {
                     stmt.setNull(7, java.sql.Types.DATE);
                     stmt.setDouble(8, part.value());
                     stmt.setNull(9, java.sql.Types.INTEGER);
+                    stmt.execute();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addTools(List<Tool> tools, int chapterID) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Tool(?, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
+            for (Tool tool : tools) {
+                for (int i = 0; i < tool.quantity(); i++) {
+                    stmt.setInt(1, chapterID);
+                    stmt.setNull(2, java.sql.Types.INTEGER);
+                    stmt.setString(3, tool.type());
+                    stmt.setString(4, tool.description());
+                    stmt.setNull(5, java.sql.Types.DATE);
+                    stmt.setDouble(6, tool.value());
+                    stmt.setNull(7, java.sql.Types.INTEGER);
                     stmt.execute();
                 }
             }

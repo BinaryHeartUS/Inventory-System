@@ -1,5 +1,7 @@
 create table Tool (
     ID INTEGER NOT NULL PRIMARY KEY,
-    Type VARCHAR(20) NOT NULL,
-    FOREIGN KEY (ID) REFERENCES Asset(ID)
+    FOREIGN KEY (ID) REFERENCES Asset(ID),
+    Type_ID INTEGER NOT NULL,
+    FOREIGN KEY (Type_ID) REFERENCES Tool_Type(ID),
+    Description varchar(500) NOT NULL
 );
