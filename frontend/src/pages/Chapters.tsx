@@ -46,7 +46,7 @@ export default function Chapters() {
                   <h2 className="text-base font-bold text-slate-900">{ch}</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Texas</p>
                 </div>
-                <span className="px-2.5 py-1 bg-violet-50 text-violet-700 text-xs font-semibold rounded-full">
+                <span className="px-2.5 py-1 bg-heart-blue/10 text-heart-blue text-xs font-semibold rounded-full">
                   {devices.length} devices
                 </span>
               </div>
@@ -54,10 +54,10 @@ export default function Chapters() {
               {/* Status summary */}
               <div className="grid grid-cols-4 gap-2 mb-5">
                 {[
-                  { label: 'Pipeline', value: pipeline.length, color: 'text-amber-600', bg: 'bg-amber-50'  },
-                  { label: 'Ready',    value: ready.length,    color: 'text-green-700', bg: 'bg-green-50'  },
-                  { label: 'Donated',  value: donated.length,  color: 'text-blue-700',  bg: 'bg-blue-50'   },
-                  { label: 'Scrapped', value: scrapped.length, color: 'text-red-600',   bg: 'bg-red-50'    },
+                  { label: 'Pipeline', value: pipeline.length, color: 'text-sky-600',     bg: 'bg-sky-50'          },
+                  { label: 'Ready',    value: ready.length,    color: 'text-green-700',   bg: 'bg-green-50'        },
+                  { label: 'Donated',  value: donated.length,  color: 'text-sky-600',      bg: 'bg-sky-50'          },
+                  { label: 'Scrapped', value: scrapped.length, color: 'text-red-600',    bg: 'bg-red-50'          },
                 ].map(({ label, value, color, bg }) => (
                   <div key={label} className={`${bg} rounded-lg p-3 text-center`}>
                     <p className={`text-xl font-bold ${color}`}>{value}</p>
@@ -79,7 +79,7 @@ export default function Chapters() {
                 </div>
                 <Link
                   to={`/devices`}
-                  className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors"
+                  className="text-xs font-medium text-brand-red hover:text-brand-red-dark transition-colors"
                 >
                   View devices →
                 </Link>

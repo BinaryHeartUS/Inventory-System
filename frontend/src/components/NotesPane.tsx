@@ -61,7 +61,7 @@ export default function NotesPane({ assetId }: { assetId: number }) {
   }
 
   const inputCls =
-    'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all bg-white'
+    'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white'
 
   return (
     <div
@@ -89,7 +89,7 @@ export default function NotesPane({ assetId }: { assetId: number }) {
           <button
             onClick={submitNote}
             disabled={!draft.trim()}
-            className="text-xs font-medium text-white bg-slate-600 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg transition-colors"
+            className="text-xs font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg transition-colors"
           >
             Add note
           </button>
@@ -150,7 +150,7 @@ export default function NotesPane({ assetId }: { assetId: number }) {
                     <button
                       onClick={() => saveEdit(note.id)}
                       disabled={!editText.trim()}
-                      className="text-xs font-medium text-white bg-slate-600 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1 rounded-lg transition-colors"
+                      className="text-xs font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1 rounded-lg transition-colors"
                     >
                       Save
                     </button>

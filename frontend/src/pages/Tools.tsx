@@ -60,7 +60,7 @@ export default function Tools() {
           <select
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Types</option>
             {toolTypes.map(t => <option key={t} value={t}>{t}</option>)}
@@ -68,7 +68,7 @@ export default function Tools() {
           <select
             value={chapterFilter}
             onChange={e => setChapterFilter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map(c => <option key={c} value={c}>{c}</option>)}
@@ -76,7 +76,7 @@ export default function Tools() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs font-medium text-slate-500 hover:text-slate-700 underline underline-offset-2 transition-colors"
+              className="text-xs font-medium text-brand-red hover:text-brand-red-dark underline underline-offset-2 transition-colors"
             >
               Clear filters
             </button>
@@ -103,7 +103,7 @@ export default function Tools() {
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">
                     No tools match the current filters.{' '}
                     {hasFilters && (
-                      <button onClick={clearFilters} className="text-violet-600 hover:underline">
+                      <button onClick={clearFilters} className="text-brand-red hover:underline">
                         Clear filters
                       </button>
                     )}

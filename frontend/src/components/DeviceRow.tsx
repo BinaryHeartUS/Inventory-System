@@ -17,7 +17,7 @@ export function DeviceRow({
   const navigate = useNavigate()
   return (
     <tr
-      className="hover:bg-violet-50 transition-colors cursor-pointer"
+      className="hover:bg-slate-50 transition-colors cursor-pointer"
       onClick={() => navigate(`/devices/${device.id}`)}
     >
       <td className="px-5 py-3.5 font-mono text-xs text-slate-400">{device.id}</td>

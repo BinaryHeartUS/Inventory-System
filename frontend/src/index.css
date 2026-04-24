@@ -1,4 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@600&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --color-brand-red:       #FF0040;
+  --color-brand-red-dark:  #d70036;
+  --color-heart-blue:      #193961;
+  --color-heart-blue-dark: #112440;
+  --font-lato: 'Lato', sans-serif;
+}
 
 *, *::before, *::after { box-sizing: border-box; }
 

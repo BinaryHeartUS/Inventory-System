@@ -68,7 +68,7 @@ const DEFAULT_FORM: FormState = {
 }
 
 // ─── Form primitives ──────────────────────────────────────────────────────────
-const iCls = 'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white'
+const iCls = 'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white'
 const lCls = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1 block'
 const Req  = () => <span className="text-red-400 ml-0.5">*</span>
 
@@ -137,7 +137,7 @@ function FCombo({ label, value, options, onChange, req, placeholder, maxLength }
 const CATEGORY_CARDS: { cat: AssetCategory; color: string; title: string; desc: string; icon: React.ReactNode }[] = [
   {
     cat: 'Device',
-    color: 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700',
+    color: 'border-heart-blue/25 bg-heart-blue/5 hover:bg-heart-blue/10 text-heart-blue',
     title: 'Device',
     desc: 'Desktop, laptop, or tablet computer',
     icon: (
@@ -148,7 +148,7 @@ const CATEGORY_CARDS: { cat: AssetCategory; color: string; title: string; desc: 
   },
   {
     cat: 'Part',
-    color: 'border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-700',
+    color: 'border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600',
     title: 'Part',
     desc: 'RAM, SSD, charger, or other component',
     icon: (
@@ -164,7 +164,7 @@ const CATEGORY_CARDS: { cat: AssetCategory; color: string; title: string; desc: 
   },
   {
     cat: 'Tool',
-    color: 'border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700',
+    color: 'border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600',
     title: 'Tool',
     desc: 'Screwdriver, thermal paste, USB drive, etc.',
     icon: (
@@ -236,7 +236,7 @@ function SubtypeStep({ onSelect }: { onSelect: (sub: DeviceSubtype) => void }) {
       <div className="grid grid-cols-3 gap-4">
         {SUBTYPE_CARDS.map(({ sub, title, desc, icon }) => (
           <button key={sub} onClick={() => onSelect(sub)}
-            className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 transition-all text-center">
+            className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-heart-blue/25 bg-heart-blue/5 hover:bg-heart-blue/10 text-heart-blue transition-all text-center">
             <div className="opacity-75">{icon}</div>
             <div>
               <p className="text-sm font-semibold">{title}</p>
@@ -290,13 +290,13 @@ function FieldsForm({ category, subtype, form, setForm, lookups }: {
               <label key={String(opt.val)}
                 className={`flex-1 flex items-center gap-2.5 p-3 rounded-lg border-2 cursor-pointer transition-all text-sm font-medium
                   ${form.wasPurchased === opt.val
-                    ? 'border-slate-500 bg-slate-50 text-slate-700'
+                    ? 'border-heart-blue bg-heart-blue/5 text-heart-blue'
                     : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
                 <input type="radio" className="sr-only" checked={form.wasPurchased === opt.val}
                   onChange={() => setForm(p => ({ ...p, wasPurchased: opt.val }))} />
                 <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center
-                  ${form.wasPurchased === opt.val ? 'border-slate-600' : 'border-slate-300'}`}>
-                  {form.wasPurchased === opt.val && <span className="w-2 h-2 rounded-full bg-slate-600" />}
+                  ${form.wasPurchased === opt.val ? 'border-heart-blue' : 'border-slate-300'}`}>
+                  {form.wasPurchased === opt.val && <span className="w-2 h-2 rounded-full bg-heart-blue" />}
                 </span>
                 {opt.label}
               </label>
@@ -582,16 +582,16 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         <div className="px-6 pt-4 pb-2 flex items-center gap-1.5 shrink-0">
           {steps.map((label, i) => (
             <div key={label} className="flex items-center gap-1.5">
-              {i > 0 && <div className={`h-px w-8 transition-colors ${i <= stepIdx ? 'bg-blue-300' : 'bg-slate-200'}`} />}
+              {i > 0 && <div className={`h-px w-8 transition-colors ${i <= stepIdx ? 'bg-heart-blue/40' : 'bg-slate-200'}`} />}
               <div className="flex items-center gap-1.5">
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
-                  i < stepIdx  ? 'bg-blue-500 text-white' :
-                  i === stepIdx ? 'bg-blue-600 text-white' :
+                  i < stepIdx  ? 'bg-heart-blue text-white' :
+                  i === stepIdx ? 'bg-brand-red text-white' :
                   'bg-slate-100 text-slate-400'
                 }`}>
                   {i < stepIdx ? '✓' : i + 1}
                 </span>
-                <span className={`text-xs font-medium transition-colors ${i === stepIdx ? 'text-blue-700' : 'text-slate-400'}`}>
+                <span className={`text-xs font-medium transition-colors ${i === stepIdx ? 'text-brand-red' : 'text-slate-400'}`}>
                   {label}
                 </span>
               </div>
@@ -609,13 +609,13 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
                   <button key={mode} onClick={() => setIdMode(mode)}
                     className={`flex flex-col items-start gap-2 p-5 rounded-xl border-2 transition-all text-left ${
                       idMode === mode
-                        ? 'border-blue-400 bg-blue-50 text-blue-700'
+                        ? 'border-heart-blue bg-heart-blue/5 text-heart-blue'
                         : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                     }`}>
                     <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                      idMode === mode ? 'border-blue-500' : 'border-slate-300'
+                      idMode === mode ? 'border-heart-blue' : 'border-slate-300'
                     }`}>
-                      {idMode === mode && <span className="w-2 h-2 rounded-full bg-blue-500" />}
+                      {idMode === mode && <span className="w-2 h-2 rounded-full bg-heart-blue" />}
                     </span>
                     <div>
                       <p className="text-sm font-semibold">{title}</p>
@@ -674,13 +674,13 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
             </button>
             {step === 'id' && (
               <button onClick={() => setStep('category')} disabled={!isIdStepValid()}
-                className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors">
+                className="text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors">
                 Continue
               </button>
             )}
             {step === 'fields' && (
               <button onClick={handleSubmit} disabled={!isValid()}
-                className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors">
+                className="text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors">
                 Add Asset
               </button>
             )}

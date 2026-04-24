@@ -51,7 +51,7 @@ export default function Donations() {
         <select
           value={chapterFilter}
           onChange={e => setChapterFilter(e.target.value)}
-          className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+          className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
         >
           <option value="All">All Chapters</option>
           {chapters.map(c => <option key={c} value={c}>{c}</option>)}

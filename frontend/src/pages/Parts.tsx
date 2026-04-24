@@ -58,7 +58,7 @@ export default function Parts() {
           <select
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Types</option>
             {partTypes.map(t => <option key={t} value={t}>{t}</option>)}
@@ -66,7 +66,7 @@ export default function Parts() {
           <select
             value={chapterFilter}
             onChange={e => setChapterFilter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map(c => <option key={c} value={c}>{c}</option>)}
@@ -74,7 +74,7 @@ export default function Parts() {
           <select
             value={sourceFilter}
             onChange={e => setSourceFilter(e.target.value as typeof sourceFilter)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Sources</option>
             <option value="Donated">Donated</option>
@@ -83,7 +83,7 @@ export default function Parts() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs font-medium text-slate-500 hover:text-slate-700 underline underline-offset-2 transition-colors"
+              className="text-xs font-medium text-brand-red hover:text-brand-red-dark underline underline-offset-2 transition-colors"
             >
               Clear filters
             </button>
@@ -110,7 +110,7 @@ export default function Parts() {
                   <td colSpan={7} className="px-5 py-12 text-center text-sm text-slate-400">
                     No parts match the current filters.{' '}
                     {hasFilters && (
-                      <button onClick={clearFilters} className="text-violet-600 hover:underline">
+                      <button onClick={clearFilters} className="text-brand-red hover:underline">
                         Clear filters
                       </button>
                     )}
@@ -127,13 +127,13 @@ export default function Parts() {
                   <td className="px-5 py-3.5 text-slate-700">{p.description}</td>
                   <td className="px-5 py-3.5 text-slate-500">{p.chapter}</td>
                   <td className="px-5 py-3.5">
-                    <span className={`text-xs font-medium ${p.wasPurchased ? 'text-amber-600' : 'text-green-600'}`}>
+                    <span className={`text-xs font-medium ${p.wasPurchased ? 'text-slate-500' : 'text-green-600'}`}>
                       {p.wasPurchased ? 'Purchased' : 'Donated'}
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
                     {p.containedIn != null
-                      ? <span className="font-mono text-xs text-violet-600">#{p.containedIn}</span>
+                      ? <span className="font-mono text-xs text-heart-blue">#{p.containedIn}</span>
                       : <span className="text-slate-300 text-xs">Loose</span>}
                   </td>
                   <td className="px-5 py-3.5 text-slate-400 whitespace-nowrap">{p.acquisitionDate ?? '—'}</td>

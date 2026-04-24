@@ -1,4 +1,4 @@
-import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { useState, useCallback } from 'react'
 import Dashboard    from './pages/Dashboard'
 import Devices      from './pages/Devices'
@@ -59,11 +59,6 @@ const Icons = {
       <path d="M3 5v14M7 5v14M11 5v14M15 5v3M15 11v3M15 18v1M19 5v14"/>
     </svg>
   ),
-  search: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  ),
 }
 
 const navItems = [
@@ -77,32 +72,29 @@ const navItems = [
 
 function Sidebar() {
   return (
-    <aside className="w-60 shrink-0 flex flex-col bg-slate-900 min-h-dvh">
-      <div className="px-6 pt-7 pb-6">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-violet-500 flex items-center justify-center">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="white">
-              <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
+    <aside className="w-64 shrink-0 flex flex-col bg-white border-r border-slate-200 min-h-dvh">
+      <div className="px-6 pt-8 pb-7">
+        <div className="flex items-center gap-3">
+          <img src="/icon.png" alt="BinaryHeart" className="w-10 h-10 object-contain" />
+          <div>
+            <span className="font-lato font-semibold text-base tracking-tight"><span className="text-brand-red">Binary</span><span className="text-heart-blue">Heart</span></span>
+            <p className="text-slate-400 text-xs mt-0.5">Inventory System</p>
           </div>
-          <span className="text-white font-semibold text-sm tracking-tight">BinaryHeart</span>
         </div>
-        <p className="text-slate-500 text-xs mt-1 pl-9">Inventory System</p>
       </div>
 
       <nav className="flex-1 px-3 space-y-0.5">
-        <p className="text-slate-600 text-[10px] font-semibold uppercase tracking-widest px-3 mb-2">Menu</p>
+        <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest px-3 mb-2">Menu</p>
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
             end
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all ${
+              `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-violet-600 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-heart-blue text-white'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
               }`
             }
           >
@@ -112,45 +104,16 @@ function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-5 py-5 mt-auto border-t border-slate-800">
+      <div className="px-5 py-5 mt-auto border-t border-slate-200">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-violet-900 flex items-center justify-center text-violet-300 text-[10px] font-bold">BH</div>
+          <div className="w-8 h-8 rounded-full bg-heart-blue flex items-center justify-center text-xs font-bold"><span className="text-brand-red">B</span><span className="text-white">H</span></div>
           <div>
-            <p className="text-slate-300 text-xs font-medium leading-none">BinaryHeart US</p>
-            <p className="text-slate-500 text-[11px] mt-0.5">Non-profit</p>
+            <p className="text-slate-700 text-sm font-medium leading-none">BinaryHeart US</p>
+            <p className="text-slate-400 text-[11px] mt-0.5">Non-profit</p>
           </div>
         </div>
       </div>
     </aside>
-  )
-}
-
-function AppHeader({ onAddAsset }: { onAddAsset: () => void }) {
-  const { pathname } = useLocation()
-  const placeholder: Record<string, string> = {
-    '/':          'Search devices, parts…',
-    '/devices':   'Search devices…',
-    '/parts':     'Search parts…',
-    '/donations': 'Search donations…',
-    '/chapters':  'Search chapters…',
-  }
-  return (
-    <header className="bg-white border-b border-slate-200 px-8 h-14 flex items-center justify-between sticky top-0 z-10">
-      <div className="flex items-center gap-2 text-slate-400">
-        {Icons.search}
-        <input
-          type="text"
-          placeholder={placeholder[pathname] ?? 'Search…'}
-          className="text-sm text-slate-700 outline-none placeholder:text-slate-400 w-56 bg-transparent"
-        />
-      </div>
-      <button
-        onClick={onAddAsset}
-        className="flex items-center gap-1.5 text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 px-4 py-2 rounded-lg transition-colors">
-        {Icons.plus}
-        Add Asset
-      </button>
-    </header>
   )
 }
 
@@ -227,9 +190,16 @@ function AppInner() {
   return (
     <div className="flex min-h-dvh bg-slate-50 text-slate-900">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <AppHeader onAddAsset={() => setPendingScanId(-1)} />
-        <main className="flex-1 px-8 py-7">
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-end px-10 pt-6">
+          <button
+            onClick={() => setPendingScanId(-1)}
+            className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors">
+            {Icons.plus}
+            Add Asset
+          </button>
+        </div>
+        <main className="px-10 py-6">
           <Routes>
             <Route path="/"             element={<Dashboard />}    />
             <Route path="/devices"      element={<Devices />}            />
@@ -265,7 +235,7 @@ function AppInner() {
       {toast && (
         <div className={`fixed bottom-6 right-6 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all z-50 ${
           toast.ok
-            ? 'bg-violet-600 text-white'
+            ? 'bg-heart-blue text-white'
             : 'bg-red-50 border border-red-200 text-red-700'
         }`}>
           {toast.ok

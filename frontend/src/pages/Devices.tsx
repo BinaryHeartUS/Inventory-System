@@ -59,9 +59,9 @@ function SortIcon({ col, sortKey, sortDir }: {
   if (!key) return null
   const active = sortKey === key
   return (
-    <span className={`ml-1 inline-flex flex-col leading-none ${active ? 'text-violet-600' : 'text-slate-300'}`}>
+    <span className={`ml-1 inline-flex flex-col leading-none ${active ? 'text-heart-blue' : 'text-slate-300'}`}>
       <svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor"
-        className={active && sortDir === 'asc' ? 'text-violet-600' : 'text-slate-300'}>
+        className={active && sortDir === 'asc' ? 'text-heart-blue' : 'text-slate-300'}>
         <path d="M4 0L8 5H0L4 0Z"/>
       </svg>
       <svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor" className="mt-0.5"
@@ -167,14 +167,14 @@ export default function Devices() {
               placeholder="ID, manufacturer, model, CPU…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 w-72 transition-all"
+              className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue w-72 transition-all"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as DeviceStatus | 'All')}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             {STATUS_OPTIONS.map(s => (
               <option key={s} value={s}>{s === 'All' ? 'All Statuses' : s}</option>
@@ -184,7 +184,7 @@ export default function Devices() {
           <select
             value={chapterFilter}
             onChange={e => setChapterFilter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map(c => <option key={c} value={c}>{c}</option>)}
@@ -193,7 +193,7 @@ export default function Devices() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="text-xs font-medium text-slate-500 hover:text-slate-700 underline underline-offset-2 transition-colors"
+              className="text-xs font-medium text-brand-red hover:text-brand-red-dark underline underline-offset-2 transition-colors"
             >
               Clear filters
             </button>
@@ -208,7 +208,7 @@ export default function Devices() {
               onClick={() => setTypeFilter(t)}
               className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
                 typeFilter === t
-                  ? 'bg-violet-600 text-white'
+                  ? 'bg-brand-red text-white'
                   : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
               }`}
             >
@@ -234,7 +234,7 @@ export default function Devices() {
                         sortable
                           ? 'text-slate-500 hover:text-slate-800 cursor-pointer'
                           : 'text-slate-400'
-                      } ${sortKey === HEADER_SORT[h] ? 'text-violet-700' : ''}`}
+                      } ${sortKey === HEADER_SORT[h] ? 'text-heart-blue' : ''}`}
                     >
                       <span className="inline-flex items-center">
                         {h}
@@ -252,7 +252,7 @@ export default function Devices() {
                     className="px-5 py-12 text-center text-sm text-slate-400">
                     No devices match the current filters.{' '}
                     {hasFilters && (
-                      <button onClick={clearFilters} className="text-violet-600 hover:underline">
+                      <button onClick={clearFilters} className="text-brand-red hover:underline">
                         Clear filters
                       </button>
                     )}
