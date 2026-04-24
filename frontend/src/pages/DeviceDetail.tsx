@@ -5,6 +5,7 @@ import StatusBadge from '../components/StatusBadge'
 import NotesPane from '../components/NotesPane'
 import { getDevice, updateDevice } from '../services/deviceService'
 import { useLookups } from '../hooks/useLookups'
+import { PrintLabelModal } from '../components/PrintLabelModal'
 
 
 // ─── Field / form helpers ─────────────────────────────────────────────────────
@@ -136,6 +137,7 @@ export default function DeviceDetail() {
   const [editing, setEditing] = useState(false)
   const [form, setForm]       = useState<AnyDevice | null>(null)
   const [saved, setSaved]     = useState(false)
+  const [printId, setPrintId] = useState<number | null>(null)
 
   useEffect(() => {
     getDevice(numId)
@@ -189,6 +191,8 @@ export default function DeviceDetail() {
   const d = editing && form ? form : device
 
   return (
+    <>
+    {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
     <div className="space-y-5">
 
       {/* Breadcrumb */}
@@ -200,7 +204,7 @@ export default function DeviceDetail() {
 
       {/* Header */}
       <div className="bg-slate-800 rounded-xl px-8 py-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-stretch justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5 mb-2">
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-white/15 text-slate-300 uppercase tracking-wide">
@@ -211,11 +215,20 @@ export default function DeviceDetail() {
             <h1 className="text-2xl font-bold text-white">{d.manufacturer} {d.model}</h1>
             <p className="text-sm text-slate-400 mt-1">{d.year} · {d.chapter}</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <StatusBadge status={d.status} />
+          <div className="flex items-stretch gap-2 shrink-0">
+            <StatusBadge status={d.status} size="lg" />
+            {!editing && (
+              <button onClick={() => setPrintId(d.id)}
+                className="flex items-center gap-1.5 text-xs font-medium text-white bg-white/15 hover:bg-white/25 px-3 rounded-lg transition-colors">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                </svg>
+                Print Label
+              </button>
+            )}
             {!editing ? (
               <button onClick={startEdit}
-                className="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors">
+                className="flex items-center gap-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 px-3 rounded-lg transition-colors">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -225,11 +238,11 @@ export default function DeviceDetail() {
             ) : (
               <>
                 <button onClick={cancelEdit}
-                  className="text-xs font-medium text-white/80 hover:text-white px-3 py-1.5 rounded-lg border border-white/30 transition-colors">
+                  className="text-xs font-medium text-white/80 hover:text-white px-3 rounded-lg border border-white/30 transition-colors">
                   Cancel
                 </button>
                 <button onClick={saveEdit}
-                  className="text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors">
+                  className="text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 px-3 rounded-lg transition-colors">
                   Save changes
                 </button>
               </>
@@ -363,5 +376,6 @@ export default function DeviceDetail() {
       )}
 
     </div>
+    </>
   )
 }

@@ -14,6 +14,7 @@ import { getDevice, createDevice } from './services/deviceService'
 import { getPart, createPart } from './services/partService'
 import { getTool, createTool } from './services/toolService'
 import { AddAssetModal } from './components/AddAssetModal'
+import { PrintLabelModal } from './components/PrintLabelModal'
 import type { AnyDevice, Part, Tool } from './types/inventory'
 
 const Icons = {
@@ -179,6 +180,7 @@ function AppInner() {
   const navigate = useNavigate()
   const [toast, setToast]               = useState<{ msg: string; ok: boolean } | null>(null)
   const [pendingScanId, setPendingScanId] = useState<number | null>(null)
+  const [pendingPrintId, setPendingPrintId] = useState<number | null>(null)
 
   const showToast = useCallback((msg: string, ok: boolean) => {
     setToast({ msg, ok })
@@ -207,17 +209,18 @@ function AppInner() {
   // TODO: Replace with POST /api/assets (device/part/tool) when backend is ready.
   async function handleAddAsset(asset: AnyDevice | Part | Tool) {
     if ('model' in asset) {
-      await createDevice(asset as AnyDevice)
+      const saved = await createDevice(asset as AnyDevice)
       setPendingScanId(null)
-      navigate(`/devices/${asset.id}`)
+      setPendingPrintId(saved.id)
+      navigate(`/devices/${saved.id}`)
     } else if ('description' in asset) {
-      await createPart(asset as Part)
+      const saved = await createPart(asset as Part)
       setPendingScanId(null)
-      showToast(`Part "${(asset as Part).type}" added`, true)
+      setPendingPrintId(saved.id)
     } else {
-      await createTool(asset as Tool)
+      const saved = await createTool(asset as Tool)
       setPendingScanId(null)
-      showToast(`Tool "${(asset as Tool).type}" added`, true)
+      setPendingPrintId(saved.id)
     }
   }
 
@@ -247,6 +250,14 @@ function AppInner() {
           scanId={pendingScanId >= 0 ? pendingScanId : undefined}
           onAdd={handleAddAsset}
           onCancel={() => setPendingScanId(null)}
+        />
+      )}
+
+      {/* Print label modal — shown after a new asset is saved */}
+      {pendingPrintId !== null && (
+        <PrintLabelModal
+          assetId={pendingPrintId}
+          onClose={() => setPendingPrintId(null)}
         />
       )}
 
