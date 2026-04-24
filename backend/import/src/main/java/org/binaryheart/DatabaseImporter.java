@@ -195,12 +195,12 @@ public class DatabaseImporter {
         }
     }
 
-    public static void addDonatedDesktop(Donated item, int chapterId) {
+    public static void addDonatedDesktop(Donated item, int chapterId, int recipientID) {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
-
         Connection conn = DatabaseConnectionService.getConnection();
+
         try (CallableStatement stmt = conn.prepareCall(
                 "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
@@ -217,7 +217,7 @@ public class DatabaseImporter {
             stmt.setString(11, item.storageType());
             stmt.setDouble(12, item.estimatedValue());
             stmt.setNull(13, java.sql.Types.DATE);
-            stmt.setNull(14, java.sql.Types.INTEGER);
+            stmt.setInt(14, recipientID);
             stmt.setNull(15, java.sql.Types.INTEGER);
             stmt.setNull(16, java.sql.Types.BOOLEAN);
 
@@ -229,7 +229,7 @@ public class DatabaseImporter {
         }
     }
 
-    public static void addDonatedTablet(Donated item, int chapterId) {
+    public static void addDonatedTablet(Donated item, int chapterId, int recipientId) {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
@@ -253,7 +253,7 @@ public class DatabaseImporter {
             stmt.setString(13, item.storageType());
             stmt.setDouble(14, item.estimatedValue());
             stmt.setNull(15, java.sql.Types.DATE);
-            stmt.setNull(16, java.sql.Types.INTEGER);
+            stmt.setInt(16, recipientId);
             stmt.setNull(17, java.sql.Types.INTEGER);
 
             stmt.execute();
@@ -264,7 +264,7 @@ public class DatabaseImporter {
         }
     }
 
-    public static void addDonatedLaptop(Donated item, int chapterId) {
+    public static void addDonatedLaptop(Donated item, int chapterId, int recipientId) {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
@@ -287,7 +287,7 @@ public class DatabaseImporter {
             stmt.setString(12, item.storageType());
             stmt.setDouble(13, item.estimatedValue());
             stmt.setNull(14, java.sql.Types.DATE);
-            stmt.setNull(15, java.sql.Types.INTEGER);
+            stmt.setInt(15, recipientId);
             stmt.setNull(16, java.sql.Types.INTEGER);
             stmt.setNull(17, java.sql.Types.INTEGER);
             stmt.setNull(18, java.sql.Types.INTEGER);
@@ -329,6 +329,41 @@ public class DatabaseImporter {
         } catch (SQLException e) {
             e.printStackTrace();
             return -1;
+        }
+    }
+
+    public static int addOrGetRecipient(Donated item) {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        if (item.isOrganization().equals("Y")) {
+            try (CallableStatement stmt = conn.prepareCall(
+                    "call Insert_Organization(?, ?::Name_Type, ?::Address, ?::Name_Type, ?::Email_Type)")) {
+                stmt.registerOutParameter(1, java.sql.Types.INTEGER);
+                stmt.setString(2, item.recipient());
+                stmt.setNull(3, java.sql.Types.VARCHAR);
+                stmt.setNull(4, java.sql.Types.VARCHAR);
+                stmt.setNull(5, java.sql.Types.VARCHAR);
+                stmt.execute();
+                return stmt.getInt(1);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return -1;
+            }
+        } else {
+            try (CallableStatement stmt = conn
+                    .prepareCall("call Insert_Person(?, ?::Name_Type, ?::Address, ?::Email_Type)")) {
+                stmt.registerOutParameter(1, java.sql.Types.INTEGER);
+                stmt.setString(2, item.recipient());
+                stmt.setNull(3, java.sql.Types.VARCHAR);
+                stmt.setNull(4, java.sql.Types.VARCHAR);
+                stmt.execute();
+                return stmt.getInt(1);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return -1;
+            }
         }
     }
 

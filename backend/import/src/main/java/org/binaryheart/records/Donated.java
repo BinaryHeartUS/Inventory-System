@@ -7,7 +7,7 @@ import org.binaryheart.enums.TypeOfDevice;
 
 public record Donated(String deviceName, TypeOfDevice typeOfDevice, Integer estimatedYear, String cpu,
         OperatingSystem os, Integer ramAmount, String ramGeneration, Integer storageCapacity, String storageType,
-        Integer estimatedValue, String notes, LocalDate dateDonated, String recipient) {
+        Integer estimatedValue, String notes, LocalDate dateDonated, String recipient, String isOrganization) {
     public Donated {
         if (deviceName == null || deviceName.strip().equals("")) {
             throw new IllegalArgumentException("Device name cannot be null");
@@ -32,6 +32,9 @@ public record Donated(String deviceName, TypeOfDevice typeOfDevice, Integer esti
         }
         if (storageType == null) {
             storageType = "Unknown";
+        }
+        if (recipient == null || isOrganization == null) {
+            throw new IllegalArgumentException("Donated device must indicate recipient and recipient classification");
         }
     }
 
