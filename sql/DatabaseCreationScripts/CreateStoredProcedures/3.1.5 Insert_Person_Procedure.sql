@@ -10,7 +10,9 @@ AS $$
 BEGIN
     CALL Insert_Party(p_ID, p_Name, p_Location);
 
-    INSERT INTO Person(ID, Email)
-    VALUES (p_ID, p_Email);
+    IF (SELECT COUNT(*) FROM Person WHERE ID = p_ID) = 0 THEN
+        INSERT INTO Person(ID, Email)
+        VALUES (p_ID, p_Email);
+    END IF;
 END;
 $$;

@@ -7,8 +7,14 @@ LANGUAGE
 plpgsql
 AS $$
 BEGIN
-    INSERT INTO Party (ID, Name, Location)
-    VALUES (p_ID, p_Name, p_Location)
-    RETURNING ID INTO p_ID;
+    SELECT ID INTO p_ID
+    FROM Party
+    WHERE Name = p_Name;
+    
+    IF p_ID IS NULL THEN
+        INSERT INTO Party (Name, Location)
+        VALUES (p_Name, p_Location)
+        RETURNING ID INTO p_ID;
+    END IF;
 END;
 $$;
