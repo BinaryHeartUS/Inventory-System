@@ -2,6 +2,7 @@ package org.binaryheart.controllers;
 
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
+import org.binaryheart.auth.AppRole;
 import org.binaryheart.services.HealthService;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
@@ -11,8 +12,8 @@ public class HealthController {
     private static final HealthService service = new HealthService();
 
     public static void registerRoutes() {
-        get("/health", HealthController::health);
-        get("/ping", HealthController::ping);
+        get("/health", HealthController::health, AppRole.PUBLIC);
+        get("/ping", HealthController::ping, AppRole.PUBLIC);
     }
 
     @OpenApi(

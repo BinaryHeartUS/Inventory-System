@@ -341,10 +341,10 @@ public class DatabaseImporter {
             for (Part part : parts) {
                 for (int i = 0; i < part.quantity(); i++) {
                     stmt.setInt(1, chapterID);
-                    stmt.setNull(2, java.sql.Types.INTEGER);
-                    stmt.setString(3, part.type());
-                    stmt.setString(4, part.description());
-                    stmt.setBoolean(5, part.wasDonated().equals("N"));
+                    stmt.setString(2, part.type());
+                    stmt.setString(3, part.description());
+                    stmt.setBoolean(4, part.wasDonated().equals("N"));
+                    stmt.setNull(5, java.sql.Types.INTEGER);
                     stmt.setNull(6, java.sql.Types.INTEGER);
                     stmt.setNull(7, java.sql.Types.DATE);
                     stmt.setDouble(8, part.value());

@@ -1,5 +1,12 @@
 import type { components } from './api'
 
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+export interface LoginResponse {
+  token: string
+  username: string
+  chapterIds: number[]
+}
+
 // ─── API wire-format types (auto-generated — run `npm run gen-types` to sync) ─
 // These are the exact values the backend sends/receives over the wire.
 

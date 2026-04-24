@@ -1,14 +1,17 @@
 package org.binaryheart.controllers;
 
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.*;
 
 import org.binaryheart.Exceptions.DuplicateKeyException;
+import org.binaryheart.auth.AppRole;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.services.DeviceService;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -18,15 +21,17 @@ public class DeviceController {
     private static final DeviceService service = new DeviceService();
 
     public static void registerRoutes() {
-        get("/count/{type}", DeviceController::getDeviceCount);
-        post("/add/desktop", DeviceController::insertDesktop);
-        post("/add/laptop", DeviceController::insertLaptop);
+        get("/count/{type}", DeviceController::getDeviceCount, AppRole.AUTHENTICATED);
+        post("/add/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
+        post("/add/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
             path = "/api/devices/count/{type}",
             methods = { HttpMethod.GET },
             tags = { "Devices" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
             summary = "Retrieve the number of devices of a given type",
             description = "Returns the count of devices by type (desktop, laptop, tablet). "
                     + "Optionally filter by status: 'ready-to-donate' or 'donated'. "
@@ -83,6 +88,8 @@ public class DeviceController {
             path = "/api/devices/add/desktop",
             methods = { HttpMethod.POST },
             tags = { "Devices" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
             summary = "Add a new desktop to the database",
             description = "Adds a desktop with the specified attributes",
             requestBody = @OpenApiRequestBody(
@@ -122,6 +129,11 @@ public class DeviceController {
                             description = "Database error") })
     public static void insertDesktop(Context ctx) {
         InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
+
+        List<Integer> userChapters = ctx.attribute("chapterIds");
+        if (userChapters == null || !userChapters.contains(request.chapterId())) {
+            throw new ForbiddenResponse("You do not have access to this chapter.");
+        }
 
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null) {
@@ -163,6 +175,8 @@ public class DeviceController {
             path = "/api/devices/add/laptop",
             methods = { HttpMethod.POST },
             tags = { "Devices" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
             summary = "Add a new laptop to the database",
             description = "Adds a laptop with the specified attributes",
             requestBody = @OpenApiRequestBody(
@@ -204,6 +218,11 @@ public class DeviceController {
                             description = "Database error") })
     public static void insertLaptop(Context ctx) {
         InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
+
+        List<Integer> userChapters = ctx.attribute("chapterIds");
+        if (userChapters == null || !userChapters.contains(request.chapterId())) {
+            throw new ForbiddenResponse("You do not have access to this chapter.");
+        }
 
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null
