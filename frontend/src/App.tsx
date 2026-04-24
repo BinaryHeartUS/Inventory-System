@@ -1,5 +1,20 @@
-import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom'
-import Dashboard from './pages/Dashboard'
+import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useState, useCallback } from 'react'
+import Dashboard    from './pages/Dashboard'
+import Devices      from './pages/Devices'
+import Parts        from './pages/Parts'
+import Tools        from './pages/Tools'
+import Donations    from './pages/Donations'
+import Chapters     from './pages/Chapters'
+import DeviceDetail from './pages/DeviceDetail'
+import PartDetail   from './pages/PartDetail'
+import ToolDetail   from './pages/ToolDetail'
+import { useBarcodeScanner } from './hooks/useBarcodeScanner'
+import { getDevice, createDevice } from './services/deviceService'
+import { getPart, createPart } from './services/partService'
+import { getTool, createTool } from './services/toolService'
+import { AddAssetModal } from './components/AddAssetModal'
+import type { AnyDevice, Part, Tool } from './types/inventory'
 
 const Icons = {
   dashboard: (
@@ -18,6 +33,11 @@ const Icons = {
       <circle cx="12" cy="12" r="3" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
     </svg>
   ),
+  tools: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+    </svg>
+  ),
   donations: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
@@ -33,6 +53,11 @@ const Icons = {
       <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   ),
+  barcode: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 5v14M7 5v14M11 5v14M15 5v3M15 11v3M15 18v1M19 5v14"/>
+    </svg>
+  ),
   search: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -44,6 +69,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: Icons.dashboard },
   { to: '/devices', label: 'Devices', icon: Icons.devices },
   { to: '/parts', label: 'Parts', icon: Icons.parts },
+  { to: '/tools', label: 'Tools', icon: Icons.tools },
   { to: '/donations', label: 'Donations', icon: Icons.donations },
   { to: '/chapters', label: 'Chapters', icon: Icons.chapters },
 ]
@@ -98,35 +124,147 @@ function Sidebar() {
   )
 }
 
+function AppHeader({ onAddAsset }: { onAddAsset: () => void }) {
+  const { pathname } = useLocation()
+  const placeholder: Record<string, string> = {
+    '/':          'Search devices, parts…',
+    '/devices':   'Search devices…',
+    '/parts':     'Search parts…',
+    '/donations': 'Search donations…',
+    '/chapters':  'Search chapters…',
+  }
+  return (
+    <header className="bg-white border-b border-slate-200 px-8 h-14 flex items-center justify-between sticky top-0 z-10">
+      <div className="flex items-center gap-2 text-slate-400">
+        {Icons.search}
+        <input
+          type="text"
+          placeholder={placeholder[pathname] ?? 'Search…'}
+          className="text-sm text-slate-700 outline-none placeholder:text-slate-400 w-56 bg-transparent"
+        />
+      </div>
+      <button
+        onClick={onAddAsset}
+        className="flex items-center gap-1.5 text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 px-4 py-2 rounded-lg transition-colors">
+        {Icons.plus}
+        Add Asset
+      </button>
+    </header>
+  )
+}
+
+/** Forces detail pages to remount when the :id param changes so state resets correctly. */
+function DeviceDetailKeyed() {
+  const { id } = useParams<{ id: string }>()
+  return <DeviceDetail key={id} />
+}
+function PartDetailKeyed() {
+  const { id } = useParams<{ id: string }>()
+  return <PartDetail key={id} />
+}
+function ToolDetailKeyed() {
+  const { id } = useParams<{ id: string }>()
+  return <ToolDetail key={id} />
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <div className="flex min-h-dvh bg-slate-50 text-slate-900">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="bg-white border-b border-slate-200 px-8 h-14 flex items-center justify-between sticky top-0 z-10">
-            <div className="flex items-center gap-2 text-slate-400">
-              {Icons.search}
-              <input
-                type="text"
-                placeholder="Search devices, parts…"
-                className="text-sm text-slate-700 outline-none placeholder:text-slate-400 w-56 bg-transparent"
-              />
-            </div>
-            <button className="flex items-center gap-1.5 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg transition-colors">
-              {Icons.plus}
-              Add Device
-            </button>
-          </header>
-
-          <main className="flex-1 px-8 py-7">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-            </Routes>
-          </main>
-        </div>
-      </div>
+      <AppInner />
     </BrowserRouter>
+  )
+}
+
+function AppInner() {
+  const navigate = useNavigate()
+  const [toast, setToast]               = useState<{ msg: string; ok: boolean } | null>(null)
+  const [pendingScanId, setPendingScanId] = useState<number | null>(null)
+
+  const showToast = useCallback((msg: string, ok: boolean) => {
+    setToast({ msg, ok })
+    setTimeout(() => setToast(null), 3000)
+  }, [])
+
+  useBarcodeScanner({
+    onScan: useCallback(async (barcode: string) => {
+      const id = Number(barcode)
+      if (Number.isNaN(id)) { showToast(`Invalid barcode: "${barcode}"`, false); return }
+
+      const device = await getDevice(id)
+      if (device) { navigate(`/devices/${id}`); return }
+
+      const part = await getPart(id)
+      if (part) { navigate(`/parts/${id}`); return }
+
+      const tool = await getTool(id)
+      if (tool) { navigate(`/tools/${id}`); return }
+
+      // Unknown barcode — prompt to create a new asset
+      setPendingScanId(id)
+    }, [navigate, showToast]),
+  })
+
+  // TODO: Replace with POST /api/assets (device/part/tool) when backend is ready.
+  async function handleAddAsset(asset: AnyDevice | Part | Tool) {
+    if ('model' in asset) {
+      await createDevice(asset as AnyDevice)
+      setPendingScanId(null)
+      navigate(`/devices/${asset.id}`)
+    } else if ('description' in asset) {
+      await createPart(asset as Part)
+      setPendingScanId(null)
+      showToast(`Part "${(asset as Part).type}" added`, true)
+    } else {
+      await createTool(asset as Tool)
+      setPendingScanId(null)
+      showToast(`Tool "${(asset as Tool).type}" added`, true)
+    }
+  }
+
+  return (
+    <div className="flex min-h-dvh bg-slate-50 text-slate-900">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <AppHeader onAddAsset={() => setPendingScanId(-1)} />
+        <main className="flex-1 px-8 py-7">
+          <Routes>
+            <Route path="/"             element={<Dashboard />}    />
+            <Route path="/devices"      element={<Devices />}            />
+            <Route path="/devices/:id"  element={<DeviceDetailKeyed />}  />
+            <Route path="/parts"        element={<Parts />}              />
+            <Route path="/parts/:id"    element={<PartDetailKeyed />}    />
+            <Route path="/tools"        element={<Tools />}              />
+            <Route path="/tools/:id"    element={<ToolDetailKeyed />}    />
+            <Route path="/donations"    element={<Donations />}          />
+            <Route path="/chapters"     element={<Chapters />}           />
+          </Routes>
+        </main>
+      </div>
+
+      {/* Add asset modal (shown when an unknown barcode is scanned) */}
+      {pendingScanId !== null && (
+        <AddAssetModal
+          scanId={pendingScanId >= 0 ? pendingScanId : undefined}
+          onAdd={handleAddAsset}
+          onCancel={() => setPendingScanId(null)}
+        />
+      )}
+
+      {/* Scan toast */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all z-50 ${
+          toast.ok
+            ? 'bg-violet-600 text-white'
+            : 'bg-red-50 border border-red-200 text-red-700'
+        }`}>
+          {toast.ok
+            ? Icons.barcode
+            : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          }
+          {toast.msg}
+        </div>
+      )}
+    </div>
   )
 }
 

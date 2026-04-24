@@ -1,40 +1,24 @@
-import { useState } from 'react'
-import type { AnyDevice, Part } from '../types/inventory'
-import { renderDeviceRow, DEVICE_TABLE_HEADERS } from '../utils/deviceUtils'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import type { DeviceStatus } from '../types/inventory'
+import { STATUS_CONFIG } from '../components/StatusBadge'
+import { getDevices } from '../services/deviceService'
+import { getChapters } from '../services/lookupService'
 
-// ─── Mock data (reflects real schema) ────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const RECENT_DEVICES: AnyDevice[] = [
-  { id: 1000, type: 'Laptop',  manufacturer: 'Dell',   model: 'Latitude 5420',  year: 2021, cpu: 'i5-1135G7',         ram: 16, ramGeneration: 'DDR4', storage: 256,  storageType: 'SSD',           status: 'Ready To Donate', chapter: 'Austin',      acquisitionDate: 'Apr 22, 2026', includesCharger: 'Included',     designBatteryCapacity: 68000, actualBatteryCapacity: 53720, batteryHealth: 0.79 },
-  { id: 1001, type: 'Desktop', manufacturer: 'HP',     model: 'ProDesk 400 G6', year: 2020, cpu: 'i7-10700',          ram: 32, ramGeneration: 'DDR4', storage: 512,  storageType: 'SSD',           status: 'In Progress',     chapter: 'Houston',     acquisitionDate: 'Apr 21, 2026', hasWifi: false },
-  { id: 1002, type: 'Tablet',  manufacturer: 'Apple',  model: 'iPad 9th Gen',   year: 2021, cpu: null,                ram: 3,  ramGeneration: null,   storage: 64,   storageType: 'Flash Storage', status: 'Donated',         chapter: 'Dallas',      acquisitionDate: 'Apr 20, 2026', includesCharger: 'Included',     workingBattery: 'Yes' },
-  { id: 1003, type: 'Laptop',  manufacturer: 'Lenovo', model: 'ThinkPad T14',   year: 2022, cpu: 'Ryzen 5 Pro 5650U', ram: 16, ramGeneration: 'DDR4', storage: 512,  storageType: 'SSD',           status: 'Not Started',     chapter: 'San Antonio', acquisitionDate: 'Apr 19, 2026', includesCharger: 'Not Included', designBatteryCapacity: 57000, actualBatteryCapacity: 50160, batteryHealth: 0.88 },
-  { id: 1004, type: 'Desktop', manufacturer: 'Apple',  model: 'iMac 21.5"',     year: 2019, cpu: 'i5-8500',           ram: 8,  ramGeneration: 'DDR4', storage: 1024, storageType: 'HDD',           status: 'Scrapped',        chapter: 'Austin',      acquisitionDate: 'Apr 18, 2026', hasWifi: true },
+// Active workflow stages only — Donated is a lifetime cumulative stat, Scrapped is a dead end
+const WORKFLOW_STATUSES: DeviceStatus[] = [
+  'Not Started', 'In Progress', 'Ready To Donate',
 ]
 
-const RECENT_PARTS: Part[] = [
-  { id: 2000, type: 'SODIMM', description: 'DDR4 8GB stick',   chapter: 'Austin',  wasPurchased: false, containedIn: null, acquisitionDate: 'Apr 22, 2026' },
-  { id: 2001, type: 'M2 SSD', description: '256GB NVMe drive', chapter: 'Houston', wasPurchased: true,  containedIn: null, acquisitionDate: 'Apr 20, 2026' },
-  { id: 2002, type: 'HDD',    description: 'SATA 1TB 2.5"',    chapter: 'Dallas',  wasPurchased: false, containedIn: null, acquisitionDate: 'Apr 18, 2026' },
-]
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-const STAT_CARDS = [
-  { label: 'Total Devices',   value: '—', note: 'all chapters',   highlight: true },
-  { label: 'Desktops',        value: '—', note: 'in inventory'    },
-  { label: 'Laptops',         value: '—', note: 'in inventory'    },
-  { label: 'Tablets',         value: '—', note: 'in inventory'    },
-  { label: 'Ready To Donate', value: '—', note: 'awaiting pickup' },
-  { label: 'Donated',         value: '—', note: 'all time'        },
-]
-
-const CHAPTERS = ['Austin', 'Houston', 'Dallas', 'San Antonio']
-
-// ─── Dashboard-local components ──────────────────────────────────────────────
-
-function SectionCard({ title, subtitle, action, children }: {
+function SectionCard({ title, subtitle, action, actionTo, children }: {
   title: string
   subtitle?: string
   action?: string
+  actionTo?: string
   children: React.ReactNode
 }) {
   return (
@@ -44,10 +28,13 @@ function SectionCard({ title, subtitle, action, children }: {
           <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
           {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
         </div>
-        {action && (
-          <button className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors">
+        {action && actionTo && (
+          <Link
+            to={actionTo}
+            className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors"
+          >
             {action} →
-          </button>
+          </Link>
         )}
       </div>
       {children}
@@ -59,45 +46,80 @@ function SectionCard({ title, subtitle, action, children }: {
 
 export default function Dashboard() {
   const [selectedChapter, setSelectedChapter] = useState<string>('All')
+  const [allDevices, setAllDevices] = useState<import('../types/inventory').AnyDevice[]>([])
+  const [chapters,   setChapters]   = useState<string[]>([])
 
-  const filteredDevices = selectedChapter === 'All'
-    ? RECENT_DEVICES
-    : RECENT_DEVICES.filter((d) => d.chapter === selectedChapter)
+  useEffect(() => {
+    getDevices().then(setAllDevices)
+    getChapters().then(setChapters)
+  }, [])
 
-  const filteredParts = selectedChapter === 'All'
-    ? RECENT_PARTS
-    : RECENT_PARTS.filter((p) => p.chapter === selectedChapter)
+  // ── Filtered data ──────────────────────────────────────────────────────────
+  const devices = selectedChapter === 'All'
+    ? allDevices
+    : allDevices.filter(d => d.chapter === selectedChapter)
+
+  // ── Derived counts ─────────────────────────────────────────────────────────
+  const notStarted    = devices.filter(d => d.status === 'Not Started')
+  const inProgress    = devices.filter(d => d.status === 'In Progress')
+  const readyToDonate = devices.filter(d => d.status === 'Ready To Donate')
+  const donated       = devices.filter(d => d.status === 'Donated')
+  const scrapped      = devices.filter(d => d.status === 'Scrapped')
+
+  const desktops = devices.filter(d => d.type === 'Desktop')
+  const laptops  = devices.filter(d => d.type === 'Laptop')
+  const tablets  = devices.filter(d => d.type === 'Tablet')
+
+  const workflowCounts: Record<DeviceStatus, number> = {
+    'Not Started':     notStarted.length,
+    'In Progress':     inProgress.length,
+    'Ready To Donate': readyToDonate.length,
+    'Donated':         donated.length,
+    'Scrapped':        scrapped.length,
+    'Unknown':         devices.filter(d => d.status === 'Unknown').length,
+  }
+
+  // Scale bar chart against active states only
+  const maxWorkflowCount = Math.max(
+    notStarted.length, inProgress.length, readyToDonate.length, 1
+  )
+  const maxTypeCount = Math.max(desktops.length, laptops.length, tablets.length, 1)
 
   return (
     <div className="space-y-6">
 
-      {/* Page heading + chapter filter */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="text-sm text-slate-400 mt-1">Overview of all inventory across chapters</p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <label htmlFor="chapter-filter" className="text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
-            Chapter
-          </label>
-          <select
-            id="chapter-filter"
-            value={selectedChapter}
-            onChange={(e) => setSelectedChapter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all cursor-pointer"
+      {/* Page heading */}
+      <div>
+        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+        <p className="text-sm text-slate-400 mt-1">Inventory overview by chapter</p>
+      </div>
+
+      {/* Chapter tabs */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
+        {(['All', ...chapters] as string[]).map((ch) => (
+          <button
+            key={ch}
+            onClick={() => setSelectedChapter(ch)}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              selectedChapter === ch
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
           >
-            <option value="All">All Chapters</option>
-            {CHAPTERS.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
+            {ch === 'All' ? 'All Chapters' : ch}
+          </button>
+        ))}
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        {STAT_CARDS.map(({ label, value, note, highlight }) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        {[
+          { label: 'Total Devices',   value: devices.length,         note: `${desktops.length}D · ${laptops.length}L · ${tablets.length}T`, highlight: true },
+          { label: 'Not Started',     value: notStarted.length,      note: 'awaiting triage'   },
+          { label: 'In Progress',     value: inProgress.length,      note: 'being refurbished' },
+          { label: 'Ready to Donate', value: readyToDonate.length,   note: 'awaiting pickup'   },
+          { label: 'Donated',         value: donated.length,         note: 'all time'          },
+        ].map(({ label, value, note, highlight }) => (
           <div
             key={label}
             className={`rounded-xl p-5 ${
@@ -125,74 +147,129 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Recent devices */}
-      <SectionCard
-        title={selectedChapter === 'All' ? 'Recent Devices' : `Devices — ${selectedChapter}`}
-        subtitle="Latest assets added to inventory"
-        action="View all"
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                {DEVICE_TABLE_HEADERS.map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredDevices.length === 0 ? (
-                <tr><td colSpan={DEVICE_TABLE_HEADERS.length} className="px-5 py-8 text-center text-sm text-slate-400">No devices for this chapter</td></tr>
-              ) : filteredDevices.map(renderDeviceRow)}
-            </tbody>
-          </table>
-        </div>
-      </SectionCard>
+      {/* Analysis row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-      {/* Recent parts */}
-      <SectionCard
-        title={selectedChapter === 'All' ? 'Recent Parts' : `Parts — ${selectedChapter}`}
-        subtitle="Loose components available for repair"
-        action="View all"
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                {['ID', 'Type', 'Description', 'Chapter', 'Source', 'Acquired'].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredParts.length === 0 ? (
-                <tr><td colSpan={6} className="px-5 py-8 text-center text-sm text-slate-400">No parts for this chapter</td></tr>
-              ) : filteredParts.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3.5 font-mono text-xs text-slate-400">{p.id}</td>
-                  <td className="px-5 py-3.5">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
-                      {p.type}
+        {/* Status distribution */}
+        <div className="lg:col-span-2">
+          <SectionCard title="Workflow Status" subtitle="Active devices — excludes donated (lifetime stat)">
+            <div className="px-6 py-6 space-y-5">
+              {WORKFLOW_STATUSES.map((status) => {
+                const count = workflowCounts[status]
+                const pct   = Math.round((count / maxWorkflowCount) * 100)
+                const dot   = STATUS_CONFIG[status].dot
+                return (
+                  <div key={status} className="flex items-center gap-4">
+                    <div className="flex items-center gap-2.5 w-40 shrink-0">
+                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${dot}`} />
+                      <span className="text-sm text-slate-700">{status}</span>
+                    </div>
+                    <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-3 rounded-full transition-all ${dot}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-bold text-slate-800 w-6 text-right shrink-0">
+                      {count}
                     </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-slate-700">{p.description}</td>
-                  <td className="px-5 py-3.5 text-slate-500">{p.chapter}</td>
-                  <td className="px-5 py-3.5">
-                    <span className={`text-xs font-medium ${p.wasPurchased ? 'text-amber-600' : 'text-green-600'}`}>
-                      {p.wasPurchased ? 'Purchased' : 'Donated'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-slate-400 whitespace-nowrap">{p.acquisitionDate ?? '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                )
+              })}
+            </div>
+          </SectionCard>
         </div>
-      </SectionCard>
+
+        {/* Device type mix */}
+        <SectionCard title="Device Types" subtitle="Breakdown by form factor">
+          <div className="px-6 py-6 space-y-6">
+            {([
+              { label: 'Desktops', count: desktops.length, bar: 'bg-violet-500' },
+              { label: 'Laptops',  count: laptops.length,  bar: 'bg-blue-500'   },
+              { label: 'Tablets',  count: tablets.length,  bar: 'bg-teal-500'   },
+            ] as const).map(({ label, count, bar }) => {
+              const pct = devices.length > 0 ? Math.round((count / devices.length) * 100) : 0
+              return (
+                <div key={label}>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium text-slate-700">{label}</span>
+                    <span className="text-sm font-bold text-slate-800">
+                      {count} <span className="text-slate-400 font-normal text-xs">({pct}%)</span>
+                    </span>
+                  </div>
+                  <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-3 rounded-full transition-all ${bar}`}
+                      style={{ width: `${Math.round((count / maxTypeCount) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </SectionCard>
+
+      </div>
+
+      {/* Chapter breakdown — only in All Chapters view */}
+      {selectedChapter === 'All' && (
+        <SectionCard title="Chapter Summary" subtitle="Device counts by status for each chapter">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  {['Chapter', 'Total', 'Not Started', 'In Progress', 'Ready to Donate', 'Donated', 'Scrapped'].map((h) => (
+                    <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {chapters.map((ch) => {
+                  const chDevices    = allDevices.filter(d => d.chapter === ch)
+                  const chNotStarted = chDevices.filter(d => d.status === 'Not Started')
+                  const chInProgress = chDevices.filter(d => d.status === 'In Progress')
+                  const chReady      = chDevices.filter(d => d.status === 'Ready To Donate')
+                  const chDonated    = chDevices.filter(d => d.status === 'Donated')
+                  const chScrapped   = chDevices.filter(d => d.status === 'Scrapped')
+                  return (
+                    <tr key={ch} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-3.5 font-medium text-slate-900">{ch}</td>
+                      <td className="px-5 py-3.5 text-slate-700">{chDevices.length}</td>
+                      <td className="px-5 py-3.5">
+                        {chNotStarted.length > 0
+                          ? <span className="text-slate-600 font-medium">{chNotStarted.length}</span>
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {chInProgress.length > 0
+                          ? <span className="text-amber-600 font-medium">{chInProgress.length}</span>
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {chReady.length > 0
+                          ? <span className="text-green-600 font-medium">{chReady.length}</span>
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {chDonated.length > 0
+                          ? <span className="text-blue-600 font-medium">{chDonated.length}</span>
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {chScrapped.length > 0
+                          ? <span className="text-red-500 font-medium">{chScrapped.length}</span>
+                          : <span className="text-slate-300">—</span>}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </SectionCard>
+      )}
 
     </div>
   )

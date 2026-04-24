@@ -1,0 +1,168 @@
+/**
+ * NotesPane — shared notes panel for device, part, and tool detail pages.
+ *
+ * Loads notes via noteService on mount and supports add/edit inline.
+ * Note creation and edits are applied optimistically in local state;
+ * the service call runs in the background. When the real API is wired in,
+ * the server-returned note (with its true ID) replaces the optimistic entry.
+ */
+
+import { useState, useEffect } from 'react'
+import type { Note } from '../types/inventory'
+import { getNotesByAsset, createNote, updateNote } from '../services/noteService'
+
+function formatNoteDate(iso: string) {
+  const d = new Date(iso)
+  return (
+    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+    ' · ' +
+    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  )
+}
+
+export default function NotesPane({ assetId }: { assetId: number }) {
+  const [notes, setNotes] = useState<Note[]>([])
+  const [draft, setDraft] = useState('')
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editText, setEditText] = useState('')
+
+  useEffect(() => {
+    getNotesByAsset(assetId).then(setNotes)
+  }, [assetId])
+
+  function submitNote() {
+    const text = draft.trim()
+    if (!text) return
+    // Optimistic update — give the note a temporary client-side ID
+    const optimistic: Note = { id: Date.now(), assetId, date: new Date().toISOString(), text }
+    setNotes(prev => [optimistic, ...prev])
+    setDraft('')
+    createNote(assetId, text).then(saved => {
+      // Replace the optimistic entry with the server-returned note (real ID)
+      setNotes(prev => prev.map(n => n.id === optimistic.id ? saved : n))
+    })
+  }
+
+  function startEdit(note: Note) {
+    setEditingId(note.id)
+    setEditText(note.text)
+  }
+
+  function saveEdit(id: number) {
+    const text = editText.trim()
+    if (!text) return
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, text } : n))
+    setEditingId(null)
+    updateNote(id, text)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+  }
+
+  const inputCls =
+    'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-all bg-white'
+
+  return (
+    <div
+      className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col"
+      style={{ minHeight: '480px' }}
+    >
+      {/* Header */}
+      <div className="px-5 py-3.5 bg-slate-100 border-b border-slate-200 flex items-center shrink-0">
+        <h2 className="text-sm font-semibold text-slate-700">Notes</h2>
+      </div>
+
+      {/* Compose */}
+      <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+        <textarea
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitNote() }}
+          placeholder="Add a note… (Ctrl+Enter to submit)"
+          rows={3}
+          maxLength={500}
+          className={`${inputCls} resize-none`}
+        />
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-xs text-slate-400">{draft.length}/500</span>
+          <button
+            onClick={submitNote}
+            disabled={!draft.trim()}
+            className="text-xs font-medium text-white bg-slate-600 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Add note
+          </button>
+        </div>
+      </div>
+
+      {/* List */}
+      <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+        {notes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+              <svg
+                width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.5"
+                strokeLinecap="round" strokeLinejoin="round"
+                className="text-slate-400"
+              >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-slate-500">No notes yet</p>
+            <p className="text-xs text-slate-400 mt-1">Add the first note above.</p>
+          </div>
+        ) : (
+          notes.map(note => (
+            <div key={note.id} className="px-5 py-4 group">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p className="text-xs font-medium text-slate-500">{formatNoteDate(note.date)}</p>
+                {editingId !== note.id && (
+                  <button
+                    onClick={() => startEdit(note)}
+                    className="opacity-0 group-hover:opacity-100 text-[11px] text-slate-400 hover:text-slate-700 transition-all shrink-0"
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+              {editingId === note.id ? (
+                <div>
+                  <textarea
+                    autoFocus
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    maxLength={500}
+                    rows={3}
+                    className={`${inputCls} border-slate-300 resize-none`}
+                  />
+                  <div className="flex gap-2 mt-2 justify-end">
+                    <button
+                      onClick={cancelEdit}
+                      className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => saveEdit(note.id)}
+                      disabled={!editText.trim()}
+                      className="text-xs font-medium text-white bg-slate-600 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1 rounded-lg transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-slate-700 leading-relaxed">{note.text}</p>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}

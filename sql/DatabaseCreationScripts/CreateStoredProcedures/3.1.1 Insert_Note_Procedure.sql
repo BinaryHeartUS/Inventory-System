@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE Insert_Note(
     IN p_Text VARCHAR(500),
-    IN p_Date DATE,
+    IN p_Date TIMESTAMPTZ,
     IN p_Asset_ID INTEGER
 )
 LANGUAGE plpgsql

@@ -56,7 +56,8 @@ export interface BaseDevice {
   storageType: string | null      // Storage_Type.Name (lookup table)
   status: DeviceStatus
   chapter: string                 // resolved from Asset.Chapter_ID
-  acquisitionDate: string | null  // Asset.Acquisition_Date
+  acquisitionDate: string | null  // Asset.Acquisition_Date (ISO date string YYYY-MM-DD)
+  value: number | null            // Asset.Value (MONEY, optional)
 }
 
 // ─── Device subtypes ──────────────────────────────────────────────────────────
@@ -95,5 +96,28 @@ export interface Part {
   wasPurchased: boolean           // inverse of Was_Donated in Part table
   containedIn: number | null      // Part.Contained_In → Device.ID
   chapter: string
-  acquisitionDate: string | null
+  acquisitionDate: string | null  // Asset.Acquisition_Date (ISO date string YYYY-MM-DD)
+  value: number | null            // Asset.Value (MONEY, optional)
+}
+
+// ─── Note ─────────────────────────────────────────────────────────────────────
+
+/** Maps to the Note table. */
+export interface Note {
+  id: number                      // Note.ID
+  text: string                    // Note.Text (max 500 chars)
+  date: string                    // Note.Date (ISO 8601 timestamp string)
+  assetId: number                 // Note.Asset_ID
+}
+
+// ─── Tool ─────────────────────────────────────────────────────────────────────
+
+/** Maps to the Tool + Asset tables. */
+export interface Tool {
+  id: number                      // Asset.ID
+  type: string                    // Tool_Type.Name (lookup table)
+  description: string             // Tool.Description (max 500 chars)
+  chapter: string
+  acquisitionDate: string | null  // Asset.Acquisition_Date (ISO date string YYYY-MM-DD)
+  value: number | null            // Asset.Value (MONEY, optional)
 }

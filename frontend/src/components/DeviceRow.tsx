@@ -1,9 +1,11 @@
+import { useNavigate } from 'react-router-dom'
 import type { AnyDevice, Desktop, Laptop, Tablet } from '../types/inventory'
 import StatusBadge from './StatusBadge'
 /**
  * Renders the columns shared by every device type.
  * Subtype components inject their own cells via the `extraCells` slot,
  * which is placed between the Status and Chapter columns.
+ * Clicking any row navigates to /devices/:id.
  */
 export function DeviceRow({
   device,
@@ -12,17 +14,20 @@ export function DeviceRow({
   device: AnyDevice
   extraCells: React.ReactNode
 }) {
+  const navigate = useNavigate()
   return (
-    <tr className="hover:bg-slate-50 transition-colors">
+    <tr
+      className="hover:bg-violet-50 transition-colors cursor-pointer"
+      onClick={() => navigate(`/devices/${device.id}`)}
+    >
       <td className="px-5 py-3.5 font-mono text-xs text-slate-400">{device.id}</td>
       <td className="px-5 py-3.5">
         <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
           {device.type}
         </span>
       </td>
-      <td className="px-5 py-3.5 font-medium text-slate-900 whitespace-nowrap">
-        {device.manufacturer} {device.model}
-      </td>
+      <td className="px-5 py-3.5 text-slate-700 whitespace-nowrap">{device.manufacturer}</td>
+      <td className="px-5 py-3.5 font-medium text-slate-900 whitespace-nowrap">{device.model}</td>
       <td className="px-5 py-3.5 text-slate-500">{device.year}</td>
       <td className="px-5 py-3.5 text-slate-500 text-xs">{device.cpu ?? '—'}</td>
       <td className="px-5 py-3.5 text-slate-500 whitespace-nowrap">
