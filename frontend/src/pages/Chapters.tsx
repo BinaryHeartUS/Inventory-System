@@ -23,11 +23,11 @@ export default function Chapters() {
     <div className="space-y-6">
 
       <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Chapters</h1>
-        <p className="text-sm text-slate-400 mt-1">{chapters.length} active chapters</p>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Chapters</h1>
+        <p className="text-base text-slate-400 mt-1">{chapters.length} active chapters</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {chapters.map(ch => {
           const devices  = allDevices.filter(d => d.chapter === ch)
           const parts    = allParts.filter(p => p.chapter === ch)
@@ -38,51 +38,53 @@ export default function Chapters() {
           const scrapped = devices.filter(d => d.status === 'Scrapped')
 
           return (
-            <div key={ch} className="bg-white border border-slate-200 rounded-xl p-6">
+            <div key={ch} className="bg-white border border-slate-200 rounded-2xl p-7">
 
               {/* Header */}
-              <div className="flex items-start justify-between mb-5">
+              <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">{ch}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Texas</p>
+                  <h2 className="text-xl font-bold text-slate-900">{ch}</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">Texas</p>
                 </div>
-                <span className="px-2.5 py-1 bg-heart-blue/10 text-heart-blue text-xs font-semibold rounded-full">
+                <span className="px-3 py-1.5 bg-heart-blue/10 text-heart-blue text-sm font-semibold rounded-full">
                   {devices.length} devices
                 </span>
               </div>
 
               {/* Status summary */}
-              <div className="grid grid-cols-4 gap-2 mb-5">
+              <div className="grid grid-cols-4 gap-3 mb-6">
                 {[
-                  { label: 'Pipeline', value: pipeline.length, color: 'text-sky-600',     bg: 'bg-sky-50'          },
-                  { label: 'Ready',    value: ready.length,    color: 'text-green-700',   bg: 'bg-green-50'        },
-                  { label: 'Donated',  value: donated.length,  color: 'text-sky-600',      bg: 'bg-sky-50'          },
-                  { label: 'Scrapped', value: scrapped.length, color: 'text-red-600',    bg: 'bg-red-50'          },
+                  { label: 'Pipeline', value: pipeline.length, color: 'text-sky-600',     bg: 'bg-sky-50'   },
+                  { label: 'Ready',    value: ready.length,    color: 'text-green-700',   bg: 'bg-green-50' },
+                  { label: 'Donated',  value: donated.length,  color: 'text-sky-600',     bg: 'bg-sky-50'   },
+                  { label: 'Scrapped', value: scrapped.length, color: 'text-red-600',     bg: 'bg-red-50'   },
                 ].map(({ label, value, color, bg }) => (
-                  <div key={label} className={`${bg} rounded-lg p-3 text-center`}>
-                    <p className={`text-xl font-bold ${color}`}>{value}</p>
-                    <p className={`text-[11px] font-medium mt-0.5 ${color} opacity-75`}>{label}</p>
+                  <div key={label} className={`${bg} rounded-xl p-4 text-center`}>
+                    <p className={`text-3xl font-bold ${color}`}>{value}</p>
+                    <p className={`text-xs font-semibold mt-1 uppercase tracking-wide ${color} opacity-75`}>{label}</p>
                   </div>
                 ))}
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                <div className="flex gap-4 text-xs text-slate-500">
+              <div className="flex items-center justify-between pt-5 border-t border-slate-100">
+                <div className="flex gap-5 text-sm text-slate-500">
                   <span>
-                    {devices.filter(d => d.type === 'Desktop').length}D ·{' '}
-                    {devices.filter(d => d.type === 'Laptop').length}L ·{' '}
-                    {devices.filter(d => d.type === 'Tablet').length}T
+                    <span className="font-semibold text-slate-700">{devices.filter(d => d.type === 'Desktop').length}</span> Desktop ·{' '}
+                    <span className="font-semibold text-slate-700">{devices.filter(d => d.type === 'Laptop').length}</span> Laptop ·{' '}
+                    <span className="font-semibold text-slate-700">{devices.filter(d => d.type === 'Tablet').length}</span> Tablet
                   </span>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-slate-400">
                   <span>{parts.length} parts</span>
                   <span>{tools.length} tools</span>
+                  <Link
+                    to={`/devices`}
+                    className="font-semibold text-brand-red hover:text-brand-red-dark transition-colors"
+                  >
+                    View devices →
+                  </Link>
                 </div>
-                <Link
-                  to={`/devices`}
-                  className="text-xs font-medium text-brand-red hover:text-brand-red-dark transition-colors"
-                >
-                  View devices →
-                </Link>
               </div>
             </div>
           )

@@ -150,24 +150,23 @@ export default function Dashboard() {
       </div>
 
       {/* Analysis row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Status distribution */}
-        <div className="lg:col-span-2 flex flex-col">
-          <SectionCard title="Workflow Status" subtitle="Active devices — excludes donated (lifetime stat)">
-            <div className="px-6 py-6 flex flex-col justify-between flex-1 gap-5">
+        <SectionCard title="Workflow Status" subtitle="Active devices by pipeline stage">
+            <div className="px-6 py-6 flex flex-col justify-between flex-1 gap-6">
               {WORKFLOW_STATUSES.map((status) => {
                 const count = workflowCounts[status]
                 const pct   = Math.round((count / maxWorkflowCount) * 100)
                 const dot   = STATUS_CONFIG[status].dot
                 return (
                   <div key={status}>
-                    <div className="flex items-center justify-between mb-2.5">
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <span className={`w-3 h-3 rounded-full shrink-0 ${dot}`} />
                         <span className="text-base text-slate-700 font-medium">{status}</span>
                       </div>
-                      <span className="text-base font-bold text-slate-800">{count}</span>
+                      <span className="text-lg font-bold text-slate-800">{count}</span>
                     </div>
                     <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
                       <div
@@ -179,12 +178,11 @@ export default function Dashboard() {
                 )
               })}
             </div>
-          </SectionCard>
-        </div>
+        </SectionCard>
 
         {/* Device type mix */}
         <SectionCard title="Device Types" subtitle="Breakdown by form factor">
-          <div className="px-6 py-6 flex flex-col justify-between flex-1 gap-5">
+          <div className="px-6 py-6 flex flex-col justify-between flex-1 gap-6">
             {([
               { label: 'Desktops', count: desktops.length, bar: 'bg-heart-blue' },
               { label: 'Laptops',  count: laptops.length,  bar: 'bg-blue-500'   },
@@ -193,9 +191,9 @@ export default function Dashboard() {
               const pct = devices.length > 0 ? Math.round((count / devices.length) * 100) : 0
               return (
                 <div key={label}>
-                  <div className="flex justify-between mb-2.5">
+                  <div className="flex justify-between mb-3">
                     <span className="text-base font-medium text-slate-700">{label}</span>
-                    <span className="text-base font-bold text-slate-800">
+                    <span className="text-lg font-bold text-slate-800">
                       {count} <span className="text-slate-400 font-normal text-sm">({pct}%)</span>
                     </span>
                   </div>
@@ -212,66 +210,6 @@ export default function Dashboard() {
         </SectionCard>
 
       </div>
-
-      {/* Chapter breakdown — only in All Chapters view */}
-      {selectedChapter === 'All' && (
-        <SectionCard title="Chapter Summary" subtitle="Device counts by status for each chapter">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  {['Chapter', 'Total', 'Not Started', 'In Progress', 'Ready to Donate', 'Donated', 'Scrapped'].map((h) => (
-                    <th key={h} className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {chapters.map((ch) => {
-                  const chDevices    = allDevices.filter(d => d.chapter === ch)
-                  const chNotStarted = chDevices.filter(d => d.status === 'Not Started')
-                  const chInProgress = chDevices.filter(d => d.status === 'In Progress')
-                  const chReady      = chDevices.filter(d => d.status === 'Ready To Donate')
-                  const chDonated    = chDevices.filter(d => d.status === 'Donated')
-                  const chScrapped   = chDevices.filter(d => d.status === 'Scrapped')
-                  return (
-                    <tr key={ch} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-4 font-medium text-slate-900">{ch}</td>
-                      <td className="px-5 py-4 text-slate-700">{chDevices.length}</td>
-                      <td className="px-5 py-4">
-                        {chNotStarted.length > 0
-                          ? <span className="text-slate-600 font-medium">{chNotStarted.length}</span>
-                          : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-5 py-4">
-                        {chInProgress.length > 0
-                          ? <span className="text-sky-600 font-medium">{chInProgress.length}</span>
-                          : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-5 py-4">
-                        {chReady.length > 0
-                          ? <span className="text-green-600 font-medium">{chReady.length}</span>
-                          : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-5 py-4">
-                        {chDonated.length > 0
-                          ? <span className="text-sky-600 font-medium">{chDonated.length}</span>
-                          : <span className="text-slate-300">—</span>}
-                      </td>
-                      <td className="px-5 py-4">
-                        {chScrapped.length > 0
-                          ? <span className="text-red-500 font-medium">{chScrapped.length}</span>
-                          : <span className="text-slate-300">—</span>}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </SectionCard>
-      )}
 
     </div>
   )

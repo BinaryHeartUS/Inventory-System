@@ -20,28 +20,28 @@ export function DeviceRow({
       className="hover:bg-slate-50 transition-colors cursor-pointer"
       onClick={() => navigate(`/devices/${device.id}`)}
     >
-      <td className="px-5 py-3.5 font-mono text-xs text-slate-400">{device.id}</td>
-      <td className="px-5 py-3.5">
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
+      <td className="px-5 py-5 font-mono text-xs text-slate-400">{device.id}</td>
+      <td className="px-5 py-5">
+        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
           {device.type}
         </span>
       </td>
-      <td className="px-5 py-3.5 text-slate-700 whitespace-nowrap">{device.manufacturer}</td>
-      <td className="px-5 py-3.5 font-medium text-slate-900 whitespace-nowrap">{device.model}</td>
-      <td className="px-5 py-3.5 text-slate-500">{device.year}</td>
-      <td className="px-5 py-3.5 text-slate-500 text-xs">{device.cpu ?? '—'}</td>
-      <td className="px-5 py-3.5 text-slate-500 whitespace-nowrap">
+      <td className="px-5 py-5 text-slate-700 whitespace-nowrap">{device.manufacturer}</td>
+      <td className="px-5 py-5 font-semibold text-slate-900 whitespace-nowrap">{device.model}</td>
+      <td className="px-5 py-5 text-slate-500">{device.year}</td>
+      <td className="px-5 py-5 text-slate-500 text-sm">{device.cpu ?? '—'}</td>
+      <td className="px-5 py-5 text-slate-500 whitespace-nowrap">
         {device.ram} GB{device.ramGeneration ? ` ${device.ramGeneration}` : ''}
       </td>
-      <td className="px-5 py-3.5 text-slate-500 whitespace-nowrap">
+      <td className="px-5 py-5 text-slate-500 whitespace-nowrap">
         {device.storage} GB{device.storageType ? ` (${device.storageType})` : ''}
       </td>
-      <td className="px-5 py-3.5">
+      <td className="px-5 py-5">
         <StatusBadge status={device.status} />
       </td>
       {extraCells}
-      <td className="px-5 py-3.5 text-slate-500">{device.chapter}</td>
-      <td className="px-5 py-3.5 text-slate-400 whitespace-nowrap">
+      <td className="px-5 py-5 text-slate-500">{device.chapter}</td>
+      <td className="px-5 py-5 text-slate-400 whitespace-nowrap">
         {device.acquisitionDate ?? '—'}
       </td>
     </tr>
@@ -53,7 +53,7 @@ export function DesktopRow({ device }: { device: Desktop }) {
     <DeviceRow
       device={device}
       extraCells={
-        <td className="px-5 py-3.5 text-slate-500 text-xs whitespace-nowrap">
+        <td className="px-5 py-5 text-sm text-slate-500 text-sm whitespace-nowrap">
           Wi-Fi:{' '}
           <span className="font-medium text-slate-700">
             {device.hasWifi === null ? '—' : device.hasWifi ? 'Yes' : 'No'}
@@ -80,7 +80,7 @@ export function LaptopRow({ device }: { device: Laptop }) {
     <DeviceRow
       device={device}
       extraCells={
-        <td className="px-5 py-3.5 text-xs whitespace-nowrap space-y-0.5">
+        <td className="px-5 py-5 text-sm whitespace-nowrap space-y-1">
           <div className="text-slate-500">
             Charger:{' '}
             <span className="font-medium text-slate-700">{device.includesCharger}</span>
@@ -102,7 +102,7 @@ export function TabletRow({ device }: { device: Tablet }) {
     <DeviceRow
       device={device}
       extraCells={
-        <td className="px-5 py-3.5 text-xs whitespace-nowrap space-y-0.5">
+        <td className="px-5 py-5 text-sm whitespace-nowrap space-y-1">
           <div className="text-slate-500">
             Charger:{' '}
             <span className="font-medium text-slate-700">{device.includesCharger}</span>

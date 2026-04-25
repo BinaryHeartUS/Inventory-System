@@ -142,8 +142,8 @@ export default function Devices() {
 
       {/* Page heading */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Devices</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Devices</h1>
+        <p className="text-base text-slate-400 mt-1">
           {sorted.length === total
             ? `All ${total} devices`
             : `${sorted.length} of ${total} devices`}
@@ -151,7 +151,7 @@ export default function Devices() {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
         <div className="flex flex-wrap gap-3 items-center">
 
           {/* Search — matches ID, manufacturer, model, CPU, chapter */}
@@ -230,7 +230,7 @@ export default function Devices() {
                     <th
                       key={h}
                       onClick={() => handleHeaderClick(h)}
-                      className={`px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap select-none ${
+                      className={`px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap select-none ${
                         sortable
                           ? 'text-slate-500 hover:text-slate-800 cursor-pointer'
                           : 'text-slate-400'

@@ -44,8 +44,8 @@ export default function Parts() {
     <div className="space-y-6">
 
       <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Parts</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Parts</h1>
+        <p className="text-base text-slate-400 mt-1">
           {filtered.length === allParts.length
             ? `All ${allParts.length} parts`
             : `${filtered.length} of ${allParts.length} parts`}
@@ -53,7 +53,7 @@ export default function Parts() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
         <div className="flex flex-wrap gap-3 items-center">
           <select
             value={typeFilter}
@@ -98,7 +98,7 @@ export default function Parts() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
                 {['ID', 'Type', 'Description', 'Chapter', 'Source', 'Contained In', 'Acquired'].map(h => (
-                  <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+                  <th key={h} className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -118,25 +118,25 @@ export default function Parts() {
                 </tr>
               ) : filtered.map(p => (
                 <tr key={p.id} onClick={() => navigate(`/parts/${p.id}`)} className="hover:bg-slate-50 transition-colors cursor-pointer">
-                  <td className="px-5 py-3.5 font-mono text-xs text-slate-400">{p.id}</td>
-                  <td className="px-5 py-3.5">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
+                  <td className="px-5 py-5 font-mono text-xs text-slate-400">{p.id}</td>
+                  <td className="px-5 py-5">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
                       {p.type}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-slate-700">{p.description}</td>
-                  <td className="px-5 py-3.5 text-slate-500">{p.chapter}</td>
-                  <td className="px-5 py-3.5">
-                    <span className={`text-xs font-medium ${p.wasPurchased ? 'text-slate-500' : 'text-green-600'}`}>
+                  <td className="px-5 py-5 text-slate-700">{p.description}</td>
+                  <td className="px-5 py-5 text-slate-500">{p.chapter}</td>
+                  <td className="px-5 py-5">
+                    <span className={`text-sm font-medium ${p.wasPurchased ? 'text-slate-500' : 'text-green-600'}`}>
                       {p.wasPurchased ? 'Purchased' : 'Donated'}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-5">
                     {p.containedIn != null
                       ? <span className="font-mono text-xs text-heart-blue">#{p.containedIn}</span>
                       : <span className="text-slate-300 text-xs">Loose</span>}
                   </td>
-                  <td className="px-5 py-3.5 text-slate-400 whitespace-nowrap">{p.acquisitionDate ?? '—'}</td>
+                  <td className="px-5 py-5 text-slate-400 whitespace-nowrap">{p.acquisitionDate ?? '—'}</td>
                 </tr>
               ))}
             </tbody>

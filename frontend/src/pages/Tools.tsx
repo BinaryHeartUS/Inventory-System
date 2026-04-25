@@ -46,8 +46,8 @@ export default function Tools() {
     <div className="space-y-6">
 
       <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Tools</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tools</h1>
+        <p className="text-base text-slate-400 mt-1">
           {filtered.length === allTools.length
             ? `All ${allTools.length} tools`
             : `${filtered.length} of ${allTools.length} tools`}
@@ -55,7 +55,7 @@ export default function Tools() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4">
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
         <div className="flex flex-wrap gap-3 items-center">
           <select
             value={typeFilter}
@@ -91,7 +91,7 @@ export default function Tools() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
                 {['ID', 'Type', 'Description', 'Chapter', 'Value', 'Acquired'].map(h => (
-                  <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+                  <th key={h} className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -115,18 +115,18 @@ export default function Tools() {
                   onClick={() => navigate(`/tools/${t.id}`)}
                   className="hover:bg-slate-50 transition-colors cursor-pointer"
                 >
-                  <td className="px-5 py-3.5 font-mono text-xs text-slate-400">{t.id}</td>
-                  <td className="px-5 py-3.5">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
+                  <td className="px-5 py-5 font-mono text-xs text-slate-400">{t.id}</td>
+                  <td className="px-5 py-5">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
                       {t.type}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-slate-600 max-w-xs truncate">{t.description}</td>
-                  <td className="px-5 py-3.5 text-slate-500">{t.chapter}</td>
-                  <td className="px-5 py-3.5 text-slate-700">
+                  <td className="px-5 py-5 text-slate-600 max-w-xs truncate">{t.description}</td>
+                  <td className="px-5 py-5 text-slate-500">{t.chapter}</td>
+                  <td className="px-5 py-5 text-slate-700">
                     {t.value != null ? `$${t.value.toFixed(2)}` : <span className="text-slate-300">—</span>}
                   </td>
-                  <td className="px-5 py-3.5 text-slate-400 whitespace-nowrap">{formatDate(t.acquisitionDate)}</td>
+                  <td className="px-5 py-5 text-slate-400 whitespace-nowrap">{formatDate(t.acquisitionDate)}</td>
                 </tr>
               ))}
             </tbody>
