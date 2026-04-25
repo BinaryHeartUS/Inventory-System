@@ -6,7 +6,7 @@ export default function StatusBadge({ status, size = 'sm' }: { status: DeviceSta
   const cfg = STATUS_CONFIG[status]
   if (size === 'lg') {
     return (
-      <span className={`inline-flex items-center gap-2 px-4 rounded-lg text-sm font-semibold whitespace-nowrap self-stretch ${cfg.badgeDark}`}>
+      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap ${cfg.badge}`}>
         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${cfg.dot}`} />
         {status}
       </span>

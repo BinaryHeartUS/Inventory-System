@@ -24,71 +24,70 @@ export default function Chapters() {
 
       <div>
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Chapters</h1>
-        <p className="text-base text-slate-400 mt-1">{chapters.length} active chapters</p>
+        <p className="text-base text-slate-400 mt-1">Inventory summary across all {chapters.length} chapters</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {chapters.map(ch => {
-          const devices  = allDevices.filter(d => d.chapter === ch)
-          const parts    = allParts.filter(p => p.chapter === ch)
-          const tools    = allTools.filter(t => t.chapter === ch)
-          const pipeline = devices.filter(d => d.status === 'Not Started' || d.status === 'In Progress')
-          const ready    = devices.filter(d => d.status === 'Ready To Donate')
-          const donated  = devices.filter(d => d.status === 'Donated')
-          const scrapped = devices.filter(d => d.status === 'Scrapped')
-
-          return (
-            <div key={ch} className="bg-white border border-slate-200 rounded-2xl p-7">
-
-              {/* Header */}
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">{ch}</h2>
-                  <p className="text-sm text-slate-400 mt-0.5">Texas</p>
-                </div>
-                <span className="px-3 py-1.5 bg-heart-blue/10 text-heart-blue text-sm font-semibold rounded-full">
-                  {devices.length} devices
-                </span>
-              </div>
-
-              {/* Status summary */}
-              <div className="grid grid-cols-4 gap-3 mb-6">
-                {[
-                  { label: 'Pipeline', value: pipeline.length, color: 'text-sky-600',     bg: 'bg-sky-50'   },
-                  { label: 'Ready',    value: ready.length,    color: 'text-green-700',   bg: 'bg-green-50' },
-                  { label: 'Donated',  value: donated.length,  color: 'text-sky-600',     bg: 'bg-sky-50'   },
-                  { label: 'Scrapped', value: scrapped.length, color: 'text-red-600',     bg: 'bg-red-50'   },
-                ].map(({ label, value, color, bg }) => (
-                  <div key={label} className={`${bg} rounded-xl p-4 text-center`}>
-                    <p className={`text-3xl font-bold ${color}`}>{value}</p>
-                    <p className={`text-xs font-semibold mt-1 uppercase tracking-wide ${color} opacity-75`}>{label}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-5 border-t border-slate-100">
-                <div className="flex gap-5 text-sm text-slate-500">
-                  <span>
-                    <span className="font-semibold text-slate-700">{devices.filter(d => d.type === 'Desktop').length}</span> Desktop ·{' '}
-                    <span className="font-semibold text-slate-700">{devices.filter(d => d.type === 'Laptop').length}</span> Laptop ·{' '}
-                    <span className="font-semibold text-slate-700">{devices.filter(d => d.type === 'Tablet').length}</span> Tablet
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-slate-400">
-                  <span>{parts.length} parts</span>
-                  <span>{tools.length} tools</span>
-                  <Link
-                    to={`/devices`}
-                    className="font-semibold text-brand-red hover:text-brand-red-dark transition-colors"
-                  >
-                    View devices →
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )
-        })}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50">
+              <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Chapter</th>
+              <th className="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Total</th>
+              <th className="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Pipeline</th>
+              <th className="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Ready</th>
+              <th className="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Donated</th>
+              <th className="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Scrapped</th>
+              <th className="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Parts</th>
+              <th className="text-right px-4 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Tools</th>
+              <th className="px-4 py-4" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {chapters.map(ch => {
+              const devices  = allDevices.filter(d => d.chapter === ch)
+              const parts    = allParts.filter(p => p.chapter === ch)
+              const tools    = allTools.filter(t => t.chapter === ch)
+              const pipeline = devices.filter(d => d.status === 'Not Started' || d.status === 'In Progress').length
+              const ready    = devices.filter(d => d.status === 'Ready To Donate').length
+              const donated  = devices.filter(d => d.status === 'Donated').length
+              const scrapped = devices.filter(d => d.status === 'Scrapped').length
+              return (
+                <tr key={ch} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-5">
+                    <p className="font-semibold text-slate-900 text-base">{ch}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {devices.filter(d => d.type === 'Desktop').length}D ·{' '}
+                      {devices.filter(d => d.type === 'Laptop').length}L ·{' '}
+                      {devices.filter(d => d.type === 'Tablet').length}T
+                    </p>
+                  </td>
+                  <td className="px-4 py-5 text-right">
+                    <span className="text-base font-bold text-slate-900">{devices.length}</span>
+                  </td>
+                  <td className="px-4 py-5 text-right">
+                    <span className={`text-base font-semibold ${pipeline > 0 ? 'text-amber-600' : 'text-slate-300'}`}>{pipeline}</span>
+                  </td>
+                  <td className="px-4 py-5 text-right">
+                    <span className={`text-base font-semibold ${ready > 0 ? 'text-green-600' : 'text-slate-300'}`}>{ready}</span>
+                  </td>
+                  <td className="px-4 py-5 text-right">
+                    <span className={`text-base font-semibold ${donated > 0 ? 'text-sky-600' : 'text-slate-300'}`}>{donated}</span>
+                  </td>
+                  <td className="px-4 py-5 text-right">
+                    <span className={`text-base font-semibold ${scrapped > 0 ? 'text-red-500' : 'text-slate-300'}`}>{scrapped}</span>
+                  </td>
+                  <td className="px-4 py-5 text-right text-slate-500 font-medium">{parts.length}</td>
+                  <td className="px-4 py-5 text-right text-slate-500 font-medium">{tools.length}</td>
+                  <td className="px-4 py-5 text-right">
+                    <Link to="/devices" className="text-sm font-semibold text-brand-red hover:text-brand-red-dark transition-colors">
+                      View →
+                    </Link>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
 
     </div>

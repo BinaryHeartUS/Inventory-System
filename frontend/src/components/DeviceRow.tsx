@@ -27,7 +27,7 @@ export function DeviceRow({
         </span>
       </td>
       <td className="px-5 py-5 text-slate-700 whitespace-nowrap">{device.manufacturer}</td>
-      <td className="px-5 py-5 font-semibold text-slate-900 whitespace-nowrap">{device.model}</td>
+      <td className="px-5 py-5 text-slate-900 whitespace-nowrap">{device.model}</td>
       <td className="px-5 py-5 text-slate-500">{device.year}</td>
       <td className="px-5 py-5 text-slate-500 text-sm">{device.cpu ?? '—'}</td>
       <td className="px-5 py-5 text-slate-500 whitespace-nowrap">
