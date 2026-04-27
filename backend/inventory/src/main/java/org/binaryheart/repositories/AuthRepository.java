@@ -1,6 +1,7 @@
 package org.binaryheart.repositories;
 
 import org.binaryheart.DatabaseConnectionService;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.models.VolunteerCredentials;
 
 import java.sql.*;
@@ -18,7 +19,7 @@ public class AuthRepository {
             stmt.setString(1, username);
             stmt.registerOutParameter(2, Types.INTEGER);
             stmt.registerOutParameter(3, Types.VARCHAR);
-            stmt.registerOutParameter(4, Types.ARRAY);
+            stmt.registerOutParameter(4, Types.VARCHAR);
             stmt.execute();
 
             if (stmt.getObject(2) == null) {
@@ -27,16 +28,24 @@ public class AuthRepository {
 
             int id = stmt.getInt(2);
             String passwordHash = stmt.getString(3);
+            String effectiveRole = stmt.getString(4);
 
-            List<Integer> chapterIds = new ArrayList<>();
-            Array chapterArray = stmt.getArray(4);
-            if (chapterArray != null) {
-                for (Integer chapterId : (Integer[]) chapterArray.getArray()) {
-                    chapterIds.add(chapterId);
+            List<ChapterRole> chapterRoles = getChapterRoles(conn, id);
+            return new VolunteerCredentials(id, username, passwordHash, chapterRoles,
+                    effectiveRole != null ? effectiveRole : "Viewer");
+        }
+    }
+
+    private List<ChapterRole> getChapterRoles(Connection conn, int volunteerId) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_Chapter_Roles_For_Volunteer(?)")) {
+            ps.setInt(1, volunteerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<ChapterRole> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(new ChapterRole(rs.getInt("Chapter_ID"), rs.getString("Role_Name")));
                 }
+                return list;
             }
-
-            return new VolunteerCredentials(id, username, passwordHash, chapterIds);
         }
     }
 }

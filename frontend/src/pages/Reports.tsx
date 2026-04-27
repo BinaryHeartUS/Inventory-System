@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getDevices } from '../services/deviceService'
 import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
-import { getChapters } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 import type { AnyDevice, Part, Tool } from '../types/inventory'
 import PageHeading from '../components/PageHeading'
 import ChapterTabs from '../components/ChapterTabs'
@@ -75,12 +75,12 @@ export default function Reports() {
   const [allDevices, setAllDevices] = useState<AnyDevice[]>([])
   const [allParts,   setAllParts]   = useState<Part[]>([])
   const [allTools,   setAllTools]   = useState<Tool[]>([])
-  const [chapters,   setChapters]   = useState<string[]>([])
   const [chapter,    setChapter]    = useState('All')
+  const chapters = useVisibleChapters().map(c => c.name)
 
   useEffect(() => {
-    Promise.all([getDevices(), getParts(), getTools(), getChapters()])
-      .then(([d, p, t, c]) => { setAllDevices(d); setAllParts(p); setAllTools(t); setChapters(c) })
+    Promise.all([getDevices(), getParts(), getTools()])
+      .then(([d, p, t]) => { setAllDevices(d); setAllParts(p); setAllTools(t) })
   }, [])
 
   const devices = chapter === 'All' ? allDevices : allDevices.filter(d => d.chapter === chapter)

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getDevices } from '../services/deviceService'
-import { getChapters } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 import ActivityChart from '../components/ActivityChart'
 import DeviceValueChart from '../components/DeviceValueChart'
 import PageHeading from '../components/PageHeading'
@@ -11,11 +11,10 @@ import ChapterTabs from '../components/ChapterTabs'
 export default function Dashboard() {
   const [selectedChapter, setSelectedChapter] = useState<string>('All')
   const [allDevices, setAllDevices] = useState<import('../types/inventory').AnyDevice[]>([])
-  const [chapters,   setChapters]   = useState<string[]>([])
+  const chapters = useVisibleChapters().map(c => c.name)
 
   useEffect(() => {
     getDevices().then(setAllDevices)
-    getChapters().then(setChapters)
   }, [])
 
   // ── Filtered data ──────────────────────────────────────────────────────────

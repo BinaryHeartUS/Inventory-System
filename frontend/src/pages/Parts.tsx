@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getParts } from '../services/partService'
-import { getChapters } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 
 export default function Parts() {
@@ -11,11 +11,10 @@ export default function Parts() {
   const [sourceFilter,  setSourceFilter]  = useState<'All' | 'Donated' | 'Purchased'>('All')
 
   const [allParts,  setAllParts]  = useState<import('../types/inventory').Part[]>([])
-  const [chapters,  setChapters]  = useState<string[]>([])
+  const chapters = useVisibleChapters().map(c => c.name)
 
   useEffect(() => {
     getParts().then(setAllParts)
-    getChapters().then(setChapters)
   }, [])
 
   const partTypes = useMemo(

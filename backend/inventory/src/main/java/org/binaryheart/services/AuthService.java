@@ -24,7 +24,9 @@ public class AuthService {
         if (!result.verified) {
             return null;
         }
-        String token = JwtService.create(credentials.id(), credentials.username(), credentials.chapterIds());
-        return new LoginResponse(token, credentials.username(), credentials.chapterIds());
+        String token = JwtService.create(credentials.id(), credentials.username(), credentials.chapterRoles(),
+                credentials.effectiveRole());
+        return new LoginResponse(token, credentials.username(), credentials.chapterRoles(),
+                credentials.effectiveRole());
     }
 }

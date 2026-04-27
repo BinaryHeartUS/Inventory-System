@@ -12,12 +12,18 @@ import ToolDetail   from './pages/ToolDetail'
 import Search       from './pages/Search'
 import Reports      from './pages/Reports'
 import Settings     from './pages/Settings'
+import Login        from './pages/Login'
+import Account      from './pages/Account'
+import AdminAccounts from './pages/AdminAccounts'
 import { useBarcodeScanner } from './hooks/useBarcodeScanner'
 import { getDevice, createDevice } from './services/deviceService'
 import { getPart, createPart } from './services/partService'
 import { getTool, createTool } from './services/toolService'
 import { AddAssetModal } from './components/AddAssetModal'
 import { PrintLabelModal } from './components/PrintLabelModal'
+import ProtectedRoute from './components/ProtectedRoute'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { ChapterProvider } from './context/ChapterContext'
 import type { AnyDevice, Part, Tool } from './types/inventory'
 
 const Icons = {
@@ -91,9 +97,18 @@ const navItems = [
   { to: '/settings', label: 'Settings',  icon: Icons.settings  },
 ]
 
+const adminNavItem = { to: '/admin/accounts', label: 'Manage Accounts', icon: (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+)}
+
 function Sidebar() {
+  const { auth } = useAuth()
+  const canManageAccounts = auth?.role === 'Admin' || auth?.role === 'Chapter Admin'
   return (
-    <aside className="w-64 shrink-0 flex flex-col bg-white border-r border-slate-200 min-h-dvh">
+    <aside className="w-64 shrink-0 flex flex-col bg-white border-r border-slate-200 h-dvh sticky top-0 overflow-y-auto">
       <div className="px-6 pt-8 pb-7">
         <div className="flex items-center gap-3">
           <img src="/icon.png" alt="BinaryHeart" className="w-10 h-10 object-contain" />
@@ -127,18 +142,69 @@ function Sidebar() {
             )}
           </NavLink>
         ))}
+        {canManageAccounts && (
+          <NavLink
+            to={adminNavItem.to}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-heart-blue'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span className={isActive ? 'text-brand-red' : ''}>{adminNavItem.icon}</span>
+                <span className={isActive ? 'text-white' : ''}>{adminNavItem.label}</span>
+              </>
+            )}
+          </NavLink>
+        )}
       </nav>
 
-      <div className="px-5 py-5 mt-auto border-t border-slate-200">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-heart-blue flex items-center justify-center text-xs font-bold"><span className="text-brand-red">B</span><span className="text-white">H</span></div>
-          <div>
-            <p className="text-slate-700 text-sm font-medium leading-none">BinaryHeart US</p>
-            <p className="text-slate-400 text-[11px] mt-0.5">Non-profit</p>
-          </div>
-        </div>
+      <div className="px-3 py-4 mt-auto border-t border-slate-200">
+        <NavLink
+          to="/account"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+              isActive
+                ? 'bg-heart-blue'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+            }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <div className={`w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center shrink-0 ${
+                isActive ? 'bg-white/20' : ''
+              }`}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isActive ? 'text-white' : 'text-slate-500'}>
+                  <circle cx="12" cy="8" r="4"/>
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+              </div>
+              <span className={`flex-1 min-w-0 truncate ${
+                isActive ? 'text-white' : 'text-slate-700'
+              }`}>
+                <AccountLabel isActive={isActive} />
+              </span>
+            </>
+          )}
+        </NavLink>
       </div>
     </aside>
+  )
+}
+
+function AccountLabel({ isActive }: { isActive: boolean }) {
+  const { auth } = useAuth()
+  return (
+    <span className={`text-sm font-medium truncate block ${
+      isActive ? 'text-white' : 'text-slate-700'
+    }`}>
+      {auth?.username ?? 'Account'}
+    </span>
   )
 }
 
@@ -159,13 +225,18 @@ function ToolDetailKeyed() {
 function App() {
   return (
     <BrowserRouter>
-      <AppInner />
+      <AuthProvider>
+        <ChapterProvider>
+          <AppInner />
+        </ChapterProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
 
 function AppInner() {
   const navigate = useNavigate()
+  const { auth } = useAuth()
   const [toast, setToast]               = useState<{ msg: string; ok: boolean } | null>(null)
   const [pendingScanId, setPendingScanId] = useState<number | null>(null)
   const [pendingPrintId, setPendingPrintId] = useState<number | null>(null)
@@ -217,27 +288,32 @@ function AppInner() {
       <Sidebar />
       <div className="flex-1 min-w-0">
         <div className="flex justify-end px-10 pt-6">
-          <button
-            onClick={() => setPendingScanId(-1)}
-            className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors">
-            {Icons.plus}
-            Add Asset
-          </button>
+          {auth?.role !== 'Viewer' && (
+            <button
+              onClick={() => setPendingScanId(-1)}
+              className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors">
+              {Icons.plus}
+              Add Asset
+            </button>
+          )}
         </div>
         <main className="px-10 py-6">
           <Routes>
-            <Route path="/"             element={<Dashboard />}    />
-            <Route path="/devices"      element={<Devices />}            />
-            <Route path="/devices/:id"  element={<DeviceDetailKeyed />}  />
-            <Route path="/parts"        element={<Parts />}              />
-            <Route path="/parts/:id"    element={<PartDetailKeyed />}    />
-            <Route path="/tools"        element={<Tools />}              />
-            <Route path="/tools/:id"    element={<ToolDetailKeyed />}    />
-            <Route path="/donations"    element={<Donations />}          />
-            <Route path="/chapters"     element={<Chapters />}           />
-            <Route path="/search"       element={<Search />}             />
-            <Route path="/reports"      element={<Reports />}            />
-            <Route path="/settings"     element={<Settings />}           />
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/devices"     element={<ProtectedRoute><Devices /></ProtectedRoute>} />
+            <Route path="/devices/:id" element={<ProtectedRoute><DeviceDetailKeyed /></ProtectedRoute>} />
+            <Route path="/parts"       element={<ProtectedRoute><Parts /></ProtectedRoute>} />
+            <Route path="/parts/:id"   element={<ProtectedRoute><PartDetailKeyed /></ProtectedRoute>} />
+            <Route path="/tools"       element={<ProtectedRoute><Tools /></ProtectedRoute>} />
+            <Route path="/tools/:id"   element={<ProtectedRoute><ToolDetailKeyed /></ProtectedRoute>} />
+            <Route path="/donations"   element={<ProtectedRoute><Donations /></ProtectedRoute>} />
+            <Route path="/chapters"    element={<ProtectedRoute><Chapters /></ProtectedRoute>} />
+            <Route path="/search"      element={<ProtectedRoute><Search /></ProtectedRoute>} />
+            <Route path="/reports"     element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/account"          element={<ProtectedRoute><Account /></ProtectedRoute>} />
+            <Route path="/admin/accounts"   element={<ProtectedRoute><AdminAccounts /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

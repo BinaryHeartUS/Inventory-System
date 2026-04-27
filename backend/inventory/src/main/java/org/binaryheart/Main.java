@@ -3,7 +3,9 @@ package org.binaryheart;
 import static io.javalin.apibuilder.ApiBuilder.path;
 
 import org.binaryheart.auth.JwtAccessManager;
+import org.binaryheart.controllers.AccountController;
 import org.binaryheart.controllers.AuthController;
+import org.binaryheart.controllers.ChapterController;
 import org.binaryheart.controllers.DeviceController;
 import org.binaryheart.controllers.HealthController;
 
@@ -28,6 +30,8 @@ public class Main {
                 path("/api", HealthController::registerRoutes);
                 path("/api/devices", DeviceController::registerRoutes);
                 path("/api/auth", AuthController::registerRoutes);
+                path("/api/accounts", AccountController::registerRoutes);
+                path("/api/chapters", ChapterController::registerRoutes);
             });
         }).start(8080);
     }

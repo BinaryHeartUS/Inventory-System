@@ -7,6 +7,10 @@ AS $$
 BEGIN
     INSERT INTO Chapter (Name)
     VALUES (p_name)
-    RETURNING ID INTO p_id;
+    ON CONFLICT (Name) DO NOTHING;
+
+    SELECT ID INTO p_id
+    FROM Chapter
+    WHERE Name = p_name;
 END;
 $$;

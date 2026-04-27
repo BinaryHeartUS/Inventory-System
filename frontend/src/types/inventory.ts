@@ -1,10 +1,21 @@
 import type { components } from './api'
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
+export interface ChapterSummary {
+  id: number
+  name: string
+}
+
+export interface ChapterRole {
+  chapterId: number
+  role: string
+}
+
 export interface LoginResponse {
   token: string
   username: string
-  chapterIds: number[]
+  chapterRoles: ChapterRole[]
+  role: string
 }
 
 // ─── API wire-format types (auto-generated — run `npm run gen-types` to sync) ─

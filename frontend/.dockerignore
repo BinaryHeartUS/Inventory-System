@@ -1,0 +1,8 @@
+# .env.development is intentionally NOT excluded — it only applies during
+# `vite dev` (development mode), not during `vite build` (production mode).
+# Vite automatically ignores it when NODE_ENV=production.
+#
+# .env.local and .env.development.local are for personal machine overrides
+# and should not be in the image if they exist locally.
+.env.local
+.env.development.local

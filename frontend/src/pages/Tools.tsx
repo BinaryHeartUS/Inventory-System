@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTools } from '../services/toolService'
-import { getChapters } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 
 function formatDate(iso: string | null): string {
@@ -16,11 +16,10 @@ export default function Tools() {
   const [typeFilter,    setTypeFilter]    = useState('All')
 
   const [allTools, setAllTools] = useState<import('../types/inventory').Tool[]>([])
-  const [chapters, setChapters] = useState<string[]>([])
+  const chapters = useVisibleChapters().map(c => c.name)
 
   useEffect(() => {
     getTools().then(setAllTools)
-    getChapters().then(setChapters)
   }, [])
 
   const toolTypes = useMemo(

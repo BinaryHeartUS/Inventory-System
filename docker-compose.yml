@@ -13,10 +13,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U binaryheart -d inventory"]
+      test: ["CMD-SHELL", "psql -U binaryheart -d inventory -c 'SELECT 1 FROM Volunteer LIMIT 1' -q --no-align --tuples-only 2>/dev/null | grep -q 1 || exit 1"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 10s
 
   importer:
     build:
@@ -46,14 +47,14 @@ services:
       - "8080:8080"
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
     restart: unless-stopped
     depends_on:
       - backend
-    environment:
-      VITE_API_TARGET: http://backend:8080
     ports:
-      - "5173:5173"
+      - "80:80"
 
 volumes:
   postgres_data:

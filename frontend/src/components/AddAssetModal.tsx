@@ -513,6 +513,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
       status: form.status,
       chapter: form.chapter,
       acquisitionDate: form.acquisitionDate || null,
+      donatedDate: null,
       value: form.value ? Number(form.value) : null,
     }
 

@@ -5,3 +5,4 @@ COPY DatabaseCreationScripts/CreateTypes/EnumScripts/*.sql /docker-entrypoint-in
 COPY DatabaseCreationScripts/CreateTables/*.sql /docker-entrypoint-initdb.d/
 COPY DatabaseCreationScripts/CreateStoredProcedures/*.sql /docker-entrypoint-initdb.d/
 COPY DatabaseCreationScripts/CreateStoredProcedures/CountProcedures/*.sql /docker-entrypoint-initdb.d/
+COPY DatabaseCreationScripts/CreateFunctions/*.sql /docker-entrypoint-initdb.d/

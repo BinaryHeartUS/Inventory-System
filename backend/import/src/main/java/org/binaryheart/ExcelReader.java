@@ -30,6 +30,10 @@ public class ExcelReader {
             }
 
             int chapterId = DatabaseImporter.addChapter("Rose-Hulman Institute of Technology");
+            if (chapterId == -1) {
+                System.err.println("Failed to insert/resolve chapter — aborting import.");
+                return;
+            }
 
             importDesktops(workbook, chapterId);
             importLaptops(workbook, chapterId);

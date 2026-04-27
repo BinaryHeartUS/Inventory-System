@@ -9,10 +9,30 @@
  */
 
 export const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:7000/api'
+  (import.meta.env.VITE_API_URL as string | undefined) ?? '/api'
+
+// ─── Auth header ──────────────────────────────────────────────────────────────
+
+// Set by AuthProvider on mount so api helpers don't need to import authService
+// (which would create a circular dependency: authService → api → authService).
+let _getToken: (() => string | null) | null = null
+
+export function setTokenProvider(fn: () => string | null): void {
+  _getToken = fn
+}
+
+function authHeaders(): Record<string, string> {
+  const token = _getToken?.()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+// ─── HTTP helpers ─────────────────────────────────────────────────────────────
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`)
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: authHeaders(),
+  })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
   if (!res.ok) throw new Error(`GET ${path} failed: ${res.status} ${res.statusText}`)
   return res.json() as Promise<T>
 }
@@ -20,9 +40,10 @@ export async function apiGet<T>(path: string): Promise<T> {
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(body),
   })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
   if (!res.ok) throw new Error(`POST ${path} failed: ${res.status} ${res.statusText}`)
   return res.json() as Promise<T>
 }
@@ -30,14 +51,45 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
 export async function apiPut<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(body),
   })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
   if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status} ${res.statusText}`)
   return res.json() as Promise<T>
 }
 
 export async function apiDelete(path: string): Promise<void> {
-  const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' })
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
   if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status} ${res.statusText}`)
+}
+
+export async function apiPostVoid(path: string, body: unknown): Promise<void> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText)
+    throw new Error(text || `POST ${path} failed: ${res.status}`)
+  }
+}
+
+export async function apiPutVoid(path: string, body: unknown): Promise<void> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
+  if (!res.ok) {
+    const text = await res.text().catch(() => res.statusText)
+    throw new Error(text || `PUT ${path} failed: ${res.status}`)
+  }
 }

@@ -1,17 +1,16 @@
 import { useState, useMemo, useEffect } from 'react'
 import { getDevices } from '../services/deviceService'
-import { getChapters } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from '../utils/deviceUtils'
 import PageHeading from '../components/PageHeading'
 
 export default function Donations() {
   const [chapterFilter, setChapterFilter] = useState('All')
   const [allDevices, setAllDevices] = useState<import('../types/inventory').AnyDevice[]>([])
-  const [chapters,   setChapters]   = useState<string[]>([])
+  const chapters = useVisibleChapters().map(c => c.name)
 
   useEffect(() => {
     getDevices().then(setAllDevices)
-    getChapters().then(setChapters)
   }, [])
 
   const donated = useMemo(() => {

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import type { AnyDevice, DeviceStatus } from '../types/inventory'
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from '../utils/deviceUtils'
 import { getDevices } from '../services/deviceService'
-import { getChapters } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -84,11 +84,10 @@ export default function Devices() {
   const [sortDir,       setSortDir]       = useState<SortDir>('asc')
 
   const [allDevices, setAllDevices] = useState<AnyDevice[]>([])
-  const [chapters,   setChapters]   = useState<string[]>([])
+  const chapters = useVisibleChapters().map(c => c.name)
 
   useEffect(() => {
     getDevices().then(setAllDevices)
-    getChapters().then(setChapters)
   }, [])
 
   function handleHeaderClick(col: string) {

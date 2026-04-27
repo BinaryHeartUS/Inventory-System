@@ -4,19 +4,19 @@ import type { AnyDevice, Part, Tool } from '../types/inventory'
 import { getDevices } from '../services/deviceService'
 import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
-import { getChapters } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 
 export default function Chapters() {
-  const [chapters,   setChapters]   = useState<string[]>([])
+  const chapters = useVisibleChapters().map(c => c.name)
   const [allDevices, setAllDevices] = useState<AnyDevice[]>([])
   const [allParts,   setAllParts]   = useState<Part[]>([])
   const [allTools,   setAllTools]   = useState<Tool[]>([])
 
   useEffect(() => {
-    Promise.all([getChapters(), getDevices(), getParts(), getTools()])
-      .then(([chs, devs, pts, tls]) => {
-        setChapters(chs); setAllDevices(devs); setAllParts(pts); setAllTools(tls)
+    Promise.all([getDevices(), getParts(), getTools()])
+      .then(([devs, pts, tls]) => {
+        setAllDevices(devs); setAllParts(pts); setAllTools(tls)
       })
   }, [])
 

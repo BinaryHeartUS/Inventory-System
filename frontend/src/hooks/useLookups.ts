@@ -15,7 +15,6 @@
 import { useEffect, useState } from 'react'
 import type { ChargerStatus, DeviceStatus, WorkingBattery } from '../types/inventory'
 import {
-  getChapters,
   getManufacturers,
   getRamGenerations,
   getStorageTypes,
@@ -25,6 +24,7 @@ import {
   getChargerStatuses,
   getWorkingBatteryOpts,
 } from '../services/lookupService'
+import { useVisibleChapters } from '../context/ChapterContext'
 
 export interface LookupData {
   chapters: string[]
@@ -41,25 +41,21 @@ export interface LookupData {
 
 const WIFI_OPTS: LookupData['wifiOpts'] = ['Yes', 'No', 'Unknown']
 
-const EMPTY: LookupData = {
-  chapters: [],
-  manufacturers: [],
-  ramGenerations: [],
-  storageTypes: [],
-  partTypes: [],
-  toolTypes: [],
-  deviceStatuses: [],
-  chargerStatuses: [],
-  workingBatteryOpts: [],
-  wifiOpts: WIFI_OPTS,
-}
-
 export function useLookups(): LookupData {
-  const [data, setData] = useState<LookupData>(EMPTY)
+  const chapterList = useVisibleChapters()
+  const [rest, setRest] = useState({
+    manufacturers: [] as string[],
+    ramGenerations: [] as string[],
+    storageTypes: [] as string[],
+    partTypes: [] as string[],
+    toolTypes: [] as string[],
+    deviceStatuses: [] as DeviceStatus[],
+    chargerStatuses: [] as ChargerStatus[],
+    workingBatteryOpts: [] as WorkingBattery[],
+  })
 
   useEffect(() => {
     Promise.all([
-      getChapters(),
       getManufacturers(),
       getRamGenerations(),
       getStorageTypes(),
@@ -68,10 +64,10 @@ export function useLookups(): LookupData {
       getDeviceStatuses(),
       getChargerStatuses(),
       getWorkingBatteryOpts(),
-    ]).then(([chapters, manufacturers, ramGenerations, storageTypes, partTypes, toolTypes, deviceStatuses, chargerStatuses, workingBatteryOpts]) => {
-      setData({ chapters, manufacturers, ramGenerations, storageTypes, partTypes, toolTypes, deviceStatuses, chargerStatuses, workingBatteryOpts, wifiOpts: WIFI_OPTS })
+    ]).then(([manufacturers, ramGenerations, storageTypes, partTypes, toolTypes, deviceStatuses, chargerStatuses, workingBatteryOpts]) => {
+      setRest({ manufacturers, ramGenerations, storageTypes, partTypes, toolTypes, deviceStatuses, chargerStatuses, workingBatteryOpts })
     })
   }, [])
 
-  return data
+  return { ...rest, chapters: chapterList.map(c => c.name), wifiOpts: WIFI_OPTS }
 }
