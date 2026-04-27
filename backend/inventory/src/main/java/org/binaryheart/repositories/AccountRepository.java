@@ -84,8 +84,6 @@ public class AccountRepository {
     }
 
     private static List<AccountSummary> mapRows(ResultSet rs) throws SQLException {
-        // Functions return flat rows (one per volunteer+chapter+role)
-        // Group by volunteer ID to build the ChapterRole list per account
         Map<Integer, String> usernameMap = new LinkedHashMap<>();
         Map<Integer, String> nameMap = new LinkedHashMap<>();
         Map<Integer, List<ChapterRole>> rolesMap = new LinkedHashMap<>();

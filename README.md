@@ -15,11 +15,11 @@
    docker compose up
    ```
 
-## Accessing the App
+## Accessing the App (When running via docker)
 
 | Service     | URL                                                           |
 | ----------- | ------------------------------------------------------------- |
-| Frontend    | http://localhost:5173                                         |
-| Backend API | http://localhost:8080                                         |
+| Frontend    | http://localhost                                              |
+| Backend API | http://localhost:8080/api                                     |
 | Swagger UI  | http://localhost:8080/swagger                                 |
 | Database    | `localhost:5432` — database: `inventory`, user: `binaryheart` |
