@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getParts } from '../services/partService'
 import { getChapters } from '../services/lookupService'
+import PageHeading from '../components/PageHeading'
 
 export default function Parts() {
   const navigate = useNavigate()
@@ -43,14 +44,10 @@ export default function Parts() {
   return (
     <div className="space-y-6">
 
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Parts</h1>
-        <p className="text-base text-slate-400 mt-1">
-          {filtered.length === allParts.length
-            ? `All ${allParts.length} parts`
-            : `${filtered.length} of ${allParts.length} parts`}
-        </p>
-      </div>
+      <PageHeading
+        title="Parts"
+        subtitle={filtered.length === allParts.length ? `All ${allParts.length} parts` : `${filtered.length} of ${allParts.length} parts`}
+      />
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">

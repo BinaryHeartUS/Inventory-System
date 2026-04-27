@@ -5,6 +5,7 @@ import { getDevices } from '../services/deviceService'
 import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
 import { getChapters } from '../services/lookupService'
+import PageHeading from '../components/PageHeading'
 
 export default function Chapters() {
   const [chapters,   setChapters]   = useState<string[]>([])
@@ -22,10 +23,7 @@ export default function Chapters() {
   return (
     <div className="space-y-6">
 
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Chapters</h1>
-        <p className="text-base text-slate-400 mt-1">Inventory summary across all {chapters.length} chapters</p>
-      </div>
+      <PageHeading title="Chapters" subtitle={`Inventory summary across all ${chapters.length} chapters`} />
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <table className="w-full text-sm">

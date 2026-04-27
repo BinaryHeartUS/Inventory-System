@@ -5,6 +5,7 @@ import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
 import type { AnyDevice, Part, Tool } from '../types/inventory'
 import StatusBadge from '../components/StatusBadge'
+import PageHeading from '../components/PageHeading'
 
 export default function Search() {
   const [query,   setQuery]   = useState('')
@@ -51,10 +52,7 @@ export default function Search() {
   return (
     <div className="space-y-6">
 
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Search</h1>
-        <p className="text-base text-slate-400 mt-1">Search across all devices, parts, and tools</p>
-      </div>
+      <PageHeading title="Search" subtitle="Search across all devices, parts, and tools" />
 
       {/* Search input */}
       <div className="relative">

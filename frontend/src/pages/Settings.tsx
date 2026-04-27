@@ -3,6 +3,7 @@ import {
   MANUFACTURER_OPTS, RAM_GEN_OPTS, STORAGE_TYPE_OPTS,
   PART_TYPE_OPTS, TOOL_TYPE_OPTS,
 } from '../data/lookups'
+import PageHeading from '../components/PageHeading'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -134,10 +135,7 @@ export default function Settings() {
   return (
     <div className="space-y-8">
 
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Settings</h1>
-        <p className="text-base text-slate-400 mt-1">Manage lookup values and application configuration</p>
-      </div>
+      <PageHeading title="Settings" subtitle="Manage lookup values and application configuration" />
 
       {/* Notice */}
       <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">

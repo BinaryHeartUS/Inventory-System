@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { getDevices } from '../services/deviceService'
 import { getChapters } from '../services/lookupService'
 import ActivityChart from '../components/ActivityChart'
+import DeviceValueChart from '../components/DeviceValueChart'
+import PageHeading from '../components/PageHeading'
+import ChapterTabs from '../components/ChapterTabs'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -61,27 +64,10 @@ export default function Dashboard() {
     <div className="space-y-6">
 
       {/* Page heading */}
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-        <p className="text-sm text-slate-400 mt-1">Inventory overview by chapter</p>
-      </div>
+      <PageHeading title="Dashboard" subtitle="Inventory overview by chapter" compact />
 
       {/* Chapter tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
-        {(['All', ...chapters] as string[]).map((ch) => (
-          <button
-            key={ch}
-            onClick={() => setSelectedChapter(ch)}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-              selectedChapter === ch
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {ch === 'All' ? 'All Chapters' : ch}
-          </button>
-        ))}
-      </div>
+      <ChapterTabs chapters={chapters} selected={selectedChapter} onChange={setSelectedChapter} />
 
       {/* Pipeline card */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">
@@ -218,15 +204,15 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Bar chart */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-3 min-h-[420px] flex flex-col">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">
-            Devices Received vs Donated — Last 12 Months
-          </p>
+        {/* Activity chart */}
+        <div className="lg:col-span-3">
           <ActivityChart devices={allDevices} />
         </div>
 
       </div>
+
+      {/* Value of donated devices */}
+      <DeviceValueChart devices={devices} />
 
     </div>
   )

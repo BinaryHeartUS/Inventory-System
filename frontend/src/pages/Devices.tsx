@@ -3,6 +3,7 @@ import type { AnyDevice, DeviceStatus } from '../types/inventory'
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from '../utils/deviceUtils'
 import { getDevices } from '../services/deviceService'
 import { getChapters } from '../services/lookupService'
+import PageHeading from '../components/PageHeading'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -141,14 +142,10 @@ export default function Devices() {
     <div className="space-y-6">
 
       {/* Page heading */}
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Devices</h1>
-        <p className="text-base text-slate-400 mt-1">
-          {sorted.length === total
-            ? `All ${total} devices`
-            : `${sorted.length} of ${total} devices`}
-        </p>
-      </div>
+      <PageHeading
+        title="Devices"
+        subtitle={sorted.length === total ? `All ${total} devices` : `${sorted.length} of ${total} devices`}
+      />
 
       {/* Filter bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">

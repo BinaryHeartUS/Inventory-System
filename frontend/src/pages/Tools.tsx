@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTools } from '../services/toolService'
 import { getChapters } from '../services/lookupService'
+import PageHeading from '../components/PageHeading'
 
 function formatDate(iso: string | null): string {
   if (!iso) return '—'
@@ -45,14 +46,10 @@ export default function Tools() {
   return (
     <div className="space-y-6">
 
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tools</h1>
-        <p className="text-base text-slate-400 mt-1">
-          {filtered.length === allTools.length
-            ? `All ${allTools.length} tools`
-            : `${filtered.length} of ${allTools.length} tools`}
-        </p>
-      </div>
+      <PageHeading
+        title="Tools"
+        subtitle={filtered.length === allTools.length ? `All ${allTools.length} tools` : `${filtered.length} of ${allTools.length} tools`}
+      />
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { getDevices } from '../services/deviceService'
 import { getChapters } from '../services/lookupService'
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from '../utils/deviceUtils'
+import PageHeading from '../components/PageHeading'
 
 export default function Donations() {
   const [chapterFilter, setChapterFilter] = useState('All')
@@ -23,14 +24,13 @@ export default function Donations() {
   return (
     <div className="space-y-6">
 
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Donations</h1>
-        <p className="text-sm text-slate-400 mt-1">
-          {donated.length === totalDonated
-            ? `${totalDonated} devices donated all time`
-            : `${donated.length} of ${totalDonated} donated devices`}
-        </p>
-      </div>
+      <PageHeading
+        title="Donations"
+        subtitle={donated.length === totalDonated
+          ? `${totalDonated} devices donated all time`
+          : `${donated.length} of ${totalDonated} donated devices`}
+        compact
+      />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

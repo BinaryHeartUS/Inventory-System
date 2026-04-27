@@ -4,6 +4,8 @@ import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
 import { getChapters } from '../services/lookupService'
 import type { AnyDevice, Part, Tool } from '../types/inventory'
+import PageHeading from '../components/PageHeading'
+import ChapterTabs from '../components/ChapterTabs'
 
 // ─── CSV helpers ──────────────────────────────────────────────────────────────
 
@@ -135,27 +137,10 @@ export default function Reports() {
   return (
     <div className="space-y-6">
 
-      <div className="border-l-4 border-brand-red pl-3">
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Reports</h1>
-        <p className="text-base text-slate-400 mt-1">Export inventory data and view summary statistics</p>
-      </div>
+      <PageHeading title="Reports" subtitle="Export inventory data and view summary statistics" />
 
       {/* Chapter filter */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
-        {(['All', ...chapters]).map(ch => (
-          <button
-            key={ch}
-            onClick={() => setChapter(ch)}
-            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
-              chapter === ch
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {ch === 'All' ? 'All Chapters' : ch}
-          </button>
-        ))}
-      </div>
+      <ChapterTabs chapters={chapters} selected={chapter} onChange={setChapter} />
 
       {/* Summary stats */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

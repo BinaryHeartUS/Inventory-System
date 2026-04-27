@@ -89,31 +89,38 @@ export default function ActivityChart({ devices, months = 12 }: Props) {
   }))
 
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <LineChart data={data}>
-        <CartesianGrid vertical={false} stroke="#f1f5f9" />
-        <XAxis
-          dataKey="month"
-          tick={{ fontSize: 11, fill: '#94a3b8' }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          allowDecimals={false}
-          tick={{ fontSize: 11, fill: '#94a3b8' }}
-          axisLine={false}
-          tickLine={false}
-          width={24}
-        />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend
-          iconType="circle"
-          iconSize={10}
-          wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 16, color: '#475569' }}
-        />
-        <Line type="monotone" dataKey="received" name="Received" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: '#6366f1' }} activeDot={{ r: 5 }} />
-        <Line type="monotone" dataKey="donated"  name="Donated"  stroke="#0ea5e9" strokeWidth={2} dot={{ r: 3, fill: '#0ea5e9' }} activeDot={{ r: 5 }} />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">
+        Devices Received vs Donated — Last 12 Months
+      </p>
+      <div className="min-h-[320px]">
+        <ResponsiveContainer width="100%" height={320}>
+          <LineChart data={data}>
+            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              axisLine={false}
+              tickLine={false}
+              width={24}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              iconType="circle"
+              iconSize={10}
+              wrapperStyle={{ fontSize: 13, fontWeight: 500, paddingTop: 16, color: '#475569' }}
+            />
+            <Line type="monotone" dataKey="received" name="Received" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: '#6366f1' }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey="donated"  name="Donated"  stroke="#0ea5e9" strokeWidth={2} dot={{ r: 3, fill: '#0ea5e9' }} activeDot={{ r: 5 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   )
 }
