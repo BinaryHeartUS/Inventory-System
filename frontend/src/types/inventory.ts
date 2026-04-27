@@ -64,6 +64,7 @@ export interface BaseDevice {
   status: DeviceStatus
   chapter: string                 // resolved from Asset.Chapter_ID
   acquisitionDate: string | null  // Asset.Acquisition_Date (ISO date string YYYY-MM-DD)
+  donatedDate: string | null      // Device.Donated_Date — set when status transitions to Donated
   value: number | null            // Asset.Value (MONEY, optional)
 }
 

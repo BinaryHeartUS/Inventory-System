@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { getDevices } from '../services/deviceService'
 import { getChapters } from '../services/lookupService'
+import ActivityChart from '../components/ActivityChart'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
   const [selectedChapter, setSelectedChapter] = useState<string>('All')
-  const [allDevices, setAllDevices] = useState<AnyDevice[]>([])
+  const [allDevices, setAllDevices] = useState<import('../types/inventory').AnyDevice[]>([])
   const [chapters,   setChapters]   = useState<string[]>([])
 
   useEffect(() => {
@@ -29,25 +30,51 @@ export default function Dashboard() {
   const laptops  = devices.filter(d => d.type === 'Laptop')
   const tablets  = devices.filter(d => d.type === 'Tablet')
 
+  // ── Chapter-level stats (always network-wide, ignores chapter filter) ──────
+  const chapterStats = chapters.map(ch => ({
+    name:    ch,
+    donated: allDevices.filter(d => d.chapter === ch && d.status === 'Donated').length,
+    ready:   allDevices.filter(d => d.chapter === ch && d.status === 'Ready To Donate').length,
+    working: allDevices.filter(d => d.chapter === ch && (d.status === 'Not Started' || d.status === 'In Progress')).length,
+    total:   allDevices.filter(d => d.chapter === ch).length,
+  }))
+  const activeChapters    = chapterStats.filter(c => c.total > 0)
+  const chaptersWithReady = chapterStats.filter(c => c.ready > 0)
+  const topDonors         = [...chapterStats].sort((a, b) => b.donated - a.donated).slice(0, 3).filter(c => c.donated > 0)
+
+  // ── Completion rate (uses filtered devices) ────────────────────────────────
+  const nonScrapped    = devices.filter(d => d.status !== 'Scrapped' && d.status !== 'Unknown')
+  const completionRate = nonScrapped.length > 0 ? Math.round((donated.length / nonScrapped.length) * 100) : 0
+
+  // ── Avg time in inventory (donated devices with both dates) ───────────────
+  const timedDevices = devices.filter(d => d.donatedDate && d.acquisitionDate)
+  const avgDays = timedDevices.length > 0
+    ? Math.round(
+        timedDevices.reduce((sum, d) => {
+          const ms = new Date(d.donatedDate!).getTime() - new Date(d.acquisitionDate!).getTime()
+          return sum + ms / (1000 * 60 * 60 * 24)
+        }, 0) / timedDevices.length
+      )
+    : null
 
   return (
     <div className="space-y-6">
 
       {/* Page heading */}
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-        <p className="text-base text-slate-400 mt-1">Inventory overview by chapter</p>
+      <div className="border-l-4 border-brand-red pl-3">
+        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+        <p className="text-sm text-slate-400 mt-1">Inventory overview by chapter</p>
       </div>
 
       {/* Chapter tabs */}
-      <div className="flex gap-1.5 bg-slate-100 p-1.5 rounded-2xl w-fit flex-wrap">
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
         {(['All', ...chapters] as string[]).map((ch) => (
           <button
             key={ch}
             onClick={() => setSelectedChapter(ch)}
-            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
               selectedChapter === ch
-                ? 'bg-white text-brand-red shadow-sm'
+                ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -56,44 +83,148 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-        {[
-          { label: 'Total Devices',   value: devices.length,         note: `${desktops.length}D · ${laptops.length}L · ${tablets.length}T`, highlight: true },
-          { label: 'Not Started',     value: notStarted.length,      note: 'awaiting triage'   },
-          { label: 'In Progress',     value: inProgress.length,      note: 'being refurbished' },
-          { label: 'Ready to Donate', value: readyToDonate.length,   note: 'awaiting pickup'   },
-          { label: 'Donated',         value: donated.length,         note: 'all time'          },
-        ].map(({ label, value, note, highlight }) => (
-          <div
-            key={label}
-            className={`rounded-2xl p-6 ${
-              highlight
-                ? 'bg-heart-blue shadow-lg shadow-blue-200'
-                : 'bg-white border border-slate-200'
-            }`}
-          >
-            <p className={`text-xs font-semibold uppercase tracking-wider ${
-              highlight ? 'text-blue-200' : 'text-slate-400'
-            }`}>
-              {label}
-            </p>
-            <p className={`text-4xl font-extrabold mt-3 leading-none ${
-              highlight ? 'text-white' : 'text-slate-900'
-            }`}>
-              {value}
-            </p>
-            <p className={`text-sm mt-3 ${
-              highlight ? 'text-blue-200' : 'text-slate-400'
-            }`}>
-              {note}
-            </p>
-          </div>
-        ))}
+      {/* Pipeline card */}
+      <div className="bg-white border border-slate-200 rounded-xl p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">Pipeline</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Not Started',     count: notStarted.length,    bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-400' },
+            { label: 'In Progress',     count: inProgress.length,    bg: 'bg-amber-50',  text: 'text-amber-700', dot: 'bg-amber-400' },
+            { label: 'Ready to Donate', count: readyToDonate.length, bg: 'bg-green-50',  text: 'text-green-700', dot: 'bg-green-500' },
+            { label: 'Donated',         count: donated.length,       bg: 'bg-sky-50',    text: 'text-sky-700',   dot: 'bg-sky-500'   },
+          ].map(({ label, count, bg, text, dot }) => (
+            <div key={label} className={`rounded-lg p-4 ${bg}`}>
+              <div className={`w-2 h-2 rounded-full ${dot} mb-3`} />
+              <p className={`text-3xl font-extrabold leading-none ${text}`}>{count}</p>
+              <p className={`text-[11px] font-medium mt-2 ${text} opacity-75`}>{label}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Analysis row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Device types + Chapter breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Device type breakdown */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
+          <div className="flex items-baseline justify-between mb-4">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Device Types</p>
+            <span className="text-lg font-extrabold text-heart-blue">{devices.length} total</span>
+          </div>
+          <div className="flex-1 flex flex-col justify-between">
+            {[
+              { label: 'Desktops', count: desktops.length, color: 'bg-blue-500'   },
+              { label: 'Laptops',  count: laptops.length,  color: 'bg-indigo-500' },
+              { label: 'Tablets',  count: tablets.length,  color: 'bg-violet-500' },
+            ].map(({ label, count, color }) => (
+              <div key={label}>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-slate-600 font-medium">{label}</span>
+                  <span className="text-slate-700 font-semibold">
+                    {count} <span className="text-slate-400 font-normal">{devices.length ? `${Math.round((count / devices.length) * 100)}%` : '—'}</span>
+                  </span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${color} rounded-full transition-all`}
+                    style={{ width: devices.length ? `${(count / devices.length) * 100}%` : '0%' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Donors */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">Top Chapters by Donations</p>
+          {topDonors.length === 0
+            ? <p className="text-sm text-slate-400 flex-1">No donations recorded yet.</p>
+            : <div className="flex-1 flex flex-col justify-between">
+                {topDonors.map((ch, i) => (
+                  <div key={ch.name} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                      i === 0 ? 'bg-amber-100 text-amber-700' :
+                      i === 1 ? 'bg-slate-100 text-slate-600' :
+                                'bg-orange-50 text-orange-600'
+                    }`}>{i + 1}</span>
+                    <span className="text-sm text-slate-700 font-medium flex-1 truncate">{ch.name}</span>
+                    <span className="text-sm font-bold text-sky-600 shrink-0">{ch.donated} donated</span>
+                  </div>
+                ))}
+              </div>
+          }
+        </div>
+
+        {/* Network health */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
+          {/* Completion rate */}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Completion Rate</p>
+          <div className="flex-1 flex flex-col justify-center py-3">
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-extrabold text-heart-blue leading-none">{completionRate}%</span>
+              <span className="text-xs text-slate-400 mb-0.5">{donated.length} of {nonScrapped.length} devices</span>
+            </div>
+            <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-heart-blue rounded-full transition-all" style={{ width: `${completionRate}%` }} />
+            </div>
+          </div>
+
+          <div className="border-t border-slate-100 mb-4" />
+
+          {/* Chapter activity */}
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3">Chapters</p>
+            <div className="space-y-2.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Active chapters</span>
+                <span className="font-semibold text-slate-800">{activeChapters.length} of {chapters.length}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Chapters working on devices</span>
+                <span className="font-semibold text-amber-600">{chapterStats.filter(c => c.working > 0).length}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Chapters with pickups ready</span>
+                <span className={`font-semibold ${chaptersWithReady.length > 0 ? 'text-green-600' : 'text-slate-300'}`}>{chaptersWithReady.length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Activity over time */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+
+        {/* Avg time in inventory */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg Time in Inventory</p>
+            <p className="text-[11px] text-slate-400 mt-1">acquisition → donated</p>
+          </div>
+          <div className="mt-4">
+            {avgDays !== null ? (
+              <>
+                <p className="text-4xl font-extrabold text-heart-blue leading-none">{avgDays}</p>
+                <p className="text-sm text-slate-400 mt-1">days</p>
+              </>
+            ) : (
+              <p className="text-sm text-slate-300 italic">No data yet</p>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-300 mt-4">
+            Based on {timedDevices.length} donated device{timedDevices.length !== 1 ? 's' : ''} with both dates recorded
+          </p>
+        </div>
+
+        {/* Bar chart */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-3 min-h-[420px] flex flex-col">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">
+            Devices Received vs Donated — Last 12 Months
+          </p>
+          <ActivityChart devices={allDevices} />
+        </div>
 
       </div>
 

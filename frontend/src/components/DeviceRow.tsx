@@ -22,7 +22,11 @@ export function DeviceRow({
     >
       <td className="px-5 py-5 font-mono text-xs text-slate-400">{device.id}</td>
       <td className="px-5 py-5">
-        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+          device.type === 'Desktop' ? 'bg-blue-50 text-blue-600' :
+          device.type === 'Laptop'  ? 'bg-indigo-50 text-indigo-600' :
+                                      'bg-violet-50 text-violet-600'
+        }`}>
           {device.type}
         </span>
       </td>
@@ -34,7 +38,9 @@ export function DeviceRow({
         {device.ram} GB{device.ramGeneration ? ` ${device.ramGeneration}` : ''}
       </td>
       <td className="px-5 py-5 text-slate-500 whitespace-nowrap">
-        {device.storage} GB{device.storageType ? ` (${device.storageType})` : ''}
+        {device.storage} GB{device.storageType
+          ? <span className={device.storageType.includes('SSD') ? 'text-green-600 font-medium' : 'text-amber-600 font-medium'}> ({device.storageType})</span>
+          : ''}
       </td>
       <td className="px-5 py-5">
         <StatusBadge status={device.status} />
@@ -53,9 +59,11 @@ export function DesktopRow({ device }: { device: Desktop }) {
     <DeviceRow
       device={device}
       extraCells={
-        <td className="px-5 py-5 text-sm text-slate-500 text-sm whitespace-nowrap">
+        <td className="px-5 py-5 text-sm text-slate-500 whitespace-nowrap">
           Wi-Fi:{' '}
-          <span className="font-medium text-slate-700">
+          <span className={`font-medium ${
+            device.hasWifi === null ? 'text-slate-400' : device.hasWifi ? 'text-green-600' : 'text-red-500'
+          }`}>
             {device.hasWifi === null ? '—' : device.hasWifi ? 'Yes' : 'No'}
           </span>
         </td>

@@ -22,7 +22,7 @@ export default function Chapters() {
   return (
     <div className="space-y-6">
 
-      <div>
+      <div className="border-l-4 border-brand-red pl-3">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Chapters</h1>
         <p className="text-base text-slate-400 mt-1">Inventory summary across all {chapters.length} chapters</p>
       </div>

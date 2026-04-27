@@ -23,7 +23,7 @@ export default function Donations() {
   return (
     <div className="space-y-6">
 
-      <div>
+      <div className="border-l-4 border-brand-red pl-3">
         <h1 className="text-xl font-bold text-slate-900 tracking-tight">Donations</h1>
         <p className="text-sm text-slate-400 mt-1">
           {donated.length === totalDonated
