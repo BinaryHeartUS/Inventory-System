@@ -8,7 +8,7 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     INSERT INTO Note (Text, Date, Asset_ID)
-    VALUES (p_Text, p_Date, p_Asset_ID);
-    RETURNING ID into p_Note_ID
+    VALUES (p_Text, p_Date, p_Asset_ID)
+    RETURNING ID INTO p_Note_ID;
 END;
 $$;
