@@ -4,6 +4,377 @@
  */
 
 export interface paths {
+    "/api/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List accounts
+         * @description Admins see all accounts. Chapter Admins see only accounts in their chapters.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account list returned */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountSummary"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a new account
+         * @description Admins can create Chapter Admin / Editor / Viewer accounts for any chapter. Chapter Admins can create Editor / Viewer accounts for their own chapters.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAccountRequest"];
+                };
+            };
+            responses: {
+                /** @description Account created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountSummary"];
+                    };
+                };
+                /** @description Invalid request or forbidden role */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Username already taken */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an account (admin only) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Volunteer ID to delete */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Cannot delete own account */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{id}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a chapter/role affiliation to an existing account */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Volunteer ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddAffiliationRequest"];
+                };
+            };
+            responses: {
+                /** @description Affiliation added */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid role or missing chapter access */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Affiliation already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{id}/roles/{chapterId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update the role for a chapter affiliation */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Volunteer ID */
+                    id: string;
+                    /** @description Chapter ID */
+                    chapterId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAffiliationRequest"];
+                };
+            };
+            responses: {
+                /** @description Role updated */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid role or missing chapter access */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login
+         * @description Authenticate a volunteer and receive a JWT token
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LoginRequest"];
+                };
+            };
+            responses: {
+                /** @description Login successful */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LoginResponse"];
+                    };
+                };
+                /** @description Missing username or password */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid credentials */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chapters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all chapters */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Chapter list */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChapterSummary"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/devices/add/desktop": {
         parameters: {
             query?: never;
@@ -302,17 +673,29 @@ export interface components {
         /** @enum {string} */
         ChargerStatus: "INCLUDED" | "NOT_INCLUDED" | "UNKNOWN";
         /** @enum {string} */
-        Manufacturer: "DELL" | "HP" | "LENOVO" | "APPLE" | "ASUS" | "ACER" | "MICROSOFT" | "TOSHIBA" | "SAMSUNG" | "COOLERMASTER" | "ZOTAC" | "UNKNOWN";
-        /** @enum {string} */
-        RamGeneration: "DDR2" | "DDR3" | "DDR4" | "DDR5" | "UNKNOWN";
-        /** @enum {string} */
         Status: "NOT_STARTED" | "IN_PROGRESS" | "READY_TO_DONATE" | "DONATED" | "SCRAPPED" | "UNKNOWN";
-        /** @enum {string} */
-        StorageType: "SSD" | "HDD" | "FLASH_STORAGE" | "UNKNOWN";
+        ChapterRole: {
+            /** Format: int32 */
+            chapterId: number;
+            role?: string;
+        };
+        AddAffiliationRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            role?: string;
+        };
+        CreateAccountRequest: {
+            name?: string;
+            username?: string;
+            password?: string;
+            /** Format: int32 */
+            chapterId: number;
+            role?: string;
+        };
         InsertDesktopRequest: {
             /** Format: int32 */
             chapterId: number;
-            manufacturer?: components["schemas"]["Manufacturer"];
+            manufacturer?: string;
             model?: string;
             /** Format: int32 */
             year: number;
@@ -322,10 +705,10 @@ export interface components {
             cpu?: string;
             /** Format: int32 */
             ram?: number;
-            ramGeneration?: components["schemas"]["RamGeneration"];
+            ramGeneration?: string;
             /** Format: int32 */
             storageAmount?: number;
-            storageType?: components["schemas"]["StorageType"];
+            storageType?: string;
             /** Format: double */
             value?: number;
             /** Format: date */
@@ -339,7 +722,7 @@ export interface components {
         InsertLaptopRequest: {
             /** Format: int32 */
             chapterId: number;
-            manufacturer?: components["schemas"]["Manufacturer"];
+            manufacturer?: string;
             model?: string;
             /** Format: int32 */
             year: number;
@@ -350,10 +733,10 @@ export interface components {
             cpu?: string;
             /** Format: int32 */
             ram?: number;
-            ramGeneration?: components["schemas"]["RamGeneration"];
+            ramGeneration?: string;
             /** Format: int32 */
             storageAmount?: number;
-            storageType?: components["schemas"]["StorageType"];
+            storageType?: string;
             /** Format: double */
             value?: number;
             /** Format: date */
@@ -366,6 +749,31 @@ export interface components {
             designBatteryCapacity?: number;
             /** Format: int32 */
             actualBatteryCapacity?: number;
+        };
+        LoginRequest: {
+            username?: string;
+            password?: string;
+        };
+        UpdateAffiliationRequest: {
+            role?: string;
+        };
+        AccountSummary: {
+            /** Format: int32 */
+            id: number;
+            username?: string;
+            name?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+        };
+        ChapterSummary: {
+            /** Format: int32 */
+            id: number;
+            name?: string;
+        };
+        LoginResponse: {
+            token?: string;
+            username?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+            role?: string;
         };
     };
     responses: never;

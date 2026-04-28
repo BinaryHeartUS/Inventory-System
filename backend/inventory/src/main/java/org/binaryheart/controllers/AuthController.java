@@ -31,7 +31,9 @@ public class AuthController {
                             from = LoginRequest.class) }),
             responses = { @OpenApiResponse(
                     status = "200",
-                    description = "Login successful"),
+                    description = "Login successful",
+                    content = { @OpenApiContent(
+                            from = LoginResponse.class) }),
                     @OpenApiResponse(
                             status = "400",
                             description = "Missing username or password"),

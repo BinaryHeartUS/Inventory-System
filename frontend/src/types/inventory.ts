@@ -1,22 +1,12 @@
 import type { components } from './api'
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
-export interface ChapterSummary {
-  id: number
-  name: string
-}
-
-export interface ChapterRole {
-  chapterId: number
-  role: string
-}
-
-export interface LoginResponse {
-  token: string
-  username: string
-  chapterRoles: ChapterRole[]
-  role: string
-}
+// The generated schemas mark String fields as optional (Java strings are nullable),
+// but the backend always returns them. Required<> tightens the aliases here.
+export type ChapterSummary  = Required<components['schemas']['ChapterSummary']>
+export type ChapterRole     = Required<components['schemas']['ChapterRole']>
+export type LoginResponse   = Required<Omit<components['schemas']['LoginResponse'],  'chapterRoles'>> & { chapterRoles: ChapterRole[] }
+export type AccountSummary  = Required<Omit<components['schemas']['AccountSummary'], 'chapterRoles'>> & { chapterRoles: ChapterRole[] }
 
 // ─── API wire-format types (auto-generated — run `npm run gen-types` to sync) ─
 // These are the exact values the backend sends/receives over the wire.
