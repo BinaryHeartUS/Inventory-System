@@ -8,6 +8,7 @@ import org.binaryheart.controllers.AuthController;
 import org.binaryheart.controllers.ChapterController;
 import org.binaryheart.controllers.DeviceController;
 import org.binaryheart.controllers.HealthController;
+import org.binaryheart.controllers.NoteController;
 
 import io.javalin.Javalin;
 import io.javalin.openapi.plugin.OpenApiPlugin;
@@ -32,6 +33,7 @@ public class Main {
                 path("/api/auth", AuthController::registerRoutes);
                 path("/api/accounts", AccountController::registerRoutes);
                 path("/api/chapters", ChapterController::registerRoutes);
+                path("/api/notes", NoteController::registerRoutes);
             });
         }).start(8080);
     }

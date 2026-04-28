@@ -306,7 +306,7 @@ public class DatabaseImporter {
         }
 
         Connection conn = DatabaseConnectionService.getConnection();
-        try (CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?::TIMESTAMPTZ, ?, ?)")) {
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?, ?)")) {
             stmt.setString(1, note);
             stmt.setObject(2, dateUpdated);
             stmt.setInt(3, assetID);
