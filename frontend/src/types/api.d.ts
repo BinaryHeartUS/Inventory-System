@@ -29,7 +29,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AccountSummary"][];
+                    };
                 };
                 /** @description Database error */
                 500: {
@@ -63,7 +65,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AccountSummary"];
+                    };
                 };
                 /** @description Invalid request or forbidden role */
                 400: {
@@ -295,7 +299,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["LoginResponse"];
+                    };
                 };
                 /** @description Missing username or password */
                 400: {
@@ -349,7 +355,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ChapterSummary"];
+                        "application/json": components["schemas"]["ChapterSummary"][];
                     };
                 };
                 /** @description Database error */
@@ -667,89 +673,107 @@ export interface components {
         /** @enum {string} */
         ChargerStatus: "INCLUDED" | "NOT_INCLUDED" | "UNKNOWN";
         /** @enum {string} */
-        Status: "DONATED" | "IN_PROGRESS" | "NOT_STARTED" | "READY_TO_DONATE" | "SCRAPPED" | "UNKNOWN";
-        AddAffiliationRequest: {
-            role?: string;
+        Status: "NOT_STARTED" | "IN_PROGRESS" | "READY_TO_DONATE" | "DONATED" | "SCRAPPED" | "UNKNOWN";
+        ChapterRole: {
             /** Format: int32 */
             chapterId: number;
+            role?: string;
+        };
+        AddAffiliationRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            role?: string;
         };
         CreateAccountRequest: {
-            role?: string;
+            name?: string;
+            username?: string;
             password?: string;
             /** Format: int32 */
             chapterId: number;
-            name?: string;
-            username?: string;
+            role?: string;
         };
         InsertDesktopRequest: {
-            /** Format: date */
-            acquisitionDate?: string;
-            hasWifi?: boolean;
-            ramGeneration?: string;
-            /** Format: int32 */
-            year: number;
-            /** Format: int32 */
-            storageAmount?: number;
-            manufacturer?: string;
-            /** Format: int32 */
-            assetId?: number;
             /** Format: int32 */
             chapterId: number;
-            /** Format: int32 */
-            recipientId?: number;
+            manufacturer?: string;
             model?: string;
-            /** Format: double */
-            value?: number;
-            /** Format: int32 */
-            ram?: number;
-            cpu?: string;
-            storageType?: string;
-            /** Format: int32 */
-            donorId?: number;
-            status?: components["schemas"]["Status"];
-        };
-        InsertLaptopRequest: {
-            /** Format: date */
-            acquisitionDate?: string;
-            ramGeneration?: string;
             /** Format: int32 */
             year: number;
+            status?: components["schemas"]["Status"];
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
+            hasWifi?: boolean;
+        };
+        InsertLaptopRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            status?: components["schemas"]["Status"];
+            includesCharger?: components["schemas"]["ChargerStatus"];
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
             /** Format: int32 */
             designBatteryCapacity?: number;
             /** Format: int32 */
-            storageAmount?: number;
-            manufacturer?: string;
-            /** Format: int32 */
-            assetId?: number;
-            /** Format: int32 */
-            chapterId: number;
-            /** Format: int32 */
             actualBatteryCapacity?: number;
-            /** Format: int32 */
-            recipientId?: number;
-            model?: string;
-            /** Format: double */
-            value?: number;
-            /** Format: int32 */
-            ram?: number;
-            cpu?: string;
-            includesCharger?: components["schemas"]["ChargerStatus"];
-            storageType?: string;
-            /** Format: int32 */
-            donorId?: number;
-            status?: components["schemas"]["Status"];
         };
         LoginRequest: {
-            password?: string;
             username?: string;
+            password?: string;
         };
         UpdateAffiliationRequest: {
             role?: string;
         };
-        ChapterSummary: {
-            name?: string;
+        AccountSummary: {
             /** Format: int32 */
             id: number;
+            username?: string;
+            name?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+        };
+        ChapterSummary: {
+            /** Format: int32 */
+            id: number;
+            name?: string;
+        };
+        LoginResponse: {
+            token?: string;
+            username?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+            role?: string;
         };
     };
     responses: never;

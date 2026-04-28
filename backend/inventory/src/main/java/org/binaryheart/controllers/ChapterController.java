@@ -30,7 +30,7 @@ public class ChapterController {
                     status = "200",
                     description = "Chapter list",
                     content = { @OpenApiContent(
-                            from = ChapterSummary.class) }),
+                            from = ChapterSummary[].class) }),
                     @OpenApiResponse(
                             status = "500",
                             description = "Database error") })

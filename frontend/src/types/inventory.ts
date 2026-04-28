@@ -1,22 +1,10 @@
 import type { components } from './api'
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
-export interface ChapterSummary {
-  id: number
-  name: string
-}
-
-export interface ChapterRole {
-  chapterId: number
-  role: string
-}
-
-export interface LoginResponse {
-  token: string
-  username: string
-  chapterRoles: ChapterRole[]
-  role: string
-}
+export type ChapterSummary  = components['schemas']['ChapterSummary']
+export type ChapterRole     = components['schemas']['ChapterRole']
+export type LoginResponse   = components['schemas']['LoginResponse']
+export type AccountSummary  = components['schemas']['AccountSummary']
 
 // ─── API wire-format types (auto-generated — run `npm run gen-types` to sync) ─
 // These are the exact values the backend sends/receives over the wire.
