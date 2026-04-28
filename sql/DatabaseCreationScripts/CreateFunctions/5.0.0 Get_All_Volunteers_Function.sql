@@ -6,7 +6,7 @@ RETURNS TABLE (
     Chapter_ID INTEGER,
     Role_Name VARCHAR(100)
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 AS $$
     SELECT
         v.ID,

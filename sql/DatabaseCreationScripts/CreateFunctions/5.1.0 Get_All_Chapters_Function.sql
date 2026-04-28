@@ -3,7 +3,7 @@ RETURNS TABLE (
     ID INTEGER,
     Name Name_Type
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 AS $$
     SELECT ID, Name
     FROM Chapter

@@ -5,7 +5,7 @@ RETURNS TABLE (
     Chapter_ID INTEGER,
     Role_Name  VARCHAR(100)
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 AS $$
     SELECT aw.Chapter_ID, r.Name
     FROM Affiliated_With aw
