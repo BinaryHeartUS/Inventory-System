@@ -18,13 +18,13 @@ public class NoteController {
     private static final NoteService service = new NoteService();
 
     public static void registerRoutes() {
-        post("{id}", NoteController::postNote, AppRole.AUTHENTICATED);
+        post("{id}/notes", NoteController::postNote, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
-            path = "/api/notes/{id}",
+            path = "/api/assets/{id}/notes",
             methods = { HttpMethod.POST },
-            tags = { "Notes" },
+            tags = { "Assets" },
             security = { @OpenApiSecurity(
                     name = "BearerAuth") },
             summary = "Add a new note to an asset with the given ID",
@@ -34,8 +34,7 @@ public class NoteController {
                             from = PostNoteRequest.class,
                             example = """
                                     {
-                                        "assetId": 1,
-                                        "note": "New Note"
+                                        "text": "New Note"
                                     }
                                     """) }),
             responses = { @OpenApiResponse(
@@ -51,8 +50,9 @@ public class NoteController {
                             description = "Database error") })
     public static void postNote(Context ctx) {
         try {
-            PostNoteRequest req = ctx.bodyAsClass(PostNoteRequest.class);
-            NoteResponse res = service.addNote(req);
+            PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
+            int assetId = Integer.parseInt(ctx.pathParam("id"));
+            NoteResponse res = service.addNote(assetId, body.text());
             ctx.status(200).json(res);
         } catch (SQLException e) {
             ctx.status(500).result("Database error");

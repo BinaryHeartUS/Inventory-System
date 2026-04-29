@@ -35,7 +35,7 @@ public class Main {
                 path("/api/accounts", AccountController::registerRoutes);
                 path("/api/chapters", ChapterController::registerRoutes);
                 path("/api/lookup", LookupController::registerRoutes);
-                path("/api/notes", NoteController::registerRoutes);
+                path("/api/assets", NoteController::registerRoutes);
             });
         }).start(8080);
     }
