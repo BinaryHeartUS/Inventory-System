@@ -136,8 +136,9 @@ export default function DeviceDetail() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [form, setForm]       = useState<AnyDevice | null>(null)
-  const [saved, setSaved]     = useState(false)
-  const [printId, setPrintId] = useState<number | null>(null)
+  const [saved, setSaved]         = useState(false)
+  const [saveError, setSaveError]  = useState<string | null>(null)
+  const [printId, setPrintId]      = useState<number | null>(null)
 
   useEffect(() => {
     getDevice(numId)
@@ -179,9 +180,15 @@ export default function DeviceDetail() {
   function cancelEdit() { setEditing(false) }
   async function saveEdit() {
     if (!form) return
-    const updated = await updateDevice(numId, form)
-    setDevice(updated); setEditing(false); setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setSaveError(null)
+    try {
+      const updated = await updateDevice(numId, form)
+      setDevice(updated); setEditing(false); setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed')
+      setTimeout(() => setSaveError(null), 5000)
+    }
   }
   function set(key: string) {
     return (value: string | number | boolean | null) =>
@@ -372,6 +379,14 @@ export default function DeviceDetail() {
             <polyline points="20 6 9 17 4 12"/>
           </svg>
           Changes saved
+        </div>
+      )}
+      {saveError && (
+        <div className="fixed bottom-6 right-6 flex items-center gap-2.5 px-4 py-3 bg-red-600 text-white rounded-xl shadow-lg text-sm font-medium z-50">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {saveError}
         </div>
       )}
 

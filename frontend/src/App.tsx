@@ -288,7 +288,7 @@ function AppInner() {
       <Sidebar />
       <div className="flex-1 min-w-0">
         <div className="flex justify-end px-10 pt-6">
-          {auth?.role !== 'Viewer' && (
+          {auth && auth.role !== 'Viewer' && (
             <button
               onClick={() => setPendingScanId(-1)}
               className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors">
