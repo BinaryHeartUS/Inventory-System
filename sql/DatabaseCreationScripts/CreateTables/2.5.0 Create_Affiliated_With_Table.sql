@@ -1,4 +1,4 @@
-create table Affiliated_With (
+CREATE TABLE IF NOT EXISTS Affiliated_With (
     Volunteer_ID INTEGER NOT NULL,
     FOREIGN KEY (Volunteer_ID) REFERENCES Volunteer(ID),
     Chapter_ID INTEGER NOT NULL,

@@ -7,13 +7,26 @@ services:
       POSTGRES_USER: binaryheart
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./sql/DatabaseCreationScripts:/docker-entrypoint-initdb.d
+      - /opt/inventory-system/pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U binaryheart -d inventory"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  db-migrate:
+    build:
+      context: ./sql
+      dockerfile: Dockerfile.migrate
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: binaryheart
+      DB_PASSWORD: ${DB_PASSWORD}
+      API_USER_PASSWORD: ${API_USER_PASSWORD}
+      IMPORTER_PASSWORD: ${IMPORTER_PASSWORD}
 
   backend:
     build: ./backend
@@ -21,10 +34,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     environment:
       DB_URL: jdbc:postgresql://db:5432/inventory
-      DB_USER: binaryheart
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: api_user
+      DB_PASSWORD: ${API_USER_PASSWORD}
 
   frontend:
     build:
@@ -37,4 +52,4 @@ services:
       - "80:80"
 
 volumes:
-  postgres_data:
+  # postgres_data volume replaced by bind mount at /opt/inventory-system/pgdata

@@ -1,4 +1,4 @@
-create table Party (
+CREATE TABLE IF NOT EXISTS Party (
     ID INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     Name Name_Type NOT NULL,
     Location Address

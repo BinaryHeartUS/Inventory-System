@@ -1,19 +1,19 @@
-CREATE USER importer WITH PASSWORD 'changeme_importer';
+DO $$ BEGIN
+    CREATE USER importer WITH PASSWORD 'changeme_importer';
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 GRANT CONNECT ON DATABASE inventory TO importer;
-
 GRANT USAGE ON SCHEMA public TO importer;
-
 GRANT INSERT, SELECT ON ALL TABLES IN SCHEMA public TO importer;
-
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT INSERT, SELECT ON TABLES TO importer;
 
-CREATE USER api_user WITH PASSWORD 'changeme_api_user';
+DO $$ BEGIN
+    CREATE USER api_user WITH PASSWORD 'changeme_api_user';
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 GRANT CONNECT ON DATABASE inventory TO api_user;
-
 GRANT USAGE ON SCHEMA public TO api_user;
-
 GRANT INSERT, SELECT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO api_user;
-
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT INSERT, SELECT, UPDATE, DELETE ON TABLES TO api_user;

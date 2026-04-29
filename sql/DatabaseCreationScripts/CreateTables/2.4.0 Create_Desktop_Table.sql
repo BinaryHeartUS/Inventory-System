@@ -1,4 +1,4 @@
-create table Desktop (
+CREATE TABLE IF NOT EXISTS Desktop (
     ID INTEGER PRIMARY KEY,
     FOREIGN KEY (ID) REFERENCES Device(ID),
     HasWifi BOOLEAN NULL

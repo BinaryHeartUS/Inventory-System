@@ -3,6 +3,13 @@ set -euo pipefail
 
 # Usage: ./scripts/deploy.sh user@your-server-ip
 # Requires: ssh key auth set up on the target server, docker installed on the server
+#
+# Required .env variables on the server at /opt/inventory-system/.env:
+#   DB_PASSWORD        — postgres superuser (binaryheart) password
+#   API_USER_PASSWORD  — password for the api_user DB role used by the backend
+#   IMPORTER_PASSWORD  — password for the importer DB role
+#
+# See .env.example in the repo root for a template.
 
 TARGET="${1:?Usage: deploy.sh user@host}"
 REMOTE_DIR="/opt/inventory-system"
@@ -21,10 +28,11 @@ ssh "$TARGET" bash <<EOF
 
   if [ ! -f .env ]; then
     echo "ERROR: .env file not found at $REMOTE_DIR/.env"
-    echo "Create one with: DB_PASSWORD=yourpassword"
+    echo "Copy .env.example to .env and fill in the required values."
     exit 1
   fi
 
+  # db-migrate runs once and exits; backend/frontend restart if already running
   docker compose -f docker-compose.prod.yml up --build -d
   echo "Deploy complete. App available on port 80."
 EOF

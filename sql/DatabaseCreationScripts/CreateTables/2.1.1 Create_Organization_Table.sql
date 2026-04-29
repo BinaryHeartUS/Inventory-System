@@ -1,4 +1,4 @@
-create table Organization (
+CREATE TABLE IF NOT EXISTS Organization (
     ID INTEGER PRIMARY KEY,
     FOREIGN KEY (ID) REFERENCES Party(ID),
     ContactName Name_Type NULL,

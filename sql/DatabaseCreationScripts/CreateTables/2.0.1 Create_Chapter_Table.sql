@@ -1,4 +1,4 @@
-create table Chapter (
+CREATE TABLE IF NOT EXISTS Chapter (
     ID INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     Name Name_Type NOT NULL UNIQUE
 );

@@ -1,4 +1,4 @@
-create table Device (
+CREATE TABLE IF NOT EXISTS Device (
     ID INTEGER PRIMARY KEY,
     FOREIGN KEY (ID) REFERENCES Asset(ID),
     Manufacturer_ID INTEGER NOT NULL,

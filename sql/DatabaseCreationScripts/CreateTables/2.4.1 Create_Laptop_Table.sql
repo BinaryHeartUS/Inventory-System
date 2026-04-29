@@ -1,4 +1,4 @@
-create table Laptop (
+CREATE TABLE IF NOT EXISTS Laptop (
     ID INTEGER PRIMARY KEY,
     FOREIGN KEY (ID) REFERENCES Device(ID),
     Design_battery_capacity INTEGER NULL,
