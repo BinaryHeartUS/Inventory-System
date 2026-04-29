@@ -1,6 +1,14 @@
 
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url('/fonts/lato-700.woff2') format('woff2');
+}
+
 @theme {
   --color-brand-red:       #FF0040;
   --color-brand-red-dark:  #d70036;
