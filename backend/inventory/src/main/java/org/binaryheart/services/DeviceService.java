@@ -1,6 +1,7 @@
 package org.binaryheart.services;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.binaryheart.Exceptions.BadArgumentException;
 import org.binaryheart.Exceptions.DeviceNotFoundException;
@@ -53,6 +54,10 @@ public class DeviceService {
     public GetDeviceResponse getDevice(int id) throws BadArgumentException, DeviceNotFoundException, SQLException {
         return repository.getDevice(id);
         // ERROR CHECKING AND THROWING
+    }
+
+    public List<GetDeviceResponse> getAllDevices() throws SQLException {
+        return repository.getAllDevices();
     }
 
     public void insertDesktop(InsertDesktopRequest request) throws SQLException {

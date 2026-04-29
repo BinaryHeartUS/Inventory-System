@@ -24,6 +24,7 @@ public class DeviceController {
     public static void registerRoutes() {
         get("/count/{type}", DeviceController::getDeviceCount, AppRole.AUTHENTICATED);
         get("/{id}", DeviceController::getDevice, AppRole.AUTHENTICATED);
+        get("", DeviceController::getAllDevices, AppRole.AUTHENTICATED);
         post("/add/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
         post("/add/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
     }
@@ -127,6 +128,37 @@ public class DeviceController {
             return;
         } catch (SQLException e) {
             ctx.status(500).result("Database error");
+        }
+    }
+
+    @OpenApi(
+            path = "/api/devices",
+            methods = { HttpMethod.GET },
+            tags = { "Devices" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Retrieve all devices",
+            description = "Returns a list of all devices.",
+            responses = { @OpenApiResponse(
+                    status = "200",
+                    description = "Device retrieved successfully",
+                    content = { @OpenApiContent(
+                            from = GetDeviceResponse[].class) }),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Non-numeric device ID"),
+                    @OpenApiResponse(
+                            status = "401",
+                            description = "ID does not match any existing devices"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void getAllDevices(Context ctx) {
+        try {
+            GetDeviceResponse[] result = service.getAllDevices().toArray(new GetDeviceResponse[0]);
+            ctx.status(200).json(result);
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
         }
     }
 

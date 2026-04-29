@@ -20,7 +20,8 @@ RETURNS TABLE (
     design_capacity INTEGER,
     actual_capacity INTEGER,
     battery_health numeric,
-    working_battery WORKING_BATTERY
+    working_battery WORKING_BATTERY,
+    chapter Name_Type
 )
 LANGUAGE plpgsql
 AS $$

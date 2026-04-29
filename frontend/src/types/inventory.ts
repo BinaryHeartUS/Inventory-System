@@ -11,12 +11,10 @@ export type AccountSummary  = Required<Omit<components['schemas']['AccountSummar
 // ─── API wire-format types (auto-generated — run `npm run gen-types` to sync) ─
 // These are the exact values the backend sends/receives over the wire.
 
-export type ApiStatus        = components['schemas']['Status']
-export type ApiChargerStatus = components['schemas']['ChargerStatus']
 export type InsertDesktopRequest = components['schemas']['InsertDesktopRequest']
 export type InsertLaptopRequest  = components['schemas']['InsertLaptopRequest']
 
-// ─── Fixed display types (Status and ChargerStatus are still enums) ───────────
+// ─── Display types ────────────────────────────────────────────────────────────
 
 export type DeviceStatus =
   | 'Not Started'
@@ -28,26 +26,6 @@ export type DeviceStatus =
 
 export type ChargerStatus = 'Included' | 'Not Included' | 'Unknown'
 export type WorkingBattery = 'Yes' | 'No' | 'Unknown'
-
-// ─── API → Display mappers (fixed enums only) ─────────────────────────────────
-// TypeScript will error here if the backend adds a new enum value and you
-// re-generate api.d.ts, prompting you to add the missing display label.
-
-export const API_TO_STATUS: Record<ApiStatus, DeviceStatus> = {
-  NOT_STARTED:     'Not Started',
-  IN_PROGRESS:     'In Progress',
-  READY_TO_DONATE: 'Ready To Donate',
-  DONATED:         'Donated',
-  UNKNOWN:         'Unknown',
-  // NOTE: SCRAPPED is missing from the OpenAPI spec due to a Javalin plugin bug
-  SCRAPPED:        'Scrapped',
-}
-
-export const API_TO_CHARGER: Record<ApiChargerStatus, ChargerStatus> = {
-  INCLUDED:     'Included',
-  NOT_INCLUDED: 'Not Included',
-  UNKNOWN:      'Unknown',
-}
 
 // ─── Base types (mirror Asset + Device tables) ────────────────────────────────
 
