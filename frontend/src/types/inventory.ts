@@ -93,7 +93,8 @@ export interface Tablet extends BaseDevice {
   workingBattery: WorkingBattery
 }
 
-export type AnyDevice = Desktop | Laptop | Tablet
+export type GetDeviceResponse = components['schemas']['GetDeviceResponse']
+export type AnyDevice = GetDeviceResponse & { type: 'Desktop' | 'Laptop' | 'Tablet' };
 
 // ─── Part ────────────────────────────────────────────────────────────────────
 

@@ -8,6 +8,7 @@ import org.binaryheart.Exceptions.DuplicateKeyException;
 import org.binaryheart.auth.AppRole;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
+import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.services.DeviceService;
 
 import java.sql.SQLException;
@@ -22,6 +23,7 @@ public class DeviceController {
 
     public static void registerRoutes() {
         get("/count/{type}", DeviceController::getDeviceCount, AppRole.AUTHENTICATED);
+        get("/{id}", DeviceController::getDevice, AppRole.AUTHENTICATED);
         post("/add/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
         post("/add/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
     }
@@ -79,6 +81,50 @@ public class DeviceController {
             default -> throw new IllegalStateException("Unhandled combination: " + status + ":" + type);
             };
             ctx.status(200).json(count);
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error");
+        }
+    }
+
+    @OpenApi(
+            path = "/api/devices/{id}",
+            methods = { HttpMethod.GET },
+            tags = { "Devices" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Retrieve a device with a specific ID",
+            description = "Returns the device with the given ID.",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    description = "Device ID: A unique number assigned to each device") },
+            responses = { @OpenApiResponse(
+                    status = "200",
+                    description = "Device retrieved successfully",
+                    content = { @OpenApiContent(
+                            from = GetDeviceResponse.class) }),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Non-numeric device ID"),
+                    @OpenApiResponse(
+                            status = "401",
+                            description = "ID does not match any existing devices"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void getDevice(Context ctx) {
+        String idStr = ctx.pathParam("id");
+        try {
+            int id = Integer.parseInt(idStr);
+            if (id <= 0) {
+                ctx.status(400).result("Device ID must be positive");
+                return;
+            }
+            GetDeviceResponse result = service.getDevice(id);
+            ctx.status(200).json(result);
+            // HANDLE ERRORS THROWN BY SERVICE
+        } catch (NumberFormatException e) {
+            ctx.status(400).result("Non-numeric device ID: " + idStr);
+            return;
         } catch (SQLException e) {
             ctx.status(500).result("Database error");
         }

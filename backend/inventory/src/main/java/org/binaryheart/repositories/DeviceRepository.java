@@ -1,12 +1,20 @@
 package org.binaryheart.repositories;
 
+import org.binaryheart.enums.ChargerStatus;
+import org.binaryheart.enums.Status;
+import org.binaryheart.enums.WorkingBattery;
+
 import org.binaryheart.DatabaseConnectionService;
+import org.binaryheart.Exceptions.DeviceNotFoundException;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
+import org.binaryheart.responses.GetDeviceResponse;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 public class DeviceRepository {
 
@@ -55,6 +63,42 @@ public class DeviceRepository {
 
     public int getNumberOfDonatedTablets() throws SQLException {
         return callCountProcedure("Get_Donated_Tablet_Count");
+    }
+
+    public GetDeviceResponse getDevice(int id) throws SQLException, DeviceNotFoundException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        CallableStatement stmt = conn.prepareCall("CALL Get_Device(?)");
+        stmt.setInt(1, id);
+        ResultSet rs = stmt.executeQuery();
+        if (!rs.next()) {
+            throw new DeviceNotFoundException("Given ID did not match a device in database");
+        }
+        String deviceType = rs.getString("type");
+        Integer deviceID = rs.getInt("ID");
+        LocalDate acquisitionDate = rs.getDate("acquisition_date").toLocalDate();
+        Double value = rs.getDouble("value");
+        String manufacturer = rs.getString("manufacturer");
+        String model = rs.getString("model");
+        Integer year = rs.getInt("year");
+        String cpu = rs.getString("cpu");
+        Integer ram = rs.getInt("ram");
+        String ramGeneration = rs.getString("ram_generation");
+        Integer storageAmount = rs.getInt("storage_amount");
+        String storageType = rs.getString("storage_type");
+        Status status = Status.valueOf(rs.getString("status"));
+        Boolean hasWifi = rs.getBoolean("has_wifi");
+        ChargerStatus hasCharger = ChargerStatus.valueOf(rs.getString("includes_charger"));
+        Integer designCap = rs.getInt("design_capacity");
+        Integer actualCap = rs.getInt("actual_capacity");
+        Double batteryHealth = rs.getDouble("battery_health");
+        WorkingBattery workingBattery = WorkingBattery.valueOf(rs.getString("working_battery"));
+        GetDeviceResponse response = new GetDeviceResponse(deviceType, deviceID, acquisitionDate, value, manufacturer,
+                model, year, cpu, ram, ramGeneration, storageAmount, storageType, status, hasWifi, hasCharger,
+                designCap, actualCap, batteryHealth, workingBattery);
+        return response;
     }
 
     public void insertDesktop(InsertDesktopRequest request) throws SQLException {

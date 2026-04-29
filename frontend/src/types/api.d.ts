@@ -598,6 +598,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a device with a specific ID
+         * @description Returns the device with the given ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Device ID: A unique number assigned to each device */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Device retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GetDeviceResponse"];
+                    };
+                };
+                /** @description Non-numeric device ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description ID does not match any existing devices */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -626,6 +689,66 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/notes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a new note to an asset with the given ID */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *         "assetId": 1,
+                     *         "note": "New Note"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["PostNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description Note added successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteResponse"];
+                    };
+                };
+                /** @description Missing required parameters */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -673,107 +796,152 @@ export interface components {
         /** @enum {string} */
         ChargerStatus: "INCLUDED" | "NOT_INCLUDED" | "UNKNOWN";
         /** @enum {string} */
-        Status: "NOT_STARTED" | "IN_PROGRESS" | "READY_TO_DONATE" | "DONATED" | "SCRAPPED" | "UNKNOWN";
+        Status: "DONATED" | "IN_PROGRESS" | "NOT_STARTED" | "READY_TO_DONATE" | "SCRAPPED" | "UNKNOWN";
+        /** @enum {string} */
+        WorkingBattery: "NO" | "UNKNOWN" | "YES";
         ChapterRole: {
+            role?: string;
             /** Format: int32 */
             chapterId: number;
-            role?: string;
         };
         AddAffiliationRequest: {
+            role?: string;
             /** Format: int32 */
             chapterId: number;
-            role?: string;
         };
         CreateAccountRequest: {
-            name?: string;
-            username?: string;
+            role?: string;
             password?: string;
             /** Format: int32 */
             chapterId: number;
-            role?: string;
+            name?: string;
+            username?: string;
         };
         InsertDesktopRequest: {
-            /** Format: int32 */
-            chapterId: number;
-            manufacturer?: string;
-            model?: string;
-            /** Format: int32 */
-            year: number;
-            status?: components["schemas"]["Status"];
-            /** Format: int32 */
-            assetId?: number;
-            cpu?: string;
-            /** Format: int32 */
-            ram?: number;
-            ramGeneration?: string;
-            /** Format: int32 */
-            storageAmount?: number;
-            storageType?: string;
-            /** Format: double */
-            value?: number;
             /** Format: date */
             acquisitionDate?: string;
+            hasWifi?: boolean;
+            ramGeneration?: string;
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            storageAmount?: number;
+            manufacturer?: string;
+            /** Format: int32 */
+            assetId?: number;
+            /** Format: int32 */
+            chapterId: number;
             /** Format: int32 */
             recipientId?: number;
+            model?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: int32 */
+            ram?: number;
+            cpu?: string;
+            storageType?: string;
             /** Format: int32 */
             donorId?: number;
-            hasWifi?: boolean;
+            status?: components["schemas"]["Status"];
         };
         InsertLaptopRequest: {
-            /** Format: int32 */
-            chapterId: number;
-            manufacturer?: string;
-            model?: string;
-            /** Format: int32 */
-            year: number;
-            status?: components["schemas"]["Status"];
-            includesCharger?: components["schemas"]["ChargerStatus"];
-            /** Format: int32 */
-            assetId?: number;
-            cpu?: string;
-            /** Format: int32 */
-            ram?: number;
-            ramGeneration?: string;
-            /** Format: int32 */
-            storageAmount?: number;
-            storageType?: string;
-            /** Format: double */
-            value?: number;
             /** Format: date */
             acquisitionDate?: string;
+            ramGeneration?: string;
             /** Format: int32 */
-            recipientId?: number;
-            /** Format: int32 */
-            donorId?: number;
+            year: number;
             /** Format: int32 */
             designBatteryCapacity?: number;
             /** Format: int32 */
+            storageAmount?: number;
+            manufacturer?: string;
+            /** Format: int32 */
+            assetId?: number;
+            /** Format: int32 */
+            chapterId: number;
+            /** Format: int32 */
             actualBatteryCapacity?: number;
+            /** Format: int32 */
+            recipientId?: number;
+            model?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: int32 */
+            ram?: number;
+            cpu?: string;
+            includesCharger?: components["schemas"]["ChargerStatus"];
+            storageType?: string;
+            /** Format: int32 */
+            donorId?: number;
+            status?: components["schemas"]["Status"];
         };
         LoginRequest: {
-            username?: string;
             password?: string;
+            username?: string;
+        };
+        PostNoteRequest: {
+            note?: string;
+            /** Format: int32 */
+            assetId: number;
         };
         UpdateAffiliationRequest: {
             role?: string;
         };
         AccountSummary: {
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+            name?: string;
             /** Format: int32 */
             id: number;
             username?: string;
-            name?: string;
-            chapterRoles?: components["schemas"]["ChapterRole"][];
         };
         ChapterSummary: {
+            name?: string;
             /** Format: int32 */
             id: number;
-            name?: string;
+        };
+        GetDeviceResponse: {
+            /** Format: date */
+            acquisitionDate?: string;
+            hasWifi?: boolean;
+            ramGeneration?: string;
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            designBatteryCapacity?: number;
+            /** Format: int32 */
+            storageAmount: number;
+            type?: string;
+            manufacturer?: string;
+            /** Format: int32 */
+            actualBatteryCapacity?: number;
+            model?: string;
+            /** Format: double */
+            batteryHealth?: number;
+            /** Format: int32 */
+            id: number;
+            /** Format: double */
+            value: number;
+            /** Format: int32 */
+            ram: number;
+            cpu?: string;
+            workingBattery?: components["schemas"]["WorkingBattery"];
+            includesCharger?: components["schemas"]["ChargerStatus"];
+            storageType?: string;
+            status?: components["schemas"]["Status"];
         };
         LoginResponse: {
+            role?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
             token?: string;
             username?: string;
-            chapterRoles?: components["schemas"]["ChapterRole"][];
-            role?: string;
+        };
+        NoteResponse: {
+            date?: string;
+            note?: string;
+            /** Format: int32 */
+            assetId: number;
+            /** Format: int32 */
+            id: number;
         };
     };
     responses: never;

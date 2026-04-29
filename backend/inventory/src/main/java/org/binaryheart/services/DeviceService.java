@@ -2,10 +2,13 @@ package org.binaryheart.services;
 
 import java.sql.SQLException;
 
+import org.binaryheart.Exceptions.BadArgumentException;
+import org.binaryheart.Exceptions.DeviceNotFoundException;
 import org.binaryheart.Exceptions.DuplicateKeyException;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
+import org.binaryheart.responses.GetDeviceResponse;
 
 public class DeviceService {
 
@@ -45,6 +48,11 @@ public class DeviceService {
 
     public int getNumberOfDonatedTablets() throws SQLException {
         return repository.getNumberOfDonatedTablets();
+    }
+
+    public GetDeviceResponse getDevice(int id) throws BadArgumentException, DeviceNotFoundException, SQLException {
+        return repository.getDevice(id);
+        // ERROR CHECKING AND THROWING
     }
 
     public void insertDesktop(InsertDesktopRequest request) throws SQLException {
