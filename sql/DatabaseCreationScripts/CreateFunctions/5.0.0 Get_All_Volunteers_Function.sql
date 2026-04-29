@@ -8,6 +8,8 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT
         v.ID,
         v.Username,
@@ -18,4 +20,5 @@ AS $$
     JOIN Affiliated_With aw ON aw.Volunteer_ID = v.ID
     JOIN Role r ON r.ID = aw.Role_ID
     ORDER BY v.Username, r.Priority;
+END;
 $$;

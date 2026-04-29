@@ -7,9 +7,12 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT aw.Chapter_ID, r.Name
     FROM Affiliated_With aw
     JOIN Role r ON r.ID = aw.Role_ID
     WHERE aw.Volunteer_ID = p_volunteer_id
     ORDER BY r.Priority;
+END;
 $$;

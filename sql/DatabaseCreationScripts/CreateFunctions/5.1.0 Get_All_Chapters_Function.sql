@@ -5,7 +5,10 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT ID, Name
     FROM Chapter
     ORDER BY Name;
+END;
 $$;

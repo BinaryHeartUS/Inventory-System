@@ -10,6 +10,8 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql
 AS $$
+BEGIN
+    RETURN QUERY
     SELECT
         v.ID,
         v.Username,
@@ -21,4 +23,5 @@ AS $$
     JOIN Role r ON r.ID = aw.Role_ID
     WHERE aw.Chapter_ID = ANY(p_chapter_ids)
     ORDER BY v.Username, r.Priority;
+END;
 $$;
