@@ -20,7 +20,7 @@ function formatNoteDate(iso: string) {
   )
 }
 
-export default function NotesPane({ assetId }: { assetId: number }) {
+export default function NotesPane({ assetId, readOnly = false }: { assetId: number; readOnly?: boolean }) {
   const [notes, setNotes] = useState<Note[]>([])
   const [draft, setDraft] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -74,27 +74,33 @@ export default function NotesPane({ assetId }: { assetId: number }) {
       </div>
 
       {/* Compose */}
-      <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
-        <textarea
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitNote() }}
-          placeholder="Add a note… (Ctrl+Enter to submit)"
-          rows={3}
-          maxLength={500}
-          className={`${inputCls} resize-none`}
-        />
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-slate-400">{draft.length}/500</span>
-          <button
-            onClick={submitNote}
-            disabled={!draft.trim()}
-            className="text-xs font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg transition-colors"
-          >
-            Add note
-          </button>
+      {readOnly ? (
+        <div className="px-5 py-3 border-b border-slate-100 bg-amber-50 shrink-0">
+          <p className="text-xs text-amber-700 font-medium">This device has been donated. Notes are read-only.</p>
         </div>
-      </div>
+      ) : (
+        <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
+          <textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitNote() }}
+            placeholder="Add a note… (Ctrl+Enter to submit)"
+            rows={3}
+            maxLength={500}
+            className={`${inputCls} resize-none`}
+          />
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-slate-400">{draft.length}/500</span>
+            <button
+              onClick={submitNote}
+              disabled={!draft.trim()}
+              className="text-xs font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Add note
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* List */}
       <div className="flex-1 overflow-y-auto divide-y divide-slate-100">

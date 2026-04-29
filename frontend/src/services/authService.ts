@@ -22,6 +22,7 @@ const MOCK_USERS: Record<string, { password: string; chapterRoles: ChapterRole[]
   northwestern: { password: 'northwestern', chapterRoles: [{ chapterId: 2, role: 'Chapter Admin' }], role: 'Chapter Admin' },
   iu:           { password: 'iu',           chapterRoles: [{ chapterId: 3, role: 'Editor' }], role: 'Editor' },
   newtrier:     { password: 'newtrier',     chapterRoles: [{ chapterId: 4, role: 'Viewer' }], role: 'Viewer' },
+  rosehulmaneditor: { password: 'rosehulmaneditor', chapterRoles: [{ chapterId: 1, role: 'Editor' }], role: 'Editor' },
 }
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
