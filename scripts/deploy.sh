@@ -5,11 +5,18 @@ set -euo pipefail
 # Requires: ssh key auth set up on the target server, docker installed on the server
 #
 # Required .env variables on the server at /opt/inventory-system/.env:
+#   DOMAIN             — public domain (e.g. inventory.binaryheart.org) — Caddy uses this for TLS
 #   DB_PASSWORD        — postgres superuser (binaryheart) password
 #   API_USER_PASSWORD  — password for the api_user DB role used by the backend
 #   IMPORTER_PASSWORD  — password for the importer DB role
 #
 # See .env.example in the repo root for a template.
+#
+# First-time server setup (run once manually):
+#   curl -fsSL https://get.docker.com | sh
+#   ufw allow 80 && ufw allow 443 && ufw allow OpenSSH && ufw enable
+#   mkdir -p /opt/inventory-system && cp .env.example /opt/inventory-system/.env
+#   # edit /opt/inventory-system/.env with real values
 
 TARGET="${1:?Usage: deploy.sh user@host}"
 REMOTE_DIR="/opt/inventory-system"
@@ -32,7 +39,8 @@ ssh "$TARGET" bash <<EOF
     exit 1
   fi
 
-  # db-migrate runs once and exits; backend/frontend restart if already running
+  # Caddy handles TLS automatically via Let's Encrypt on first boot.
+  # db-migrate runs once and exits; backend/frontend/caddy restart if already running.
   docker compose -f docker-compose.prod.yml up --build -d
-  echo "Deploy complete. App available on port 80."
+  echo "Deploy complete. Site available at https://\$(grep '^DOMAIN=' .env | cut -d= -f2)"
 EOF
