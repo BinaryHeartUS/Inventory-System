@@ -11,6 +11,7 @@ import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.responses.GetDeviceResponse;
 
 import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -70,7 +71,7 @@ public class DeviceRepository {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        CallableStatement stmt = conn.prepareCall("CALL Get_Device(?)");
+        PreparedStatement stmt = conn.prepareCall("SELECT * FROM Get_Device(?)");
         stmt.setInt(1, id);
         ResultSet rs = stmt.executeQuery();
         if (!rs.next()) {
