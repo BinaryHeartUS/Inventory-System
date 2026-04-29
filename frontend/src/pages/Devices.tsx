@@ -92,6 +92,8 @@ export default function Devices() {
   const [typeFilter,    setTypeFilter]    = useState<DeviceTypeFilter>('All')
   const [statusFilter,  setStatusFilter]  = useState<DeviceStatus | 'All'>('All')
   const [chapterFilter, setChapterFilter] = useState<string>('All')
+  const [showDonated,   setShowDonated]   = useState(false)
+  const [showScrapped,  setShowScrapped]  = useState(false)
   const [sortKey,       setSortKey]       = useState<SortKey | null>('id')
   const [sortDir,       setSortDir]       = useState<SortDir>('asc')
 
@@ -115,6 +117,8 @@ export default function Devices() {
 
   const filtered = useMemo(() => {
     return allDevices.filter(d => {
+      if (!showDonated && d.status === 'Donated') return false
+      if (!showScrapped && d.status === 'Scrapped') return false
       if (typeFilter    !== 'All' && d.type    !== typeFilter)    return false
       if (statusFilter  !== 'All' && d.status  !== statusFilter)  return false
       if (chapterFilter !== 'All' && d.chapter !== chapterFilter) return false
@@ -130,7 +134,7 @@ export default function Devices() {
       }
       return true
     })
-  }, [search, typeFilter, statusFilter, chapterFilter, allDevices])
+  }, [search, typeFilter, statusFilter, chapterFilter, showDonated, showScrapped, allDevices])
 
   const sorted = useMemo(() => {
     if (!sortKey) return filtered
@@ -140,13 +144,15 @@ export default function Devices() {
   const total = allDevices.length
   const hasFilters =
     search !== '' || typeFilter !== 'All' ||
-    statusFilter !== 'All' || chapterFilter !== 'All'
+    statusFilter !== 'All' || chapterFilter !== 'All' || showDonated || showScrapped
 
   function clearFilters() {
     setSearch('')
     setTypeFilter('All')
     setStatusFilter('All')
     setChapterFilter('All')
+    setShowDonated(false)
+    setShowScrapped(false)
   }
 
   return (
@@ -197,6 +203,52 @@ export default function Devices() {
             <option value="All">All Chapters</option>
             {chapters.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+
+          <label className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            showDonated
+              ? 'bg-heart-blue/10 border-heart-blue text-heart-blue font-medium'
+              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+          }`}>
+            <input
+              type="checkbox"
+              checked={showDonated}
+              onChange={e => setShowDonated(e.target.checked)}
+              className="sr-only"
+            />
+            <span className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
+              showDonated ? 'bg-heart-blue border-heart-blue' : 'border-slate-300'
+            }`}>
+              {showDonated && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </span>
+            Donated
+          </label>
+
+          <label className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            showScrapped
+              ? 'bg-heart-blue/10 border-heart-blue text-heart-blue font-medium'
+              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+          }`}>
+            <input
+              type="checkbox"
+              checked={showScrapped}
+              onChange={e => setShowScrapped(e.target.checked)}
+              className="sr-only"
+            />
+            <span className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
+              showScrapped ? 'bg-heart-blue border-heart-blue' : 'border-slate-300'
+            }`}>
+              {showScrapped && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </span>
+            Scrapped
+          </label>
 
           {hasFilters && (
             <button
