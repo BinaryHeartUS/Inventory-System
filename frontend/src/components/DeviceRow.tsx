@@ -31,9 +31,13 @@ export function DeviceRow({
         </span>
       </td>
       <td className="px-5 py-5 text-slate-700 whitespace-nowrap">{device.manufacturer}</td>
-      <td className="px-5 py-5 text-slate-900 whitespace-nowrap">{device.model}</td>
+      <td className="px-5 py-5 text-slate-900 whitespace-nowrap max-w-[180px]">
+        <span className="block truncate" title={device.model}>{device.model}</span>
+      </td>
       <td className="px-5 py-5 text-slate-500">{device.year}</td>
-      <td className="px-5 py-5 text-slate-500 text-sm">{device.cpu ?? '—'}</td>
+      <td className="px-5 py-5 text-slate-500 text-sm whitespace-nowrap max-w-[160px]">
+        <span className="block truncate" title={device.cpu ?? undefined}>{device.cpu ?? '—'}</span>
+      </td>
       <td className="px-5 py-5 text-slate-500 whitespace-nowrap">
         {device.ram} GB{device.ramGeneration ? ` ${device.ramGeneration}` : ''}
       </td>
@@ -46,7 +50,9 @@ export function DeviceRow({
         <StatusBadge status={device.status} />
       </td>
       {extraCells}
-      <td className="px-5 py-5 text-slate-500">{device.chapter}</td>
+      <td className="px-5 py-5 text-slate-500 max-w-[160px]">
+        <span className="block truncate" title={device.chapter}>{device.chapter}</span>
+      </td>
       <td className="px-5 py-5 text-slate-400 whitespace-nowrap">
         {device.acquisitionDate ?? '—'}
       </td>
@@ -61,9 +67,7 @@ export function DesktopRow({ device }: { device: Desktop }) {
       extraCells={
         <td className="px-5 py-5 text-sm text-slate-500 whitespace-nowrap">
           Wi-Fi:{' '}
-          <span className={`font-medium ${
-            device.hasWifi === null ? 'text-slate-400' : device.hasWifi ? 'text-green-600' : 'text-red-500'
-          }`}>
+          <span className="text-slate-600">
             {device.hasWifi === null ? '—' : device.hasWifi ? 'Yes' : 'No'}
           </span>
         </td>
@@ -75,14 +79,6 @@ export function DesktopRow({ device }: { device: Desktop }) {
 export function LaptopRow({ device }: { device: Laptop }) {
   const healthPct =
     device.batteryHealth !== null ? Math.round(device.batteryHealth * 100) : null
-  const healthColor =
-    healthPct === null
-      ? 'text-slate-400'
-      : healthPct >= 80
-        ? 'text-green-600'
-        : healthPct >= 50
-          ? 'text-amber-600'
-          : 'text-red-500'
 
   return (
     <DeviceRow
@@ -91,11 +87,11 @@ export function LaptopRow({ device }: { device: Laptop }) {
         <td className="px-5 py-5 text-sm whitespace-nowrap space-y-1">
           <div className="text-slate-500">
             Charger:{' '}
-            <span className="font-medium text-slate-700">{device.includesCharger}</span>
+            <span className="text-slate-600">{device.includesCharger}</span>
           </div>
           <div className="text-slate-500">
             Battery:{' '}
-            <span className={`font-medium ${healthColor}`}>
+            <span className="text-slate-600">
               {healthPct !== null ? `${healthPct}%` : '—'}
             </span>
           </div>
@@ -113,11 +109,11 @@ export function TabletRow({ device }: { device: Tablet }) {
         <td className="px-5 py-5 text-sm whitespace-nowrap space-y-1">
           <div className="text-slate-500">
             Charger:{' '}
-            <span className="font-medium text-slate-700">{device.includesCharger}</span>
+            <span className="text-slate-600">{device.includesCharger}</span>
           </div>
           <div className="text-slate-500">
             Battery:{' '}
-            <span className="font-medium text-slate-700">{device.workingBattery}</span>
+            <span className="text-slate-600">{device.workingBattery}</span>
           </div>
         </td>
       }

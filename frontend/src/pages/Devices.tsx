@@ -22,7 +22,7 @@ type SortDir = 'asc' | 'desc'
 const HEADER_SORT: Partial<Record<string, SortKey>> = {
   'ID':           'id',
   'Type':         'type',
-  'Manufacturer': 'manufacturer',
+  'Brand':         'manufacturer',
   'Model':        'model',
   'Year':         'year',
   'CPU':          'cpu',
@@ -35,6 +35,15 @@ const HEADER_SORT: Partial<Record<string, SortKey>> = {
 
 // ─── Sort helpers ─────────────────────────────────────────────────────────────
 
+const STATUS_ORDER: Record<string, number> = {
+  'Not Started': 0,
+  'In Progress': 1,
+  'Ready To Donate': 2,
+  'Donated': 3,
+  'Scrapped': 4,
+  'Unknown': 5,
+}
+
 function getValue(d: AnyDevice, key: SortKey): string | number | null {
   return (d as unknown as Record<string, unknown>)[key] as string | number | null
 }
@@ -46,6 +55,9 @@ function compare(a: AnyDevice, b: AnyDevice, key: SortKey, dir: SortDir): number
   if (av == null && bv == null) cmp = 0
   else if (av == null) cmp = 1
   else if (bv == null) cmp = -1
+  else if (key === 'status') {
+    cmp = (STATUS_ORDER[av as string] ?? 99) - (STATUS_ORDER[bv as string] ?? 99)
+  }
   else if (typeof av === 'number' && typeof bv === 'number') cmp = av - bv
   else cmp = String(av).localeCompare(String(bv))
   return dir === 'asc' ? cmp : -cmp

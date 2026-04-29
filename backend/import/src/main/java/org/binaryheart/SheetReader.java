@@ -36,6 +36,10 @@ public class SheetReader<T extends Record> {
 
         Row row = sheet.getRow(rowIndex);
 
+        if (row == null) {
+            return null;
+        }
+
         for (int i = 0; i < components.length; i++) {
             Cell cell = row.getCell(i);
             values[i] = getCorrectFormatFor(cell, components[i].getType());

@@ -43,7 +43,7 @@ export const MANUFACTURER_OPTS: string[] = [
 export const RAM_GEN_OPTS: string[] = ['DDR4', 'DDR5', 'LPDDR4', 'LPDDR4x', 'LPDDR5']
 
 /** Storage_Type.Name — from the Storage_Type lookup table. */
-export const STORAGE_TYPE_OPTS: string[] = ['SSD', 'HDD', 'NVMe SSD', 'eMMC', 'Flash Storage']
+export const STORAGE_TYPE_OPTS: string[] = ['SSD', 'HDD', 'NVMe SSD', 'eMMC']
 
 /** Part_Type.Name — from the Part_Type lookup table. */
 export const PART_TYPE_OPTS: string[] = [
