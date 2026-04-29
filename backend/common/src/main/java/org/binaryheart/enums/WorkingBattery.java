@@ -14,12 +14,12 @@ public enum WorkingBattery {
     }
 
     public static WorkingBattery fromDatabaseValue(String value) {
-        if ("Yes".equals(value)) {
-            return YES;
-        } else if ("No".equals(value)) {
-            return NO;
-        } else {
-            return UNKNOWN;
+        if (value == null)
+            return null;
+        for (WorkingBattery w : values()) {
+            if (w.databaseValue.equals(value))
+                return w;
         }
+        throw new IllegalArgumentException("Unknown WorkingBattery value: " + value);
     }
 }

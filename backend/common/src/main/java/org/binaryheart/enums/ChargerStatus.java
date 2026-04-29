@@ -14,12 +14,12 @@ public enum ChargerStatus {
     }
 
     public static ChargerStatus fromDatabaseValue(String value) {
-        if ("Included".equals(value)) {
-            return INCLUDED;
-        } else if ("Not Included".equals(value)) {
-            return NOT_INCLUDED;
-        } else {
-            return UNKNOWN;
+        if (value == null)
+            return null;
+        for (ChargerStatus s : values()) {
+            if (s.databaseValue.equals(value))
+                return s;
         }
+        throw new IllegalArgumentException("Unknown ChargerStatus value: " + value);
     }
 }

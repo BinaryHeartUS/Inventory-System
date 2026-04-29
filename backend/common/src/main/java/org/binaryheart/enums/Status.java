@@ -15,16 +15,10 @@ public enum Status {
     }
 
     public static Status fromDatabaseValue(String value) {
-        if ("Not Started".equals(value)) {
-            return NOT_STARTED;
-        } else if ("In Progress".equals(value)) {
-            return IN_PROGRESS;
-        } else if ("Ready To Donate".equals(value)) {
-            return READY_TO_DONATE;
-        } else if ("Scrapped".equals(value)) {
-            return SCRAPPED;
-        } else {
-            return UNKNOWN;
+        for (Status s : values()) {
+            if (s.databaseValue.equals(value))
+                return s;
         }
+        throw new IllegalArgumentException("Unknown Status value: " + value);
     }
 }

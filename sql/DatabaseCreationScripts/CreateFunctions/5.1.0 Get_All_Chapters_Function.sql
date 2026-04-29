@@ -7,8 +7,8 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT ID, Name
+    SELECT Chapter.ID, Chapter.Name
     FROM Chapter
-    ORDER BY Name;
+    ORDER BY Chapter.Name;
 END;
 $$;

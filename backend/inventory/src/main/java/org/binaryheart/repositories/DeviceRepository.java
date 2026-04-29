@@ -72,7 +72,7 @@ public class DeviceRepository {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        PreparedStatement stmt = conn.prepareCall("SELECT * FROM Get_Device(?)");
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Device(?)");
         stmt.setInt(1, id);
         ResultSet rs = stmt.executeQuery();
         if (!rs.next()) {

@@ -14,16 +14,7 @@
 
 import { useEffect, useState } from 'react'
 import type { ChargerStatus, DeviceStatus, WorkingBattery } from '../types/inventory'
-import {
-  getManufacturers,
-  getRamGenerations,
-  getStorageTypes,
-  getPartTypes,
-  getToolTypes,
-  getDeviceStatuses,
-  getChargerStatuses,
-  getWorkingBatteryOpts,
-} from '../services/lookupService'
+import { getAllLookups } from '../services/lookupService'
 import { useVisibleChapters } from '../context/ChapterContext'
 
 export interface LookupData {
@@ -55,18 +46,11 @@ export function useLookups(): LookupData {
   })
 
   useEffect(() => {
-    Promise.all([
-      getManufacturers(),
-      getRamGenerations(),
-      getStorageTypes(),
-      getPartTypes(),
-      getToolTypes(),
-      getDeviceStatuses(),
-      getChargerStatuses(),
-      getWorkingBatteryOpts(),
-    ]).then(([manufacturers, ramGenerations, storageTypes, partTypes, toolTypes, deviceStatuses, chargerStatuses, workingBatteryOpts]) => {
-      setRest({ manufacturers, ramGenerations, storageTypes, partTypes, toolTypes, deviceStatuses, chargerStatuses, workingBatteryOpts })
-    })
+    getAllLookups()
+      .then(data => setRest(data))
+      .catch(() => {
+        // Lookup endpoint not yet available; leave arrays empty so the rest of the UI still renders
+      })
   }, [])
 
   return { ...rest, chapters: chapterList.map(c => c.name), wifiOpts: WIFI_OPTS }
