@@ -285,7 +285,7 @@ function AppInner() {
 
   return (
     <div className="flex min-h-dvh bg-slate-50 text-slate-900">
-      <Sidebar />
+      {auth && <Sidebar />}
       <div className="flex-1 min-w-0">
         <div className="flex justify-end px-10 pt-6">
           {auth && auth.role !== 'Viewer' && (
