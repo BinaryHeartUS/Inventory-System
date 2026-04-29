@@ -13,6 +13,7 @@ import org.binaryheart.responses.GetDeviceResponse;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -79,7 +80,11 @@ public class DeviceRepository {
         }
         String deviceType = rs.getString("type");
         Integer deviceID = rs.getInt("ID");
-        LocalDate acquisitionDate = rs.getDate("acquisition_date").toLocalDate();
+        Date acquisitionDate = rs.getDate("acquisition_date");
+        LocalDate acquisitionLocalDate = null;
+        if (acquisitionDate != null) {
+            acquisitionLocalDate = acquisitionDate.toLocalDate();
+        }
         Double value = rs.getDouble("value");
         String manufacturer = rs.getString("manufacturer");
         String model = rs.getString("model");
@@ -89,16 +94,16 @@ public class DeviceRepository {
         String ramGeneration = rs.getString("ram_generation");
         Integer storageAmount = rs.getInt("storage_amount");
         String storageType = rs.getString("storage_type");
-        Status status = Status.valueOf(rs.getString("status"));
+        Status status = Status.fromDatabaseValue(rs.getString("status"));
         Boolean hasWifi = rs.getBoolean("has_wifi");
-        ChargerStatus hasCharger = ChargerStatus.valueOf(rs.getString("includes_charger"));
+        ChargerStatus hasCharger = ChargerStatus.fromDatabaseValue(rs.getString("includes_charger"));
         Integer designCap = rs.getInt("design_capacity");
         Integer actualCap = rs.getInt("actual_capacity");
         Double batteryHealth = rs.getDouble("battery_health");
-        WorkingBattery workingBattery = WorkingBattery.valueOf(rs.getString("working_battery"));
-        GetDeviceResponse response = new GetDeviceResponse(deviceType, deviceID, acquisitionDate, value, manufacturer,
-                model, year, cpu, ram, ramGeneration, storageAmount, storageType, status, hasWifi, hasCharger,
-                designCap, actualCap, batteryHealth, workingBattery);
+        WorkingBattery workingBattery = WorkingBattery.fromDatabaseValue(rs.getString("working_battery"));
+        GetDeviceResponse response = new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value,
+                manufacturer, model, year, cpu, ram, ramGeneration, storageAmount, storageType, status, hasWifi,
+                hasCharger, designCap, actualCap, batteryHealth, workingBattery);
         return response;
     }
 

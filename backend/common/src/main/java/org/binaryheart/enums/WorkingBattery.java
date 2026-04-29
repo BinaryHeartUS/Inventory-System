@@ -12,4 +12,14 @@ public enum WorkingBattery {
     public String getDatabaseValue() {
         return databaseValue;
     }
+
+    public static WorkingBattery fromDatabaseValue(String value) {
+        if ("Yes".equals(value)) {
+            return YES;
+        } else if ("No".equals(value)) {
+            return NO;
+        } else {
+            return UNKNOWN;
+        }
+    }
 }
