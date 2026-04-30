@@ -4,6 +4,7 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.binaryheart.enums.ChargerStatus;
@@ -18,6 +19,9 @@ import org.binaryheart.records.Tool;
 import org.binaryheart.records.Donated;
 
 public class DatabaseImporter {
+    private static final LocalDate IMPORT_ACQUISITION_DATE = LocalDate.parse("10-1-2025",
+            DateTimeFormatter.ofPattern("M-d-yyyy"));
+
     public static void addDesktopsToDatabase(List<Desktop> desktops, int chapterID) {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
@@ -113,7 +117,7 @@ public class DatabaseImporter {
             stmt.setInt(10, item.storageCapacity());
             stmt.setString(11, item.storageType());
             stmt.setDouble(12, item.estimatedValue());
-            stmt.setNull(13, java.sql.Types.DATE);
+            stmt.setDate(13, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
             stmt.setNull(14, java.sql.Types.INTEGER);
             stmt.setNull(15, java.sql.Types.INTEGER);
             stmt.setNull(16, java.sql.Types.BOOLEAN);
@@ -148,7 +152,7 @@ public class DatabaseImporter {
             stmt.setInt(12, item.storageCapacity());
             stmt.setString(13, item.storageType());
             stmt.setDouble(14, item.estimatedValue());
-            stmt.setNull(15, java.sql.Types.DATE);
+            stmt.setDate(15, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
             stmt.setNull(16, java.sql.Types.INTEGER);
             stmt.setNull(17, java.sql.Types.INTEGER);
 
@@ -181,7 +185,7 @@ public class DatabaseImporter {
             stmt.setInt(11, item.storageCapacity());
             stmt.setString(12, item.storageType());
             stmt.setDouble(13, item.estimatedValue());
-            stmt.setNull(14, java.sql.Types.DATE);
+            stmt.setDate(14, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
             stmt.setNull(15, java.sql.Types.INTEGER);
             stmt.setNull(16, java.sql.Types.INTEGER);
             stmt.setNull(17, java.sql.Types.INTEGER);
@@ -216,7 +220,7 @@ public class DatabaseImporter {
             stmt.setInt(10, item.storageCapacity());
             stmt.setString(11, item.storageType());
             stmt.setDouble(12, item.estimatedValue());
-            stmt.setNull(13, java.sql.Types.DATE);
+            stmt.setDate(13, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
             stmt.setInt(14, recipientID);
             stmt.setNull(15, java.sql.Types.INTEGER);
             stmt.setNull(16, java.sql.Types.BOOLEAN);
@@ -253,7 +257,7 @@ public class DatabaseImporter {
             stmt.setInt(12, item.storageCapacity());
             stmt.setString(13, item.storageType());
             stmt.setDouble(14, item.estimatedValue());
-            stmt.setNull(15, java.sql.Types.DATE);
+            stmt.setDate(15, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
             stmt.setInt(16, recipientId);
             stmt.setNull(17, java.sql.Types.INTEGER);
             stmt.setDate(18, java.sql.Date.valueOf(item.dateDonated()));
@@ -288,7 +292,7 @@ public class DatabaseImporter {
             stmt.setInt(11, item.storageCapacity());
             stmt.setString(12, item.storageType());
             stmt.setDouble(13, item.estimatedValue());
-            stmt.setNull(14, java.sql.Types.DATE);
+            stmt.setDate(14, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
             stmt.setInt(15, recipientId);
             stmt.setNull(16, java.sql.Types.INTEGER);
             stmt.setNull(17, java.sql.Types.INTEGER);
@@ -385,7 +389,7 @@ public class DatabaseImporter {
                     stmt.setBoolean(4, part.wasDonated().equals("N"));
                     stmt.setNull(5, java.sql.Types.INTEGER);
                     stmt.setNull(6, java.sql.Types.INTEGER);
-                    stmt.setNull(7, java.sql.Types.DATE);
+                    stmt.setDate(7, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
                     stmt.setDouble(8, part.value());
                     stmt.setNull(9, java.sql.Types.INTEGER);
                     stmt.execute();
@@ -408,7 +412,7 @@ public class DatabaseImporter {
                     stmt.setNull(2, java.sql.Types.INTEGER);
                     stmt.setString(3, tool.type());
                     stmt.setString(4, tool.description());
-                    stmt.setNull(5, java.sql.Types.DATE);
+                    stmt.setDate(5, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
                     stmt.setDouble(6, tool.value());
                     stmt.setNull(7, java.sql.Types.INTEGER);
                     stmt.execute();
