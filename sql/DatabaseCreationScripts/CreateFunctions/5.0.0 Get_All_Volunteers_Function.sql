@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION Get_All_Volunteers()
 RETURNS TABLE (
     ID INTEGER,
-    Username VARCHAR(50),
-    Name VARCHAR(50),
+    Username Name_Type,
+    Name Name_Type,
     Chapter_ID INTEGER,
     Role_Name VARCHAR(100)
 )
