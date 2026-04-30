@@ -4,8 +4,11 @@ import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.*;
 
-import org.binaryheart.auth.AppRole;
+import org.binaryheart.exceptions.BadArgumentException;
+import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.auth.AppRole;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.responses.GetDeviceResponse;
@@ -59,29 +62,11 @@ public class DeviceController {
         String type = ctx.pathParam("type").toLowerCase();
         String status = ctx.queryParam("status") == null ? "active" : ctx.queryParam("status").toLowerCase();
 
-        if (!type.equals("desktop") && !type.equals("laptop") && !type.equals("tablet")) {
-            ctx.status(400).result("Unknown device type: " + type);
-            return;
-        }
-        if (!status.equals("active") && !status.equals("ready-to-donate") && !status.equals("donated")) {
-            ctx.status(400).result("Unknown status: " + status);
-            return;
-        }
-
         try {
-            int count = switch (status + ":" + type) {
-            case "active:desktop" -> service.getNumberOfDesktops();
-            case "active:laptop" -> service.getNumberOfLaptops();
-            case "active:tablet" -> service.getNumberOfTablets();
-            case "ready-to-donate:desktop" -> service.getNumberOfReadyToDonateDesktops();
-            case "ready-to-donate:laptop" -> service.getNumberOfReadyToDonateLaptops();
-            case "ready-to-donate:tablet" -> service.getNumberOfReadyToDonateTablets();
-            case "donated:desktop" -> service.getNumberOfDonatedDesktops();
-            case "donated:laptop" -> service.getNumberOfDonatedLaptops();
-            case "donated:tablet" -> service.getNumberOfDonatedTablets();
-            default -> throw new IllegalStateException("Unhandled combination: " + status + ":" + type);
-            };
+            int count = service.getDeviceCount(type, status);
             ctx.status(200).json(count);
+        } catch (BadArgumentException e) {
+            ctx.status(400).result(e.getMessage());
         } catch (SQLException e) {
             ctx.status(500).result("Database error");
         }
@@ -105,9 +90,9 @@ public class DeviceController {
                             from = GetDeviceResponse.class) }),
                     @OpenApiResponse(
                             status = "400",
-                            description = "Non-numeric device ID"),
+                            description = "Non-numeric or non-positive device ID"),
                     @OpenApiResponse(
-                            status = "401",
+                            status = "404",
                             description = "ID does not match any existing devices"),
                     @OpenApiResponse(
                             status = "500",
@@ -116,16 +101,14 @@ public class DeviceController {
         String idStr = ctx.pathParam("id");
         try {
             int id = Integer.parseInt(idStr);
-            if (id <= 0) {
-                ctx.status(400).result("Device ID must be positive");
-                return;
-            }
             GetDeviceResponse result = service.getDevice(id);
             ctx.status(200).json(result);
-            // HANDLE ERRORS THROWN BY SERVICE
         } catch (NumberFormatException e) {
             ctx.status(400).result("Non-numeric device ID: " + idStr);
-            return;
+        } catch (BadArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (DeviceNotFoundException e) {
+            ctx.status(404).result(e.getMessage());
         } catch (SQLException e) {
             ctx.status(500).result("Database error");
         }
@@ -141,15 +124,9 @@ public class DeviceController {
             description = "Returns a list of all devices.",
             responses = { @OpenApiResponse(
                     status = "200",
-                    description = "Device retrieved successfully",
+                    description = "Devices retrieved successfully",
                     content = { @OpenApiContent(
                             from = GetDeviceResponse[].class) }),
-                    @OpenApiResponse(
-                            status = "400",
-                            description = "Non-numeric device ID"),
-                    @OpenApiResponse(
-                            status = "401",
-                            description = "ID does not match any existing devices"),
                     @OpenApiResponse(
                             status = "500",
                             description = "Database error") })
@@ -198,7 +175,7 @@ public class DeviceController {
                     description = "Desktop added successfully"),
                     @OpenApiResponse(
                             status = "400",
-                            description = "Missing required parameters"),
+                            description = "Missing required parameters or invalid field values"),
                     @OpenApiResponse(
                             status = "409",
                             description = "Asset ID already exists"),
@@ -213,35 +190,11 @@ public class DeviceController {
             throw new ForbiddenResponse("You do not have access to this chapter.");
         }
 
-        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-                || request.model() == null || request.year() == 0 || request.status() == null) {
-            ctx.status(400).result("Missing required parameters");
-            return;
-        }
-        if (request.ram() != null && request.ram() <= 0) {
-            ctx.status(400).result("RAM amount must be positive or not specified");
-            return;
-        }
-        if (request.storageAmount() != null && request.storageAmount() <= 0) {
-            ctx.status(400).result("Storage amount must be positive or not specified");
-            return;
-        }
-        if (request.value() != null && request.value() < 0) {
-            ctx.status(400).result("Value must be non-negative or not specified");
-            return;
-        }
-        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-            ctx.status(400).result("Acquisition date cannot be in the future");
-            return;
-        }
-        if (request.assetId() != null && request.assetId() <= 0) {
-            ctx.status(400).result("Asset ID must be positive or not specified");
-            return;
-        }
-
         try {
             service.insertDesktop(request);
             ctx.status(201).result("Desktop added successfully");
+        } catch (MissingRequiredParametersException | BadArgumentException e) {
+            ctx.status(400).result(e.getMessage());
         } catch (DuplicateKeyException e) {
             ctx.status(409).result(e.getMessage());
         } catch (SQLException e) {
@@ -287,7 +240,7 @@ public class DeviceController {
                     description = "Laptop added successfully"),
                     @OpenApiResponse(
                             status = "400",
-                            description = "Missing required parameters"),
+                            description = "Missing required parameters or invalid field values"),
                     @OpenApiResponse(
                             status = "409",
                             description = "Asset ID already exists"),
@@ -302,44 +255,11 @@ public class DeviceController {
             throw new ForbiddenResponse("You do not have access to this chapter.");
         }
 
-        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-                || request.model() == null || request.year() == 0 || request.status() == null
-                || request.includesCharger() == null) {
-            ctx.status(400).result("Missing required parameters");
-            return;
-        }
-        if (request.ram() != null && request.ram() <= 0) {
-            ctx.status(400).result("RAM amount must be positive or not specified");
-            return;
-        }
-        if (request.storageAmount() != null && request.storageAmount() <= 0) {
-            ctx.status(400).result("Storage amount must be positive or not specified");
-            return;
-        }
-        if (request.value() != null && request.value() < 0) {
-            ctx.status(400).result("Value must be non-negative or not specified");
-            return;
-        }
-        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-            ctx.status(400).result("Acquisition date cannot be in the future");
-            return;
-        }
-        if (request.assetId() != null && request.assetId() <= 0) {
-            ctx.status(400).result("Asset ID must be positive or not specified");
-            return;
-        }
-        if (request.designBatteryCapacity() != null && request.designBatteryCapacity() <= 0) {
-            ctx.status(400).result("Design battery capacity must be positive or not specified");
-            return;
-        }
-        if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
-            ctx.status(400).result("Actual battery capacity must be non-negative or not specified");
-            return;
-        }
-
         try {
             service.insertLaptop(request);
             ctx.status(201).result("Laptop added successfully");
+        } catch (MissingRequiredParametersException | BadArgumentException e) {
+            ctx.status(400).result(e.getMessage());
         } catch (DuplicateKeyException e) {
             ctx.status(409).result(e.getMessage());
         } catch (SQLException e) {
