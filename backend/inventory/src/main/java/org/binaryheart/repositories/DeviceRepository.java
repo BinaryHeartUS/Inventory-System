@@ -100,9 +100,10 @@ public class DeviceRepository {
         Double batteryHealth = rs.getDouble("battery_health");
         String workingBattery = rs.getString("working_battery");
         String chapter = rs.getString("chapter");
+        LocalDate dateDonated = rs.getDate("Donated_Date") != null ? rs.getDate("Donated_Date").toLocalDate() : null;
         GetDeviceResponse response = new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value,
                 manufacturer, model, year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger,
-                designCap, actualCap, batteryHealth, workingBattery, chapter);
+                designCap, actualCap, batteryHealth, workingBattery, chapter, dateDonated);
         return response;
     }
 
@@ -139,9 +140,11 @@ public class DeviceRepository {
             Double batteryHealth = rs.getDouble("battery_health");
             String workingBattery = rs.getString("working_battery");
             String chapter = rs.getString("chapter");
+            LocalDate dateDonated = rs.getDate("Donated_Date") != null ? rs.getDate("Donated_Date").toLocalDate()
+                    : null;
             devices.add(new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model,
                     year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap,
-                    actualCap, batteryHealth, workingBattery, chapter));
+                    actualCap, batteryHealth, workingBattery, chapter, dateDonated));
         }
         return devices;
     }

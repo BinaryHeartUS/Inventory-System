@@ -11,13 +11,18 @@ import org.binaryheart.controllers.HealthController;
 import org.binaryheart.controllers.LookupController;
 import org.binaryheart.controllers.NoteController;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.javalin.Javalin;
+import io.javalin.json.JavalinJackson;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 
 public class Main {
     public static void main(String[] args) {
         Javalin.create(config -> {
+            config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
+                    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)));
             config.registerPlugin(
                     new OpenApiPlugin(openapi -> openapi.withDefinitionConfiguration((version, builder) -> {
                         builder.info(info -> {

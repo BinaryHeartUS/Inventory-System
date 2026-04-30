@@ -17,5 +17,6 @@ CREATE TABLE IF NOT EXISTS Device (
     FOREIGN KEY (Storage_Type_ID) REFERENCES Storage_Type(ID),
     Status Status NOT NULL,
     Recipient_ID INTEGER NULL,
-    FOREIGN KEY (Recipient_ID) REFERENCES Party(ID)
+    FOREIGN KEY (Recipient_ID) REFERENCES Party(ID),
+    Donated_Date DATE NULL
 );

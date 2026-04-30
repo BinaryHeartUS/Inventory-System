@@ -21,7 +21,8 @@ RETURNS TABLE (
     actual_capacity INTEGER,
     battery_health numeric,
     working_battery WORKING_BATTERY,
-    chapter Name_Type
+    chapter Name_Type,
+    donated_date DATE
 )
 LANGUAGE plpgsql
 AS $$

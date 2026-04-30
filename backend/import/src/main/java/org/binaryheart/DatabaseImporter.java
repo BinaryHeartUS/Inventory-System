@@ -202,7 +202,7 @@ public class DatabaseImporter {
         Connection conn = DatabaseConnectionService.getConnection();
 
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)")) {
+                "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
             stmt.setString(2, item.manufacturer());
             stmt.setString(3, item.deviceName());
@@ -220,6 +220,7 @@ public class DatabaseImporter {
             stmt.setInt(14, recipientID);
             stmt.setNull(15, java.sql.Types.INTEGER);
             stmt.setNull(16, java.sql.Types.BOOLEAN);
+            stmt.setDate(17, java.sql.Date.valueOf(item.dateDonated()));
 
             stmt.execute();
 
@@ -236,7 +237,7 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?)")) {
+                "call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
             stmt.setString(2, item.manufacturer());
             stmt.setString(3, item.deviceName());
@@ -255,6 +256,7 @@ public class DatabaseImporter {
             stmt.setNull(15, java.sql.Types.DATE);
             stmt.setInt(16, recipientId);
             stmt.setNull(17, java.sql.Types.INTEGER);
+            stmt.setDate(18, java.sql.Date.valueOf(item.dateDonated()));
 
             stmt.execute();
 
@@ -271,7 +273,7 @@ public class DatabaseImporter {
 
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall(
-                "call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
+                "call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)")) {
             stmt.setInt(1, chapterId);
             stmt.setString(2, item.manufacturer());
             stmt.setString(3, item.deviceName());
@@ -291,6 +293,7 @@ public class DatabaseImporter {
             stmt.setNull(16, java.sql.Types.INTEGER);
             stmt.setNull(17, java.sql.Types.INTEGER);
             stmt.setNull(18, java.sql.Types.INTEGER);
+            stmt.setDate(19, java.sql.Date.valueOf(item.dateDonated()));
 
             stmt.execute();
 

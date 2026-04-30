@@ -71,6 +71,10 @@ echo "=== Running function scripts ==="
 while IFS= read -r -d '' f; do run_always "$f"; done \
   < <(find "$SCRIPTS_DIR/CreateFunctions" -name "*.sql" -print0 | sort -z)
 
+echo "=== Running trigger scripts ==="
+while IFS= read -r -d '' f; do run_always "$f"; done \
+  < <(find "$SCRIPTS_DIR/CreateTriggers" -name "*.sql" -print0 | sort -z)
+
 echo "=== Running view scripts ==="
 while IFS= read -r -d '' f; do run_always "$f"; done \
   < <(find "$SCRIPTS_DIR/CreateViews" -name "*.sql" -print0 | sort -z)
