@@ -3,9 +3,9 @@ package org.binaryheart.services;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.binaryheart.Exceptions.BadArgumentException;
-import org.binaryheart.Exceptions.DeviceNotFoundException;
-import org.binaryheart.Exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.BadArgumentException;
+import org.binaryheart.exceptions.DeviceNotFoundException;
+import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;

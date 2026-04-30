@@ -2,8 +2,9 @@ package org.binaryheart.controllers;
 
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
-import org.binaryheart.Exceptions.DuplicateKeyException;
+
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.AddAffiliationRequest;
 import org.binaryheart.requests.CreateAccountRequest;

@@ -1,7 +1,7 @@
 package org.binaryheart.repositories;
 
 import org.binaryheart.DatabaseConnectionService;
-import org.binaryheart.Exceptions.DeviceNotFoundException;
+import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.responses.GetDeviceResponse;

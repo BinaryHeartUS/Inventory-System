@@ -4,7 +4,7 @@ import org.binaryheart.responses.NoteResponse;
 
 import java.sql.SQLException;
 
-import org.binaryheart.Exceptions.MissingRequiredParametersException;
+import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.repositories.NoteRepository;
 
 public class NoteService {

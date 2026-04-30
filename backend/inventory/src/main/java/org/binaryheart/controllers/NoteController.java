@@ -3,8 +3,8 @@ package org.binaryheart.controllers;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 
-import org.binaryheart.Exceptions.MissingRequiredParametersException;
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.responses.NoteResponse;
 import org.binaryheart.services.NoteService;
 import org.binaryheart.requests.PostNoteRequest;

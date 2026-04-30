@@ -1,4 +1,4 @@
-package org.binaryheart.Exceptions;
+package org.binaryheart.exceptions;
 
 public class BadArgumentException extends RuntimeException {
     public BadArgumentException(String message) {

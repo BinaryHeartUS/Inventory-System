@@ -1,4 +1,4 @@
-package org.binaryheart.Exceptions;
+package org.binaryheart.exceptions;
 
 public class MissingRequiredParametersException extends Exception {
     public MissingRequiredParametersException(String msg) {

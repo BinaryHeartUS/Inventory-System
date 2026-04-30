@@ -4,8 +4,8 @@ import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.*;
 
-import org.binaryheart.Exceptions.DuplicateKeyException;
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.responses.GetDeviceResponse;

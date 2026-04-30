@@ -1,7 +1,8 @@
 package org.binaryheart.services;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
-import org.binaryheart.Exceptions.DuplicateKeyException;
+
+import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.models.ChapterRole;
 import org.binaryheart.repositories.AccountRepository;
 import org.binaryheart.requests.AddAffiliationRequest;
