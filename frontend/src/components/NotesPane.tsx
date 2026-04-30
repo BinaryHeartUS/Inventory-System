@@ -20,7 +20,7 @@ function formatNoteDate(iso: string) {
   )
 }
 
-export default function NotesPane({ assetId, readOnly = false }: { assetId: number; readOnly?: boolean }) {
+export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 'donated' }: { assetId: number; readOnly?: boolean; readOnlyReason?: 'donated' | 'viewer' }) {
   const [notes, setNotes] = useState<Note[]>([])
   const [draft, setDraft] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -76,7 +76,9 @@ export default function NotesPane({ assetId, readOnly = false }: { assetId: numb
       {/* Compose */}
       {readOnly ? (
         <div className="px-5 py-3 border-b border-slate-100 bg-amber-50 shrink-0">
-          <p className="text-xs text-amber-700 font-medium">This device has been donated. Notes are read-only.</p>
+          <p className="text-xs text-amber-700 font-medium">
+            {readOnlyReason === 'viewer' ? 'Viewer accounts cannot edit notes.' : 'This device has been donated. Notes are read-only.'}
+          </p>
         </div>
       ) : (
         <div className="px-5 py-4 border-b border-slate-100 bg-slate-50 shrink-0">
