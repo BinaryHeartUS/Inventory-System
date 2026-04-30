@@ -25,8 +25,8 @@ public class DeviceController {
         get("/count/{type}", DeviceController::getDeviceCount, AppRole.AUTHENTICATED);
         get("/{id}", DeviceController::getDevice, AppRole.AUTHENTICATED);
         get("", DeviceController::getAllDevices, AppRole.AUTHENTICATED);
-        post("/add/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
-        post("/add/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
+        post("/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
+        post("/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
@@ -163,7 +163,7 @@ public class DeviceController {
     }
 
     @OpenApi(
-            path = "/api/devices/add/desktop",
+            path = "/api/devices/desktop",
             methods = { HttpMethod.POST },
             tags = { "Devices" },
             security = { @OpenApiSecurity(
@@ -250,7 +250,7 @@ public class DeviceController {
     }
 
     @OpenApi(
-            path = "/api/devices/add/laptop",
+            path = "/api/devices/laptop",
             methods = { HttpMethod.POST },
             tags = { "Devices" },
             security = { @OpenApiSecurity(
