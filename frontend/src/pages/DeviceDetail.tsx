@@ -200,8 +200,10 @@ export default function DeviceDetail() {
   const d = editing && form ? form : device
 
   // Editors cannot edit or add notes on donated devices; admins/chapter admins can
+  // Viewers cannot edit any devices
   const isEditor = auth?.role?.toLowerCase() === 'editor'
-  const donatedLock = isEditor && device.status === 'Donated'
+  const isViewer = auth?.role?.toLowerCase() === 'viewer'
+  const donatedLock = isViewer || (isEditor && device.status === 'Donated')
 
   return (
     <>
@@ -242,7 +244,7 @@ export default function DeviceDetail() {
             {!editing ? (
               <button onClick={startEdit}
                 disabled={donatedLock}
-                title={donatedLock ? 'Donated devices cannot be edited' : undefined}
+                title={isViewer ? 'Viewers cannot edit devices' : donatedLock ? 'Donated devices cannot be edited' : undefined}
                 className="flex items-center gap-2 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2.5 rounded-lg transition-colors">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
