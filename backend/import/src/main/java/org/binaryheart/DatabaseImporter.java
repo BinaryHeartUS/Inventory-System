@@ -405,16 +405,15 @@ public class DatabaseImporter {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        try (CallableStatement stmt = conn.prepareCall("call Insert_Tool(?, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Tool(?, ?, ?, ?, ?::Numeric::Money, ?)")) {
             for (Tool tool : tools) {
                 for (int i = 0; i < tool.quantity(); i++) {
                     stmt.setInt(1, chapterID);
                     stmt.setNull(2, java.sql.Types.INTEGER);
-                    stmt.setString(3, tool.type());
-                    stmt.setString(4, tool.description());
-                    stmt.setDate(5, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
-                    stmt.setDouble(6, tool.value());
-                    stmt.setNull(7, java.sql.Types.INTEGER);
+                    stmt.setString(3, tool.description());
+                    stmt.setDate(4, java.sql.Date.valueOf(IMPORT_ACQUISITION_DATE));
+                    stmt.setDouble(5, tool.value());
+                    stmt.setNull(6, java.sql.Types.INTEGER);
                     stmt.execute();
                 }
             }
