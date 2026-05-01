@@ -12,6 +12,7 @@ import org.binaryheart.requests.PostNoteRequest;
 import java.sql.SQLException;
 
 import static io.javalin.apibuilder.ApiBuilder.post;
+import static io.javalin.apibuilder.ApiBuilder.get;
 
 public class NoteController {
 
@@ -19,6 +20,7 @@ public class NoteController {
 
     public static void registerRoutes() {
         post("{id}/notes", NoteController::postNote, AppRole.AUTHENTICATED);
+        get("{id}/notes", NoteController::getNotes, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
@@ -37,6 +39,9 @@ public class NoteController {
                                         "text": "New Note"
                                     }
                                     """) }),
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    description = "The unique ID of the asset to which the new note will be assigned") },
             responses = { @OpenApiResponse(
                     status = "201",
                     description = "Note added successfully",
@@ -59,6 +64,36 @@ public class NoteController {
             return;
         } catch (MissingRequiredParametersException e) {
             ctx.status(400).result("Missing required parameter(s)");
+            return;
+        }
+    }
+
+    @OpenApi(
+            path = "/api/assets/{id}/notes",
+            methods = { HttpMethod.GET },
+            tags = { "Assets" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Get a list of notes belonging to a given asset",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    description = "The unique ID of the asset whose notes will be retrieved") },
+            responses = { @OpenApiResponse(
+                    status = "200",
+                    description = "Notes fetched successfully",
+                    content = { @OpenApiContent(
+                            from = NoteResponse[].class) }),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void getNotes(Context ctx) {
+        try {
+            // int assetId = Integer.parseInt(ctx.pathParam("id"));
+            NoteResponse[] res = service.getNotes(1);
+            ctx.status(200).json(res);
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error");
+            e.printStackTrace();
             return;
         }
     }

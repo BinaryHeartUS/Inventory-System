@@ -13,6 +13,7 @@ BEGIN
     RETURN QUERY
     SELECT *
     FROM Note n
-    WHERE n.Asset_ID = p_asset_id;
+    WHERE n.Asset_ID = p_asset_id
+    ORDER BY n.Date DESC;
 END;
 $$;
