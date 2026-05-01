@@ -1,6 +1,6 @@
 import type { AnyDevice, Note, Part, Tool } from '../types/inventory'
 
-export const CHAPTERS = ['Rose-Hulman Institute of Technology', 'Northwestern', 'IU Bloomington', 'New Trier'] as const
+export const CHAPTERS = ['Rose-Hulman Institute of Technology', 'Northwestern', 'IU Bloomington', 'New Trier', 'National'] as const
 export type ChapterName = typeof CHAPTERS[number]
 
 /** Maps the numeric Chapter.ID (PK) used in auth tokens to the chapter's display name. */

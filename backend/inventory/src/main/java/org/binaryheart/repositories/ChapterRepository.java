@@ -10,9 +10,7 @@ import java.util.List;
 public class ChapterRepository {
 
     public List<ChapterSummary> getAllChapters() throws SQLException {
-        if (!DatabaseConnectionService.isConnected()) {
-            DatabaseConnectionService.connect();
-        }
+        ensureConnected();
         Connection conn = DatabaseConnectionService.getConnection();
         try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_All_Chapters()");
                 ResultSet rs = ps.executeQuery()) {
@@ -21,6 +19,29 @@ public class ChapterRepository {
                 results.add(new ChapterSummary(rs.getInt("ID"), rs.getString("Name")));
             }
             return results;
+        }
+    }
+
+    public int getNationalChapterId() throws SQLException {
+        return getAllChapters().stream().filter(c -> "National".equals(c.name())).mapToInt(ChapterSummary::id)
+                .findFirst().orElseThrow(() -> new SQLException("National chapter not found"));
+    }
+
+    public ChapterSummary createChapter(String name) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("CALL Insert_Chapter(?, ?)")) {
+            stmt.setString(1, name);
+            stmt.registerOutParameter(2, Types.INTEGER);
+            stmt.execute();
+            int id = stmt.getInt(2);
+            return new ChapterSummary(id, name);
+        }
+    }
+
+    private static void ensureConnected() throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
         }
     }
 }

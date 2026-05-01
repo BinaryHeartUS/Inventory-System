@@ -17,7 +17,7 @@ const SESSION_KEY = 'bh_auth'
 // a running backend. Remove or ignore in production.
 
 const MOCK_USERS: Record<string, { password: string; chapterRoles: ChapterRole[]; role: string }> = {
-  admin:        { password: 'admin',        chapterRoles: [{ chapterId: 1, role: 'Admin' }, { chapterId: 2, role: 'Admin' }, { chapterId: 3, role: 'Admin' }, { chapterId: 4, role: 'Admin' }], role: 'Admin' },
+  admin:        { password: 'admin',        chapterRoles: [{ chapterId: 1, role: 'Admin' }, { chapterId: 2, role: 'Admin' }, { chapterId: 3, role: 'Admin' }, { chapterId: 4, role: 'Admin' }, { chapterId: 5, role: 'Admin' }], role: 'Admin' },
   rosehulman:   { password: 'rosehulman',   chapterRoles: [{ chapterId: 1, role: 'Chapter Admin' }], role: 'Chapter Admin' },
   northwestern: { password: 'northwestern', chapterRoles: [{ chapterId: 2, role: 'Chapter Admin' }], role: 'Chapter Admin' },
   iu:           { password: 'iu',           chapterRoles: [{ chapterId: 3, role: 'Editor' }], role: 'Editor' },

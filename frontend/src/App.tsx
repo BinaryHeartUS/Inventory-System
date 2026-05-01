@@ -1,4 +1,4 @@
-import { BrowserRouter, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, NavLink, Route, Routes, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useState, useCallback } from 'react'
 import Dashboard    from './pages/Dashboard'
 import Devices      from './pages/Devices'
@@ -23,7 +23,7 @@ import { AddAssetModal } from './components/AddAssetModal'
 import { PrintLabelModal } from './components/PrintLabelModal'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { ChapterProvider } from './context/ChapterContext'
+import { ChapterProvider, useIsNationalAdmin } from './context/ChapterContext'
 import type { AnyDevice, Part, Tool } from './types/inventory'
 
 const Icons = {
@@ -97,15 +97,23 @@ const navItems = [
   { to: '/settings', label: 'Settings',  icon: Icons.settings  },
 ]
 
-const adminNavItem = { to: '/admin/accounts', label: 'Manage Accounts', icon: (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-  </svg>
-)}
+const adminNavItems = [
+  { to: '/admin/accounts', label: 'Manage Accounts', icon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  )},
+  { to: '/chapters', label: 'Manage Chapters', icon: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  )},
+]
 
 function Sidebar() {
   const { auth } = useAuth()
+  const isNationalAdmin = useIsNationalAdmin()
   const canManageAccounts = auth?.role === 'Admin' || auth?.role === 'Chapter Admin'
   return (
     <aside className="w-64 shrink-0 flex flex-col bg-white border-r border-slate-200 h-dvh sticky top-0 overflow-y-auto">
@@ -120,7 +128,7 @@ function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 space-y-0.5">
-        <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest px-3 mb-2">Menu</p>
+        <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest px-3 mb-2">Menu</p>
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
@@ -143,23 +151,34 @@ function Sidebar() {
           </NavLink>
         ))}
         {canManageAccounts && (
-          <NavLink
-            to={adminNavItem.to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
-                isActive
-                  ? 'bg-heart-blue'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <span className={isActive ? 'text-brand-red' : ''}>{adminNavItem.icon}</span>
-                <span className={isActive ? 'text-white' : ''}>{adminNavItem.label}</span>
-              </>
-            )}
-          </NavLink>
+          <>
+            <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest px-3 mb-2 mt-6 pt-4 border-t border-slate-100">Administrator</p>
+            <div className="space-y-0.5 mt-1">
+            {adminNavItems
+              .filter(item => item.to !== '/chapters' || isNationalAdmin)
+              .map(({ to, label, icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-heart-blue'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className={isActive ? 'text-brand-red' : ''}>{icon}</span>
+                    <span className={isActive ? 'text-white' : ''}>{label}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+            </div>
+          </>
         )}
       </nav>
 
@@ -236,6 +255,7 @@ function App() {
 
 function AppInner() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { auth } = useAuth()
   const [toast, setToast]               = useState<{ msg: string; ok: boolean } | null>(null)
   const [pendingScanId, setPendingScanId] = useState<number | null>(null)
@@ -288,7 +308,7 @@ function AppInner() {
       {auth && <Sidebar />}
       <div className="flex-1 min-w-0">
         <div className="flex justify-end px-10 pt-6">
-          {auth && auth.role !== 'Viewer' && (
+          {auth && auth.role !== 'Viewer' && ['/', '/devices', '/parts', '/tools'].includes(location.pathname) && (
             <button
               onClick={() => setPendingScanId(-1)}
               className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors">

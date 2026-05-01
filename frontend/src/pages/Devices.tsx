@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { AnyDevice, DeviceStatus } from '../types/inventory'
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from '../utils/deviceUtils'
 import { getDevices } from '../services/deviceService'
@@ -88,10 +89,11 @@ function SortIcon({ col, sortKey, sortDir }: {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Devices() {
+  const [searchParams] = useSearchParams()
   const [search,        setSearch]        = useState('')
   const [typeFilter,    setTypeFilter]    = useState<DeviceTypeFilter>('All')
   const [statusFilter,  setStatusFilter]  = useState<DeviceStatus | 'All'>('All')
-  const [chapterFilter, setChapterFilter] = useState<string>('All')
+  const [chapterFilter, setChapterFilter] = useState<string>(() => searchParams.get('chapter') ?? 'All')
   const [showDonated,   setShowDonated]   = useState(false)
   const [showScrapped,  setShowScrapped]  = useState(false)
   const [sortKey,       setSortKey]       = useState<SortKey | null>('id')

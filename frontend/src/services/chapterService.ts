@@ -1,4 +1,4 @@
-import { apiGet } from './api'
+import { apiGet, apiPost } from './api'
 import type { ChapterSummary } from '../types/inventory'
 import { CHAPTERS as MOCK_CHAPTERS } from '../data/mockData'
 
@@ -10,4 +10,8 @@ export async function getChapters(): Promise<ChapterSummary[]> {
   return Promise.resolve(
     MOCK_CHAPTERS.map((name, i) => ({ id: i + 1, name }))
   )
+}
+
+export async function createChapter(name: string): Promise<ChapterSummary> {
+  return apiPost<ChapterSummary>('/chapters', { name })
 }

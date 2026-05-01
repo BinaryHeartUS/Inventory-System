@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import type { ChapterSummary } from '../types/inventory'
 import { getChapters } from '../services/chapterService'
 import { useAuth } from './AuthContext'
@@ -11,6 +11,8 @@ interface ChapterContextValue {
   chapters: ChapterSummary[]
   /** Returns the chapter name for a given ID, or a fallback string. */
   chapterName: (id: number) => string
+  /** Triggers a re-fetch of the chapter list. */
+  refreshChapters: () => void
 }
 
 /**
@@ -35,6 +37,18 @@ export function useVisibleChapters(): ChapterSummary[] {
   return real.filter(c => auth.chapterIds.includes(c.id))
 }
 
+/**
+ * Returns true if the current user is a national admin:
+ * has the Admin role AND is affiliated with the National chapter.
+ */
+export function useIsNationalAdmin(): boolean {
+  const { chapters } = useChapters()
+  const { auth } = useAuth()
+  if (!auth || auth.role !== 'Admin') return false
+  const national = chapters.find(c => c.name === 'National')
+  return !!national && auth.chapterIds.includes(national.id)
+}
+
 // ─── Context ──────────────────────────────────────────────────────────────────
 
 export const ChapterContext = createContext<ChapterContextValue | null>(null)
@@ -50,6 +64,7 @@ export function useChapters(): ChapterContextValue {
 export function ChapterProvider({ children }: { children: ReactNode }) {
   const { auth } = useAuth()
   const [chapters, setChapters] = useState<ChapterSummary[]>([])
+  const [refreshToken, setRefreshToken] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -58,14 +73,16 @@ export function ChapterProvider({ children }: { children: ReactNode }) {
       : Promise.resolve<ChapterSummary[]>([])
     load.then(data => { if (!cancelled) setChapters(data) })
     return () => { cancelled = true }
-  }, [auth])
+  }, [auth, refreshToken])
+
+  const refreshChapters = useCallback(() => setRefreshToken(t => t + 1), [])
 
   function chapterName(id: number): string {
     return chapters.find(c => c.id === id)?.name ?? `Chapter ${id}`
   }
 
   return (
-    <ChapterContext.Provider value={{ chapters, chapterName }}>
+    <ChapterContext.Provider value={{ chapters, chapterName, refreshChapters }}>
       {children}
     </ChapterContext.Provider>
   )
