@@ -153,7 +153,7 @@ function Sidebar() {
         {canManageAccounts && (
           <>
             <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest px-3 mb-2 mt-6 pt-4 border-t border-slate-100">Administrator</p>
-            <div className="space-y-0.5 mt-1">
+            <div className="space-y-0.5 mt-2">
             {adminNavItems
               .filter(item => item.to !== '/chapters' || isNationalAdmin)
               .map(({ to, label, icon }) => (
