@@ -28,6 +28,20 @@ services:
       API_USER_PASSWORD: ${API_USER_PASSWORD}
       IMPORTER_PASSWORD: ${IMPORTER_PASSWORD}
 
+  importer:
+    build:
+      context: .
+      dockerfile: backend/import/Dockerfile
+    restart: "no"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/inventory
+      DB_USER: importer
+      DB_PASSWORD: ${IMPORTER_PASSWORD}
+      IMPORT_FILE_PATH: /data/OldInventorySystem.xlsx
+
   backend:
     build: ./backend
     restart: always
