@@ -152,4 +152,37 @@ public class DeviceService {
             }
         }
     }
+
+    public void upsertDesktop(InsertDesktopRequest request)
+            throws MissingRequiredParametersException, BadArgumentException, SQLException {
+        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
+                || request.model() == null || request.year() == 0 || request.status() == null
+                || request.assetId() == null) {
+            throw new MissingRequiredParametersException("Missing required parameters");
+        }
+        if (request.ram() != null && request.ram() <= 0) {
+            throw new BadArgumentException("RAM amount must be positive or not specified");
+        }
+        if (request.storageAmount() != null && request.storageAmount() <= 0) {
+            throw new BadArgumentException("Storage amount must be positive or not specified");
+        }
+        if (request.value() != null && request.value() < 0) {
+            throw new BadArgumentException("Value must be non-negative or not specified");
+        }
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+            throw new BadArgumentException("Acquisition date cannot be in the future");
+        }
+        if (request.assetId() <= 0) {
+            throw new BadArgumentException("Asset ID must be positive or not specified");
+        }
+        try {
+            repository.upsertDesktop(request);
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
+            } else {
+                throw e;
+            }
+        }
+    }
 }

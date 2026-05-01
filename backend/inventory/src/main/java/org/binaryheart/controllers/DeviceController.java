@@ -20,6 +20,7 @@ import java.util.List;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
+import static io.javalin.apibuilder.ApiBuilder.put;
 
 public class DeviceController {
 
@@ -32,6 +33,11 @@ public class DeviceController {
 		post("/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
 		post("/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
 		post("/tablet", DeviceController::insertTablet, AppRole.AUTHENTICATED);
+		put("/desktop/{id}", DeviceController::upsertDesktopWithID, AppRole.AUTHENTICATED);
+		// put("/laptop/{id}", DeviceController::upsertLaptopWithID,
+		// AppRole.AUTHENTICATED);
+		// put("/tablet/{id}", DeviceController::upsertTabletWithID,
+		// AppRole.AUTHENTICATED);
 	}
 
 	@OpenApi(
@@ -324,6 +330,66 @@ public class DeviceController {
 		try {
 			service.insertTablet(request);
 			ctx.status(201).result("Tablet added successfully");
+		} catch (MissingRequiredParametersException | BadArgumentException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (DuplicateKeyException e) {
+			ctx.status(409).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
+
+	@OpenApi(
+			path = "/api/devices/desktop/{id}",
+			methods = { HttpMethod.PUT },
+			tags = { "Devices" },
+			security = { @OpenApiSecurity(
+					name = "BearerAuth") },
+			summary = "Adds or updates a desktop with specified ID to the database",
+			description = "Adds or updates a desktop with the specified ID and attributes",
+			requestBody = @OpenApiRequestBody(
+					required = true,
+					content = { @OpenApiContent(
+							from = InsertDesktopRequest.class,
+							example = """
+									{
+									  "chapterId": 1,
+									  "manufacturer": "Dell",
+									  "model": "Optiplex 7010",
+									  "year": 2022,
+									  "status": "Not Started",
+									  "assetId": 10000,
+									  "cpu": null,
+									  "ram": null,
+									  "ramGeneration": null,
+									  "storageAmount": null,
+									  "storageType": null,
+									  "value": null,
+									  "acquisitionDate": null,
+									  "recipientId": null,
+									  "donorId": null,
+									  "hasWifi": null
+									}""") }),
+			responses = { @OpenApiResponse(
+					status = "201",
+					description = "Desktop updated successfully"),
+					@OpenApiResponse(
+							status = "400",
+							description = "Missing required parameters or invalid field values"),
+					@OpenApiResponse(
+							status = "500",
+							description = "Database error") })
+	public static void upsertDesktopWithID(Context ctx) {
+		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
+
+		List<Integer> userChapters = ctx.attribute("chapterIds");
+		if (userChapters == null || !userChapters.contains(request.chapterId())) {
+			throw new ForbiddenResponse("You do not have access to this chapter.");
+		}
+
+		try {
+			service.upsertDesktop(request);
+			ctx.status(201).result("Desktop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
