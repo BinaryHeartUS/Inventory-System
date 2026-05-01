@@ -60,7 +60,7 @@ export interface Part {
   description: string
   wasPurchased: boolean
   containedIn: number | null
-  chapter: string
+  chapterId: number
   acquisitionDate: string | null
   value: number | null
 }

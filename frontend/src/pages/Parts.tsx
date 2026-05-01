@@ -1,17 +1,18 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getParts } from '../services/partService'
-import { useVisibleChapters } from '../context/ChapterContext'
+import { useVisibleChapters, useChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 
 export default function Parts() {
   const navigate = useNavigate()
-  const [chapterFilter, setChapterFilter] = useState('All')
+const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
   const [typeFilter,    setTypeFilter]    = useState('All')
   const [sourceFilter,  setSourceFilter]  = useState<'All' | 'Donated' | 'Purchased'>('All')
 
-  const [allParts,  setAllParts]  = useState<import('../types/inventory').Part[]>([])
-  const chapters = useVisibleChapters().map(c => c.name)
+  const [allParts,  setAllParts]  = useState<import('../types/inventory').Part[]>([])  
+  const chapters = useVisibleChapters()
+  const { chapterName } = useChapters()
 
   useEffect(() => {
     getParts().then(setAllParts)
@@ -24,7 +25,7 @@ export default function Parts() {
 
   const filtered = useMemo(() => {
     return allParts.filter(p => {
-      if (chapterFilter !== 'All' && p.chapter !== chapterFilter) return false
+      if (chapterFilter !== 'All' && p.chapterId !== chapterFilter) return false
       if (typeFilter    !== 'All' && p.type    !== typeFilter)    return false
       if (sourceFilter  === 'Donated'   && p.wasPurchased)  return false
       if (sourceFilter  === 'Purchased' && !p.wasPurchased) return false
@@ -60,12 +61,12 @@ export default function Parts() {
             {partTypes.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
           <select
-            value={chapterFilter}
-            onChange={e => setChapterFilter(e.target.value)}
+            value={String(chapterFilter)}
+            onChange={e => setChapterFilter(e.target.value === 'All' ? 'All' : Number(e.target.value))}
             className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
-            {chapters.map(c => <option key={c} value={c}>{c}</option>)}
+            {chapters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <select
             value={sourceFilter}
@@ -121,7 +122,7 @@ export default function Parts() {
                     </span>
                   </td>
                   <td className="px-5 py-5 text-slate-700">{p.description}</td>
-                  <td className="px-5 py-5 text-slate-500">{p.chapter}</td>
+                  <td className="px-5 py-5 text-slate-500">{chapterName(p.chapterId)}</td>
                   <td className="px-5 py-5">
                     <span className={`text-sm font-medium ${p.wasPurchased ? 'text-slate-500' : 'text-green-600'}`}>
                       {p.wasPurchased ? 'Purchased' : 'Donated'}

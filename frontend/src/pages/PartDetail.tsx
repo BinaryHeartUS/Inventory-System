@@ -5,6 +5,7 @@ import NotesPane from '../components/NotesPane'
 import { getPart, updatePart } from '../services/partService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
+import { useChapters } from '../context/ChapterContext'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -108,6 +109,7 @@ export default function PartDetail() {
   const numId = Number(id)
 
   const lookups = useLookups()
+  const { chapters, chapterName } = useChapters()
 
   const [part, setPart] = useState<Part | null>(null)
   const [loading, setLoading] = useState(true)
@@ -190,7 +192,7 @@ export default function PartDetail() {
               <span className="font-mono text-xs text-slate-400">#{p.id}</span>
             </div>
             <h1 className="text-2xl font-bold text-slate-900">{p.type}</h1>
-            <p className="text-sm text-slate-400 mt-1">{p.chapter} · {p.wasPurchased ? 'Purchased' : 'Donated'}</p>
+            <p className="text-sm text-slate-400 mt-1">{chapterName(p.chapterId)} · {p.wasPurchased ? 'Purchased' : 'Donated'}</p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {!editing && (
@@ -236,8 +238,15 @@ export default function PartDetail() {
               <>
                 <EditCombo label="Part Type" value={form.type} options={lookups.partTypes}
                   onChange={v => set('type')(v ?? '')} placeholder="e.g. Display" maxLength={50} />
-                <EditSelect label="Chapter" value={form.chapter} options={lookups.chapters}
-                  onChange={set('chapter')} />
+                <div>
+                  <label className={labelCls}>Chapter</label>
+                  <select value={form.chapterId} onChange={e => set('chapterId')(Number(e.target.value))}
+                    className={`${inputCls} cursor-pointer`}>
+                    {chapters.filter(c => c.name !== 'National').map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
                 <EditSelect label="Source"
                   value={form.wasPurchased ? 'Purchased' : 'Donated'}
                   options={['Donated', 'Purchased']}
@@ -269,7 +278,7 @@ export default function PartDetail() {
             ) : (
               <>
                 <Field label="Part Type" value={p.type} />
-                <Field label="Chapter" value={p.chapter} />
+                <Field label="Chapter" value={chapterName(p.chapterId)} />
                 <Field label="Source" value={p.wasPurchased ? 'Purchased' : 'Donated'} />
                 <Field label="Description" value={p.description} />
                 <Field label="Contained In" value={p.containedIn != null ? `#${p.containedIn}` : 'Loose'} />

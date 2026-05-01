@@ -1,6 +1,7 @@
 import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
 import type { AnyDevice, ChargerStatus, DeviceStatus, Part, Tool, WorkingBattery } from '../types/inventory'
 import { useLookups } from '../hooks/useLookups'
+import { useChapters } from '../context/ChapterContext'
 import { checkAssetIdExists } from '../services/assetService'
 
 type AssetCategory = 'Device' | 'Part' | 'Tool'
@@ -392,6 +393,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
   onCancel: () => void
 }) {
   const lookups = useLookups()
+  const { chapters: chapterList } = useChapters()
 
   // Set default chapter once lookup data loads
   const [step, setStep]         = useState<'id' | 'category' | 'subtype' | 'fields'>(scanId !== undefined ? 'category' : 'id')
@@ -485,13 +487,14 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
     }
 
     if (category === 'Part') {
+      const chapterId = chapterList.find(c => c.name === form.chapter)?.id ?? 0
       const part: Part = {
         id: idMode === 'input' ? Number(inputId) : 0,
         type: form.partType ?? '',
         description: form.description.trim(),
         wasPurchased: form.wasPurchased,
         containedIn: form.containedIn ? Number(form.containedIn) : null,
-        chapter: form.chapter,
+        chapterId,
         acquisitionDate: form.acquisitionDate || null,
         value: form.value ? Number(form.value) : null,
       }

@@ -94,7 +94,7 @@ export default function Chapters() {
           <tbody className="divide-y divide-slate-100">
             {visibleChapters.map(ch => {
               const devices  = allDevices.filter(d => d.chapter === ch.name)
-              const parts    = allParts.filter(p => p.chapter === ch.name)
+              const parts    = allParts.filter(p => p.chapterId === ch.id)
               const tools    = allTools.filter(t => t.chapter === ch.name)
               const pipeline = devices.filter(d => d.status === 'Not Started' || d.status === 'In Progress').length
               const ready    = devices.filter(d => d.status === 'Ready To Donate').length
