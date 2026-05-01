@@ -1,8 +1,5 @@
-import { useState } from 'react'
-import {
-  MANUFACTURER_OPTS, RAM_GEN_OPTS, STORAGE_TYPE_OPTS,
-  PART_TYPE_OPTS, TOOL_TYPE_OPTS,
-} from '../data/lookups'
+import { useState, useEffect } from 'react'
+import { getAllLookups } from '../services/lookupService'
 import PageHeading from '../components/PageHeading'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -11,7 +8,7 @@ interface LookupSection {
   title: string
   description: string
   endpoint: string
-  initial: string[]
+  key: 'manufacturers' | 'ramGenerations' | 'storageTypes' | 'partTypes' | 'toolTypes'
 }
 
 const LOOKUP_SECTIONS: LookupSection[] = [
@@ -19,40 +16,46 @@ const LOOKUP_SECTIONS: LookupSection[] = [
     title:       'Manufacturers',
     description: 'Device manufacturer names used across desktops, laptops, and tablets.',
     endpoint:    'POST /api/lookup/manufacturers',
-    initial:     MANUFACTURER_OPTS,
+    key:         'manufacturers',
   },
   {
     title:       'RAM Generations',
     description: 'RAM type options (e.g. DDR4, LPDDR5) available when logging device specs.',
     endpoint:    'POST /api/lookup/ram-generations',
-    initial:     RAM_GEN_OPTS,
+    key:         'ramGenerations',
   },
   {
     title:       'Storage Types',
     description: 'Storage media types (e.g. SSD, HDD, NVMe) used in device specs.',
     endpoint:    'POST /api/lookup/storage-types',
-    initial:     STORAGE_TYPE_OPTS,
+    key:         'storageTypes',
   },
   {
     title:       'Part Types',
     description: 'Part category names used when logging spare parts.',
     endpoint:    'POST /api/lookup/part-types',
-    initial:     PART_TYPE_OPTS,
+    key:         'partTypes',
   },
   {
     title:       'Tool Types',
     description: 'Tool category names used when logging tools.',
     endpoint:    'POST /api/lookup/tool-types',
-    initial:     TOOL_TYPE_OPTS,
+    key:         'toolTypes',
   },
 ]
 
 // ─── Lookup table editor ──────────────────────────────────────────────────────
 
 function LookupEditor({ section }: { section: LookupSection }) {
-  const [values,  setValues]  = useState<string[]>(section.initial)
+  const [values,  setValues]  = useState<string[]>([])
   const [input,   setInput]   = useState('')
   const [pending, setPending] = useState(false)
+
+  useEffect(() => {
+    getAllLookups()
+      .then(data => setValues(data[section.key] ?? []))
+      .catch(() => {})
+  }, [section.key])
 
   function add() {
     const trimmed = input.trim()

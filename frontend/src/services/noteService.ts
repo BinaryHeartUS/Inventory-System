@@ -13,35 +13,19 @@
 
 import { apiGet, apiPost, apiPut, apiDelete } from './api'
 import type { Note } from '../types/inventory'
-import { ALL_NOTES } from '../data/mockData'
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
 export async function getNotesByAsset(assetId: number): Promise<Note[]> {
-  if (!USE_MOCK) return apiGet<Note[]>(`/assets/${assetId}/notes`)
-  return Promise.resolve(
-    ALL_NOTES
-      .filter(n => n.assetId === assetId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  )
+  return apiGet<Note[]>(`/assets/${assetId}/notes`)
 }
 
 export async function createNote(assetId: number, text: string): Promise<Note> {
-  if (!USE_MOCK) return apiPost<Note>(`/assets/${assetId}/notes`, { text })
-  const note: Note = { id: Date.now(), assetId, date: new Date().toISOString(), text }
-  ALL_NOTES.push(note)
-  return Promise.resolve(note)
+  return apiPost<Note>(`/assets/${assetId}/notes`, { text })
 }
 
 export async function updateNote(id: number, text: string): Promise<Note> {
-  if (!USE_MOCK) return apiPut<Note>(`/notes/${id}`, { text })
-  const idx = ALL_NOTES.findIndex(n => n.id === id)
-  if (idx !== -1) ALL_NOTES[idx] = { ...ALL_NOTES[idx], text }
-  return Promise.resolve(ALL_NOTES[idx] ?? { id, assetId: 0, date: new Date().toISOString(), text })
+  return apiPut<Note>(`/notes/${id}`, { text })
 }
 
 export async function deleteNote(id: number): Promise<void> {
-  if (!USE_MOCK) return apiDelete(`/notes/${id}`)
-  const idx = ALL_NOTES.findIndex(n => n.id === id)
-  if (idx !== -1) ALL_NOTES.splice(idx, 1)
+  return apiDelete(`/notes/${id}`)
 }

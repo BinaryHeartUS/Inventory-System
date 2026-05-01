@@ -9,36 +9,20 @@
  *   DELETE /api/devices/:id    → 204
  */
 
-import { apiGet, apiPostVoid, apiPut, apiDelete } from './api'
+import { apiGet, apiPostVoid, apiPutVoid, apiDelete } from './api'
 import type { AnyDevice, InsertDesktopRequest, InsertLaptopRequest, InsertTabletRequest } from '../types/inventory'
-import { ALL_DEVICES, CHAPTER_ID_MAP } from '../data/mockData'
-import { getStoredAuth } from './authService'
 import { getChapters } from './chapterService'
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
-
 export async function getDevices(): Promise<AnyDevice[]> {
-  if (!USE_MOCK) return apiGet<AnyDevice[]>('/devices')
-  const auth = getStoredAuth()
-  if (auth && auth.chapterIds.length > 0) {
-    const names = new Set<string>(auth.chapterIds.map(id => CHAPTER_ID_MAP[id]).filter(Boolean))
-    return Promise.resolve(ALL_DEVICES.filter(d => names.has(d.chapter ?? '')))
-  }
-  return Promise.resolve([...ALL_DEVICES])
+  return apiGet<AnyDevice[]>('/devices')
 }
 
 /** Returns null when no device with the given ID exists. */
 export async function getDevice(id: number): Promise<AnyDevice | null> {
-  if (!USE_MOCK) return apiGet<AnyDevice>(`/devices/${id}`)
-  return Promise.resolve(ALL_DEVICES.find(d => d.id === id) ?? null)
+  return apiGet<AnyDevice>(`/devices/${id}`)
 }
 
 export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
-  if (USE_MOCK) {
-    ALL_DEVICES.push(device)
-    return Promise.resolve(device)
-  }
-
   const chapters = await getChapters()
   const chapter = chapters.find(c => c.name === device.chapter)
   if (!chapter) throw new Error(`Unknown chapter: ${device.chapter}`)
@@ -101,14 +85,50 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
 }
 
 export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyDevice> {
-  if (!USE_MOCK) return apiPut<AnyDevice>(`/devices/${id}`, updates)
-  const idx = ALL_DEVICES.findIndex(d => d.id === id)
-  if (idx !== -1) ALL_DEVICES[idx] = updates
-  return Promise.resolve(updates)
+  const chapters = await getChapters()
+  const chapter = chapters.find(c => c.name === updates.chapter)
+  if (!chapter) throw new Error(`Unknown chapter: ${updates.chapter}`)
+
+  const common = {
+    chapterId: chapter.id,
+    manufacturer: updates.manufacturer,
+    model: updates.model,
+    year: updates.year,
+    status: updates.status,
+    cpu: updates.cpu ?? undefined,
+    ram: updates.ram,
+    ramGeneration: updates.ramGeneration ?? undefined,
+    storageAmount: updates.storage,
+    storageType: updates.storageType ?? undefined,
+    value: updates.value ?? undefined,
+    acquisitionDate: updates.acquisitionDate ?? undefined,
+  }
+
+  if (updates.type === 'Desktop') {
+    const body: InsertDesktopRequest = { ...common, hasWifi: updates.hasWifi ?? undefined }
+    await apiPutVoid(`/devices/desktop/${id}`, body)
+  } else if (updates.type === 'Laptop') {
+    const body: InsertLaptopRequest = {
+      ...common,
+      includesCharger: updates.includesCharger ?? undefined,
+      designBatteryCapacity: updates.designBatteryCapacity ?? undefined,
+      actualBatteryCapacity: updates.actualBatteryCapacity ?? undefined,
+    }
+    await apiPutVoid(`/devices/laptop/${id}`, body)
+  } else if (updates.type === 'Tablet') {
+    const body: InsertTabletRequest = {
+      ...common,
+      includesCharger: updates.includesCharger ?? undefined,
+      workingBattery: updates.workingBattery ?? undefined,
+    }
+    await apiPutVoid(`/devices/tablet/${id}`, body)
+  } else {
+    throw new TypeError('Unrecognized device type')
+  }
+
+  return apiGet<AnyDevice>(`/devices/${id}`)
 }
 
 export async function deleteDevice(id: number): Promise<void> {
-  if (!USE_MOCK) return apiDelete(`/devices/${id}`)
-  const idx = ALL_DEVICES.findIndex(d => d.id === id)
-  if (idx !== -1) ALL_DEVICES.splice(idx, 1)
+  return apiDelete(`/devices/${id}`)
 }

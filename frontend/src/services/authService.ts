@@ -12,21 +12,6 @@ import type { LoginResponse, ChapterRole } from '../types/inventory'
 
 const SESSION_KEY = 'bh_auth'
 
-// ─── Mock credentials (dev only) ─────────────────────────────────────────────
-// Used when VITE_USE_MOCK=true so the frontend can be developed without
-// a running backend. Remove or ignore in production.
-
-const MOCK_USERS: Record<string, { password: string; chapterRoles: ChapterRole[]; role: string }> = {
-  admin:        { password: 'admin',        chapterRoles: [{ chapterId: 1, role: 'Admin' }, { chapterId: 2, role: 'Admin' }, { chapterId: 3, role: 'Admin' }, { chapterId: 4, role: 'Admin' }, { chapterId: 5, role: 'Admin' }], role: 'Admin' },
-  rosehulman:   { password: 'rosehulman',   chapterRoles: [{ chapterId: 1, role: 'Chapter Admin' }], role: 'Chapter Admin' },
-  northwestern: { password: 'northwestern', chapterRoles: [{ chapterId: 2, role: 'Chapter Admin' }], role: 'Chapter Admin' },
-  iu:           { password: 'iu',           chapterRoles: [{ chapterId: 3, role: 'Editor' }], role: 'Editor' },
-  newtrier:     { password: 'newtrier',     chapterRoles: [{ chapterId: 4, role: 'Viewer' }], role: 'Viewer' },
-  rosehulmaneditor: { password: 'rosehulmaneditor', chapterRoles: [{ chapterId: 1, role: 'Editor' }], role: 'Editor' },
-}
-
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
-
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 
 interface StoredAuth {
@@ -62,15 +47,6 @@ export function getStoredToken(): string | null {
 // ─── Login ────────────────────────────────────────────────────────────────────
 
 export async function loginRequest(username: string, password: string): Promise<LoginResponse> {
-  if (USE_MOCK) {
-    await new Promise(r => setTimeout(r, 300)) // simulate network
-    const user = MOCK_USERS[username.toLowerCase()]
-    if (!user || user.password !== password) throw new Error('Invalid username or password')
-    const data: LoginResponse = { token: 'mock-token', username, chapterRoles: user.chapterRoles, role: user.role }
-    setStoredAuth({ token: data.token!, username: data.username!, chapterRoles: data.chapterRoles!, chapterIds: data.chapterRoles!.map(cr => cr.chapterId), role: data.role! })
-    return data
-  }
-
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
