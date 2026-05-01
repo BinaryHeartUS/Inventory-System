@@ -36,6 +36,8 @@ public class DeviceController {
 		post("/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
 		post("/tablet", DeviceController::insertTablet, AppRole.AUTHENTICATED);
 		put("/desktop/{id}", DeviceController::updateDesktop, AppRole.AUTHENTICATED);
+		put("/laptop/{id}", DeviceController::updateLaptop, AppRole.AUTHENTICATED);
+		put("/tablet/{id}", DeviceController::updateTablet, AppRole.AUTHENTICATED);
 	}
 
 	@OpenApi(
@@ -397,6 +399,143 @@ public class DeviceController {
 		try {
 			service.updateDesktop(request);
 			ctx.status(201).result("Desktop updated successfully");
+		} catch (MissingRequiredParametersException | BadArgumentException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (DeviceNotFoundException e) {
+			ctx.status(401).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
+
+	@OpenApi(
+			path = "/api/devices/laptop/{id}",
+			methods = { HttpMethod.PUT },
+			tags = { "Devices" },
+			security = { @OpenApiSecurity(
+					name = "BearerAuth") },
+			summary = "Updates a laptop in the database",
+			description = "Updates a laptop with the specified ID and attributes",
+			pathParams = { @OpenApiParam(
+					name = "id",
+					description = "The asset ID of the laptop to update"), },
+			requestBody = @OpenApiRequestBody(
+					required = true,
+					content = { @OpenApiContent(
+							from = InsertLaptopRequest.class,
+							example = """
+									{
+									  "chapterId": 1,
+									  "manufacturer": "Dell",
+									  "model": "Optiplex 7010",
+									  "year": 2022,
+									  "status": "Not Started",
+									  "includesCharger": "Included",
+									  "assetId": 10000,
+									  "cpu": null,
+									  "ram": null,
+									  "ramGeneration": null,
+									  "storageAmount": null,
+									  "storageType": null,
+									  "value": null,
+									  "acquisitionDate": null,
+									  "recipientId": null,
+									  "donorId": null,
+									  "designBatteryCapacity": null,
+									  "actualBatteryCapacity": null
+									}""") }),
+			responses = { @OpenApiResponse(
+					status = "201",
+					description = "Laptop updated successfully"),
+					@OpenApiResponse(
+							status = "400",
+							description = "Missing required parameters or invalid field values"),
+					@OpenApiResponse(
+							status = "401",
+							description = "Laptop with specified ID does not exist"),
+					@OpenApiResponse(
+							status = "500",
+							description = "Database error") })
+	public static void updateLaptop(Context ctx) {
+		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
+
+		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
+			service.updateLaptop(request);
+			ctx.status(201).result("Laptop updated successfully");
+		} catch (MissingRequiredParametersException | BadArgumentException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (DeviceNotFoundException e) {
+			ctx.status(401).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
+
+	@OpenApi(
+			path = "/api/devices/tablet/{id}",
+			methods = { HttpMethod.PUT },
+			tags = { "Devices" },
+			security = { @OpenApiSecurity(
+					name = "BearerAuth") },
+			summary = "Updates a tablet in the database",
+			description = "Updates a tablet with the specified ID and attributes",
+			pathParams = { @OpenApiParam(
+					name = "id",
+					description = "The asset ID of the tablet to update"), },
+			requestBody = @OpenApiRequestBody(
+					required = true,
+					content = { @OpenApiContent(
+							from = InsertTabletRequest.class,
+							example = """
+									{
+									  "chapterId": 1,
+									  "manufacturer": "Dell",
+									  "model": "Optiplex 7010",
+									  "year": 2022,
+									  "status": "Not Started",
+									  "includesCharger": "Included",
+									  "assetId": 10000,
+									  "cpu": null,
+									  "ram": null,
+									  "ramGeneration": null,
+									  "storageAmount": null,
+									  "storageType": null,
+									  "value": null,
+									  "acquisitionDate": null,
+									  "recipientId": null,
+									  "donorId": null,
+									  "workingBattery": "Yes"
+									}""") }),
+			responses = { @OpenApiResponse(
+					status = "201",
+					description = "Tablet updated successfully"),
+					@OpenApiResponse(
+							status = "400",
+							description = "Missing required parameters or invalid field values"),
+					@OpenApiResponse(
+							status = "401",
+							description = "Tablet with specified ID does not exist"),
+					@OpenApiResponse(
+							status = "500",
+							description = "Database error") })
+	public static void updateTablet(Context ctx) {
+		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
+
+		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
+			service.updateTablet(request);
+			ctx.status(201).result("Tablet updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {

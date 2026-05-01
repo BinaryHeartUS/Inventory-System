@@ -179,7 +179,79 @@ public class DeviceService {
             repository.updateDesktop(request);
         } catch (SQLException e) {
             if ("02000".equals(e.getSQLState())) {
-                throw new DeviceNotFoundException("Could not find asset with specified ID: " + request.assetId());
+                throw new DeviceNotFoundException("Could not find desktop with specified ID: " + request.assetId());
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public void updateLaptop(InsertLaptopRequest request)
+            throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
+        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
+                || request.model() == null || request.year() == 0 || request.status() == null
+                || request.includesCharger() == null || request.assetId() == null) {
+            throw new MissingRequiredParametersException("Missing required parameters");
+        }
+        if (request.ram() != null && request.ram() <= 0) {
+            throw new BadArgumentException("RAM amount must be positive or not specified");
+        }
+        if (request.storageAmount() != null && request.storageAmount() <= 0) {
+            throw new BadArgumentException("Storage amount must be positive or not specified");
+        }
+        if (request.value() != null && request.value() < 0) {
+            throw new BadArgumentException("Value must be non-negative or not specified");
+        }
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+            throw new BadArgumentException("Acquisition date cannot be in the future");
+        }
+        if (request.assetId() <= 0) {
+            throw new BadArgumentException("Asset ID must be positive");
+        }
+        if (request.designBatteryCapacity() != null && request.designBatteryCapacity() <= 0) {
+            throw new BadArgumentException("Design battery capacity must be positive or not specified");
+        }
+        if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
+            throw new BadArgumentException("Actual battery capacity must be non-negative or not specified");
+        }
+        try {
+            repository.updateLaptop(request);
+        } catch (SQLException e) {
+            if ("02000".equals(e.getSQLState())) {
+                throw new DeviceNotFoundException("Could not find laptop with specified ID: " + request.assetId());
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public void updateTablet(InsertTabletRequest request)
+            throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
+        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
+                || request.model() == null || request.year() == 0 || request.status() == null
+                || request.includesCharger() == null || request.workingBattery() == null || request.assetId() == null) {
+            throw new MissingRequiredParametersException("Missing required parameters");
+        }
+        if (request.ram() != null && request.ram() <= 0) {
+            throw new BadArgumentException("RAM amount must be positive or not specified");
+        }
+        if (request.storageAmount() != null && request.storageAmount() <= 0) {
+            throw new BadArgumentException("Storage amount must be positive or not specified");
+        }
+        if (request.value() != null && request.value() < 0) {
+            throw new BadArgumentException("Value must be non-negative or not specified");
+        }
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+            throw new BadArgumentException("Acquisition date cannot be in the future");
+        }
+        if (request.assetId() <= 0) {
+            throw new BadArgumentException("Asset ID must be positive");
+        }
+        try {
+            repository.updateTablet(request);
+        } catch (SQLException e) {
+            if ("02000".equals(e.getSQLState())) {
+                throw new DeviceNotFoundException("Could not find tablet with specified ID: " + request.assetId());
             } else {
                 throw e;
             }
