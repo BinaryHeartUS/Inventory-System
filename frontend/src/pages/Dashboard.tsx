@@ -205,7 +205,7 @@ export default function Dashboard() {
 
         {/* Activity chart */}
         <div className="lg:col-span-3">
-          <ActivityChart devices={allDevices} />
+          <ActivityChart devices={devices} />
         </div>
 
       </div>
