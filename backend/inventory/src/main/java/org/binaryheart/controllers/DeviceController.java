@@ -391,14 +391,15 @@ public class DeviceController {
 	public static void updateDesktop(Context ctx) {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 
-		List<Integer> userChapters = ctx.attribute("chapterIds");
-		if (userChapters == null || !userChapters.contains(request.chapterId())) {
-			throw new ForbiddenResponse("You do not have access to this chapter.");
-		}
-
 		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
 			service.updateDesktop(request);
-			ctx.status(201).result("Desktop updated successfully");
+			ctx.status(201).result("Desktop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
@@ -459,14 +460,15 @@ public class DeviceController {
 	public static void updateLaptop(Context ctx) {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
 
-		List<Integer> userChapters = ctx.attribute("chapterIds");
-		if (userChapters == null || !userChapters.contains(request.chapterId())) {
-			throw new ForbiddenResponse("You do not have access to this chapter.");
-		}
-
 		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
 			service.updateLaptop(request);
-			ctx.status(201).result("Laptop updated successfully");
+			ctx.status(201).result("Laptop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
@@ -526,14 +528,15 @@ public class DeviceController {
 	public static void updateTablet(Context ctx) {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
 
-		List<Integer> userChapters = ctx.attribute("chapterIds");
-		if (userChapters == null || !userChapters.contains(request.chapterId())) {
-			throw new ForbiddenResponse("You do not have access to this chapter.");
-		}
-
 		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
 			service.updateTablet(request);
-			ctx.status(201).result("Tablet updated successfully");
+			ctx.status(201).result("Tablet added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
