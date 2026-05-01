@@ -52,6 +52,11 @@ ssh "$TARGET" bash <<EOF
 
   # Caddy handles TLS automatically via Let's Encrypt on first boot.
   # db-migrate runs once and exits; backend/frontend/caddy restart if already running.
-  docker compose -f docker-compose.prod.yml up --build -d
+  # On --reset, also run the importer to seed data from the Excel file.
+  if [ "$RESET" = "--reset" ]; then
+    COMPOSE_PROFILES=import docker compose -f docker-compose.prod.yml up --build -d
+  else
+    docker compose -f docker-compose.prod.yml up --build -d
+  fi
   echo "Deploy complete. Site available at https://\$(grep '^DOMAIN=' .env | cut -d= -f2)"
 EOF
