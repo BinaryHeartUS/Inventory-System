@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import type { LoginResponse, ChapterRole } from '../types/inventory'
 import { loginRequest, clearStoredAuth, getStoredAuth, getStoredToken } from '../services/authService'
-import { setTokenProvider } from '../services/api'
+import { setTokenProvider, setUnauthorizedHandler } from '../services/api'
 
 // Register the token provider at module load time so API calls have auth headers
 // immediately — including on page refresh before any useEffect fires.
@@ -63,6 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearStoredAuth()
     setAuth(null)
   }, [])
+
+  // Register with the api layer so any 401 (expired token) auto-logs out
+  setUnauthorizedHandler(logout)
 
   return (
     <AuthContext.Provider value={{ auth, login, logout }}>
