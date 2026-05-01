@@ -1,7 +1,6 @@
 package org.binaryheart.controllers;
 
 import io.javalin.http.Context;
-import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.*;
 
 import org.binaryheart.exceptions.BadArgumentException;
@@ -17,7 +16,6 @@ import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
 
 import java.sql.SQLException;
-import java.util.List;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
