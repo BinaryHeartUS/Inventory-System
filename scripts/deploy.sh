@@ -27,7 +27,7 @@ ssh "$TARGET" bash <<EOF
   set -euo pipefail
 
   if [ ! -d "$REMOTE_DIR" ]; then
-    git clone https://github.com/BinaryHeartUS/Inventory-System.git "$REMOTE_DIR"
+    git clone git@github.com:BinaryHeartUS/Inventory-System.git "$REMOTE_DIR"
   fi
 
   cd "$REMOTE_DIR"
