@@ -47,10 +47,6 @@ run_always() {
   psql "$DB_URI" -f "$script"
 }
 
-echo "=== Running user-setup and seed scripts ==="
-while IFS= read -r -d '' f; do run_once "$f"; done \
-  < <(find "$SCRIPTS_DIR" -maxdepth 1 -name "*.sql" -print0 | sort -z)
-
 echo "=== Running type scripts ==="
 while IFS= read -r -d '' f; do run_once "$f"; done \
   < <(find "$SCRIPTS_DIR/CreateTypes" -maxdepth 1 -name "*.sql" -print0 | sort -z)
@@ -78,6 +74,10 @@ while IFS= read -r -d '' f; do run_always "$f"; done \
 echo "=== Running view scripts ==="
 while IFS= read -r -d '' f; do run_always "$f"; done \
   < <(find "$SCRIPTS_DIR/CreateViews" -name "*.sql" -print0 | sort -z)
+
+echo "=== Running user-setup and seed scripts ==="
+while IFS= read -r -d '' f; do run_once "$f"; done \
+  < <(find "$SCRIPTS_DIR" -maxdepth 1 -name "*.sql" -print0 | sort -z)
 
 # Update DB user passwords from env vars when explicitly provided (production use).
 if [[ -n "${API_USER_PASSWORD:-}" ]]; then
