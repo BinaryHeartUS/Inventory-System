@@ -111,7 +111,7 @@ export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyD
   } else if (updates.type === 'Laptop') {
     const body: InsertLaptopRequest = {
       ...common,
-      includesCharger: updates.includesCharger ?? undefined,
+      includesCharger: updates.includesCharger ?? 'Unknown',
       designBatteryCapacity: updates.designBatteryCapacity ?? undefined,
       actualBatteryCapacity: updates.actualBatteryCapacity ?? undefined,
     }
@@ -119,7 +119,7 @@ export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyD
   } else if (updates.type === 'Tablet') {
     const body: InsertTabletRequest = {
       ...common,
-      includesCharger: updates.includesCharger ?? undefined,
+      includesCharger: updates.includesCharger ?? 'Unknown',
       workingBattery: updates.workingBattery ?? undefined,
     }
     await apiPutVoid(`/devices/tablet/${id}`, body)
