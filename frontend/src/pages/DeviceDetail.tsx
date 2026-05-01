@@ -331,8 +331,8 @@ export default function DeviceDetail() {
                 {editing && fLaptop ? (
                   <>
                     <EditSelect label="Charger" value={(fLaptop.includesCharger ?? 'Unknown') as ChargerStatus} options={lookups.chargerStatuses} onChange={set('includesCharger') as (v: ChargerStatus) => void} />
-                    <EditText label="Design Capacity (mWh)" type="number" value={String(fLaptop.designBatteryCapacity ?? '')} onChange={v => set('designBatteryCapacity')(v ? Number(v) : null)} min={1} />
-                    <EditText label="Actual Capacity (mWh)" type="number" value={String(fLaptop.actualBatteryCapacity ?? '')} onChange={v => set('actualBatteryCapacity')(v ? Number(v) : null)} min={1} />
+                    <EditText label="Design Capacity (mWh)" type="number" value={String(fLaptop.designBatteryCapacity === 0 ? '' : (fLaptop.designBatteryCapacity ?? ''))} onChange={v => set('designBatteryCapacity')(v ? Number(v) : null)} min={1} />
+                    <EditText label="Actual Capacity (mWh)" type="number" value={String(fLaptop.actualBatteryCapacity === 0 ? '' : (fLaptop.actualBatteryCapacity ?? ''))} onChange={v => set('actualBatteryCapacity')(v ? Number(v) : null)} min={1} />
                     {fLaptop.actualBatteryCapacity != null && fLaptop.designBatteryCapacity != null &&
                       fLaptop.actualBatteryCapacity > fLaptop.designBatteryCapacity && (
                       <p className="col-span-full text-xs text-red-500 -mt-3">
