@@ -27,6 +27,11 @@ public class ChapterRepository {
                 .findFirst().orElseThrow(() -> new SQLException("National chapter not found"));
     }
 
+    public Integer getChapterIdByName(String name) throws SQLException {
+        return getAllChapters().stream().filter(c -> c.name().equals(name)).mapToInt(ChapterSummary::id).boxed()
+                .findFirst().orElse(null);
+    }
+
     public ChapterSummary createChapter(String name) throws SQLException {
         ensureConnected();
         Connection conn = DatabaseConnectionService.getConnection();

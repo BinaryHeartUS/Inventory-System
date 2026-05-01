@@ -18,6 +18,10 @@ public class ChapterService {
         return repository.getNationalChapterId();
     }
 
+    public Integer getChapterIdByName(String name) throws SQLException {
+        return repository.getChapterIdByName(name);
+    }
+
     public ChapterSummary createChapter(String name) throws SQLException {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Chapter name must not be blank");

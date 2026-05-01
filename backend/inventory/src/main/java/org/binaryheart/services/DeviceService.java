@@ -2,6 +2,8 @@ package org.binaryheart.services;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
@@ -11,11 +13,13 @@ import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
+import org.binaryheart.responses.ChapterSummary;
 import org.binaryheart.responses.GetDeviceResponse;
 
 public class DeviceService {
 
     private final DeviceRepository repository = new DeviceRepository();
+    private final ChapterService chapterService = new ChapterService();
 
     public int getDeviceCount(String type, String status) throws BadArgumentException, SQLException {
         if (!type.equals("desktop") && !type.equals("laptop") && !type.equals("tablet")) {
@@ -45,8 +49,17 @@ public class DeviceService {
         return repository.getDevice(id);
     }
 
-    public List<GetDeviceResponse> getAllDevices() throws SQLException {
-        return repository.getAllDevices();
+    public List<GetDeviceResponse> getAllDevices(List<Integer> userChapterIds) throws SQLException {
+        if (userChapterIds == null || userChapterIds.isEmpty())
+            return List.of();
+        if (userChapterIds.contains(chapterService.getNationalChapterId()))
+            return repository.getAllDevices();
+        Map<String, Integer> chapterNameToId = chapterService.getAllChapters().stream()
+                .collect(Collectors.toMap(ChapterSummary::name, ChapterSummary::id));
+        return repository.getAllDevices().stream().filter(d -> {
+            Integer cid = chapterNameToId.get(d.chapter());
+            return cid != null && userChapterIds.contains(cid);
+        }).collect(Collectors.toList());
     }
 
     public void insertDesktop(InsertDesktopRequest request)

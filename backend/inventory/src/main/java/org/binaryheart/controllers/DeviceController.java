@@ -6,8 +6,6 @@ import static io.javalin.apibuilder.ApiBuilder.put;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.binaryheart.auth.AppRole;
 import org.binaryheart.exceptions.BadArgumentException;
@@ -17,7 +15,6 @@ import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
-import org.binaryheart.responses.ChapterSummary;
 import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
@@ -119,9 +116,7 @@ public class DeviceController {
 		try {
 			int id = Integer.parseInt(idStr);
 			GetDeviceResponse result = service.getDevice(id);
-			Map<String, Integer> chapterNameToId = chapterService.getAllChapters().stream()
-					.collect(Collectors.toMap(ChapterSummary::name, ChapterSummary::id));
-			Integer deviceChapterId = chapterNameToId.get(result.chapter());
+			Integer deviceChapterId = chapterService.getChapterIdByName(result.chapter());
 			if (deviceChapterId == null)
 				throw new ForbiddenResponse("Access denied");
 			AuthController.requireChapterAccess(ctx, deviceChapterId);
@@ -155,20 +150,8 @@ public class DeviceController {
 							description = "Database error") })
 	public static void getAllDevices(Context ctx) {
 		try {
-			List<GetDeviceResponse> devices = service.getAllDevices();
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
-			if (userChapterIds == null || userChapterIds.isEmpty()) {
-				ctx.status(200).json(new GetDeviceResponse[0]);
-				return;
-			}
-			if (!userChapterIds.contains(chapterService.getNationalChapterId())) {
-				Map<String, Integer> chapterNameToId = chapterService.getAllChapters().stream()
-						.collect(Collectors.toMap(ChapterSummary::name, ChapterSummary::id));
-				devices = devices.stream().filter(d -> {
-					Integer cid = chapterNameToId.get(d.chapter());
-					return cid != null && userChapterIds.contains(cid);
-				}).collect(Collectors.toList());
-			}
+			List<GetDeviceResponse> devices = service.getAllDevices(userChapterIds);
 			ctx.status(200).json(devices.toArray(new GetDeviceResponse[0]));
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
@@ -355,12 +338,6 @@ public class DeviceController {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
 
 		try {
-			boolean validChapter = chapterService.getAllChapters().stream()
-					.anyMatch(c -> c.id() == request.chapterId());
-			if (!validChapter) {
-				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
-				return;
-			}
 			AuthController.requireChapterAccess(ctx, request.chapterId());
 			service.insertTablet(request);
 			ctx.status(201).result("Tablet added successfully");
