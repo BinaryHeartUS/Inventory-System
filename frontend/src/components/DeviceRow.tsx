@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import type { AnyDevice, Desktop, Laptop, Tablet } from '../types/inventory'
+import type { AnyDevice, DeviceStatus } from '../types/inventory'
 import StatusBadge from './StatusBadge'
 /**
  * Renders the columns shared by every device type.
@@ -47,7 +47,7 @@ export function DeviceRow({
           : ''}
       </td>
       <td className="px-5 py-5">
-        <StatusBadge status={device.status} />
+        <StatusBadge status={device.status as DeviceStatus} />
       </td>
       {extraCells}
       <td className="px-5 py-5 text-slate-500 max-w-[160px]">
@@ -60,7 +60,7 @@ export function DeviceRow({
   )
 }
 
-export function DesktopRow({ device }: { device: Desktop }) {
+export function DesktopRow({ device }: { device: AnyDevice }) {
   return (
     <DeviceRow
       device={device}
@@ -76,9 +76,9 @@ export function DesktopRow({ device }: { device: Desktop }) {
   )
 }
 
-export function LaptopRow({ device }: { device: Laptop }) {
+export function LaptopRow({ device }: { device: AnyDevice }) {
   const healthPct =
-    device.batteryHealth !== null ? Math.round(device.batteryHealth * 100) : null
+    device.batteryHealth != null ? Math.round(device.batteryHealth * 100) : null
 
   return (
     <DeviceRow
@@ -101,7 +101,7 @@ export function LaptopRow({ device }: { device: Laptop }) {
   )
 }
 
-export function TabletRow({ device }: { device: Tablet }) {
+export function TabletRow({ device }: { device: AnyDevice }) {
   return (
     <DeviceRow
       device={device}

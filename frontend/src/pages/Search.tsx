@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import type { DeviceStatus } from '../types/inventory'
 import { getDevices } from '../services/deviceService'
 import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
@@ -25,12 +26,12 @@ export default function Search() {
 
     const deviceResults = devices.filter(d =>
       String(d.id).includes(q) ||
-      d.manufacturer.toLowerCase().includes(q) ||
-      d.model.toLowerCase().includes(q) ||
+      d.manufacturer?.toLowerCase().includes(q) ||
+      d.model?.toLowerCase().includes(q) ||
       (d.cpu ?? '').toLowerCase().includes(q) ||
-      d.chapter.toLowerCase().includes(q) ||
-      d.type.toLowerCase().includes(q) ||
-      d.status.toLowerCase().includes(q)
+      d.chapter?.toLowerCase().includes(q) ||
+      d.type?.toLowerCase().includes(q) ||
+      d.status?.toLowerCase().includes(q)
     )
     const partResults = parts.filter(p =>
       String(p.id).includes(q) ||
@@ -115,7 +116,7 @@ export default function Search() {
                 }`}>{d.type}</span>
                 <span className="text-sm text-slate-800 font-medium flex-1 truncate">{d.manufacturer} {d.model}</span>
                 <span className="text-xs text-slate-400 hidden sm:block shrink-0">{d.chapter}</span>
-                <StatusBadge status={d.status} />
+                <StatusBadge status={d.status as DeviceStatus} />
               </Link>
             ))}
           </div>

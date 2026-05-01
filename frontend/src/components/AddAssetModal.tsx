@@ -388,7 +388,7 @@ function FieldsForm({ category, subtype, form, setForm, lookups }: {
 // ─── Main modal ───────────────────────────────────────────────────────────────
 export function AddAssetModal({ scanId, onAdd, onCancel }: {
   scanId?: number
-  onAdd: (asset: AnyDevice | Part | Tool) => void
+  onAdd?: (asset: AnyDevice | Part | Tool) => void
   onCancel: () => void
 }) {
   const lookups = useLookups()
@@ -473,20 +473,20 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
 
     if (category === 'Tool') {
       const tool: Tool = {
-        id: idMode === 'input' ? Number(inputId) : Date.now(),
+        id: idMode === 'input' ? Number(inputId) : 0,
         type: form.toolType.trim(),
         description: form.toolDescription.trim(),
         chapter: form.chapter,
         acquisitionDate: form.acquisitionDate || null,
         value: form.value ? Number(form.value) : null,
       }
-      onAdd(tool)
+      onAdd?.(tool)
       return
     }
 
     if (category === 'Part') {
       const part: Part = {
-        id: idMode === 'input' ? Number(inputId) : Date.now(),
+        id: idMode === 'input' ? Number(inputId) : 0,
         type: form.partType ?? '',
         description: form.description.trim(),
         wasPurchased: form.wasPurchased,
@@ -495,13 +495,13 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         acquisitionDate: form.acquisitionDate || null,
         value: form.value ? Number(form.value) : null,
       }
-      onAdd(part)
+      onAdd?.(part)
       return
     }
 
     // Device
     const base = {
-      id: idMode === 'input' ? Number(inputId) : Date.now(),
+      id: idMode === 'input' ? Number(inputId) : 0,
       manufacturer: form.manufacturer?.trim() ?? '',
       model: form.model.trim(),
       year: Number(form.year),
@@ -523,7 +523,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         type: 'Desktop',
         hasWifi: form.hasWifi === 'Unknown' ? null : form.hasWifi === 'Yes',
       }
-      onAdd(device)
+      onAdd?.(device)
     } else if (subtype === 'Laptop') {
       const device: AnyDevice = {
         ...base,
@@ -533,7 +533,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         actualBatteryCapacity: form.actualBatteryCapacity ? Number(form.actualBatteryCapacity) : null,
         batteryHealth: null, // computed by DB
       }
-      onAdd(device)
+      onAdd?.(device)
     } else if (subtype === 'Tablet') {
       const device: AnyDevice = {
         ...base,
@@ -541,7 +541,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         includesCharger: form.includesCharger,
         workingBattery: form.workingBattery,
       }
-      onAdd(device)
+      onAdd?.(device)
     }
   }
 

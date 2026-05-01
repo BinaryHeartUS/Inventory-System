@@ -1,7 +1,6 @@
 package org.binaryheart.controllers;
 
 import io.javalin.http.Context;
-import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.*;
 
 import org.binaryheart.exceptions.BadArgumentException;
@@ -13,10 +12,10 @@ import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
 import org.binaryheart.responses.GetDeviceResponse;
+import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
 
 import java.sql.SQLException;
-import java.util.List;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -25,6 +24,7 @@ import static io.javalin.apibuilder.ApiBuilder.put;
 public class DeviceController {
 
 	private static final DeviceService service = new DeviceService();
+	private static final ChapterService chapterService = new ChapterService();
 
 	public static void registerRoutes() {
 		get("/count/{type}", DeviceController::getDeviceCount, AppRole.AUTHENTICATED);
@@ -193,12 +193,13 @@ public class DeviceController {
 	public static void insertDesktop(Context ctx) {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 
-		List<Integer> userChapters = ctx.attribute("chapterIds");
-		if (userChapters == null || !userChapters.contains(request.chapterId())) {
-			throw new ForbiddenResponse("You do not have access to this chapter.");
-		}
-
 		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
 			service.insertDesktop(request);
 			ctx.status(201).result("Desktop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
@@ -258,12 +259,13 @@ public class DeviceController {
 	public static void insertLaptop(Context ctx) {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
 
-		List<Integer> userChapters = ctx.attribute("chapterIds");
-		if (userChapters == null || !userChapters.contains(request.chapterId())) {
-			throw new ForbiddenResponse("You do not have access to this chapter.");
-		}
-
 		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
 			service.insertLaptop(request);
 			ctx.status(201).result("Laptop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
@@ -322,12 +324,13 @@ public class DeviceController {
 	public static void insertTablet(Context ctx) {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
 
-		List<Integer> userChapters = ctx.attribute("chapterIds");
-		if (userChapters == null || !userChapters.contains(request.chapterId())) {
-			throw new ForbiddenResponse("You do not have access to this chapter.");
-		}
-
 		try {
+			boolean validChapter = chapterService.getAllChapters().stream()
+					.anyMatch(c -> c.id() == request.chapterId());
+			if (!validChapter) {
+				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
+				return;
+			}
 			service.insertTablet(request);
 			ctx.status(201).result("Tablet added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
