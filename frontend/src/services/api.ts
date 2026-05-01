@@ -48,6 +48,17 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** Like apiPost but expects no JSON response body (e.g. 201 with plain-text). */
+export async function apiPostVoid(path: string, body: unknown): Promise<void> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
+  if (!res.ok) throw new Error(`POST ${path} failed: ${res.status} ${res.statusText}`)
+}
+
 export async function apiPut<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'PUT',
@@ -59,28 +70,6 @@ export async function apiPut<T>(path: string, body: unknown): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export async function apiDelete(path: string): Promise<void> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  })
-  if (res.status === 401) throw new Error('UNAUTHORIZED')
-  if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status} ${res.statusText}`)
-}
-
-export async function apiPostVoid(path: string, body: unknown): Promise<void> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify(body),
-  })
-  if (res.status === 401) throw new Error('UNAUTHORIZED')
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText)
-    throw new Error(text || `POST ${path} failed: ${res.status}`)
-  }
-}
-
 export async function apiPutVoid(path: string, body: unknown): Promise<void> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'PUT',
@@ -88,8 +77,14 @@ export async function apiPutVoid(path: string, body: unknown): Promise<void> {
     body: JSON.stringify(body),
   })
   if (res.status === 401) throw new Error('UNAUTHORIZED')
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText)
-    throw new Error(text || `PUT ${path} failed: ${res.status}`)
-  }
+  if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status} ${res.statusText}`)
+}
+
+export async function apiDelete(path: string): Promise<void> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  if (res.status === 401) throw new Error('UNAUTHORIZED')
+  if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status} ${res.statusText}`)
 }

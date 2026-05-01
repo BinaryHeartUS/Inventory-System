@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import type { AnyDevice, DeviceStatus, ChargerStatus, WorkingBattery, Laptop, Tablet } from '../types/inventory'
+import type { AnyDevice, DeviceStatus, ChargerStatus, WorkingBattery } from '../types/inventory'
 import StatusBadge from '../components/StatusBadge'
 import NotesPane from '../components/NotesPane'
 import { getDevice, updateDevice } from '../services/deviceService'
@@ -233,7 +233,7 @@ export default function DeviceDetail() {
             <p className="text-sm text-slate-400 mt-1">{d.year} · {d.chapter}</p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <StatusBadge status={d.status} size="lg" />
+            <StatusBadge status={d.status as DeviceStatus} size="lg" />
             {!editing && (
               <button onClick={() => setPrintId(d.id)}
                 className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-lg transition-colors">
@@ -279,16 +279,16 @@ export default function DeviceDetail() {
           <Section title="Specifications">
             {editing && form ? (
               <>
-                <EditCombo label="Manufacturer" value={form.manufacturer} options={lookups.manufacturers} onChange={v => set('manufacturer')(v ?? '')} placeholder="e.g. Asus" maxLength={50} />
-                <EditText label="Model" value={form.model} onChange={v => set('model')(v)} placeholder="e.g. ThinkPad X1" maxLength={50} />
+                <EditCombo label="Manufacturer" value={form.manufacturer ?? null} options={lookups.manufacturers} onChange={v => set('manufacturer')(v ?? '')} placeholder="e.g. Asus" maxLength={50} />
+                <EditText label="Model" value={form.model ?? ''} onChange={v => set('model')(v)} placeholder="e.g. ThinkPad X1" maxLength={50} />
                 <EditText label="Year" type="number" value={String(form.year)} onChange={v => set('year')(Number(v))} min={1980} max={new Date().getFullYear()} />
                 <EditText label="CPU" value={form.cpu ?? ''} onChange={v => set('cpu')(v || null)} placeholder="e.g. i5-1135G7" maxLength={50} />
                 <EditText label="RAM (GB)" type="number" value={String(form.ram)} onChange={v => set('ram')(Number(v))} min={0} />
                 <EditCombo label="RAM Generation" value={form.ramGeneration ?? null} options={lookups.ramGenerations} onChange={set('ramGeneration')} placeholder="e.g. LPDDR5" maxLength={20} />
                 <EditText label="Storage (GB)" type="number" value={String(form.storage)} onChange={v => set('storage')(Number(v))} min={0} />
                 <EditCombo label="Storage Type" value={form.storageType ?? null} options={lookups.storageTypes} onChange={set('storageType')} placeholder="e.g. eMMC" maxLength={30} />
-                <EditSelect label="Status" value={form.status} options={lookups.deviceStatuses} onChange={set('status') as (v: DeviceStatus) => void} />
-                <EditSelect label="Chapter" value={form.chapter} options={lookups.chapters} onChange={set('chapter')} />
+                <EditSelect label="Status" value={(form.status ?? 'Unknown') as DeviceStatus} options={lookups.deviceStatuses} onChange={set('status') as (v: DeviceStatus) => void} />
+                <EditSelect label="Chapter" value={form.chapter ?? ''} options={lookups.chapters} onChange={set('chapter')} />
                 <div>
                   <label className={labelCls}>Acquired</label>
                   <input type="date" value={form.acquisitionDate ?? ''} onChange={e => set('acquisitionDate')(e.target.value || null)} className={inputCls} />
@@ -303,9 +303,9 @@ export default function DeviceDetail() {
                 <Field label="CPU" value={d.cpu} />
                 <Field label="RAM" value={d.ram != null ? `${d.ram} GB${d.ramGeneration ? ` ${d.ramGeneration}` : ''}` : null} />
                 <Field label="Storage" value={d.storage != null ? `${d.storage} GB${d.storageType ? ` ${d.storageType}` : ''}` : null} />
-                <Field label="Status" value={<StatusBadge status={d.status} />} />
+                <Field label="Status" value={<StatusBadge status={d.status as DeviceStatus} />} />
                 <Field label="Chapter" value={d.chapter} />
-                <Field label="Acquired" value={formatDate(d.acquisitionDate)} />
+                <Field label="Acquired" value={formatDate(d.acquisitionDate ?? null)} />
                 <Field label="Value" value={d.value != null && d.value !== 0 ? `$${d.value.toFixed(2)}` : null} />
               </>
             )}
@@ -325,13 +325,12 @@ export default function DeviceDetail() {
           )}
 
           {d.type === 'Laptop' && (() => {
-            const laptop = d as Laptop
-            const fLaptop = form?.type === 'Laptop' ? form as Laptop : null
+            const fLaptop = form?.type === 'Laptop' ? form : null
             return (
               <Section title="Laptop Details">
                 {editing && fLaptop ? (
                   <>
-                    <EditSelect label="Charger" value={fLaptop.includesCharger} options={lookups.chargerStatuses} onChange={set('includesCharger') as (v: ChargerStatus) => void} />
+                    <EditSelect label="Charger" value={(fLaptop.includesCharger ?? 'Unknown') as ChargerStatus} options={lookups.chargerStatuses} onChange={set('includesCharger') as (v: ChargerStatus) => void} />
                     <EditText label="Design Capacity (mWh)" type="number" value={String(fLaptop.designBatteryCapacity ?? '')} onChange={v => set('designBatteryCapacity')(v ? Number(v) : null)} min={1} />
                     <EditText label="Actual Capacity (mWh)" type="number" value={String(fLaptop.actualBatteryCapacity ?? '')} onChange={v => set('actualBatteryCapacity')(v ? Number(v) : null)} min={1} />
                     {fLaptop.actualBatteryCapacity != null && fLaptop.designBatteryCapacity != null &&
@@ -343,12 +342,12 @@ export default function DeviceDetail() {
                   </>
                 ) : (
                   <>
-                    <Field label="Charger" value={laptop.includesCharger} />
-                    <Field label="Design Capacity" value={laptop.designBatteryCapacity != null ? `${laptop.designBatteryCapacity.toLocaleString()} mWh` : null} />
-                    <Field label="Actual Capacity" value={laptop.actualBatteryCapacity != null ? `${laptop.actualBatteryCapacity.toLocaleString()} mWh` : null} />
+                    <Field label="Charger" value={d.includesCharger} />
+                    <Field label="Design Capacity" value={d.designBatteryCapacity != null ? `${d.designBatteryCapacity.toLocaleString()} mWh` : null} />
+                    <Field label="Actual Capacity" value={d.actualBatteryCapacity != null ? `${d.actualBatteryCapacity.toLocaleString()} mWh` : null} />
                     <div className="col-span-full">
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Battery Health</p>
-                      <BatteryBar health={laptop.batteryHealth} />
+                      <BatteryBar health={d.batteryHealth ?? null} />
                     </div>
                   </>
                 )}
@@ -357,19 +356,18 @@ export default function DeviceDetail() {
           })()}
 
           {d.type === 'Tablet' && (() => {
-            const tablet = d as Tablet
-            const fTablet = form?.type === 'Tablet' ? form as Tablet : null
+            const fTablet = form?.type === 'Tablet' ? form : null
             return (
               <Section title="Tablet Details">
                 {editing && fTablet ? (
                   <>
-                    <EditSelect label="Charger" value={fTablet.includesCharger} options={lookups.chargerStatuses} onChange={set('includesCharger') as (v: ChargerStatus) => void} />
-                    <EditSelect label="Working Battery" value={fTablet.workingBattery} options={lookups.workingBatteryOpts} onChange={set('workingBattery') as (v: WorkingBattery) => void} />
+                    <EditSelect label="Charger" value={(fTablet.includesCharger ?? 'Unknown') as ChargerStatus} options={lookups.chargerStatuses} onChange={set('includesCharger') as (v: ChargerStatus) => void} />
+                    <EditSelect label="Working Battery" value={(fTablet.workingBattery ?? 'Unknown') as WorkingBattery} options={lookups.workingBatteryOpts} onChange={set('workingBattery') as (v: WorkingBattery) => void} />
                   </>
                 ) : (
                   <>
-                    <Field label="Charger" value={tablet.includesCharger} />
-                    <Field label="Working Battery" value={tablet.workingBattery} />
+                    <Field label="Charger" value={d.includesCharger} />
+                    <Field label="Working Battery" value={d.workingBattery} />
                   </>
                 )}
               </Section>

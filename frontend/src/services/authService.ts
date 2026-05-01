@@ -67,7 +67,7 @@ export async function loginRequest(username: string, password: string): Promise<
     const user = MOCK_USERS[username.toLowerCase()]
     if (!user || user.password !== password) throw new Error('Invalid username or password')
     const data: LoginResponse = { token: 'mock-token', username, chapterRoles: user.chapterRoles, role: user.role }
-    setStoredAuth({ ...data, chapterIds: data.chapterRoles.map(cr => cr.chapterId) })
+    setStoredAuth({ token: data.token!, username: data.username!, chapterRoles: data.chapterRoles!, chapterIds: data.chapterRoles!.map(cr => cr.chapterId), role: data.role! })
     return data
   }
 
@@ -82,6 +82,6 @@ export async function loginRequest(username: string, password: string): Promise<
   if (!res.ok) throw new Error('Login failed — please try again')
 
   const data = (await res.json()) as LoginResponse
-  setStoredAuth({ token: data.token, username: data.username, chapterRoles: data.chapterRoles, chapterIds: data.chapterRoles.map(cr => cr.chapterId), role: data.role })
+  setStoredAuth({ token: data.token!, username: data.username!, chapterRoles: data.chapterRoles!, chapterIds: data.chapterRoles!.map(cr => cr.chapterId), role: data.role! })
   return data
 }

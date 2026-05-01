@@ -9,10 +9,11 @@
  *   DELETE /api/devices/:id    → 204
  */
 
-import { apiGet, apiPost, apiPut, apiDelete } from './api'
-import type { AnyDevice } from '../types/inventory'
+import { apiGet, apiPostVoid, apiPut, apiDelete } from './api'
+import type { AnyDevice, InsertDesktopRequest, InsertLaptopRequest, InsertTabletRequest } from '../types/inventory'
 import { ALL_DEVICES, CHAPTER_ID_MAP } from '../data/mockData'
 import { getStoredAuth } from './authService'
+import { getChapters } from './chapterService'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
@@ -21,7 +22,7 @@ export async function getDevices(): Promise<AnyDevice[]> {
   const auth = getStoredAuth()
   if (auth && auth.chapterIds.length > 0) {
     const names = new Set<string>(auth.chapterIds.map(id => CHAPTER_ID_MAP[id]).filter(Boolean))
-    return Promise.resolve(ALL_DEVICES.filter(d => names.has(d.chapter)))
+    return Promise.resolve(ALL_DEVICES.filter(d => names.has(d.chapter ?? '')))
   }
   return Promise.resolve([...ALL_DEVICES])
 }
@@ -33,16 +34,70 @@ export async function getDevice(id: number): Promise<AnyDevice | null> {
 }
 
 export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
+  if (USE_MOCK) {
+    ALL_DEVICES.push(device)
+    return Promise.resolve(device)
+  }
+
+  const chapters = await getChapters()
+  const chapter = chapters.find(c => c.name === device.chapter)
+  if (!chapter) throw new Error(`Unknown chapter: ${device.chapter}`)
+
+  const chapterId = chapter.id
+  const assetId = device.id > 0 ? device.id : undefined
+  const common = {
+    chapterId,
+    assetId,
+    manufacturer: device.manufacturer,
+    model: device.model,
+    year: device.year,
+    status: device.status,
+    cpu: device.cpu ?? undefined,
+    ram: device.ram,
+    ramGeneration: device.ramGeneration ?? undefined,
+    storageAmount: device.storage,
+    storageType: device.storageType ?? undefined,
+    value: device.value ?? undefined,
+    acquisitionDate: device.acquisitionDate ?? undefined,
+  }
+
   if (device.type === 'Desktop') {
-    return apiPost<AnyDevice>('/devices/desktop', device)
+    const body: InsertDesktopRequest = {
+      ...common,
+      hasWifi: device.hasWifi ?? undefined,
+    }
+    await apiPostVoid('/devices/desktop', body)
+  } else if (device.type === 'Laptop') {
+    const body: InsertLaptopRequest = {
+      ...common,
+      includesCharger: device.includesCharger ?? undefined,
+      designBatteryCapacity: device.designBatteryCapacity ?? undefined,
+      actualBatteryCapacity: device.actualBatteryCapacity ?? undefined,
+    }
+    await apiPostVoid('/devices/laptop', body)
+  } else if (device.type === 'Tablet') {
+    const body: InsertTabletRequest = {
+      ...common,
+      includesCharger: device.includesCharger ?? undefined,
+      workingBattery: device.workingBattery ?? undefined,
+    }
+    await apiPostVoid('/devices/tablet', body)
+  } else {
+    throw new TypeError('Unrecognized device type')
   }
-  if (device.type === 'Laptop') {
-    return apiPost<AnyDevice>('/devices/laptop', device)
+
+  // Backend returns 201 with no body; fetch the created device by its ID.
+  // If assetId was pre-assigned, use it; otherwise search for the newest matching record.
+  if (assetId !== undefined) {
+    return apiGet<AnyDevice>(`/devices/${assetId}`)
   }
-  if (device.type === 'Tablet') {
-    return apiPost<AnyDevice>('/devices/tablet', device)
-  }
-  throw new TypeError('Unrecognized device type')
+  // Auto-generated: re-fetch device list and find the most recently added match
+  const devices = await apiGet<AnyDevice[]>('/devices')
+  const match = devices
+    .filter(d => d.manufacturer === device.manufacturer && d.model === device.model && d.chapter === device.chapter)
+    .at(-1)
+  if (!match) throw new Error('Created device not found after insert')
+  return match
 }
 
 export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyDevice> {

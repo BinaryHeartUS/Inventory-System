@@ -128,10 +128,10 @@ export default function Devices() {
         const s = search.trim().toLowerCase()
         return (
           String(d.id).includes(s)                     ||
-          d.manufacturer.toLowerCase().includes(s)     ||
-          d.model.toLowerCase().includes(s)            ||
+          d.manufacturer?.toLowerCase().includes(s)     ||
+          d.model?.toLowerCase().includes(s)            ||
           (d.cpu?.toLowerCase().includes(s) ?? false)  ||
-          d.chapter.toLowerCase().includes(s)
+          d.chapter?.toLowerCase().includes(s)
         )
       }
       return true

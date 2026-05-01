@@ -297,7 +297,7 @@ export interface paths {
             };
             responses: {
                 /** @description Note added successfully */
-                200: {
+                201: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -427,7 +427,55 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /**
+         * Create a new chapter
+         * @description Creates a new chapter. Restricted to national admins: users with the Admin role who are affiliated with the National chapter.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateChapterRequest"];
+                };
+            };
+            responses: {
+                /** @description Chapter created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChapterSummary"];
+                    };
+                };
+                /** @description Missing or blank chapter name */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Caller is not affiliated with the National chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -562,10 +610,10 @@ export interface paths {
                     /**
                      * @example {
                      *       "chapterId": 1,
-                     *       "manufacturer": "DELL",
+                     *       "manufacturer": "Dell",
                      *       "model": "Optiplex 7010",
                      *       "year": 2022,
-                     *       "status": "NOT_STARTED",
+                     *       "status": "Not Started",
                      *       "assetId": null,
                      *       "cpu": null,
                      *       "ram": null,
@@ -644,11 +692,11 @@ export interface paths {
                     /**
                      * @example {
                      *       "chapterId": 1,
-                     *       "manufacturer": "DELL",
+                     *       "manufacturer": "Dell",
                      *       "model": "Optiplex 7010",
                      *       "year": 2022,
-                     *       "status": "NOT_STARTED",
-                     *       "includesCharger": "INCLUDED",
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
                      *       "assetId": null,
                      *       "cpu": null,
                      *       "ram": null,
@@ -668,6 +716,89 @@ export interface paths {
             };
             responses: {
                 /** @description Laptop added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Asset ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/tablet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a new tablet to the database
+         * @description Adds a tablet with the specified attributes
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
+                     *       "assetId": null,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "workingBattery": "Yes"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertTabletRequest"];
+                };
+            };
+            responses: {
+                /** @description Tablet added successfully */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -884,10 +1015,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @enum {string} */
-        ChargerStatus: "INCLUDED" | "NOT_INCLUDED" | "UNKNOWN";
-        /** @enum {string} */
-        Status: "NOT_STARTED" | "IN_PROGRESS" | "READY_TO_DONATE" | "DONATED" | "SCRAPPED" | "UNKNOWN";
         ChapterRole: {
             /** Format: int32 */
             chapterId: number;
@@ -906,6 +1033,9 @@ export interface components {
             chapterId: number;
             role?: string;
         };
+        CreateChapterRequest: {
+            name?: string;
+        };
         InsertDesktopRequest: {
             /** Format: int32 */
             chapterId: number;
@@ -913,7 +1043,7 @@ export interface components {
             model?: string;
             /** Format: int32 */
             year: number;
-            status?: components["schemas"]["Status"];
+            status?: string;
             /** Format: int32 */
             assetId?: number;
             cpu?: string;
@@ -940,8 +1070,8 @@ export interface components {
             model?: string;
             /** Format: int32 */
             year: number;
-            status?: components["schemas"]["Status"];
-            includesCharger?: components["schemas"]["ChargerStatus"];
+            status?: string;
+            includesCharger?: string;
             /** Format: int32 */
             assetId?: number;
             cpu?: string;
@@ -963,6 +1093,34 @@ export interface components {
             designBatteryCapacity?: number;
             /** Format: int32 */
             actualBatteryCapacity?: number;
+        };
+        InsertTabletRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            status?: string;
+            includesCharger?: string;
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
+            workingBattery?: string;
         };
         LoginRequest: {
             username?: string;

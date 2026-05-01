@@ -287,12 +287,12 @@ function AppInner() {
 
   // TODO: Replace with POST /api/assets (device/part/tool) when backend is ready.
   async function handleAddAsset(asset: AnyDevice | Part | Tool) {
-    if ('model' in asset) {
+    if ('ram' in asset) {
       const saved = await createDevice(asset as AnyDevice)
       setPendingScanId(null)
       setPendingPrintId(saved.id)
       navigate(`/devices/${saved.id}`)
-    } else if ('description' in asset) {
+    } else if ('wasPurchased' in asset) {
       const saved = await createPart(asset as Part)
       setPendingScanId(null)
       setPendingPrintId(saved.id)
