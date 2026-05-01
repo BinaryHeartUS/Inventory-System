@@ -95,7 +95,7 @@ export default function Chapters() {
             {visibleChapters.map(ch => {
               const devices  = allDevices.filter(d => d.chapter === ch.name)
               const parts    = allParts.filter(p => p.chapterId === ch.id)
-              const tools    = allTools.filter(t => t.chapter === ch.name)
+              const tools    = allTools.filter(t => t.chapterId === ch.id)
               const pipeline = devices.filter(d => d.status === 'Not Started' || d.status === 'In Progress').length
               const ready    = devices.filter(d => d.status === 'Ready To Donate').length
               const donated  = devices.filter(d => d.status === 'Donated').length

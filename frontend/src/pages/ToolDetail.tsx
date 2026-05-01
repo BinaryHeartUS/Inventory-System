@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import type { Tool } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
 import { getTool, updateTool } from '../services/toolService'
-import { useLookups } from '../hooks/useLookups'
+import { useChapters, useVisibleChapters } from '../context/ChapterContext'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -53,41 +53,6 @@ function EditSelect<T extends string>({ label, value, options, onChange }: {
   )
 }
 
-function EditCombo({ label, value, options, onChange, placeholder, maxLength }: {
-  label: string; value: string | null; options: string[]
-  onChange: (v: string | null) => void; placeholder?: string; maxLength?: number
-}) {
-  const startsCustom = value !== null && value !== '' && !options.includes(value)
-  const [customMode, setCustomMode] = useState(startsCustom)
-  const [customText, setCustomText] = useState(startsCustom ? (value ?? '') : '')
-  const selectVal = customMode ? '__custom__' : (value ?? '')
-
-  function handleSelect(v: string) {
-    if (v === '__custom__') { setCustomMode(true) }
-    else if (v === '') { setCustomMode(false); onChange(null) }
-    else { setCustomMode(false); onChange(v) }
-  }
-  function handleCustom(v: string) { setCustomText(v); onChange(v || null) }
-
-  return (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <select value={selectVal} onChange={e => handleSelect(e.target.value)}
-        className={`${inputCls} cursor-pointer`}>
-        <option value="">—</option>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-        <option value="__custom__">Custom…</option>
-      </select>
-      {customMode && (
-        <input autoFocus type="text" value={customText}
-          placeholder={placeholder ?? 'Enter value'} maxLength={maxLength}
-          onChange={e => handleCustom(e.target.value)}
-          className={`${inputCls} mt-2`} />
-      )}
-    </div>
-  )
-}
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -107,7 +72,8 @@ export default function ToolDetail() {
   const { id } = useParams<{ id: string }>()
   const numId = Number(id)
 
-  const lookups = useLookups()
+  const { chapterName } = useChapters()
+  const visibleChapters = useVisibleChapters()
 
   const [tool, setTool] = useState<Tool | null>(null)
   const [loading, setLoading] = useState(true)
@@ -176,7 +142,7 @@ export default function ToolDetail() {
       <div className="flex items-center gap-2 text-xs text-slate-400">
         <Link to="/tools" className="hover:text-slate-600 transition-colors">Tools</Link>
         <span>/</span>
-        <span className="text-slate-600 font-medium">{tool.type}</span>
+        <span className="text-slate-600 font-medium">{tool.description}</span>
       </div>
 
       {/* Header */}
@@ -189,8 +155,8 @@ export default function ToolDetail() {
               </span>
               <span className="font-mono text-xs text-slate-400">#{t.id}</span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">{t.type}</h1>
-            <p className="text-sm text-slate-400 mt-1">{t.chapter}</p>
+            <h1 className="text-2xl font-bold text-slate-900">{t.description}</h1>
+            <p className="text-sm text-slate-400 mt-1">{chapterName(t.chapterId)}</p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {!editing && (
@@ -234,10 +200,8 @@ export default function ToolDetail() {
           <Section title="Details">
             {editing && form ? (
               <>
-                <EditCombo label="Tool Type" value={form.type} options={lookups.toolTypes}
-                  onChange={v => set('type')(v ?? '')} placeholder="e.g. Soldering Iron" maxLength={20} />
-                <EditSelect label="Chapter" value={form.chapter} options={lookups.chapters}
-                  onChange={set('chapter')} />
+                <EditSelect label="Chapter" value={chapterName(form.chapterId)} options={visibleChapters.map(c => c.name)}
+                  onChange={(v: string) => setForm(prev => prev ? { ...prev, chapterId: visibleChapters.find(c => c.name === v)?.id ?? prev.chapterId } : prev)} />
                 <EditText label="Description" value={form.description}
                   onChange={v => set('description')(v)}
                   placeholder="e.g. Arctic MX-4 4g tube" maxLength={500} />
@@ -254,8 +218,7 @@ export default function ToolDetail() {
               </>
             ) : (
               <>
-                <Field label="Tool Type" value={t.type} />
-                <Field label="Chapter" value={t.chapter} />
+                <Field label="Chapter" value={chapterName(t.chapterId)} />
                 <Field label="Description" value={t.description} />
                 <Field label="Value" value={t.value != null && t.value !== 0 ? `$${t.value.toFixed(2)}` : null} />
                 <Field label="Acquired" value={formatDate(t.acquisitionDate)} />

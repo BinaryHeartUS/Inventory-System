@@ -23,7 +23,6 @@ export interface LookupData {
   ramGenerations: string[]
   storageTypes: string[]
   partTypes: string[]
-  toolTypes: string[]
   deviceStatuses: DeviceStatus[]
   chargerStatuses: ChargerStatus[]
   workingBatteryOpts: WorkingBattery[]
@@ -39,7 +38,6 @@ export function useLookups(): LookupData {
     ramGenerations: [] as string[],
     storageTypes: [] as string[],
     partTypes: [] as string[],
-    toolTypes: [] as string[],
     deviceStatuses: [] as DeviceStatus[],
     chargerStatuses: [] as ChargerStatus[],
     workingBatteryOpts: [] as WorkingBattery[],

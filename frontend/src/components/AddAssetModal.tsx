@@ -36,7 +36,6 @@ interface FormState {
   wasPurchased: boolean
   containedIn: string
   // Tool
-  toolType: string
   toolDescription: string
   // Shared optional
   value: string             // optional monetary value (Asset.Value)
@@ -63,7 +62,6 @@ const DEFAULT_FORM: FormState = {
   description: '',
   wasPurchased: false,
   containedIn: '',
-  toolType: '',
   toolDescription: '',
   value: '',
 }
@@ -265,7 +263,6 @@ function FieldsForm({ category, subtype, form, setForm, lookups }: {
   if (category === 'Tool') {
     return (
       <div className="grid grid-cols-2 gap-5">
-        <FCombo label="Tool Type" value={form.toolType || null} options={lookups.toolTypes} onChange={v => set('toolType')(v ?? '')} req placeholder="e.g. Soldering Iron" maxLength={20} />
         <FSelect label="Chapter" value={form.chapter} options={lookups.chapters} onChange={set('chapter')} req />
         <FText label="Description" value={form.toolDescription} onChange={set('toolDescription')} req colSpan placeholder="e.g. Ventoy bootable 32GB drive" maxLength={500} />
         <FText label="Value ($)" value={form.value} onChange={set('value')} type="number" placeholder="e.g. 12.99" />
@@ -460,7 +457,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
   function isValid(): boolean {
     if (!category) return false
     const f = form
-    if (category === 'Tool') return f.toolType.trim() !== '' && f.toolDescription.trim() !== '' && f.chapter !== ''
+    if (category === 'Tool') return f.toolDescription.trim() !== '' && f.chapter !== ''
     if (category === 'Part') return !!f.partType && f.description.trim() !== '' && f.chapter !== ''
     // Device — RAM and storage default to 0 in the DB, so 0 is valid; only require non-empty strings
     if (!(f.manufacturer?.trim() && f.model.trim() && f.year && f.ram !== '' && f.storage !== '' && f.chapter)) return false
@@ -476,11 +473,11 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
     if (category === 'Tool') {
       const tool: Tool = {
         id: idMode === 'input' ? Number(inputId) : 0,
-        type: form.toolType.trim(),
         description: form.toolDescription.trim(),
-        chapter: form.chapter,
+        chapterId: chapterList.find(c => c.name === form.chapter)?.id ?? 0,
         acquisitionDate: form.acquisitionDate || null,
         value: form.value ? Number(form.value) : null,
+        donorId: null,
       }
       onAdd?.(tool)
       return

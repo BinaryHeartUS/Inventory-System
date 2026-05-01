@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTools } from '../services/toolService'
 import { useVisibleChapters } from '../context/ChapterContext'
+import { useChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 
 function formatDate(iso: string | null): string {
@@ -13,33 +14,30 @@ function formatDate(iso: string | null): string {
 export default function Tools() {
   const navigate = useNavigate()
   const [chapterFilter, setChapterFilter] = useState('All')
-  const [typeFilter,    setTypeFilter]    = useState('All')
 
   const [allTools, setAllTools] = useState<import('../types/inventory').Tool[]>([])
-  const chapters = useVisibleChapters().map(c => c.name)
+  const allChapters = useVisibleChapters()
+  const chapters = allChapters.map(c => c.name)
+  const { chapterName } = useChapters()
 
   useEffect(() => {
     getTools().then(setAllTools)
   }, [])
 
-  const toolTypes = useMemo(
-    () => Array.from(new Set(allTools.map(t => t.type))).sort(),
-    [allTools],
-  )
-
   const filtered = useMemo(() => {
     return allTools.filter(t => {
-      if (chapterFilter !== 'All' && t.chapter !== chapterFilter) return false
-      if (typeFilter    !== 'All' && t.type    !== typeFilter)    return false
+      if (chapterFilter !== 'All') {
+        const ch = allChapters.find(c => c.name === chapterFilter)
+        if (!ch || t.chapterId !== ch.id) return false
+      }
       return true
     })
-  }, [chapterFilter, typeFilter, allTools])
+  }, [chapterFilter, allTools, allChapters])
 
-  const hasFilters = chapterFilter !== 'All' || typeFilter !== 'All'
+  const hasFilters = chapterFilter !== 'All'
 
   function clearFilters() {
     setChapterFilter('All')
-    setTypeFilter('All')
   }
 
   return (
@@ -53,14 +51,6 @@ export default function Tools() {
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">
         <div className="flex flex-wrap gap-3 items-center">
-          <select
-            value={typeFilter}
-            onChange={e => setTypeFilter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
-          >
-            <option value="All">All Types</option>
-            {toolTypes.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
           <select
             value={chapterFilter}
             onChange={e => setChapterFilter(e.target.value)}
@@ -86,7 +76,7 @@ export default function Tools() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {['ID', 'Type', 'Description', 'Chapter', 'Value', 'Acquired'].map(h => (
+                {['ID', 'Description', 'Chapter', 'Value', 'Acquired'].map(h => (
                   <th key={h} className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
                     {h}
                   </th>
@@ -112,13 +102,8 @@ export default function Tools() {
                   className="hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   <td className="px-5 py-5 font-mono text-xs text-slate-400">{t.id}</td>
-                  <td className="px-5 py-5">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
-                      {t.type}
-                    </span>
-                  </td>
                   <td className="px-5 py-5 text-slate-600 max-w-xs truncate">{t.description}</td>
-                  <td className="px-5 py-5 text-slate-500">{t.chapter}</td>
+                  <td className="px-5 py-5 text-slate-500">{chapterName(t.chapterId)}</td>
                   <td className="px-5 py-5 text-slate-700">
                     {t.value != null ? `$${t.value.toFixed(2)}` : <span className="text-slate-300">—</span>}
                   </td>

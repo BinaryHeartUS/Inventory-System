@@ -8,7 +8,7 @@ interface LookupSection {
   title: string
   description: string
   endpoint: string
-  key: 'manufacturers' | 'ramGenerations' | 'storageTypes' | 'partTypes' | 'toolTypes'
+  key: 'manufacturers' | 'ramGenerations' | 'storageTypes' | 'partTypes'
 }
 
 const LOOKUP_SECTIONS: LookupSection[] = [
@@ -35,12 +35,6 @@ const LOOKUP_SECTIONS: LookupSection[] = [
     description: 'Part category names used when logging spare parts.',
     endpoint:    'POST /api/lookup/part-types',
     key:         'partTypes',
-  },
-  {
-    title:       'Tool Types',
-    description: 'Tool category names used when logging tools.',
-    endpoint:    'POST /api/lookup/tool-types',
-    key:         'toolTypes',
   },
 ]
 

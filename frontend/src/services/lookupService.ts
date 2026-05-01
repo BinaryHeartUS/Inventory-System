@@ -18,7 +18,6 @@ interface LookupResponse {
   ramGenerations: string[]
   storageTypes: string[]
   partTypes: string[]
-  toolTypes: string[]
 }
 
 export async function getAllLookups(): Promise<LookupResponse> {

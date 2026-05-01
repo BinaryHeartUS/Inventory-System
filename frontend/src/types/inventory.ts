@@ -12,8 +12,20 @@ export type InsertTabletRequest      = components["schemas"]["InsertTabletReques
 export type LoginRequest             = components["schemas"]["LoginRequest"]
 export type PostNoteRequest          = components["schemas"]["PostNoteRequest"]
 export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"]
-export type Note                     = components["schemas"]["NoteResponse"]
-export type Part                     = components["schemas"]["PartResponse"]
+export type Note = Omit<components["schemas"]["NoteResponse"], "text" | "date"> & {
+  text: string
+  date: string
+}
+export type Part = Omit<
+  components["schemas"]["PartResponse"],
+  "type" | "description" | "containedIn" | "acquisitionDate" | "value"
+> & {
+  type: string
+  description: string
+  containedIn: number | null
+  acquisitionDate: string | null
+  value: number | null
+}
 export type LookupResponse           = Required<components["schemas"]["LookupResponse"]>
 
 // These types have all fields always populated by the backend. Required<> strips

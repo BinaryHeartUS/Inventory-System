@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { getDevices } from '../services/deviceService'
 import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
-import { useVisibleChapters } from '../context/ChapterContext'
+import { useChapters, useVisibleChapters } from '../context/ChapterContext'
 import type { AnyDevice, Part, Tool } from '../types/inventory'
 import PageHeading from '../components/PageHeading'
 import ChapterTabs from '../components/ChapterTabs'
@@ -76,7 +76,9 @@ export default function Reports() {
   const [allParts,   setAllParts]   = useState<Part[]>([])
   const [allTools,   setAllTools]   = useState<Tool[]>([])
   const [chapter,    setChapter]    = useState('All')
-  const chapters = useVisibleChapters().map(c => c.name)
+  const visibleChapters = useVisibleChapters()
+  const { chapterName } = useChapters()
+  const chapters = visibleChapters.map(c => c.name)
 
   useEffect(() => {
     Promise.all([getDevices(), getParts(), getTools()])
@@ -84,8 +86,9 @@ export default function Reports() {
   }, [])
 
   const devices = chapter === 'All' ? allDevices : allDevices.filter(d => d.chapter === chapter)
-  const parts   = chapter === 'All' ? allParts   : allParts.filter(p => p.chapter === chapter)
-  const tools   = chapter === 'All' ? allTools   : allTools.filter(t => t.chapter === chapter)
+  const selectedChapterId = chapter === 'All' ? null : visibleChapters.find(c => c.name === chapter)?.id
+  const parts   = selectedChapterId == null ? allParts : allParts.filter(p => p.chapterId === selectedChapterId)
+  const tools   = selectedChapterId == null ? allTools : allTools.filter(t => t.chapterId === selectedChapterId)
 
   const donated     = devices.filter(d => d.status === 'Donated').length
   const inProgress  = devices.filter(d => d.status === 'Not Started' || d.status === 'In Progress').length
@@ -112,7 +115,7 @@ export default function Reports() {
     downloadCsv(`parts-${chapterSlug}-${today()}.csv`,
       ['ID', 'Type', 'Description', 'Chapter', 'Source', 'Contained In Device', 'Acquisition Date', 'Value ($)'],
       parts.map(p => [
-        p.id, p.type, p.description, p.chapter,
+        p.id, p.type, p.description, chapterName(p.chapterId),
         p.wasPurchased ? 'Purchased' : 'Donated',
         p.containedIn, p.acquisitionDate, p.value,
       ])
@@ -121,8 +124,8 @@ export default function Reports() {
 
   function exportTools() {
     downloadCsv(`tools-${chapterSlug}-${today()}.csv`,
-      ['ID', 'Type', 'Description', 'Chapter', 'Acquisition Date', 'Value ($)'],
-      tools.map(t => [t.id, t.type, t.description, t.chapter, t.acquisitionDate, t.value])
+      ['ID', 'Description', 'Chapter ID', 'Acquisition Date', 'Value ($)'],
+      tools.map(t => [t.id, t.description, t.chapterId, t.acquisitionDate, t.value])
     )
   }
 
@@ -216,7 +219,7 @@ export default function Reports() {
 
           <ExportCard
             title="Tools"
-            description="All tools in inventory with type, description, and acquisition info."
+            description="All tools in inventory with description and acquisition info."
             count={tools.length}
             colorText="text-orange-600"
             colorBg="bg-orange-50"

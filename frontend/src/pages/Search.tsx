@@ -7,12 +7,14 @@ import { getTools } from '../services/toolService'
 import type { AnyDevice, Part, Tool } from '../types/inventory'
 import StatusBadge from '../components/StatusBadge'
 import PageHeading from '../components/PageHeading'
+import { useChapters } from '../context/ChapterContext'
 
 export default function Search() {
   const [query,   setQuery]   = useState('')
   const [devices, setDevices] = useState<AnyDevice[]>([])
   const [parts,   setParts]   = useState<Part[]>([])
   const [tools,   setTools]   = useState<Tool[]>([])
+  const { chapterName } = useChapters()
 
   useEffect(() => {
     Promise.all([getDevices(), getParts(), getTools()])
@@ -36,14 +38,11 @@ export default function Search() {
     const partResults = parts.filter(p =>
       String(p.id).includes(q) ||
       p.type.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.chapter.toLowerCase().includes(q)
+      p.description.toLowerCase().includes(q)
     )
     const toolResults = tools.filter(t =>
       String(t.id).includes(q) ||
-      t.type.toLowerCase().includes(q) ||
-      t.description.toLowerCase().includes(q) ||
-      t.chapter.toLowerCase().includes(q)
+      t.description.toLowerCase().includes(q)
     )
     return { deviceResults, partResults, toolResults }
   }, [q, devices, parts, tools])
@@ -139,7 +138,7 @@ export default function Search() {
                 <span className="font-mono text-xs text-slate-400 w-14 shrink-0">#{p.id}</span>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 shrink-0">{p.type}</span>
                 <span className="text-sm text-slate-800 font-medium flex-1 truncate">{p.description}</span>
-                <span className="text-xs text-slate-400 hidden sm:block shrink-0">{p.chapter}</span>
+                <span className="text-xs text-slate-400 hidden sm:block shrink-0">{chapterName(p.chapterId)}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${p.wasPurchased ? 'bg-slate-100 text-slate-500' : 'bg-sky-50 text-sky-600'}`}>
                   {p.wasPurchased ? 'Purchased' : 'Donated'}
                 </span>
@@ -163,9 +162,7 @@ export default function Search() {
                 className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors"
               >
                 <span className="font-mono text-xs text-slate-400 w-14 shrink-0">#{t.id}</span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 shrink-0">{t.type}</span>
                 <span className="text-sm text-slate-800 font-medium flex-1 truncate">{t.description}</span>
-                <span className="text-xs text-slate-400 hidden sm:block shrink-0">{t.chapter}</span>
               </Link>
             ))}
           </div>
