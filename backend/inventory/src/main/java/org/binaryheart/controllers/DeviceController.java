@@ -156,10 +156,10 @@ public class DeviceController {
 							example = """
 									{
 									  "chapterId": 1,
-									  "manufacturer": "DELL",
+									  "manufacturer": "Dell",
 									  "model": "Optiplex 7010",
 									  "year": 2022,
-									  "status": "NOT_STARTED",
+									  "status": "Not Started",
 									  "assetId": null,
 									  "cpu": null,
 									  "ram": null,
@@ -219,11 +219,11 @@ public class DeviceController {
 							example = """
 									{
 									  "chapterId": 1,
-									  "manufacturer": "DELL",
+									  "manufacturer": "Dell",
 									  "model": "Optiplex 7010",
 									  "year": 2022,
-									  "status": "NOT_STARTED",
-									  "includesCharger": "INCLUDED",
+									  "status": "Not Started",
+									  "includesCharger": "Included",
 									  "assetId": null,
 									  "cpu": null,
 									  "ram": null,
@@ -284,11 +284,11 @@ public class DeviceController {
 							example = """
 									{
 									  "chapterId": 1,
-									  "manufacturer": "DELL",
+									  "manufacturer": "Dell",
 									  "model": "Optiplex 7010",
 									  "year": 2022,
-									  "status": "NOT_STARTED",
-									  "includesCharger": "INCLUDED",
+									  "status": "Not Started",
+									  "includesCharger": "Included",
 									  "assetId": null,
 									  "cpu": null,
 									  "ram": null,
@@ -299,7 +299,7 @@ public class DeviceController {
 									  "acquisitionDate": null,
 									  "recipientId": null,
 									  "donorId": null,
-									  "workingBattery": "YES"
+									  "workingBattery": "Yes"
 									}""") }),
 			responses = { @OpenApiResponse(
 					status = "201",

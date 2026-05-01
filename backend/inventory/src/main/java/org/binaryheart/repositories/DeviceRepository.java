@@ -161,7 +161,7 @@ public class DeviceRepository {
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
         stmt.setInt(4, request.year());
-        stmt.setString(5, request.status().getDatabaseValue());
+        stmt.setString(5, request.status());
         if (request.assetId() != null) {
             stmt.setInt(6, request.assetId());
         } else {
@@ -231,8 +231,8 @@ public class DeviceRepository {
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
         stmt.setInt(4, request.year());
-        stmt.setString(5, request.status().getDatabaseValue());
-        stmt.setString(6, request.includesCharger().getDatabaseValue());
+        stmt.setString(5, request.status());
+        stmt.setString(6, request.includesCharger());
         if (request.assetId() != null) {
             stmt.setInt(7, request.assetId());
         } else {
@@ -308,9 +308,9 @@ public class DeviceRepository {
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
         stmt.setInt(4, request.year());
-        stmt.setString(5, request.status().getDatabaseValue());
-        stmt.setString(6, request.includesCharger().getDatabaseValue());
-        stmt.setString(7, request.workingBattery().getDatabaseValue());
+        stmt.setString(5, request.status());
+        stmt.setString(6, request.includesCharger());
+        stmt.setString(7, request.workingBattery());
         if (request.assetId() != null) {
             stmt.setInt(8, request.assetId());
         } else {
