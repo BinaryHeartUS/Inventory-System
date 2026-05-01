@@ -38,7 +38,7 @@ public class NoteController {
                                     }
                                     """) }),
             responses = { @OpenApiResponse(
-                    status = "200",
+                    status = "201",
                     description = "Note added successfully",
                     content = { @OpenApiContent(
                             from = NoteResponse.class) }),
