@@ -91,6 +91,7 @@ export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyD
 
   const common = {
     chapterId: chapter.id,
+    assetId: id,
     manufacturer: updates.manufacturer,
     model: updates.model,
     year: updates.year,
