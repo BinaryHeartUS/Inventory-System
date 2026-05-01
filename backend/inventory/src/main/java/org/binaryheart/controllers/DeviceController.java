@@ -205,12 +205,6 @@ public class DeviceController {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 
 		try {
-			boolean validChapter = chapterService.getAllChapters().stream()
-					.anyMatch(c -> c.id() == request.chapterId());
-			if (!validChapter) {
-				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
-				return;
-			}
 			AuthController.requireChapterAccess(ctx, request.chapterId());
 			service.insertDesktop(request);
 			ctx.status(201).result("Desktop added successfully");
@@ -272,12 +266,6 @@ public class DeviceController {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
 
 		try {
-			boolean validChapter = chapterService.getAllChapters().stream()
-					.anyMatch(c -> c.id() == request.chapterId());
-			if (!validChapter) {
-				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
-				return;
-			}
 			AuthController.requireChapterAccess(ctx, request.chapterId());
 			service.insertLaptop(request);
 			ctx.status(201).result("Laptop added successfully");
