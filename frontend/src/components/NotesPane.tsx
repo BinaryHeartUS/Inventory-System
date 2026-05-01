@@ -14,9 +14,7 @@ import { getNotesByAsset, createNote, updateNote } from '../services/noteService
 function formatNoteDate(iso: string) {
   const d = new Date(iso)
   return (
-    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
-    ' · ' +
-    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   )
 }
 
