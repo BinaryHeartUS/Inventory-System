@@ -88,8 +88,8 @@ public class NoteController {
                             description = "Database error") })
     public static void getNotes(Context ctx) {
         try {
-            // int assetId = Integer.parseInt(ctx.pathParam("id"));
-            NoteResponse[] res = service.getNotes(1);
+            int assetId = Integer.parseInt(ctx.pathParam("id"));
+            NoteResponse[] res = service.getNotes(assetId);
             ctx.status(200).json(res);
         } catch (SQLException e) {
             ctx.status(500).result("Database error");
