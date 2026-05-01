@@ -208,8 +208,8 @@ public class DeviceService {
         if (request.assetId() <= 0) {
             throw new BadArgumentException("Asset ID must be positive");
         }
-        if (request.designBatteryCapacity() != null && request.designBatteryCapacity() <= 0) {
-            throw new BadArgumentException("Design battery capacity must be positive or not specified");
+        if (request.designBatteryCapacity() != null && request.designBatteryCapacity() < 0) {
+            throw new BadArgumentException("Design battery capacity must be non-negative or not specified");
         }
         if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
             throw new BadArgumentException("Actual battery capacity must be non-negative or not specified");
