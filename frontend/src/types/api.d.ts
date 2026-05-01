@@ -4,6 +4,270 @@
  */
 
 export interface paths {
+    "/api/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List accounts
+         * @description Admins see all accounts. Chapter Admins see only accounts in their chapters.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account list returned */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountSummary"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a new account
+         * @description Admins can create Chapter Admin / Editor / Viewer accounts for any chapter. Chapter Admins can create Editor / Viewer accounts for their own chapters.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateAccountRequest"];
+                };
+            };
+            responses: {
+                /** @description Account created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AccountSummary"];
+                    };
+                };
+                /** @description Invalid request or forbidden role */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Username already taken */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an account (admin only) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Volunteer ID to delete */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Cannot delete own account */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{id}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a chapter/role affiliation to an existing account */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Volunteer ID */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddAffiliationRequest"];
+                };
+            };
+            responses: {
+                /** @description Affiliation added */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid role or missing chapter access */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Affiliation already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{id}/roles/{chapterId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update the role for a chapter affiliation */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Volunteer ID */
+                    id: string;
+                    /** @description Chapter ID */
+                    chapterId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateAffiliationRequest"];
+                };
+            };
+            responses: {
+                /** @description Role updated */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid role or missing chapter access */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/assets/parts": {
         parameters: {
             query?: never;
@@ -47,21 +311,1241 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a list of notes belonging to a given asset */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The unique ID of the asset whose notes will be retrieved */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Notes fetched successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteResponse"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Add a new note to an asset with the given ID */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The unique ID of the asset to which the new note will be assigned */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *         "text": "New Note"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["PostNoteRequest"];
+                };
+            };
+            responses: {
+                /** @description Note added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteResponse"];
+                    };
+                };
+                /** @description Missing required parameters */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login
+         * @description Authenticate a volunteer and receive a JWT token
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["LoginRequest"];
+                };
+            };
+            responses: {
+                /** @description Login successful */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LoginResponse"];
+                    };
+                };
+                /** @description Missing username or password */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid credentials */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chapters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all chapters */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Chapter list */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChapterSummary"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a new chapter
+         * @description Creates a new chapter. Restricted to national admins: users with the Admin role who are affiliated with the National chapter.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateChapterRequest"];
+                };
+            };
+            responses: {
+                /** @description Chapter created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChapterSummary"];
+                    };
+                };
+                /** @description Missing or blank chapter name */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Caller is not affiliated with the National chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve all devices
+         * @description Returns a list of all devices.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Devices retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GetDeviceResponse"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/count/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve the number of devices of a given type
+         * @description Returns the count of devices by type (desktop, laptop, tablet). Optionally filter by status: 'ready-to-donate' or 'donated'. Omitting the status parameter returns the active inventory count.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter by status: ready-to-donate or donated */
+                    status?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Device type: desktop, laptop, or tablet */
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Count retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid device type or status */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/desktop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a new desktop to the database
+         * @description Adds a desktop with the specified attributes
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "assetId": null,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "hasWifi": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertDesktopRequest"];
+                };
+            };
+            responses: {
+                /** @description Desktop added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Asset ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/desktop/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates a desktop in the database
+         * @description Updates a desktop with the specified ID and attributes
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The asset ID of the desktop to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "assetId": 10000,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "hasWifi": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertDesktopRequest"];
+                };
+            };
+            responses: {
+                /** @description Desktop updated successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Desktop with specified ID does not exist */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/laptop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a new laptop to the database
+         * @description Adds a laptop with the specified attributes
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
+                     *       "assetId": null,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "designBatteryCapacity": null,
+                     *       "actualBatteryCapacity": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertLaptopRequest"];
+                };
+            };
+            responses: {
+                /** @description Laptop added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Asset ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/laptop/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates a laptop in the database
+         * @description Updates a laptop with the specified ID and attributes
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The asset ID of the laptop to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
+                     *       "assetId": 10000,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "designBatteryCapacity": null,
+                     *       "actualBatteryCapacity": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertLaptopRequest"];
+                };
+            };
+            responses: {
+                /** @description Laptop updated successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Laptop with specified ID does not exist */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/tablet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a new tablet to the database
+         * @description Adds a tablet with the specified attributes
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
+                     *       "assetId": null,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "workingBattery": "Yes"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertTabletRequest"];
+                };
+            };
+            responses: {
+                /** @description Tablet added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Asset ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/tablet/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates a tablet in the database
+         * @description Updates a tablet with the specified ID and attributes
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The asset ID of the tablet to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
+                     *       "assetId": 10000,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "workingBattery": "Yes"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertTabletRequest"];
+                };
+            };
+            responses: {
+                /** @description Tablet updated successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tablet with specified ID does not exist */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a device with a specific ID
+         * @description Returns the device with the given ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Device ID: A unique number assigned to each device */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Device retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GetDeviceResponse"];
+                    };
+                };
+                /** @description Non-numeric or non-positive device ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description ID does not match any existing devices */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health check */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service is up */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve all lookup option lists
+         * @description Returns all dropdown/combo option lists in a single request.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Lookup data */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LookupResponse"];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ping */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Returns pong */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        PartResponse: {
-            acquisitionDate?: string;
-            description?: string;
-            type?: string;
+        ChapterRole: {
             /** Format: int32 */
             chapterId: number;
+            role?: string;
+        };
+        AddAffiliationRequest: {
             /** Format: int32 */
-            containedIn?: number;
-            wasPurchased: boolean;
+            chapterId: number;
+            role?: string;
+        };
+        CreateAccountRequest: {
+            name?: string;
+            username?: string;
+            password?: string;
+            /** Format: int32 */
+            chapterId: number;
+            role?: string;
+        };
+        CreateChapterRequest: {
+            name?: string;
+        };
+        InsertDesktopRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            status?: string;
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
+            hasWifi?: boolean;
+        };
+        InsertLaptopRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            status?: string;
+            includesCharger?: string;
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
+            /** Format: int32 */
+            designBatteryCapacity?: number;
+            /** Format: int32 */
+            actualBatteryCapacity?: number;
+        };
+        InsertTabletRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            status?: string;
+            includesCharger?: string;
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
+            workingBattery?: string;
+        };
+        LoginRequest: {
+            username?: string;
+            password?: string;
+        };
+        PostNoteRequest: {
+            text?: string;
+        };
+        UpdateAffiliationRequest: {
+            role?: string;
+        };
+        AccountSummary: {
             /** Format: int32 */
             id: number;
+            username?: string;
+            name?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+        };
+        ChapterSummary: {
+            /** Format: int32 */
+            id: number;
+            name?: string;
+        };
+        GetDeviceResponse: {
+            type?: string;
+            /** Format: int32 */
+            id: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: double */
+            value: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storage: number;
+            storageType?: string;
+            status?: string;
+            hasWifi?: boolean;
+            includesCharger?: string;
+            /** Format: int32 */
+            designBatteryCapacity?: number;
+            /** Format: int32 */
+            actualBatteryCapacity?: number;
+            /** Format: double */
+            batteryHealth?: number;
+            workingBattery?: string;
+            chapter?: string;
+            /** Format: date */
+            donatedDate?: string;
+        };
+        LoginResponse: {
+            token?: string;
+            username?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+            role?: string;
+        };
+        LookupResponse: {
+            deviceStatuses?: string[];
+            chargerStatuses?: string[];
+            workingBatteryOpts?: string[];
+            manufacturers?: string[];
+            ramGenerations?: string[];
+            storageTypes?: string[];
+            partTypes?: string[];
+            toolTypes?: string[];
+        };
+        NoteResponse: {
+            /** Format: int32 */
+            id: number;
+            text?: string;
+            date?: string;
+            /** Format: int32 */
+            assetId: number;
+        };
+        PartResponse: {
+            /** Format: int32 */
+            id: number;
+            type?: string;
+            description?: string;
+            wasPurchased: boolean;
+            /** Format: int32 */
+            containedIn?: number;
+            /** Format: int32 */
+            chapterId: number;
+            acquisitionDate?: string;
             /** Format: double */
             value?: number;
         };
