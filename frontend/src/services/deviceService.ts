@@ -33,9 +33,16 @@ export async function getDevice(id: number): Promise<AnyDevice | null> {
 }
 
 export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
-  if (!USE_MOCK) return apiPost<AnyDevice>('/devices', device)
-  ALL_DEVICES.push(device)
-  return Promise.resolve(device)
+  if (device.type === 'Desktop') {
+    return apiPost<AnyDevice>('/devices/desktop', device)
+  }
+  if (device.type === 'Laptop') {
+    return apiPost<AnyDevice>('/devices/laptop', device)
+  }
+  if (device.type === 'Tablet') {
+    return apiPost<AnyDevice>('/devices/tablet', device)
+  }
+  throw new TypeError('Unrecognized device type')
 }
 
 export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyDevice> {
