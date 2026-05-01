@@ -10,7 +10,7 @@ BEGIN
     VALUES (
         'Developer',
         'developer',
-        '$2b$10$LDYO79goyXjreCvjS4iiuedn8wKII6tlfyOJPbnTOUVx/eb2ig3Q2'
+        '$2a$12$vt.OyANuxJlYbsXcb.ERXOO01cYo88yt.VUjE3XJE3Tbtl/fZypfu'
     )
     ON CONFLICT (Username) DO NOTHING;
 

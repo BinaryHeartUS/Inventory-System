@@ -54,6 +54,7 @@ services:
       DB_URL: jdbc:postgresql://db:5432/inventory
       DB_USER: api_user
       DB_PASSWORD: ${API_USER_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
 
   frontend:
     build:
