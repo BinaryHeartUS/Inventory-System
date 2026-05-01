@@ -32,5 +32,3 @@ backend/import/target/
 backend/import/target/*
 backend/common/target/
 dependency-reduced-pom.xml
-
-.devcontainer/
