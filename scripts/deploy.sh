@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./scripts/deploy.sh user@your-server-ip
+# Usage: ./scripts/deploy.sh user@your-server-ip [--reset]
+#   --reset  Wipes the database and re-runs all migrations from scratch.
+#            Use during development/staging only — destroys all data.
+#
 # Requires: ssh key auth set up on the target server, docker installed on the server
 #
 # Required .env variables on the server at /opt/inventory-system/.env:
@@ -18,7 +21,8 @@ set -euo pipefail
 #   mkdir -p /opt/inventory-system && cp .env.example /opt/inventory-system/.env
 #   # edit /opt/inventory-system/.env with real values
 
-TARGET="${1:?Usage: deploy.sh user@host}"
+TARGET="${1:?Usage: deploy.sh user@host [--reset]}"
+RESET="${2:-}"
 REMOTE_DIR="/opt/inventory-system"
 
 echo "Deploying to $TARGET..."
@@ -37,6 +41,13 @@ ssh "$TARGET" bash <<EOF
     echo "ERROR: .env file not found at $REMOTE_DIR/.env"
     echo "Copy .env.example to .env and fill in the required values."
     exit 1
+  fi
+
+  if [ "$RESET" = "--reset" ]; then
+    echo "WARNING: --reset flag set. Wiping database and all containers..."
+    docker compose -f docker-compose.prod.yml down
+    rm -rf "$REMOTE_DIR/pgdata"
+    echo "Database wiped."
   fi
 
   # Caddy handles TLS automatically via Let's Encrypt on first boot.
