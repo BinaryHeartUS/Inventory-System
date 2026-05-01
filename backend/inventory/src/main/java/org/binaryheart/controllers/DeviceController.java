@@ -1,13 +1,20 @@
 package org.binaryheart.controllers;
 
-import io.javalin.http.Context;
-import io.javalin.openapi.*;
+import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.post;
+import static io.javalin.apibuilder.ApiBuilder.put;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.binaryheart.auth.AppRole;
+import org.binaryheart.responses.ChapterSummary;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
-import org.binaryheart.auth.AppRole;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
@@ -15,16 +22,34 @@ import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
 
-import java.sql.SQLException;
-
-import static io.javalin.apibuilder.ApiBuilder.get;
-import static io.javalin.apibuilder.ApiBuilder.post;
-import static io.javalin.apibuilder.ApiBuilder.put;
+import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
+import io.javalin.openapi.HttpMethod;
+import io.javalin.openapi.OpenApi;
+import io.javalin.openapi.OpenApiContent;
+import io.javalin.openapi.OpenApiParam;
+import io.javalin.openapi.OpenApiRequestBody;
+import io.javalin.openapi.OpenApiResponse;
+import io.javalin.openapi.OpenApiSecurity;
 
 public class DeviceController {
 
 	private static final DeviceService service = new DeviceService();
 	private static final ChapterService chapterService = new ChapterService();
+
+	/**
+	 * Throws 403 if the caller is not a member of the given chapter. Members of the
+	 * National chapter are granted access to all chapters.
+	 */
+	private static void requireChapterAccess(Context ctx, int chapterId) throws SQLException {
+		List<Integer> userChapterIds = ctx.attribute("chapterIds");
+		if (userChapterIds == null || userChapterIds.isEmpty())
+			throw new ForbiddenResponse("Access denied");
+		if (userChapterIds.contains(chapterService.getNationalChapterId()))
+			return;
+		if (!userChapterIds.contains(chapterId))
+			throw new ForbiddenResponse("Access denied: not a member of chapter " + chapterId);
+	}
 
 	public static void registerRoutes() {
 		get("/count/{type}", DeviceController::getDeviceCount, AppRole.AUTHENTICATED);
@@ -108,6 +133,12 @@ public class DeviceController {
 		try {
 			int id = Integer.parseInt(idStr);
 			GetDeviceResponse result = service.getDevice(id);
+			Map<String, Integer> chapterNameToId = chapterService.getAllChapters().stream()
+					.collect(Collectors.toMap(ChapterSummary::name, ChapterSummary::id));
+			Integer deviceChapterId = chapterNameToId.get(result.chapter());
+			if (deviceChapterId == null)
+				throw new ForbiddenResponse("Access denied");
+			requireChapterAccess(ctx, deviceChapterId);
 			ctx.status(200).json(result);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric device ID: " + idStr);
@@ -138,8 +169,21 @@ public class DeviceController {
 							description = "Database error") })
 	public static void getAllDevices(Context ctx) {
 		try {
-			GetDeviceResponse[] result = service.getAllDevices().toArray(new GetDeviceResponse[0]);
-			ctx.status(200).json(result);
+			List<GetDeviceResponse> devices = service.getAllDevices();
+			List<Integer> userChapterIds = ctx.attribute("chapterIds");
+			if (userChapterIds == null || userChapterIds.isEmpty()) {
+				ctx.status(200).json(new GetDeviceResponse[0]);
+				return;
+			}
+			if (!userChapterIds.contains(chapterService.getNationalChapterId())) {
+				Map<String, Integer> chapterNameToId = chapterService.getAllChapters().stream()
+						.collect(Collectors.toMap(ChapterSummary::name, ChapterSummary::id));
+				devices = devices.stream().filter(d -> {
+					Integer cid = chapterNameToId.get(d.chapter());
+					return cid != null && userChapterIds.contains(cid);
+				}).collect(Collectors.toList());
+			}
+			ctx.status(200).json(devices.toArray(new GetDeviceResponse[0]));
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -198,6 +242,7 @@ public class DeviceController {
 				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
 				return;
 			}
+			requireChapterAccess(ctx, request.chapterId());
 			service.insertDesktop(request);
 			ctx.status(201).result("Desktop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
@@ -264,6 +309,7 @@ public class DeviceController {
 				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
 				return;
 			}
+			requireChapterAccess(ctx, request.chapterId());
 			service.insertLaptop(request);
 			ctx.status(201).result("Laptop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
@@ -329,6 +375,7 @@ public class DeviceController {
 				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
 				return;
 			}
+			requireChapterAccess(ctx, request.chapterId());
 			service.insertTablet(request);
 			ctx.status(201).result("Tablet added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
@@ -390,18 +437,13 @@ public class DeviceController {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 
 		try {
-			boolean validChapter = chapterService.getAllChapters().stream()
-					.anyMatch(c -> c.id() == request.chapterId());
-			if (!validChapter) {
-				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
-				return;
-			}
+			requireChapterAccess(ctx, request.chapterId());
 			service.updateDesktop(request);
-			ctx.status(201).result("Desktop added successfully");
+			ctx.status(200).result("Desktop updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
-			ctx.status(401).result(e.getMessage());
+			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -459,18 +501,13 @@ public class DeviceController {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
 
 		try {
-			boolean validChapter = chapterService.getAllChapters().stream()
-					.anyMatch(c -> c.id() == request.chapterId());
-			if (!validChapter) {
-				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
-				return;
-			}
+			requireChapterAccess(ctx, request.chapterId());
 			service.updateLaptop(request);
-			ctx.status(201).result("Laptop added successfully");
+			ctx.status(200).result("Laptop updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
-			ctx.status(401).result(e.getMessage());
+			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -527,18 +564,13 @@ public class DeviceController {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
 
 		try {
-			boolean validChapter = chapterService.getAllChapters().stream()
-					.anyMatch(c -> c.id() == request.chapterId());
-			if (!validChapter) {
-				ctx.status(400).result("Invalid chapter ID: " + request.chapterId());
-				return;
-			}
+			requireChapterAccess(ctx, request.chapterId());
 			service.updateTablet(request);
-			ctx.status(201).result("Tablet added successfully");
+			ctx.status(200).result("Tablet updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
-			ctx.status(401).result(e.getMessage());
+			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
