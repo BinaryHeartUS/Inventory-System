@@ -10,6 +10,7 @@ import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
+import org.binaryheart.requests.InsertTabletRequest;
 import org.binaryheart.responses.GetDeviceResponse;
 
 public class DeviceService {
@@ -110,6 +111,39 @@ public class DeviceService {
         }
         try {
             repository.insertLaptop(request);
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public void insertTablet(InsertTabletRequest request)
+            throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
+        if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
+                || request.model() == null || request.year() == 0 || request.status() == null
+                || request.includesCharger() == null || request.workingBattery() == null) {
+            throw new MissingRequiredParametersException("Missing required parameters");
+        }
+        if (request.ram() != null && request.ram() <= 0) {
+            throw new BadArgumentException("RAM amount must be positive or not specified");
+        }
+        if (request.storageAmount() != null && request.storageAmount() <= 0) {
+            throw new BadArgumentException("Storage amount must be positive or not specified");
+        }
+        if (request.value() != null && request.value() < 0) {
+            throw new BadArgumentException("Value must be non-negative or not specified");
+        }
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+            throw new BadArgumentException("Acquisition date cannot be in the future");
+        }
+        if (request.assetId() != null && request.assetId() <= 0) {
+            throw new BadArgumentException("Asset ID must be positive or not specified");
+        }
+        try {
+            repository.insertTablet(request);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
