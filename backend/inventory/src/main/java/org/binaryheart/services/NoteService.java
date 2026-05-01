@@ -16,4 +16,8 @@ public class NoteService {
 
         return repository.addNote(assetId, text);
     }
+
+    public NoteResponse[] getNotes(int assetId) throws SQLException {
+        return repository.getNotes(assetId);
+    }
 }
