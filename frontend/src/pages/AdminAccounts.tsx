@@ -80,8 +80,9 @@ export default function AdminAccounts() {
   // - Admins: all chapters
   // - Chapter Admins: only chapters where they specifically hold the Chapter Admin role
   const allChapters = useVisibleChapters()
+  const { chapters: allChaptersIncludingNational } = useChapters()
   const assignableChapters = isAdmin
-    ? allChapters
+    ? allChaptersIncludingNational
     : allChapters.filter(c =>
         (auth?.chapterRoles ?? []).some(cr => cr.chapterId === c.id && cr.role === 'Chapter Admin')
       )
