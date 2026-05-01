@@ -268,6 +268,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets/parts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a list of all parts currently in inventory */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Parts fetched successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartResponse"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/assets/{id}/notes": {
         parameters: {
             query?: never;
@@ -275,14 +318,47 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get a list of notes belonging to a given asset */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The unique ID of the asset whose notes will be retrieved */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Notes fetched successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NoteResponse"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         put?: never;
         /** Add a new note to an asset with the given ID */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
-                path?: never;
+                path: {
+                    /** @description The unique ID of the asset to which the new note will be assigned */
+                    id: string;
+                };
                 cookie?: never;
             };
             requestBody: {
@@ -667,6 +743,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/devices/desktop/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates a desktop in the database
+         * @description Updates a desktop with the specified ID and attributes
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The asset ID of the desktop to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "assetId": 10000,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "hasWifi": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertDesktopRequest"];
+                };
+            };
+            responses: {
+                /** @description Desktop updated successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Desktop with specified ID does not exist */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/devices/laptop": {
         parameters: {
             query?: never;
@@ -751,6 +912,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/devices/laptop/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates a laptop in the database
+         * @description Updates a laptop with the specified ID and attributes
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The asset ID of the laptop to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
+                     *       "assetId": 10000,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "designBatteryCapacity": null,
+                     *       "actualBatteryCapacity": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertLaptopRequest"];
+                };
+            };
+            responses: {
+                /** @description Laptop updated successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Laptop with specified ID does not exist */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/devices/tablet": {
         parameters: {
             query?: never;
@@ -828,6 +1076,92 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/tablet/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Updates a tablet in the database
+         * @description Updates a tablet with the specified ID and attributes
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The asset ID of the tablet to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "chapterId": 1,
+                     *       "manufacturer": "Dell",
+                     *       "model": "Optiplex 7010",
+                     *       "year": 2022,
+                     *       "status": "Not Started",
+                     *       "includesCharger": "Included",
+                     *       "assetId": 10000,
+                     *       "cpu": null,
+                     *       "ram": null,
+                     *       "ramGeneration": null,
+                     *       "storageAmount": null,
+                     *       "storageType": null,
+                     *       "value": null,
+                     *       "acquisitionDate": null,
+                     *       "recipientId": null,
+                     *       "donorId": null,
+                     *       "workingBattery": "Yes"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertTabletRequest"];
+                };
+            };
+            responses: {
+                /** @description Tablet updated successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tablet with specified ID does not exist */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1200,6 +1534,16 @@ export interface components {
             date?: string;
             /** Format: int32 */
             assetId: number;
+        };
+        PartResponse: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            typeId: number;
+            description?: string;
+            wasPurchased: boolean;
+            /** Format: int32 */
+            containedIn?: number;
         };
     };
     responses: never;

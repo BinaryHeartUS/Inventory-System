@@ -12,7 +12,8 @@ export type InsertTabletRequest      = components["schemas"]["InsertTabletReques
 export type LoginRequest             = components["schemas"]["LoginRequest"]
 export type PostNoteRequest          = components["schemas"]["PostNoteRequest"]
 export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"]
-export type NoteResponse             = components["schemas"]["NoteResponse"]
+export type Note                     = components["schemas"]["NoteResponse"]
+export type Part                     = components["schemas"]["PartResponse"]
 export type LookupResponse           = Required<components["schemas"]["LookupResponse"]>
 
 // These types have all fields always populated by the backend. Required<> strips
@@ -51,26 +52,6 @@ export type AnyDevice = Omit<
   batteryHealth?: number | null
   workingBattery?: string | null
   includesCharger?: string | null
-}
-
-// --- Part ---------------------------------------------------------------------
-export interface Part {
-  id: number
-  type: string
-  description: string
-  wasPurchased: boolean
-  containedIn: number | null
-  chapterId: number
-  acquisitionDate: string | null
-  value: number | null
-}
-
-// --- Note ---------------------------------------------------------------------
-export interface Note {
-  id: number
-  text: string
-  date: string
-  assetId: number
 }
 
 // --- Tool ---------------------------------------------------------------------

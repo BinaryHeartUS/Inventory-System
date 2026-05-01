@@ -60,7 +60,7 @@ public class NoteController {
             NoteResponse res = service.addNote(assetId, body.text());
             ctx.status(200).json(res);
         } catch (SQLException e) {
-            ctx.status(500).result("Database error");
+            ctx.status(500).result("Database error: ".concat(e.getMessage()));
             return;
         } catch (MissingRequiredParametersException e) {
             ctx.status(400).result("Missing required parameter(s)");
@@ -92,7 +92,7 @@ public class NoteController {
             NoteResponse[] res = service.getNotes(assetId);
             ctx.status(200).json(res);
         } catch (SQLException e) {
-            ctx.status(500).result("Database error");
+            ctx.status(500).result("Database error: ".concat(e.getMessage()));
             e.printStackTrace();
             return;
         }
