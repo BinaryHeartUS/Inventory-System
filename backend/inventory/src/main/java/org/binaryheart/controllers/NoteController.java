@@ -19,8 +19,8 @@ public class NoteController {
     private static final NoteService service = new NoteService();
 
     public static void registerRoutes() {
-        post("{id}/notes", NoteController::postNote, AppRole.AUTHENTICATED);
-        get("{id}/notes", NoteController::getNotes, AppRole.AUTHENTICATED);
+        post("/{id}/notes", NoteController::postNote, AppRole.AUTHENTICATED);
+        get("/{id}/notes", NoteController::getNotes, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
