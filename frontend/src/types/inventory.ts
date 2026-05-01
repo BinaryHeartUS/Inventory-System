@@ -57,9 +57,9 @@ export type AnyDevice = Omit<
 // --- Tool ---------------------------------------------------------------------
 export interface Tool {
   id: number
-  type: string
-  description: string
-  chapter: string
   acquisitionDate: string | null
   value: number | null
+  description: string
+  chapterId: number
+  donorId: number | null
 }
