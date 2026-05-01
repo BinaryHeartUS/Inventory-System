@@ -365,13 +365,13 @@ public class DeviceRepository {
         stmt.execute();
     }
 
-    public void upsertDesktop(InsertDesktopRequest request) throws SQLException {
+    public void updateDesktop(InsertDesktopRequest request) throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Upsert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
+                "call Update_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());

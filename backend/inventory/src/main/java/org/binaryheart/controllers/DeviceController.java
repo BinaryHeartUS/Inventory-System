@@ -1,6 +1,7 @@
 package org.binaryheart.controllers;
 
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.*;
 
 import org.binaryheart.exceptions.BadArgumentException;
@@ -16,6 +17,7 @@ import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -33,11 +35,7 @@ public class DeviceController {
 		post("/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
 		post("/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
 		post("/tablet", DeviceController::insertTablet, AppRole.AUTHENTICATED);
-		put("/desktop/{id}", DeviceController::upsertDesktopWithID, AppRole.AUTHENTICATED);
-		// put("/laptop/{id}", DeviceController::upsertLaptopWithID,
-		// AppRole.AUTHENTICATED);
-		// put("/tablet/{id}", DeviceController::upsertTabletWithID,
-		// AppRole.AUTHENTICATED);
+		put("/desktop/{id}", DeviceController::updateDesktop, AppRole.AUTHENTICATED);
 	}
 
 	@OpenApi(
@@ -348,8 +346,11 @@ public class DeviceController {
 			tags = { "Devices" },
 			security = { @OpenApiSecurity(
 					name = "BearerAuth") },
-			summary = "Adds or updates a desktop with specified ID to the database",
-			description = "Adds or updates a desktop with the specified ID and attributes",
+			summary = "Updates a desktop in the database",
+			description = "Updates a desktop with the specified ID and attributes",
+			pathParams = { @OpenApiParam(
+					name = "id",
+					description = "The asset ID of the desktop to update"), },
 			requestBody = @OpenApiRequestBody(
 					required = true,
 					content = { @OpenApiContent(
@@ -380,9 +381,12 @@ public class DeviceController {
 							status = "400",
 							description = "Missing required parameters or invalid field values"),
 					@OpenApiResponse(
+							status = "401",
+							description = "Desktop with specified ID does not exist"),
+					@OpenApiResponse(
 							status = "500",
 							description = "Database error") })
-	public static void upsertDesktopWithID(Context ctx) {
+	public static void updateDesktop(Context ctx) {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 
 		List<Integer> userChapters = ctx.attribute("chapterIds");
@@ -391,12 +395,12 @@ public class DeviceController {
 		}
 
 		try {
-			service.upsertDesktop(request);
-			ctx.status(201).result("Desktop added successfully");
+			service.updateDesktop(request);
+			ctx.status(201).result("Desktop updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
-		} catch (DuplicateKeyException e) {
-			ctx.status(409).result(e.getMessage());
+		} catch (DeviceNotFoundException e) {
+			ctx.status(401).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}

@@ -153,8 +153,8 @@ public class DeviceService {
         }
     }
 
-    public void upsertDesktop(InsertDesktopRequest request)
-            throws MissingRequiredParametersException, BadArgumentException, SQLException {
+    public void updateDesktop(InsertDesktopRequest request)
+            throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null
                 || request.assetId() == null) {
@@ -173,13 +173,13 @@ public class DeviceService {
             throw new BadArgumentException("Acquisition date cannot be in the future");
         }
         if (request.assetId() <= 0) {
-            throw new BadArgumentException("Asset ID must be positive or not specified");
+            throw new BadArgumentException("Asset ID must be positive");
         }
         try {
-            repository.upsertDesktop(request);
+            repository.updateDesktop(request);
         } catch (SQLException e) {
-            if ("23505".equals(e.getSQLState())) {
-                throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
+            if ("02000".equals(e.getSQLState())) {
+                throw new DeviceNotFoundException("Could not find asset with specified ID: " + request.assetId());
             } else {
                 throw e;
             }
