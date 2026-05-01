@@ -7,6 +7,6 @@ public record PartResponse(
         boolean wasPurchased,
         Integer containedIn,
         int chapterId,
-        String ascquisitionDate,
+        String acquisitionDate,
         Double value
     ){}
