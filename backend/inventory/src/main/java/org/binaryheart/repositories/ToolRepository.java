@@ -31,8 +31,8 @@ public class ToolRepository {
             }
             Double value = rs.getDouble("value");
             String description = rs.getString("description");
-            Integer chapterID = rs.getInt("chapterID");
-            Integer donorID = rs.getInt("donorID");
+            Integer chapterID = rs.getInt("chapter_id");
+            Integer donorID = rs.getInt("donor_id");
             tools.add(new GetToolResponse(toolID, acquisitionLocalDate, value, description, chapterID, donorID));
         }
         return tools;

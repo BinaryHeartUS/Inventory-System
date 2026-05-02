@@ -17,11 +17,11 @@ public class ToolController {
     private static final ToolService service = new ToolService();
 
     public static void registerRoutes() {
-        get("/assets/tools", ToolController::getAllTools, AppRole.AUTHENTICATED);
+        get("", ToolController::getAllTools, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
-            path = "/api/assets/tools",
+            path = "/api/tools",
             methods = { HttpMethod.GET },
             tags = { "Tools" },
             security = { @OpenApiSecurity(
