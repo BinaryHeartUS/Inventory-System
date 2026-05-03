@@ -19,6 +19,21 @@ public class AccountService {
     private static final Set<String> ADMIN_CREATABLE_ROLES = Set.of("Admin", "Chapter Admin", "Editor", "Viewer");
     private static final Set<String> CHAPTER_ADMIN_CREATABLE_ROLES = Set.of("Editor", "Viewer");
 
+    private final ChapterService chapterService = new ChapterService();
+
+    /**
+     * Throws if the role/chapter combination is invalid (e.g. Admin on a
+     * non-National chapter).
+     */
+    private void validateRoleChapterCombo(String role, int chapterId) throws SQLException {
+        if ("Admin".equals(role)) {
+            int nationalId = chapterService.getNationalChapterId();
+            if (chapterId != nationalId) {
+                throw new IllegalArgumentException("The 'Admin' role can only be assigned to the National chapter");
+            }
+        }
+    }
+
     private final AccountRepository repository = new AccountRepository();
 
     /**
@@ -39,6 +54,8 @@ public class AccountService {
         if (!allowed.contains(request.role())) {
             throw new IllegalArgumentException("Role '" + request.role() + "' is not permitted for a " + creatorRole);
         }
+
+        validateRoleChapterCombo(request.role(), request.chapterId());
 
         if (!"Admin".equals(creatorRole)) {
             // Chapter Admin must have Chapter Admin role specifically for the target
@@ -132,6 +149,8 @@ public class AccountService {
             throw new IllegalArgumentException("Role '" + request.role() + "' is not permitted for a " + updaterRole);
         }
 
+        validateRoleChapterCombo(request.role(), chapterId);
+
         if (!"Admin".equals(updaterRole)) {
             boolean hasAccess = updaterChapterRoles.stream()
                     .anyMatch(cr -> cr.chapterId() == chapterId && "Chapter Admin".equals(cr.role()));
@@ -193,6 +212,8 @@ public class AccountService {
         if (!allowed.contains(request.role())) {
             throw new IllegalArgumentException("Role '" + request.role() + "' is not permitted for a " + creatorRole);
         }
+
+        validateRoleChapterCombo(request.role(), request.chapterId());
 
         if (!"Admin".equals(creatorRole)) {
             boolean hasAccess = creatorChapterRoles.stream()

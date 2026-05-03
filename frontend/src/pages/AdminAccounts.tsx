@@ -36,6 +36,7 @@ function AccountEditPanel({
   account,
   assignableRoles,
   assignableChapters,
+  nationalChapterId,
   currentUserId,
   onClose,
   onDeleted,
@@ -44,6 +45,7 @@ function AccountEditPanel({
   account: AccountSummary
   assignableRoles: string[]
   assignableChapters: { id: number; name: string }[]
+  nationalChapterId: number | undefined
   currentUserId: number | undefined
   onClose: () => void
   onDeleted: () => void
@@ -64,6 +66,17 @@ function AccountEditPanel({
   const [addRole,    setAddRole]    = useState('')
   const [addLoading, setAddLoading] = useState(false)
   const [addError,   setAddError]   = useState<string | null>(null)
+
+  /** Roles available for a given chapter ID (Admin only for National). */
+  function rolesFor(chapterId: number): string[] {
+    if (chapterId === nationalChapterId) return assignableRoles
+    return assignableRoles.filter(r => r !== 'Admin')
+  }
+
+  /** Chapters available when a role is already chosen (National only for Admin). */
+  const addChapterOptions = addRole === 'Admin'
+    ? assignableChapters.filter(c => c.id === nationalChapterId)
+    : assignableChapters.filter(c => c.id !== nationalChapterId)
 
   // Delete account
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -159,7 +172,7 @@ function AccountEditPanel({
                           disabled={isSelf}
                           className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {assignableRoles.map(r => <option key={r} value={r}>{r}</option>)}
+                          {rolesFor(cr.chapterId).map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                         {isDirty && !isSelf && (
                           <button
@@ -207,7 +220,7 @@ function AccountEditPanel({
           <select value={addChapter} onChange={e => setAddChapter(e.target.value)}
             className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white w-44">
             <option value="">Chapter…</option>
-            {assignableChapters
+            {addChapterOptions
               .filter(c => !account.chapterRoles.some(cr => cr.chapterId === c.id))
               .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -294,6 +307,7 @@ export default function AdminAccounts() {
 
   const allChapters = useVisibleChapters()
   const { chapters: allChaptersIncludingNational } = useChapters()
+  const nationalChapterId = allChaptersIncludingNational.find(c => c.name === 'National')?.id
   const assignableChapters = isAdmin
     ? allChaptersIncludingNational
     : allChapters.filter(c =>
@@ -302,6 +316,11 @@ export default function AdminAccounts() {
 
   function setAffiliation(index: number, field: 'chapter' | 'role', value: string) {
     setFormAffiliations(prev => prev.map((a, i) => i === index ? { ...a, [field]: value } : a))
+  }
+
+  function rolesForChapter(chapterId: string): string[] {
+    if (!chapterId || Number(chapterId) !== nationalChapterId) return assignableRoles.filter(r => r !== 'Admin')
+    return assignableRoles
   }
 
   function addAffiliationRow() {
@@ -405,7 +424,7 @@ export default function AdminAccounts() {
                   <select value={a.role} onChange={e => setAffiliation(i, 'role', e.target.value)}
                     className={`${inputCls} flex-1`} required>
                     <option value="">Role…</option>
-                    {assignableRoles.map(r => <option key={r} value={r}>{r}</option>)}
+                    {rolesForChapter(a.chapter).map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                   {formAffiliations.length > 1 && (
                     <button type="button" onClick={() => removeAffiliationRow(i)}
@@ -491,6 +510,7 @@ export default function AdminAccounts() {
                           account={account}
                           assignableRoles={assignableRoles}
                           assignableChapters={assignableChapters}
+                          nationalChapterId={nationalChapterId}
                           currentUserId={(auth as { id?: number })?.id}
                           chapterName={chapterName}
                           onClose={() => setExpandedId(null)}
