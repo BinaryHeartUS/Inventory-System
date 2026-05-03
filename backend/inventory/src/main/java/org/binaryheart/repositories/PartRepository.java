@@ -28,7 +28,8 @@ public class PartRepository {
             String desc = res.getString("description");
             boolean wasPurchased = res.getBoolean("wasPurchased");
             Integer containedIn = res.getInt("containedIn");
-            if (res.wasNull()) containedIn = null;
+            if (res.wasNull())
+                containedIn = null;
             int chapterId = res.getInt("chapterID");
             Date acquisitionDate = res.getDate("acquisitionDate");
             Double value = res.getDouble("value");
