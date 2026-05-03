@@ -22,6 +22,16 @@ public class ChapterService {
         return repository.getChapterIdByName(name);
     }
 
+    public void deleteChapter(int id, int nationalChapterId, List<Integer> callerChapterIds) throws SQLException {
+        if (id == nationalChapterId) {
+            throw new IllegalArgumentException("The National chapter cannot be deleted");
+        }
+        if (!callerChapterIds.contains(nationalChapterId)) {
+            throw new IllegalArgumentException("Only national admins may delete chapters");
+        }
+        repository.deleteChapter(id);
+    }
+
     public ChapterSummary createChapter(String name) throws SQLException {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Chapter name must not be blank");

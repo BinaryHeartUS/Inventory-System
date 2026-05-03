@@ -11,6 +11,7 @@ import org.binaryheart.services.ChapterService;
 import java.sql.SQLException;
 import java.util.List;
 
+import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 
@@ -21,6 +22,7 @@ public class ChapterController {
     public static void registerRoutes() {
         get("", ChapterController::getChapters, AppRole.AUTHENTICATED);
         post("", ChapterController::createChapter, AppRole.ADMIN);
+        delete("/{id}", ChapterController::deleteChapter, AppRole.ADMIN);
     }
 
     @OpenApi(
@@ -99,6 +101,27 @@ public class ChapterController {
         } catch (SQLException e) {
             ctx.status(500).result("Database error");
             e.printStackTrace();
+        }
+    }
+
+    public static void deleteChapter(Context ctx) {
+        int id = Integer.parseInt(ctx.pathParam("id"));
+        List<Integer> callerChapterIds = ctx.attribute("chapterIds");
+        try {
+            int nationalId = service.getNationalChapterId();
+            service.deleteChapter(id, nationalId, callerChapterIds != null ? callerChapterIds : List.of());
+            ctx.status(204);
+        } catch (IllegalArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (SQLException e) {
+            // FK constraint violation — chapter still has assets or affiliations
+            String msg = e.getMessage();
+            if (msg != null && msg.contains("violates foreign key constraint")) {
+                ctx.status(409).result("Chapter still has assets or accounts referencing it");
+            } else {
+                ctx.status(500).result("Database error");
+                e.printStackTrace();
+            }
         }
     }
 }

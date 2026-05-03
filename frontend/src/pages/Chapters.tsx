@@ -5,7 +5,7 @@ import { getDevices } from '../services/deviceService'
 import { getParts } from '../services/partService'
 import { getTools } from '../services/toolService'
 import { useVisibleChapters, useIsNationalAdmin, useChapters } from '../context/ChapterContext'
-import { createChapter } from '../services/chapterService'
+import { createChapter, deleteChapter } from '../services/chapterService'
 import PageHeading from '../components/PageHeading'
 
 export default function Chapters() {
@@ -20,6 +20,7 @@ export default function Chapters() {
   const [newName,     setNewName]     = useState('')
   const [creating,    setCreating]    = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const [deletingId,  setDeletingId]  = useState<number | null>(null)
 
   useEffect(() => {
     Promise.all([getDevices(), getParts(), getTools()])
@@ -58,6 +59,19 @@ export default function Chapters() {
       setCreateError(msg || 'Failed to create chapter. Please try again.')
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function handleDelete(id: number, name: string) {
+    if (!confirm(`Delete chapter "${name}"? This cannot be undone.`)) return
+    setDeletingId(id)
+    try {
+      await deleteChapter(id)
+      refreshChapters()
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to delete chapter.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -100,6 +114,15 @@ export default function Chapters() {
               const ready    = devices.filter(d => d.status === 'Ready To Donate').length
               const donated  = devices.filter(d => d.status === 'Donated').length
               const scrapped = devices.filter(d => d.status === 'Scrapped').length
+              const isEmpty  = devices.length === 0 && parts.length === 0 && tools.length === 0
+              const isNational = ch.name === 'National'
+              const blockers: string[] = []
+              if (devices.length > 0) blockers.push(`${devices.length} device${devices.length !== 1 ? 's' : ''}`)
+              if (parts.length > 0)   blockers.push(`${parts.length} part${parts.length !== 1 ? 's' : ''}`)
+              if (tools.length > 0)   blockers.push(`${tools.length} tool${tools.length !== 1 ? 's' : ''}`)
+              const deleteTitle = isEmpty
+                ? 'Delete chapter'
+                : `Cannot delete — chapter still has ${blockers.join(', ')}`
               return (
                 <tr key={ch.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-5">
@@ -128,9 +151,29 @@ export default function Chapters() {
                   <td className="px-4 py-5 text-right text-slate-500 font-medium">{parts.length}</td>
                   <td className="px-4 py-5 text-right text-slate-500 font-medium">{tools.length}</td>
                   <td className="px-4 py-5 text-right">
-                    <Link to={`/devices?chapter=${encodeURIComponent(ch.name)}`} className="text-sm font-semibold text-brand-red hover:text-brand-red-dark transition-colors">
-                      View →
-                    </Link>
+                    <div className="flex items-center justify-end gap-4">
+                      <Link to={`/devices?chapter=${encodeURIComponent(ch.name)}`} className="text-sm font-semibold text-brand-red hover:text-brand-red-dark transition-colors">
+                        View →
+                      </Link>
+                      {isNationalAdmin && !isNational && (
+                        <button
+                          onClick={() => handleDelete(ch.id, ch.name)}
+                          disabled={!isEmpty || deletingId === ch.id}
+                          title={deleteTitle}
+                          className="text-slate-300 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {deletingId === ch.id
+                            ? <span className="text-xs">Deleting…</span>
+                            : (
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                              </svg>
+                            )
+                          }
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )

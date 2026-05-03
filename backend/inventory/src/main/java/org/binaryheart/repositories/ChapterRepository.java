@@ -44,6 +44,15 @@ public class ChapterRepository {
         }
     }
 
+    public void deleteChapter(int id) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("CALL Delete_Chapter(?)")) {
+            stmt.setInt(1, id);
+            stmt.execute();
+        }
+    }
+
     private static void ensureConnected() throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();

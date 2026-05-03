@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './api'
+import { apiGet, apiPost, apiDelete } from './api'
 import type { ChapterSummary } from '../types/inventory'
 
 export async function getChapters(): Promise<ChapterSummary[]> {
@@ -7,4 +7,8 @@ export async function getChapters(): Promise<ChapterSummary[]> {
 
 export async function createChapter(name: string): Promise<ChapterSummary> {
   return apiPost<ChapterSummary>('/chapters', { name })
+}
+
+export async function deleteChapter(id: number): Promise<void> {
+  return apiDelete(`/chapters/${id}`)
 }
