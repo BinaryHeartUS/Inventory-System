@@ -77,7 +77,7 @@ export default function Donations() {
                       No donations recorded{chapterFilter !== 'All' ? ` for ${chapterFilter}` : ''}.
                     </td>
                   </tr>
-                : donated.map(renderDeviceRow)}
+                : donated.map(d => renderDeviceRow(d))}
             </tbody>
           </table>
         </div>
