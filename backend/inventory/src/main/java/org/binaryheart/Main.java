@@ -4,6 +4,7 @@ import static io.javalin.apibuilder.ApiBuilder.path;
 
 import org.binaryheart.auth.JwtAccessManager;
 import org.binaryheart.controllers.AccountController;
+import org.binaryheart.controllers.AssetController;
 import org.binaryheart.controllers.AuthController;
 import org.binaryheart.controllers.ChapterController;
 import org.binaryheart.controllers.DeviceController;
@@ -42,7 +43,10 @@ public class Main {
                 path("/api/accounts", AccountController::registerRoutes);
                 path("/api/chapters", ChapterController::registerRoutes);
                 path("/api/lookup", LookupController::registerRoutes);
-                path("/api/assets", NoteController::registerRoutes);
+                path("/api/assets", () -> {
+                    AssetController.registerRoutes();
+                    NoteController.registerRoutes();
+                });
                 path("/api/parts", PartController::registerRoutes);
                 path("/api/tools", ToolController::registerRoutes);
             });
