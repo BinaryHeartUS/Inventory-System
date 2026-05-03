@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.binaryheart.enums.*;
@@ -62,11 +64,17 @@ public class SheetReader<T extends Record> {
         return null;
     }
 
+    private static final DataFormatter DATA_FORMATTER = new DataFormatter();
+
     private static Object getCorrectFormatFor(Cell cell, Class<?> type) {
         if (cell == null)
             return null;
-        if (type == String.class)
+        if (type == String.class) {
+            if (cell.getCellType() == CellType.NUMERIC) {
+                return DATA_FORMATTER.formatCellValue(cell);
+            }
             return cell.getStringCellValue();
+        }
         if (type == int.class || type == Integer.class)
             return (int) cell.getNumericCellValue();
         if (type == double.class || type == Double.class)
