@@ -39,4 +39,32 @@ public class PartRepository {
 
         return parts.toArray(new PartResponse[0]);
     }
+
+    public PartResponse getPart(Integer partId) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        PreparedStatement stmt;
+        stmt = conn.prepareStatement("SELECT * FROM Get_Parts WHERE id = ?");
+        stmt.setInt(1, partId);
+        stmt.execute();
+        ResultSet res = stmt.getResultSet();
+        if (res.next()) {
+            int id = res.getInt("id");
+            String type = res.getString("type");
+            String desc = res.getString("description");
+            boolean wasPurchased = res.getBoolean("wasPurchased");
+            Integer containedIn = res.getInt("containedIn");
+            if (res.wasNull())
+                containedIn = null;
+            int chapterId = res.getInt("chapterID");
+            Date acquisitionDate = res.getDate("acquisitionDate");
+            Double value = res.getDouble("value");
+            return new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(),
+                    value);
+        }
+
+        return null;
+    }
 }
