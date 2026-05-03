@@ -49,6 +49,8 @@ function AccountEditPanel({
   onDeleted: () => void
   chapterName: (id: number) => string
 }) {
+  const isAdminAccount = account.chapterRoles.some(cr => cr.role === 'Admin')
+
   // Per-affiliation role state (tracks unsaved changes)
   const [roleValues, setRoleValues] = useState<Record<number, string>>(
     Object.fromEntries(account.chapterRoles.map(cr => [cr.chapterId, cr.role]))
@@ -147,31 +149,35 @@ function AccountEditPanel({
                 <tr key={cr.chapterId} className="border-b border-slate-50 last:border-0">
                   <td className="px-4 py-2.5 text-slate-700 font-medium">{chapterName(cr.chapterId)}</td>
                   <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={roleValues[cr.chapterId]}
-                        onChange={e => !isSelf && setRoleValues(prev => ({ ...prev, [cr.chapterId]: e.target.value }))}
-                        disabled={isSelf}
-                        className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {assignableRoles.map(r => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                      {isDirty && !isSelf && (
-                        <button
-                          onClick={() => handleSaveRole(cr.chapterId)}
-                          disabled={savingChapter === cr.chapterId}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-heart-blue hover:opacity-90 disabled:opacity-50 transition-opacity"
+                    {isAdminAccount ? (
+                      <RoleBadge role={cr.role} />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={roleValues[cr.chapterId]}
+                          onChange={e => !isSelf && setRoleValues(prev => ({ ...prev, [cr.chapterId]: e.target.value }))}
+                          disabled={isSelf}
+                          className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {savingChapter === cr.chapterId ? 'Saving…' : 'Save'}
-                        </button>
-                      )}
-                      {rowError[cr.chapterId] && (
-                        <span className="text-xs text-red-500">{rowError[cr.chapterId]}</span>
-                      )}
-                    </div>
+                          {assignableRoles.map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                        {isDirty && !isSelf && (
+                          <button
+                            onClick={() => handleSaveRole(cr.chapterId)}
+                            disabled={savingChapter === cr.chapterId}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-heart-blue hover:opacity-90 disabled:opacity-50 transition-opacity"
+                          >
+                            {savingChapter === cr.chapterId ? 'Saving…' : 'Save'}
+                          </button>
+                        )}
+                        {rowError[cr.chapterId] && (
+                          <span className="text-xs text-red-500">{rowError[cr.chapterId]}</span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    {!isSelf && (
+                    {!isSelf && !isAdminAccount && (
                       <button
                         onClick={() => handleRemove(cr.chapterId)}
                         disabled={removingChapter === cr.chapterId}
@@ -190,7 +196,12 @@ function AccountEditPanel({
       </div>
 
       {/* Add chapter row */}
-      <form onSubmit={handleAdd} className="flex items-end gap-3 mb-5">
+      {isAdminAccount && (
+        <p className="text-xs text-slate-400 bg-slate-100 rounded-lg px-3 py-2 mb-5">
+          Admin accounts cannot have their roles modified. Delete the account to remove admin access.
+        </p>
+      )}
+      {!isAdminAccount && <form onSubmit={handleAdd} className="flex items-end gap-3 mb-5">
         <div>
           <label className={labelCls}>Add Chapter Access</label>
           <select value={addChapter} onChange={e => setAddChapter(e.target.value)}
@@ -214,7 +225,7 @@ function AccountEditPanel({
           {addLoading ? 'Adding…' : 'Add'}
         </button>
         {addError && <p className="text-xs text-red-500 self-center">{addError}</p>}
-      </form>
+      </form>}
 
       {/* Delete account */}
       {currentUserId !== account.id && (
@@ -278,7 +289,7 @@ export default function AdminAccounts() {
   const [formLoading, setFormLoading] = useState(false)
 
   const assignableRoles = isAdmin
-    ? ['Chapter Admin', 'Editor', 'Viewer']
+    ? ['Admin', 'Chapter Admin', 'Editor', 'Viewer']
     : ['Editor', 'Viewer']
 
   const allChapters = useVisibleChapters()

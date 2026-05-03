@@ -16,7 +16,7 @@ import java.util.Set;
 
 public class AccountService {
 
-    private static final Set<String> ADMIN_CREATABLE_ROLES = Set.of("Chapter Admin", "Editor", "Viewer");
+    private static final Set<String> ADMIN_CREATABLE_ROLES = Set.of("Admin", "Chapter Admin", "Editor", "Viewer");
     private static final Set<String> CHAPTER_ADMIN_CREATABLE_ROLES = Set.of("Editor", "Viewer");
 
     private final AccountRepository repository = new AccountRepository();
