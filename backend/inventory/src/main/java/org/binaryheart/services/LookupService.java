@@ -23,7 +23,7 @@ public class LookupService {
         List<String> workingBatteryOpts = Arrays.stream(WorkingBattery.values()).map(WorkingBattery::getDatabaseValue)
                 .collect(Collectors.toList());
         return new LookupResponse(deviceStatuses, chargerStatuses, workingBatteryOpts, repository.getManufacturers(),
-                repository.getRamGenerations(), repository.getStorageTypes(), repository.getPartTypes(),
-                repository.getToolTypes());
+                repository.getRamGenerations(), repository.getStorageTypes(), repository.getPartTypes());
+    }
     }
 }
