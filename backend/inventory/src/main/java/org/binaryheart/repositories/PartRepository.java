@@ -26,12 +26,13 @@ public class PartRepository {
             int id = res.getInt("id");
             String type = res.getString("type");
             String desc = res.getString("description");
-            boolean wasPurchased = res.getBoolean("was_purchased");
-            Integer containedIn = res.getInt("contained_in");
+            boolean wasPurchased = res.getBoolean("wasPurchased");
+            Integer containedIn = res.getInt("containedIn");
             int chapterId = res.getInt("chapterID");
             Date acquisitionDate = res.getDate("acquisitionDate");
             Double value = res.getDouble("value");
-            parts.add(new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(), value));
+            parts.add(new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(),
+                    value));
         }
 
         return parts.toArray(new PartResponse[0]);

@@ -3,6 +3,7 @@ package org.binaryheart.controllers;
 import static io.javalin.apibuilder.ApiBuilder.get;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.binaryheart.auth.AppRole;
 import org.binaryheart.responses.PartResponse;
@@ -36,7 +37,8 @@ public class PartController {
                             description = "Database error") })
     public static void getAllParts(Context ctx) {
         try {
-            PartResponse[] res = service.getAllParts();
+            List<Integer> userChapterIds = ctx.attribute("chapterIds");
+            PartResponse[] res = service.getAllParts(userChapterIds);
             ctx.status(200).json(res);
         } catch (SQLException e) {
             ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
