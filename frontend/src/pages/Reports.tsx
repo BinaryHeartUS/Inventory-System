@@ -48,12 +48,12 @@ function ExportCard({
   onExport: () => void
 }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
-      <div className={`w-9 h-9 ${colorBg} ${colorText} rounded-lg flex items-center justify-center mb-3 shrink-0`}>
+    <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col h-full">
+      <div className={`w-9 h-9 ${colorBg} ${colorText} rounded-lg flex items-center justify-center mb-4 shrink-0`}>
         {icon}
       </div>
       <p className="text-sm font-semibold text-slate-800">{title} Export</p>
-      <p className="text-xs text-slate-400 mt-1 flex-1">{description}</p>
+      <p className="text-xs text-slate-400 mt-2 flex-1 leading-relaxed">{description}</p>
       <button
         onClick={onExport}
         disabled={count === 0}
@@ -99,11 +99,14 @@ export default function Reports() {
 
   const chapterSlug = slugify(chapter === 'All' ? 'all-chapters' : chapter)
 
-  function exportDevices() {
-    downloadCsv(`devices-${chapterSlug}-${today()}.csv`,
+  function exportInInventory() {
+    const inInventory = devices.filter(d =>
+      d.status === 'Not Started' || d.status === 'In Progress' || d.status === 'Ready To Donate'
+    )
+    downloadCsv(`in-inventory-devices-${chapterSlug}-${today()}.csv`,
       ['ID', 'Type', 'Manufacturer', 'Model', 'Year', 'CPU', 'RAM (GB)', 'RAM Generation',
        'Storage (GB)', 'Storage Type', 'Status', 'Chapter', 'Acquisition Date', 'Value ($)'],
-      devices.map(d => [
+      inInventory.map(d => [
         d.id, d.type, d.manufacturer, d.model, d.year, d.cpu,
         d.ram, d.ramGeneration, d.storage, d.storageType,
         d.status, d.chapter, d.acquisitionDate, d.value,
@@ -136,6 +139,27 @@ export default function Reports() {
       donated.map(d => [d.id, d.type, d.manufacturer, d.model, d.year, d.cpu, d.ram, d.storage, d.storageType, d.chapter, d.acquisitionDate])
     )
   }
+
+  function exportValuation() {
+    const deviceRows = devices
+      .filter(d => d.value != null)
+      .map(d => ['Device', d.id, `${d.manufacturer ?? ''} ${d.model ?? ''}`.trim(), d.chapter, d.acquisitionDate, d.value] as (string | number | null | undefined)[])
+    const partRows = parts
+      .filter(p => p.value != null)
+      .map(p => ['Part', p.id, p.description || p.type, chapterName(p.chapterId), p.acquisitionDate, p.value] as (string | number | null | undefined)[])
+    const toolRows = tools
+      .filter(t => t.value != null)
+      .map(t => ['Tool', t.id, t.description, chapterName(t.chapterId), t.acquisitionDate, t.value] as (string | number | null | undefined)[])
+    downloadCsv(`inventory-valuation-${chapterSlug}-${today()}.csv`,
+      ['Category', 'ID', 'Description', 'Chapter', 'Acquisition Date', 'Value ($)'],
+      [...deviceRows, ...partRows, ...toolRows]
+    )
+  }
+
+  const valuationCount =
+    devices.filter(d => d.value != null).length +
+    parts.filter(p => p.value != null).length +
+    tools.filter(t => t.value != null).length
 
   return (
     <div className="space-y-6">
@@ -170,15 +194,15 @@ export default function Reports() {
       {/* Export cards */}
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3">CSV Exports</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 
           <ExportCard
-            title="All Devices"
-            description="Every device including type, specs, status, chapter, and acquisition info."
-            count={devices.length}
-            colorText="text-indigo-600"
-            colorBg="bg-indigo-50"
-            onExport={exportDevices}
+            title="Pipeline Devices"
+            description="Devices currently Not Started, In Progress, or Ready to Donate — the active working inventory."
+            count={devices.filter(d => d.status === 'Not Started' || d.status === 'In Progress' || d.status === 'Ready To Donate').length}
+            colorText="text-amber-600"
+            colorBg="bg-amber-50"
+            onExport={exportInInventory}
             icon={
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
@@ -221,12 +245,26 @@ export default function Reports() {
             title="Tools"
             description="All tools in inventory with description and acquisition info."
             count={tools.length}
-            colorText="text-orange-600"
-            colorBg="bg-orange-50"
+            colorText="text-rose-600"
+            colorBg="bg-rose-50"
             onExport={exportTools}
             icon={
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+            }
+          />
+
+          <ExportCard
+            title="Inventory Valuation"
+            description="All assets with a recorded value — devices, parts, and tools — for insurance or grant reporting."
+            count={valuationCount}
+            colorText="text-violet-600"
+            colorBg="bg-violet-50"
+            onExport={exportValuation}
+            icon={
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
               </svg>
             }
           />

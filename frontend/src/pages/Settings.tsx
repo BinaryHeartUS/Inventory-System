@@ -87,9 +87,9 @@ function LookupEditor({ section }: { section: LookupSection }) {
     setValues(v => v.filter(x => x !== value))
     try {
       await section.remove(value)
-    } catch {
+    } catch (err) {
       setValues(prev)
-      setError(`Failed to remove "${value}". Please try again.`)
+      setError(err instanceof Error ? err.message : `Failed to remove "${value}".`)
     }
   }
 
@@ -156,7 +156,7 @@ export default function Settings() {
   return (
     <div className="space-y-8">
 
-      <PageHeading title="Settings" subtitle="Manage lookup values used across the application" />
+      <PageHeading title="Manage Options" subtitle="Manage dropdown options used across the application" />
 
       {/* Lookup tables */}
       <section className="space-y-4">

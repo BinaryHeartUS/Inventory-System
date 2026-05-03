@@ -44,3 +44,7 @@ export async function addAccountRole(id: number, chapterId: number, role: string
 export async function updateAccountRole(id: number, chapterId: number, role: string): Promise<void> {
   return apiPutVoid(`/accounts/${id}/roles/${chapterId}`, { role })
 }
+
+export async function removeAccountRole(id: number, chapterId: number): Promise<void> {
+  return apiDelete(`/accounts/${id}/roles/${chapterId}`)
+}

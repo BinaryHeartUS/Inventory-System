@@ -44,7 +44,10 @@ export async function apiGet<T>(path: string): Promise<T> {
     headers: authHeaders(),
   })
   if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw new Error(`GET ${path} failed: ${res.status} ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(body || `GET ${path} failed: ${res.status} ${res.statusText}`)
+  }
   return res.json() as Promise<T>
 }
 
@@ -55,7 +58,10 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   })
   if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw new Error(`POST ${path} failed: ${res.status} ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(body || `POST ${path} failed: ${res.status} ${res.statusText}`)
+  }
   return res.json() as Promise<T>
 }
 
@@ -67,7 +73,10 @@ export async function apiPostVoid(path: string, body: unknown): Promise<void> {
     body: JSON.stringify(body),
   })
   if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw new Error(`POST ${path} failed: ${res.status} ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(body || `POST ${path} failed: ${res.status} ${res.statusText}`)
+  }
 }
 
 export async function apiPut<T>(path: string, body: unknown): Promise<T> {
@@ -77,7 +86,10 @@ export async function apiPut<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   })
   if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status} ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(body || `PUT ${path} failed: ${res.status} ${res.statusText}`)
+  }
   return res.json() as Promise<T>
 }
 
@@ -88,7 +100,10 @@ export async function apiPutVoid(path: string, body: unknown): Promise<void> {
     body: JSON.stringify(body),
   })
   if (res.status === 401) handleUnauthorized()
-  if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status} ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(body || `PUT ${path} failed: ${res.status} ${res.statusText}`)
+  }
 }
 
 export async function apiDelete(path: string): Promise<void> {
@@ -96,12 +111,9 @@ export async function apiDelete(path: string): Promise<void> {
     method: 'DELETE',
     headers: authHeaders(),
   })
-  if (res.status === 401) throw new Error('UNAUTHORIZED')
+  if (res.status === 401) handleUnauthorized()
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    const message = body || `DELETE ${path} failed: ${res.status} ${res.statusText}`
-    const err = new Error(message) as Error & { status: number }
-    err.status = res.status
-    throw err
+    throw new Error(body || `DELETE ${path} failed: ${res.status} ${res.statusText}`)
   }
 }

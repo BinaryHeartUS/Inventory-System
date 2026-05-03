@@ -42,7 +42,7 @@ export default function Dashboard() {
   }))
   const activeChapters    = chapterStats.filter(c => c.total > 0)
   const chaptersWithReady = chapterStats.filter(c => c.ready > 0)
-  const topDonors         = [...chapterStats].sort((a, b) => b.donated - a.donated).slice(0, 3).filter(c => c.donated > 0)
+
 
   // ── Completion rate (uses filtered devices) ────────────────────────────────
   const nonScrapped    = devices.filter(d => d.status !== 'Scrapped' && d.status !== 'Unknown')
@@ -120,25 +120,25 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Top Donors */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">Top Chapters by Donations</p>
-          {topDonors.length === 0
-            ? <p className="text-sm text-slate-400 flex-1">No donations recorded yet.</p>
-            : <div className="flex-1 flex flex-col justify-between">
-                {topDonors.map((ch, i) => (
-                  <div key={ch.name} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                      i === 0 ? 'bg-amber-100 text-amber-700' :
-                      i === 1 ? 'bg-slate-100 text-slate-600' :
-                                'bg-orange-50 text-orange-600'
-                    }`}>{i + 1}</span>
-                    <span className="text-sm text-slate-700 font-medium flex-1 truncate">{ch.name}</span>
-                    <span className="text-sm font-bold text-sky-600 shrink-0">{ch.donated} donated</span>
-                  </div>
-                ))}
-              </div>
-          }
+        {/* Avg time in inventory */}
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg Time in Inventory</p>
+            <p className="text-[11px] text-slate-400 mt-1">acquisition → donated</p>
+          </div>
+          <div className="mt-4 flex-1 flex flex-col justify-center">
+            {avgDays !== null ? (
+              <>
+                <p className="text-4xl font-extrabold text-heart-blue leading-none">{avgDays}</p>
+                <p className="text-sm text-slate-400 mt-1">days</p>
+              </>
+            ) : (
+              <p className="text-sm text-slate-300 italic">No data yet</p>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-300 mt-4">
+            Based on {timedDevices.length} donated device{timedDevices.length !== 1 ? 's' : ''} with both dates recorded
+          </p>
         </div>
 
         {/* Network health */}
@@ -180,35 +180,7 @@ export default function Dashboard() {
       </div>
 
       {/* Activity over time */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-
-        {/* Avg time in inventory */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg Time in Inventory</p>
-            <p className="text-[11px] text-slate-400 mt-1">acquisition → donated</p>
-          </div>
-          <div className="mt-4">
-            {avgDays !== null ? (
-              <>
-                <p className="text-4xl font-extrabold text-heart-blue leading-none">{avgDays}</p>
-                <p className="text-sm text-slate-400 mt-1">days</p>
-              </>
-            ) : (
-              <p className="text-sm text-slate-300 italic">No data yet</p>
-            )}
-          </div>
-          <p className="text-[11px] text-slate-300 mt-4">
-            Based on {timedDevices.length} donated device{timedDevices.length !== 1 ? 's' : ''} with both dates recorded
-          </p>
-        </div>
-
-        {/* Activity chart */}
-        <div className="lg:col-span-3">
-          <ActivityChart devices={devices} />
-        </div>
-
-      </div>
+      <ActivityChart devices={devices} />
 
       {/* Value of donated devices */}
       <DeviceValueChart devices={devices} />

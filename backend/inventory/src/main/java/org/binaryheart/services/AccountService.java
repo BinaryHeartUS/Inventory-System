@@ -120,8 +120,12 @@ public class AccountService {
      * Updates the role for an existing chapter affiliation. Applies the same
      * chapter/role permission checks as addAffiliation.
      */
-    public void updateAffiliation(int targetId, int chapterId, UpdateAffiliationRequest request, String updaterRole,
-            List<ChapterRole> updaterChapterRoles) throws SQLException {
+    public void updateAffiliation(int targetId, int chapterId, UpdateAffiliationRequest request, int requesterId,
+            String updaterRole, List<ChapterRole> updaterChapterRoles) throws SQLException {
+        if (targetId == requesterId) {
+            throw new IllegalArgumentException("You cannot change your own role");
+        }
+
         Set<String> allowed = "Admin".equals(updaterRole) ? ADMIN_CREATABLE_ROLES : CHAPTER_ADMIN_CREATABLE_ROLES;
 
         if (!allowed.contains(request.role())) {
@@ -138,6 +142,44 @@ public class AccountService {
         }
 
         repository.updateAffiliation(targetId, chapterId, request.role());
+    }
+
+    /**
+     * Removes a chapter affiliation from an account. Admins may remove any
+     * affiliation. Chapter Admins may only remove Editor/Viewer affiliations from
+     * chapters they admin. The last affiliation on an account cannot be removed
+     * (the account must be deleted instead).
+     */
+    public void removeAffiliation(int targetId, int chapterId, int requesterId, String removerRole,
+            List<ChapterRole> removerChapterRoles) throws SQLException {
+        if (targetId == requesterId) {
+            throw new IllegalArgumentException("You cannot remove your own chapter affiliations");
+        }
+
+        AccountSummary target = repository.getAllVolunteers().stream().filter(a -> a.id() == targetId).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+        if (target.chapterRoles().size() <= 1) {
+            throw new IllegalArgumentException(
+                    "Cannot remove the last chapter affiliation. Delete the account instead.");
+        }
+
+        ChapterRole affiliation = target.chapterRoles().stream().filter(cr -> cr.chapterId() == chapterId).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("This account has no affiliation with that chapter"));
+
+        if (!"Admin".equals(removerRole)) {
+            if ("Chapter Admin".equals(affiliation.role()) || "Admin".equals(affiliation.role())) {
+                throw new IllegalArgumentException("You cannot remove Chapter Admin or Admin affiliations");
+            }
+            boolean adminsChapter = removerChapterRoles.stream()
+                    .anyMatch(cr -> cr.chapterId() == chapterId && "Chapter Admin".equals(cr.role()));
+            if (!adminsChapter) {
+                throw new IllegalArgumentException(
+                        "You may only remove affiliations for chapters where you are a Chapter Admin");
+            }
+        }
+
+        repository.deleteAffiliation(targetId, chapterId);
     }
 
     /**

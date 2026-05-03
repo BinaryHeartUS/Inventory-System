@@ -77,6 +77,16 @@ public class AccountRepository {
         }
     }
 
+    public void deleteAffiliation(int volunteerId, int chapterId) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Delete_Affiliation(?, ?)")) {
+            stmt.setInt(1, volunteerId);
+            stmt.setInt(2, chapterId);
+            stmt.execute();
+        }
+    }
+
     private static void ensureConnected() throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
