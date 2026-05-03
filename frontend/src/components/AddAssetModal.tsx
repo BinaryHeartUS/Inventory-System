@@ -332,9 +332,9 @@ function FieldsForm({ category, subtype, form, setForm, lookups }: {
         <FSelect label="Status" value={form.status} options={lookups.deviceStatuses} onChange={set('status')} req />
         <FText label="CPU" value={form.cpu} onChange={set('cpu')} placeholder="e.g. i5-1135G7" maxLength={50} />
         <FSelect label="Chapter" value={form.chapter} options={lookups.chapters} onChange={set('chapter')} req />
-        <FText label="RAM (GB)" value={form.ram} onChange={set('ram')} req type="number" placeholder="e.g. 16" min={0} />
+        <FText label="RAM (GB)" value={form.ram} onChange={set('ram')} type="number" placeholder="e.g. 16" min={0} />
         <FCombo label="RAM Generation" value={form.ramGeneration} options={lookups.ramGenerations} onChange={set('ramGeneration')} placeholder="e.g. DDR4" maxLength={20} />
-        <FText label="Storage (GB)" value={form.storage} onChange={set('storage')} req type="number" placeholder="e.g. 256" min={0} />
+        <FText label="Storage (GB)" value={form.storage} onChange={set('storage')} type="number" placeholder="e.g. 256" min={0} />
         <FCombo label="Storage Type" value={form.storageType} options={lookups.storageTypes} onChange={set('storageType')} placeholder="e.g. SSD" maxLength={30} />
         <FText label="Value ($)" value={form.value} onChange={set('value')} type="number" placeholder="e.g. 150.00" />
         <div>
@@ -460,7 +460,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
     if (category === 'Tool') return f.toolDescription.trim() !== '' && f.chapter !== ''
     if (category === 'Part') return !!f.partType && f.description.trim() !== '' && f.chapter !== ''
     // Device — RAM and storage default to 0 in the DB, so 0 is valid; only require non-empty strings
-    if (!(f.manufacturer?.trim() && f.model.trim() && f.year && f.ram !== '' && f.storage !== '' && f.chapter)) return false
+    if (!(f.manufacturer?.trim() && f.model.trim() && f.year && f.chapter)) return false
     // Battery cross-validation: actual ≤ design (DB CHECK constraint)
     if (subtype === 'Laptop' && f.actualBatteryCapacity && f.designBatteryCapacity &&
         Number(f.actualBatteryCapacity) > Number(f.designBatteryCapacity)) return false
