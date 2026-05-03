@@ -97,5 +97,11 @@ export async function apiDelete(path: string): Promise<void> {
     headers: authHeaders(),
   })
   if (res.status === 401) throw new Error('UNAUTHORIZED')
-  if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status} ${res.statusText}`)
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    const message = body || `DELETE ${path} failed: ${res.status} ${res.statusText}`
+    const err = new Error(message) as Error & { status: number }
+    err.status = res.status
+    throw err
+  }
 }

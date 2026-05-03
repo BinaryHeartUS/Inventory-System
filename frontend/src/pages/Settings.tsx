@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react'
-import { getAllLookups } from '../services/lookupService'
+import {
+  getAllLookups,
+  addManufacturer, deleteManufacturer,
+  addRamGeneration, deleteRamGeneration,
+  addStorageType, deleteStorageType,
+  addPartType, deletePartType,
+} from '../services/lookupService'
 import PageHeading from '../components/PageHeading'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -7,34 +13,39 @@ import PageHeading from '../components/PageHeading'
 interface LookupSection {
   title: string
   description: string
-  endpoint: string
   key: 'manufacturers' | 'ramGenerations' | 'storageTypes' | 'partTypes'
+  add: (name: string) => Promise<void>
+  remove: (name: string) => Promise<void>
 }
 
 const LOOKUP_SECTIONS: LookupSection[] = [
   {
     title:       'Manufacturers',
     description: 'Device manufacturer names used across desktops, laptops, and tablets.',
-    endpoint:    'POST /api/lookup/manufacturers',
     key:         'manufacturers',
+    add:         addManufacturer,
+    remove:      deleteManufacturer,
   },
   {
     title:       'RAM Generations',
     description: 'RAM type options (e.g. DDR4, LPDDR5) available when logging device specs.',
-    endpoint:    'POST /api/lookup/ram-generations',
     key:         'ramGenerations',
+    add:         addRamGeneration,
+    remove:      deleteRamGeneration,
   },
   {
     title:       'Storage Types',
     description: 'Storage media types (e.g. SSD, HDD, NVMe) used in device specs.',
-    endpoint:    'POST /api/lookup/storage-types',
     key:         'storageTypes',
+    add:         addStorageType,
+    remove:      deleteStorageType,
   },
   {
     title:       'Part Types',
     description: 'Part category names used when logging spare parts.',
-    endpoint:    'POST /api/lookup/part-types',
     key:         'partTypes',
+    add:         addPartType,
+    remove:      deletePartType,
   },
 ]
 
@@ -43,7 +54,8 @@ const LOOKUP_SECTIONS: LookupSection[] = [
 function LookupEditor({ section }: { section: LookupSection }) {
   const [values,  setValues]  = useState<string[]>([])
   const [input,   setInput]   = useState('')
-  const [pending, setPending] = useState(false)
+  const [error,   setError]   = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     getAllLookups()
@@ -51,34 +63,46 @@ function LookupEditor({ section }: { section: LookupSection }) {
       .catch(() => {})
   }, [section.key])
 
-  function add() {
+  async function add() {
     const trimmed = input.trim()
     if (!trimmed || values.map(v => v.toLowerCase()).includes(trimmed.toLowerCase())) return
-    setValues(prev => [...prev, trimmed])
     setInput('')
-    setPending(true)
+    setError(null)
+    setLoading(true)
+    const prev = values
+    setValues(v => [...v, trimmed])
+    try {
+      await section.add(trimmed)
+    } catch {
+      setValues(prev)
+      setError(`Failed to add "${trimmed}". Please try again.`)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  function remove(value: string) {
-    setValues(prev => prev.filter(v => v !== value))
-    setPending(true)
+  async function remove(value: string) {
+    setError(null)
+    const prev = values
+    setValues(v => v.filter(x => x !== value))
+    try {
+      await section.remove(value)
+    } catch {
+      setValues(prev)
+      setError(`Failed to remove "${value}". Please try again.`)
+    }
   }
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
-      <div className="flex items-start justify-between gap-4 mb-1">
-        <div>
-          <p className="text-sm font-semibold text-slate-800">{section.title}</p>
-          <p className="text-xs text-slate-400 mt-0.5">{section.description}</p>
-        </div>
-        {pending && (
-          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
-            Unsaved — backend pending
-          </span>
-        )}
+      <div className="mb-4">
+        <p className="text-sm font-semibold text-slate-800">{section.title}</p>
+        <p className="text-xs text-slate-400 mt-0.5">{section.description}</p>
       </div>
 
-      <p className="text-[10px] font-mono text-slate-300 mb-4">{section.endpoint}</p>
+      {error && (
+        <p className="text-xs text-red-500 mb-3">{error}</p>
+      )}
 
       {/* Current values */}
       <div className="flex flex-wrap gap-2 mb-4 min-h-[2rem]">
@@ -112,11 +136,11 @@ function LookupEditor({ section }: { section: LookupSection }) {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && add()}
-          className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue"
+          className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all"
         />
         <button
           onClick={add}
-          disabled={!input.trim()}
+          disabled={!input.trim() || loading}
           className="px-4 py-2 rounded-lg text-xs font-semibold bg-heart-blue text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
         >
           Add
@@ -132,28 +156,14 @@ export default function Settings() {
   return (
     <div className="space-y-8">
 
-      <PageHeading title="Settings" subtitle="Manage lookup values and application configuration" />
-
-      {/* Notice */}
-      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
-        <svg className="text-amber-500 shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <div>
-          <p className="text-sm font-semibold text-amber-800">Backend endpoints not yet connected</p>
-          <p className="text-xs text-amber-700 mt-0.5">
-            Changes made here are local and will reset on refresh until the corresponding API endpoints are implemented.
-            Values shown are the current application defaults.
-          </p>
-        </div>
-      </div>
+      <PageHeading title="Settings" subtitle="Manage lookup values used across the application" />
 
       {/* Lookup tables */}
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-slate-800">Lookup Tables</h2>
           <p className="text-sm text-slate-400 mt-0.5">
-            These values populate dropdowns throughout the app. Stored in their own database tables and shared across all chapters.
+            These values populate dropdowns throughout the app. Stored in the database and shared across all chapters.
           </p>
         </div>
         {LOOKUP_SECTIONS.map(section => (

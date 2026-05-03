@@ -25,5 +25,46 @@ public class LookupService {
         return new LookupResponse(deviceStatuses, chargerStatuses, workingBatteryOpts, repository.getManufacturers(),
                 repository.getRamGenerations(), repository.getStorageTypes(), repository.getPartTypes());
     }
+
+    public void addManufacturer(String name) throws SQLException {
+        validateName(name);
+        repository.insertManufacturer(name.strip());
+    }
+
+    public void addRamGeneration(String name) throws SQLException {
+        validateName(name);
+        repository.insertRamGeneration(name.strip());
+    }
+
+    public void addStorageType(String name) throws SQLException {
+        validateName(name);
+        repository.insertStorageType(name.strip());
+    }
+
+    public void addPartType(String name) throws SQLException {
+        validateName(name);
+        repository.insertPartType(name.strip());
+    }
+
+    public void removeManufacturer(String name) throws SQLException {
+        repository.deleteManufacturer(name);
+    }
+
+    public void removeRamGeneration(String name) throws SQLException {
+        repository.deleteRamGeneration(name);
+    }
+
+    public void removeStorageType(String name) throws SQLException {
+        repository.deleteStorageType(name);
+    }
+
+    public void removePartType(String name) throws SQLException {
+        repository.deletePartType(name);
+    }
+
+    private static void validateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name is required");
+        }
     }
 }

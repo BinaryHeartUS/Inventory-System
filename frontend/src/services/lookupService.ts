@@ -1,13 +1,21 @@
 /**
  * Lookup service — canonical option lists for all dropdown/combo fields.
  *
- * Endpoint:
- *   GET /api/lookup → LookupResponse (all option lists in one request)
+ * Endpoints:
+ *   GET    /api/lookup                    → LookupResponse
+ *   POST   /api/lookup/manufacturers      → 201 (Admin only)
+ *   POST   /api/lookup/ram-generations    → 201 (Admin only)
+ *   POST   /api/lookup/storage-types      → 201 (Admin only)
+ *   POST   /api/lookup/part-types         → 201 (Admin only)
+ *   DELETE /api/lookup/manufacturers/{n}  → 204 (Admin only)
+ *   DELETE /api/lookup/ram-generations/{n}→ 204 (Admin only)
+ *   DELETE /api/lookup/storage-types/{n}  → 204 (Admin only)
+ *   DELETE /api/lookup/part-types/{n}     → 204 (Admin only)
  *
  * Chapter lookups are handled by chapterService / ChapterContext.
  */
 
-import { apiGet } from './api'
+import { apiGet, apiPostVoid, apiDelete } from './api'
 import type { ChargerStatus, DeviceStatus, WorkingBattery } from '../types/inventory'
 
 interface LookupResponse {
@@ -22,4 +30,36 @@ interface LookupResponse {
 
 export async function getAllLookups(): Promise<LookupResponse> {
   return apiGet<LookupResponse>('/lookup')
+}
+
+export async function addManufacturer(name: string): Promise<void> {
+  return apiPostVoid('/lookup/manufacturers', { name })
+}
+
+export async function addRamGeneration(name: string): Promise<void> {
+  return apiPostVoid('/lookup/ram-generations', { name })
+}
+
+export async function addStorageType(name: string): Promise<void> {
+  return apiPostVoid('/lookup/storage-types', { name })
+}
+
+export async function addPartType(name: string): Promise<void> {
+  return apiPostVoid('/lookup/part-types', { name })
+}
+
+export async function deleteManufacturer(name: string): Promise<void> {
+  return apiDelete(`/lookup/manufacturers/${encodeURIComponent(name)}`)
+}
+
+export async function deleteRamGeneration(name: string): Promise<void> {
+  return apiDelete(`/lookup/ram-generations/${encodeURIComponent(name)}`)
+}
+
+export async function deleteStorageType(name: string): Promise<void> {
+  return apiDelete(`/lookup/storage-types/${encodeURIComponent(name)}`)
+}
+
+export async function deletePartType(name: string): Promise<void> {
+  return apiDelete(`/lookup/part-types/${encodeURIComponent(name)}`)
 }

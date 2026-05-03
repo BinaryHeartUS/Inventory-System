@@ -1525,7 +1525,6 @@ export interface components {
             ramGenerations?: string[];
             storageTypes?: string[];
             partTypes?: string[];
-            toolTypes?: string[];
         };
         NoteResponse: {
             /** Format: int32 */
