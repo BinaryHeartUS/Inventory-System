@@ -4,8 +4,10 @@ import static io.javalin.apibuilder.ApiBuilder.post;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.LoginRequest;
 import org.binaryheart.responses.LoginResponse;
 import org.binaryheart.services.AuthService;
@@ -24,18 +26,53 @@ public class AuthController {
     private static final AuthService service = new AuthService();
     private static final ChapterService chapterService = new ChapterService();
 
+    private static final Set<String> WRITE_ROLES = Set.of("Admin", "Chapter Admin", "Editor");
+
     /**
-     * Throws 403 if the caller is not a member of the given chapter. Members of the
-     * National chapter are granted access to all chapters.
+     * Throws 403 if the caller does not have a write-capable role (Editor, Chapter
+     * Admin, or Admin) for the given chapter.
+     *
+     * National membership is only sufficient if the caller's National role is
+     * itself write-capable — a National Viewer cannot write to other chapters.
      */
-    public static void requireChapterAccess(Context ctx, int chapterId) throws SQLException {
-        List<Integer> userChapterIds = ctx.attribute("chapterIds");
-        if (userChapterIds == null || userChapterIds.isEmpty())
+    public static void requireChapterEditAccess(Context ctx, int chapterId) throws SQLException {
+        List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
+        if (chapterRoles == null || chapterRoles.isEmpty())
             throw new ForbiddenResponse("Access denied");
-        if (userChapterIds.contains(chapterService.getNationalChapterId()))
-            return;
-        if (!userChapterIds.contains(chapterId))
-            throw new ForbiddenResponse("Access denied: not a member of chapter " + chapterId);
+
+        int nationalId = chapterService.getNationalChapterId();
+
+        for (ChapterRole cr : chapterRoles) {
+            if (!WRITE_ROLES.contains(cr.role()))
+                continue;
+            if (cr.chapterId() == nationalId)
+                return;
+            if (cr.chapterId() == chapterId)
+                return;
+        }
+
+        throw new ForbiddenResponse("Access denied: insufficient role for chapter " + chapterId);
+    }
+
+    /**
+     * Throws 403 if the caller is not affiliated with the given chapter in any
+     * role. Members of the National chapter (any role) can read all chapters.
+     */
+    public static void requireChapterReadAccess(Context ctx, int chapterId) throws SQLException {
+        List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
+        if (chapterRoles == null || chapterRoles.isEmpty())
+            throw new ForbiddenResponse("Access denied");
+
+        int nationalId = chapterService.getNationalChapterId();
+
+        for (ChapterRole cr : chapterRoles) {
+            if (cr.chapterId() == nationalId)
+                return;
+            if (cr.chapterId() == chapterId)
+                return;
+        }
+
+        throw new ForbiddenResponse("Access denied: not a member of chapter " + chapterId);
     }
 
     public static void registerRoutes() {

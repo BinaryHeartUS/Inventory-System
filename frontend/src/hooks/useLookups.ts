@@ -15,7 +15,7 @@
 import { useEffect, useState } from 'react'
 import type { ChargerStatus, DeviceStatus, WorkingBattery } from '../types/inventory'
 import { getAllLookups } from '../services/lookupService'
-import { useVisibleChapters } from '../context/ChapterContext'
+import { useWritableChapters } from '../context/ChapterContext'
 
 export interface LookupData {
   chapters: string[]
@@ -32,7 +32,7 @@ export interface LookupData {
 const WIFI_OPTS: LookupData['wifiOpts'] = ['Yes', 'No', 'Unknown']
 
 export function useLookups(): LookupData {
-  const chapterList = useVisibleChapters()
+  const chapterList = useWritableChapters()
   const [rest, setRest] = useState({
     manufacturers: [] as string[],
     ramGenerations: [] as string[],

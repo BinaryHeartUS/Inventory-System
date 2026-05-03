@@ -21,10 +21,10 @@ public class LookupController {
         post("/ram-generations", LookupController::addRamGeneration, AppRole.AUTHENTICATED);
         post("/storage-types", LookupController::addStorageType, AppRole.AUTHENTICATED);
         post("/part-types", LookupController::addPartType, AppRole.AUTHENTICATED);
-        delete("/manufacturers/{name}", LookupController::deleteManufacturer, AppRole.ADMIN);
-        delete("/ram-generations/{name}", LookupController::deleteRamGeneration, AppRole.ADMIN);
-        delete("/storage-types/{name}", LookupController::deleteStorageType, AppRole.ADMIN);
-        delete("/part-types/{name}", LookupController::deletePartType, AppRole.ADMIN);
+        delete("/manufacturers/{name}", LookupController::deleteManufacturer, AppRole.CHAPTER_ADMIN);
+        delete("/ram-generations/{name}", LookupController::deleteRamGeneration, AppRole.CHAPTER_ADMIN);
+        delete("/storage-types/{name}", LookupController::deleteStorageType, AppRole.CHAPTER_ADMIN);
+        delete("/part-types/{name}", LookupController::deletePartType, AppRole.CHAPTER_ADMIN);
     }
 
     @OpenApi(

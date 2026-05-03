@@ -15,6 +15,8 @@ interface ChapterContextValue {
   refreshChapters: () => void
 }
 
+const WRITE_ROLES = new Set(['Admin', 'Chapter Admin', 'Editor'])
+
 /**
  * Returns only the chapters this user is allowed to see, excluding National
  * (which is a meta-chapter meaning "all chapters", not a real selectable one):
@@ -35,6 +37,30 @@ export function useVisibleChapters(): ChapterSummary[] {
   if (nationalChapter && auth.chapterIds.includes(nationalChapter.id)) return real
 
   return real.filter(c => auth.chapterIds.includes(c.id))
+}
+
+/**
+ * Returns only the chapters this user can write to (Editor, Chapter Admin, or
+ * Admin role). A National Viewer does NOT get write access to all chapters.
+ */
+export function useWritableChapters(): ChapterSummary[] {
+  const { chapters } = useChapters()
+  const { auth } = useAuth()
+
+  const real = chapters.filter(c => c.name !== 'National')
+
+  if (!auth) return []
+
+  const nationalChapter = chapters.find(c => c.name === 'National')
+  const hasNationalWrite = !!nationalChapter &&
+    auth.chapterRoles.some(cr => cr.chapterId === nationalChapter.id && WRITE_ROLES.has(cr.role))
+
+  if (hasNationalWrite) return real
+
+  const writableIds = new Set(
+    auth.chapterRoles.filter(cr => WRITE_ROLES.has(cr.role)).map(cr => cr.chapterId)
+  )
+  return real.filter(c => writableIds.has(c.id))
 }
 
 /**
