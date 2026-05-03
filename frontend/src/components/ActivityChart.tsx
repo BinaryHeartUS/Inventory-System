@@ -2,6 +2,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer,
 } from 'recharts'
+import { useMemo } from 'react'
 import type { AnyDevice } from '../types/inventory'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -67,6 +68,13 @@ function CustomTooltip({ active, payload, label }: {
 export default function ActivityChart({ devices, months = 12 }: Props) {
   const keys = lastNMonths(months)
 
+  // Stable skeleton heights — fixed wave pattern
+  const skeletonHeights = useMemo(
+    () => keys.map((_, i) => 25 + Math.abs(Math.sin(i * 0.8)) * 55),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [months]
+  )
+
   const receivedByMonth: Record<string, number> = {}
   const donatedByMonth:  Record<string, number> = {}
   keys.forEach(k => { receivedByMonth[k] = 0; donatedByMonth[k] = 0 })
@@ -94,7 +102,16 @@ export default function ActivityChart({ devices, months = 12 }: Props) {
         Devices Received vs Donated — Last 12 Months
       </p>
       <div className="min-h-[320px]">
-        <ResponsiveContainer width="100%" height={320}>
+        {devices.length === 0 ? (
+          <div className="h-[320px] flex items-end gap-2 px-2 pb-6 pt-4">
+            {keys.map((k, i) => (
+              <div key={k} className="flex-1 flex flex-col justify-end gap-1">
+                <div className="w-full rounded-sm bg-slate-100 animate-pulse" style={{ height: `${skeletonHeights[i]}px` }} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={320}>
           <LineChart data={data}>
             <CartesianGrid vertical={false} stroke="#f1f5f9" />
             <XAxis
@@ -120,6 +137,7 @@ export default function ActivityChart({ devices, months = 12 }: Props) {
             <Line type="monotone" dataKey="donated"  name="Donated"  stroke="#0ea5e9" strokeWidth={2} dot={{ r: 3, fill: '#0ea5e9' }} activeDot={{ r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   )
