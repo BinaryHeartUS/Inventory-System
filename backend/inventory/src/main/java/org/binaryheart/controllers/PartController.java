@@ -16,11 +16,11 @@ public class PartController {
     private static final PartService service = new PartService();
 
     public static void registerRoutes() {
-        get("/parts", PartController::getAllParts, AppRole.AUTHENTICATED);
+        get("", PartController::getAllParts, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
-            path = "/api/assets/parts",
+            path = "/api/parts",
             methods = { HttpMethod.GET },
             tags = { "Parts" },
             security = { @OpenApiSecurity(

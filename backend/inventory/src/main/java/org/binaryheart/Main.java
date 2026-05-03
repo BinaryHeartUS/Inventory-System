@@ -10,6 +10,8 @@ import org.binaryheart.controllers.DeviceController;
 import org.binaryheart.controllers.HealthController;
 import org.binaryheart.controllers.LookupController;
 import org.binaryheart.controllers.NoteController;
+import org.binaryheart.controllers.PartController;
+import org.binaryheart.controllers.ToolController;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -41,6 +43,8 @@ public class Main {
                 path("/api/chapters", ChapterController::registerRoutes);
                 path("/api/lookup", LookupController::registerRoutes);
                 path("/api/assets", NoteController::registerRoutes);
+                path("/api/parts", PartController::registerRoutes);
+                path("/api/tools", ToolController::registerRoutes);
             });
         }).start(8080);
     }
