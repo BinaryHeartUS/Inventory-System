@@ -127,7 +127,7 @@ export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 
             <div key={note.id} className="px-5 py-4 group">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <p className="text-xs font-medium text-slate-500">{formatNoteDate(note.date)}</p>
-                {editingId !== note.id && (
+                {!readOnly && editingId !== note.id && (
                   <button
                     onClick={() => startEdit(note)}
                     className="opacity-0 group-hover:opacity-100 text-[11px] text-slate-400 hover:text-slate-700 transition-all shrink-0"
