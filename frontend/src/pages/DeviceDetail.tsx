@@ -7,6 +7,7 @@ import { getDevice, updateDevice } from '../services/deviceService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 import { useAuth } from '../context/AuthContext'
+import { useWritableChapters } from '../context/ChapterContext'
 
 
 // ─── Field / form helpers ─────────────────────────────────────────────────────
@@ -132,6 +133,7 @@ export default function DeviceDetail() {
   const numId   = Number(id)
 
   const { auth } = useAuth()
+  const writableChapters = useWritableChapters()
   const lookups = useLookups()
 
   const [device, setDevice] = useState<AnyDevice | null>(null)
@@ -199,12 +201,12 @@ export default function DeviceDetail() {
 
   const d = editing && form ? form : device
 
-  // Editors cannot edit or add notes on donated devices; admins/chapter admins can
-  // Viewers cannot edit any devices or notes
-  const isEditor = auth?.role?.toLowerCase() === 'editor'
-  const isViewer = auth?.role?.toLowerCase() === 'viewer'
-  const donatedLock = isEditor && device.status === 'Donated'
-  const viewerLock = isViewer
+  // Determine write access for this specific chapter, not just the global role.
+  // A National Viewer + IU Chapter Admin cannot write to a Rose-Hulman device.
+  const canWriteThisChapter = writableChapters.some(c => c.name === device.chapter)
+  const isEditor = canWriteThisChapter && auth?.role?.toLowerCase() === 'editor'
+  const viewerLock = !canWriteThisChapter
+  const donatedLock = canWriteThisChapter && auth?.role?.toLowerCase() === 'editor' && device.status === 'Donated'
   const editLock = viewerLock || donatedLock
 
   return (
