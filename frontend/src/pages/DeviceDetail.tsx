@@ -204,7 +204,6 @@ export default function DeviceDetail() {
   // Determine write access for this specific chapter, not just the global role.
   // A National Viewer + IU Chapter Admin cannot write to a Rose-Hulman device.
   const canWriteThisChapter = writableChapters.some(c => c.name === device.chapter)
-  const isEditor = canWriteThisChapter && auth?.role?.toLowerCase() === 'editor'
   const viewerLock = !canWriteThisChapter
   const donatedLock = canWriteThisChapter && auth?.role?.toLowerCase() === 'editor' && device.status === 'Donated'
   const editLock = viewerLock || donatedLock
