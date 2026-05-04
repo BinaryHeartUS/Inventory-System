@@ -103,7 +103,7 @@ export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 
       )}
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+      <div className="flex-1 overflow-y-auto">
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
             <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-3">
@@ -123,50 +123,67 @@ export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 
             <p className="text-xs text-slate-400 mt-1">Add the first note above.</p>
           </div>
         ) : (
-          notes.map(note => (
-            <div key={note.id} className="px-5 py-4 group">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <p className="text-xs font-medium text-slate-500">{formatNoteDate(note.date)}</p>
-                {!readOnly && editingId !== note.id && (
-                  <button
-                    onClick={() => startEdit(note)}
-                    className="opacity-0 group-hover:opacity-100 text-[11px] text-slate-400 hover:text-slate-700 transition-all shrink-0"
-                  >
-                    Edit
-                  </button>
-                )}
-              </div>
-              {editingId === note.id ? (
-                <div>
-                  <textarea
-                    autoFocus
-                    value={editText}
-                    onChange={e => setEditText(e.target.value)}
-                    maxLength={500}
-                    rows={3}
-                    className={`${inputCls} border-slate-300 resize-none`}
-                  />
-                  <div className="flex gap-2 mt-2 justify-end">
-                    <button
-                      onClick={cancelEdit}
-                      className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => saveEdit(note.id)}
-                      disabled={!editText.trim()}
-                      className="text-xs font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1 rounded-lg transition-colors"
-                    >
-                      Save
-                    </button>
-                  </div>
+          <div className="relative py-2">
+            {/* Timeline spine — starts below first dot, ends above last dot */}
+            <div className="absolute left-8 top-[37px] bottom-[19px] w-px bg-slate-200" />
+
+            {notes.map((note, idx) => (
+              <div key={note.id} className="relative flex items-stretch gap-0 px-4 py-3 group">
+                {/* Timeline dot column — aligned to date row */}
+                <div className="relative z-10 flex-shrink-0 w-8 flex items-start justify-center pt-[7px]">
+                  <div className={`w-2.5 h-2.5 rounded-full border-2 transition-colors bg-white ${
+                    idx === 0
+                      ? 'border-heart-blue'
+                      : 'border-slate-300 group-hover:border-slate-400'
+                  }`} />
                 </div>
-              ) : (
-                <p className="text-sm text-slate-700 leading-relaxed">{note.text}</p>
-              )}
-            </div>
-          ))
+
+                {/* Content */}
+                <div className="flex-1 min-w-0 pl-2">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <p className="text-xs font-medium text-slate-400">{formatNoteDate(note.date)}</p>
+                    {!readOnly && editingId !== note.id && (
+                      <button
+                        onClick={() => startEdit(note)}
+                        className="opacity-0 group-hover:opacity-100 text-[11px] text-slate-400 hover:text-slate-700 transition-all shrink-0"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
+                  {editingId === note.id ? (
+                    <div>
+                      <textarea
+                        autoFocus
+                        value={editText}
+                        onChange={e => setEditText(e.target.value)}
+                        maxLength={500}
+                        rows={3}
+                        className={`${inputCls} border-slate-300 resize-none`}
+                      />
+                      <div className="flex gap-2 mt-2 justify-end">
+                        <button
+                          onClick={cancelEdit}
+                          className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => saveEdit(note.id)}
+                          disabled={!editText.trim()}
+                          className="text-xs font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1 rounded-lg transition-colors"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-700 leading-relaxed">{note.text}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
