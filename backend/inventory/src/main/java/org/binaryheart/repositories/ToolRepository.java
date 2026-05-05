@@ -37,4 +37,31 @@ public class ToolRepository {
         }
         return tools;
     }
+
+    public GetToolResponse getTool(Integer toolID) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Tool(?)");
+        stmt.setInt(1, toolID);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            int id = rs.getInt("id");
+            Date acquisitionDate = rs.getDate("acquisition_date");
+            LocalDate localAcquisitionDate = null;
+            if (acquisitionDate != null) {
+                localAcquisitionDate = acquisitionDate.toLocalDate();
+            }
+            Double value = rs.getDouble("value");
+            String description = rs.getString("description");
+            Integer chapterID = rs.getInt("chapter_id");
+            Integer donorID = rs.getInt("donor_id");
+            return new GetToolResponse(id, localAcquisitionDate, value, description, chapterID, donorID);
+        }
+
+        // else nothing was found
+        return null;
+    }
 }
