@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS Laptop (
     ID INTEGER PRIMARY KEY,
-    FOREIGN KEY (ID) REFERENCES Device(ID),
+    FOREIGN KEY (ID) REFERENCES Device(ID)
+        ON UPDATE NO ACTION ON DELETE CASCADE,
     Design_battery_capacity INTEGER NULL,
     CHECK (Design_battery_capacity >= 0),
     Actual_battery_capacity INTEGER NULL,

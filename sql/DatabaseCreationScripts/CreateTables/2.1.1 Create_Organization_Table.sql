@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS Organization (
     ID INTEGER PRIMARY KEY,
-    FOREIGN KEY (ID) REFERENCES Party(ID),
+    FOREIGN KEY (ID) REFERENCES Party(ID)
+        ON UPDATE NO ACTION ON DELETE CASCADE,
     ContactName Name_Type NULL,
     ContactEmail Email_Type NULL
 );
