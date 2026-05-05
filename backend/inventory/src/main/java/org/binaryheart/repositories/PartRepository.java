@@ -1,9 +1,11 @@
 package org.binaryheart.repositories;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -45,10 +47,11 @@ public class PartRepository {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        PreparedStatement stmt;
-        stmt = conn.prepareStatement("SELECT * FROM Get_Parts WHERE id = ?");
+
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Part_By_ID(?)");
         stmt.setInt(1, partId);
         stmt.execute();
+
         ResultSet res = stmt.getResultSet();
         if (res.next()) {
             int id = res.getInt("id");

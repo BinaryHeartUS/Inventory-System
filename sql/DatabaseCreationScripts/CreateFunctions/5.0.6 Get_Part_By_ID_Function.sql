@@ -2,23 +2,31 @@ CREATE OR REPLACE FUNCTION Get_Part_By_ID (
 	p_assetID INTEGER
 )
 RETURNS TABLE (
-    ID INTEGER,
-    Type_ID INTEGER,
-    Description VARCHAR(500),
-    Was_Purchased BOOLEAN,
-    Contained_In INTEGER
+    id INTEGER,
+    type VARCHAR(50),
+    description VARCHAR(500),
+    wasPurchased BOOLEAN,
+    containedIn INTEGER,
+    chapterId INTEGER,
+    acquisitionDate DATE,
+    value MONEY
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        p.ID,
-        p.Type_ID,
-        p.Description,
-        p.Was_Purchased,
-        p.Contained_In
+        p.ID as id,
+        t.Name as type,
+        p.Description as description,
+        p.Was_Purchased as wasPurchased,
+        p.Contained_In as containedIn,
+        a.Chapter_ID as chapterId,
+        a.Acquisition_Date as acquisitionDate,
+        a.Value as value
     FROM Part p
+    JOIN Asset a on a.ID = p.id
+    JOIN Part_Type t on p.Type_ID = t.ID
     WHERE p.ID = p_assetID;
 END;
 $$;
