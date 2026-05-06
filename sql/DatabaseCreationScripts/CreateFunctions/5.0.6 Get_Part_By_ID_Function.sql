@@ -9,7 +9,8 @@ RETURNS TABLE (
     containedIn INTEGER,
     chapterId INTEGER,
     acquisitionDate DATE,
-    value MONEY
+    value MONEY,
+    donorId INTEGER
 )
 LANGUAGE plpgsql
 AS $$
@@ -23,7 +24,8 @@ BEGIN
         p.Contained_In as containedIn,
         a.Chapter_ID as chapterId,
         a.Acquisition_Date as acquisitionDate,
-        a.Value as value
+        a.Value as value,
+        a.Donor_ID as donorId
     FROM Part p
     JOIN Asset a on a.ID = p.id
     JOIN Part_Type t on p.Type_ID = t.ID
