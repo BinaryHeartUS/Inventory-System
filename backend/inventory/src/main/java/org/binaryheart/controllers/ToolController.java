@@ -29,7 +29,7 @@ public class ToolController {
         get("/{id}", ToolController::getTool, AppRole.AUTHENTICATED);
         post("", ToolController::insertTool, AppRole.AUTHENTICATED);
         // put("/{id}", ToolController::updateTool, AppRole.AUTHENTICATED);
-        delete("/{id}", ToolController::deleteTool, AppRole.AUTHENTICATED);
+        delete("/{id}", ToolController::deleteTool, AppRole.CHAPTER_ADMIN);
     }
 
     @OpenApi(
