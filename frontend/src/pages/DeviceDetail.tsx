@@ -60,12 +60,6 @@ function EditSelect<T extends string>({ label, value, options, onChange }: {
   )
 }
 
-/**
- * Combo field: dropdown of known values + a "Custom…" option that reveals a free-text input.
- * `options` should come from a lookup API endpoint (see TODO above); the dropdown always shows
- * whatever the server considers canonical, and "Custom…" lets users enter a new value that will
- * be persisted as a new lookup row on save.
- */
 function EditCombo({ label, value, options, onChange, placeholder, maxLength }: {
   label: string; value: string | null; options: string[]
   onChange: (v: string | null) => void; placeholder?: string; maxLength?: number

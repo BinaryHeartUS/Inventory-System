@@ -15,9 +15,11 @@ const EXCLUDE_COLS = ['Type', 'CPU', 'RAM', 'Storage', 'Status', 'Details', 'Acq
 export function DevicePickerModal({
   onSelect,
   onCancel,
+  chapterName,
 }: {
   onSelect: (device: AnyDevice) => void
   onCancel: () => void
+  chapterName?: string
 }) {
   const writableChapters = useWritableChapters()
   const [allDevices, setAllDevices] = useState<AnyDevice[]>([])
@@ -36,7 +38,11 @@ export function DevicePickerModal({
   )
 
   const filtered = useMemo(() => {
-    const base = allDevices.filter(d => d.chapter != null && writableChapterNames.has(d.chapter))
+    const base = allDevices.filter(d => {
+      if (d.chapter == null || !writableChapterNames.has(d.chapter)) return false
+      if (chapterName !== undefined && d.chapter !== chapterName) return false
+      return true
+    })
     if (!search.trim()) return base
     const s = search.toLowerCase()
     return base.filter(d =>
@@ -46,7 +52,7 @@ export function DevicePickerModal({
       (d.chapter ?? '').toLowerCase().includes(s) ||
       String(d.year).includes(s),
     )
-  }, [allDevices, search, writableChapterNames])
+  }, [allDevices, search, writableChapterNames, chapterName])
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -60,7 +66,11 @@ export function DevicePickerModal({
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
           <div>
             <h2 className="text-base font-semibold text-slate-900">Select a Device</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Click a row to link this part to that device</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {chapterName
+                ? <>Showing devices in <span className="font-medium text-slate-600">{chapterName}</span> — click a row to link this part to that device</>
+                : 'Click a row to link this part to that device'}
+            </p>
           </div>
           <button
             onClick={onCancel}

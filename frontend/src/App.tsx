@@ -285,22 +285,25 @@ function AppInner() {
     }, [navigate, showToast]),
   })
 
-  // TODO: Replace with POST /api/assets (device/part/tool) when backend is ready.
   async function handleAddAsset(asset: AnyDevice | Part | Tool) {
-    if ('ram' in asset) {
-      const saved = await createDevice(asset as AnyDevice)
-      setPendingScanId(null)
-      setPendingPrintId(saved.id)
-      navigate(`/devices/${saved.id}`)
-    } else if ('wasPurchased' in asset) {
-      const saved = await createPart(asset as Part)
-      setPendingScanId(null)
-      setPendingPrintId(saved.id)
-    } else {
-      const saved = await createTool(asset as Tool)
-      setPendingScanId(null)
-      setPendingPrintId(saved.id)
-      navigate(`/tools/${saved.id}`)
+    try {
+      if ('ram' in asset) {
+        const saved = await createDevice(asset as AnyDevice)
+        setPendingScanId(null)
+        setPendingPrintId(saved.id)
+        navigate(`/devices/${saved.id}`)
+      } else if ('wasPurchased' in asset) {
+        const saved = await createPart(asset as Part)
+        setPendingScanId(null)
+        setPendingPrintId(saved.id)
+      } else {
+        const saved = await createTool(asset as Tool)
+        setPendingScanId(null)
+        setPendingPrintId(saved.id)
+        navigate(`/tools/${saved.id}`)
+      }
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to save asset', false)
     }
   }
 

@@ -630,6 +630,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         {/* Device picker (rendered above the modal layer) */}
         {devicePickerOpen && (
           <DevicePickerModal
+            chapterName={form.chapter || undefined}
             onSelect={device => {
               setSelectedDevice(device)
               setForm(prev => ({ ...prev, containedIn: String(device.id) }))
@@ -694,7 +695,16 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
               category={category!}
               subtype={subtype}
               form={form}
-              setForm={setForm}
+              setForm={(updater) => {
+                setForm(prev => {
+                  const next = typeof updater === 'function' ? updater(prev) : updater
+                  if (next.chapter !== prev.chapter) {
+                    setSelectedDevice(null)
+                    return { ...next, containedIn: '' }
+                  }
+                  return next
+                })
+              }}
               lookups={lookups}
               selectedDevice={selectedDevice}
               onOpenDevicePicker={() => setDevicePickerOpen(true)}
