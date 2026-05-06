@@ -50,13 +50,21 @@ ssh "$TARGET" bash <<EOF
     echo "Database wiped."
   fi
 
+  # Build all images first.
+  docker compose -f docker-compose.prod.yml build
+
+  # Start the database, then run migrations synchronously so we wait for completion
+  # before starting the backend. Using `run --rm` guarantees the migration container
+  # runs to completion and its exit code is checked — unlike `up -d` which is fire-and-forget.
+  docker compose -f docker-compose.prod.yml up -d db
+  docker compose -f docker-compose.prod.yml run --rm db-migrate
+
   # Caddy handles TLS automatically via Let's Encrypt on first boot.
-  # db-migrate runs once and exits; backend/frontend/caddy restart if already running.
   # On --reset, also run the importer to seed data from the Excel file.
   if [ "$RESET" = "--reset" ]; then
-    COMPOSE_PROFILES=import docker compose -f docker-compose.prod.yml up --build -d
+    COMPOSE_PROFILES=import docker compose -f docker-compose.prod.yml up -d
   else
-    docker compose -f docker-compose.prod.yml up --build -d
+    docker compose -f docker-compose.prod.yml up -d
   fi
   echo "Deploy complete. Site available at https://\$(grep '^DOMAIN=' .env | cut -d= -f2)"
 EOF
