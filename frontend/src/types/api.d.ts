@@ -2279,7 +2279,8 @@ export interface components {
             containedIn?: number;
             /** Format: int32 */
             id?: number;
-            acquisitionDate?: components["schemas"]["Date"];
+            /** Format: date */
+            acquisitionDate?: string;
             /** Format: double */
             value?: number;
             /** Format: int32 */

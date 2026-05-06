@@ -110,7 +110,7 @@ public class PartRepository {
         if (request.acquisitionDate() == null) {
             stmt.setNull(7, java.sql.Types.DATE);
         } else {
-            stmt.setDate(7, request.acquisitionDate());
+            stmt.setDate(7, java.sql.Date.valueOf(request.acquisitionDate()));
         }
         if (request.value() == null) {
             stmt.setDouble(8, 0);

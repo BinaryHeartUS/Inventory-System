@@ -13,24 +13,6 @@ import { apiGet, apiPut, apiDelete, apiPostVoid } from './api'
 import type { InsertPartRequest, Part } from '../types/inventory'
 import { getChapters } from './chapterService'
 
-/** Convert ISO date string (YYYY-MM-DD) to Java Date object format */
-function stringToDate(dateStr: string | undefined | null) {
-  if (!dateStr) return undefined
-  const date = new Date(dateStr)
-  if (isNaN(date.getTime())) return undefined
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth(),
-    date: date.getDate(),
-    day: date.getDay(),
-    time: date.getTime(),
-    timezoneOffset: date.getTimezoneOffset(),
-    hours: date.getHours(),
-    minutes: date.getMinutes(),
-    seconds: date.getSeconds(),
-  }
-}
-
 export async function getParts(): Promise<Part[]> {
   return apiGet<Part[]>('/parts')
 }
@@ -55,7 +37,7 @@ export async function createPart(part: Part): Promise<Part> {
     description: part.description ?? undefined,
     wasPurchased: part.wasPurchased ?? undefined,
     containedIn: part.containedIn ?? undefined,
-    acquisitionDate: stringToDate(part.acquisitionDate),
+    acquisitionDate: part.acquisitionDate ?? undefined,
     value: part.value ?? undefined,
     donorId: part.donorId ?? undefined
   }

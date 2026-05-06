@@ -2,7 +2,6 @@
 package org.binaryheart.services;
 
 import java.security.InvalidParameterException;
-import java.sql.Date;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,8 +80,7 @@ public class PartService {
         if (request.id() != null && request.id() <= 0) {
             throw new BadArgumentException("Asset ID must be positive or not specified");
         }
-        if (request.acquisitionDate() != null
-                && Date.valueOf(java.time.LocalDate.now()).before(request.acquisitionDate())) {
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
             throw new BadArgumentException("Acquisition date cannot be in the future");
         }
         if (request.value() != null && request.value() < 0) {

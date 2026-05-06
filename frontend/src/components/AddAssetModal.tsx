@@ -309,9 +309,7 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
           <label className={lCls}>Contained In</label>
           {selectedDevice ? (
             <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
-              <span className="font-mono text-xs text-slate-400">#{selectedDevice.id}</span>
-              <span className="text-sm text-slate-700">{selectedDevice.manufacturer} {selectedDevice.model}</span>
-              <span className="text-slate-300 text-xs">· {selectedDevice.year}</span>
+              <span className="text-sm text-slate-700">#{selectedDevice.id} {selectedDevice.manufacturer} {selectedDevice.model}</span>
               <button
                 type="button"
                 onClick={onClearDevice}
