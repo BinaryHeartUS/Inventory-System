@@ -5,6 +5,7 @@ import {
   addRamGeneration, deleteRamGeneration,
   addStorageType, deleteStorageType,
   addPartType, deletePartType,
+  addOperatingSystem, deleteOperatingSystem,
 } from '../services/lookupService'
 import PageHeading from '../components/PageHeading'
 
@@ -13,7 +14,7 @@ import PageHeading from '../components/PageHeading'
 interface LookupSection {
   title: string
   description: string
-  key: 'manufacturers' | 'ramGenerations' | 'storageTypes' | 'partTypes'
+  key: 'manufacturers' | 'ramGenerations' | 'storageTypes' | 'partTypes' | 'operatingSystems'
   add: (name: string) => Promise<void>
   remove: (name: string) => Promise<void>
 }
@@ -46,6 +47,13 @@ const LOOKUP_SECTIONS: LookupSection[] = [
     key:         'partTypes',
     add:         addPartType,
     remove:      deletePartType,
+  },
+  {
+    title:       'Operating Systems',
+    description: 'Operating system options (e.g. Windows 11, Ubuntu) available when logging devices.',
+    key:         'operatingSystems',
+    add:         addOperatingSystem,
+    remove:      deleteOperatingSystem,
   },
 ]
 

@@ -38,6 +38,10 @@ public class LookupRepository {
         return queryNames("SELECT Name FROM Part_Type ORDER BY Name");
     }
 
+    public List<String> getOperatingSystems() throws SQLException {
+        return queryNames("SELECT Name FROM Operating_System ORDER BY Name");
+    }
+
     public void insertManufacturer(String name) throws SQLException {
         callInsert("Insert_Manufacturer(?, ?)", name);
     }
@@ -54,6 +58,10 @@ public class LookupRepository {
         callInsert("Insert_Part_Type(?, ?)", name);
     }
 
+    public void insertOperatingSystem(String name) throws SQLException {
+        callInsert("Insert_Operating_System(?, ?)", name);
+    }
+
     public void deleteManufacturer(String name) throws SQLException {
         callDelete("Delete_Manufacturer(?)", name);
     }
@@ -68,6 +76,10 @@ public class LookupRepository {
 
     public void deletePartType(String name) throws SQLException {
         callDelete("Delete_Part_Type(?)", name);
+    }
+
+    public void deleteOperatingSystem(String name) throws SQLException {
+        callDelete("Delete_Operating_System(?)", name);
     }
 
     private void callInsert(String procedure, String name) throws SQLException {

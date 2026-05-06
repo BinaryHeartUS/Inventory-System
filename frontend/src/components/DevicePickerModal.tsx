@@ -4,7 +4,7 @@ import { getDevices } from '../services/deviceService'
 import { DeviceList } from './DeviceList'
 import { useWritableChapters } from '../context/ChapterContext'
 
-const EXCLUDE_COLS = ['Type', 'CPU', 'RAM', 'Storage', 'Status', 'Details', 'Acquired']
+const EXCLUDE_COLS = ['Type', 'CPU', 'OS', 'RAM', 'Storage', 'Status', 'Details', 'Acquired']
 
 /**
  * Modal overlay that lets the user pick a device from their writable chapters.

@@ -24,7 +24,8 @@ RETURNS TABLE (
     battery_health numeric,
     working_battery WORKING_BATTERY,
     chapter Name_Type,
-    donated_date DATE
+    donated_date DATE,
+    operating_system VARCHAR(50)
 )
 LANGUAGE plpgsql
 AS $$

@@ -21,10 +21,12 @@ public class LookupController {
         post("/ram-generations", LookupController::addRamGeneration, AppRole.AUTHENTICATED);
         post("/storage-types", LookupController::addStorageType, AppRole.AUTHENTICATED);
         post("/part-types", LookupController::addPartType, AppRole.AUTHENTICATED);
+        post("/operating-systems", LookupController::addOperatingSystem, AppRole.AUTHENTICATED);
         delete("/manufacturers/{name}", LookupController::deleteManufacturer, AppRole.CHAPTER_ADMIN);
         delete("/ram-generations/{name}", LookupController::deleteRamGeneration, AppRole.CHAPTER_ADMIN);
         delete("/storage-types/{name}", LookupController::deleteStorageType, AppRole.CHAPTER_ADMIN);
         delete("/part-types/{name}", LookupController::deletePartType, AppRole.CHAPTER_ADMIN);
+        delete("/operating-systems/{name}", LookupController::deleteOperatingSystem, AppRole.CHAPTER_ADMIN);
     }
 
     @OpenApi(
@@ -271,6 +273,63 @@ public class LookupController {
         String name = ctx.pathParam("name");
         try {
             service.removePartType(name);
+            ctx.status(204);
+        } catch (SQLException e) {
+            if ("23503".equals(e.getSQLState()))
+                ctx.status(409).result("Cannot delete \"" + name + "\" because it is still in use.");
+            else
+                ctx.status(500).result("Database error: " + e.getMessage());
+        }
+    }
+
+    @OpenApi(
+            path = "/api/lookup/operating-systems",
+            methods = { HttpMethod.POST },
+            tags = { "Lookup" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Add an operating system",
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = AddLookupRequest.class) }),
+            responses = { @OpenApiResponse(
+                    status = "201",
+                    description = "Added"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void addOperatingSystem(Context ctx) {
+        AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+        try {
+            service.addOperatingSystem(req.name());
+            ctx.status(201);
+        } catch (IllegalArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+    }
+
+    @OpenApi(
+            path = "/api/lookup/operating-systems/{name}",
+            methods = { HttpMethod.DELETE },
+            tags = { "Lookup" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Delete an operating system",
+            pathParams = { @OpenApiParam(
+                    name = "name") },
+            responses = { @OpenApiResponse(
+                    status = "204",
+                    description = "Deleted"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void deleteOperatingSystem(Context ctx) {
+        String name = ctx.pathParam("name");
+        try {
+            service.removeOperatingSystem(name);
             ctx.status(204);
         } catch (SQLException e) {
             if ("23503".equals(e.getSQLState()))

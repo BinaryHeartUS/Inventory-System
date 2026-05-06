@@ -16,7 +16,8 @@ CREATE OR REPLACE PROCEDURE Update_Device(
     IN p_Acquisition_Date DATE = NULL,
     IN p_Recipient_ID INTEGER = NULL,
     IN p_Donor_ID INTEGER = NULL,
-    IN p_Donated_Date DATE = NULL
+    IN p_Donated_Date DATE = NULL,
+    IN p_Operating_System VARCHAR(50) = NULL
 )
 LANGUAGE plpgsql
 AS $$
@@ -24,6 +25,7 @@ DECLARE
     v_Manufacturer_ID    INTEGER;
     v_RAM_Generation_ID  INTEGER;
     v_Storage_Type_ID    INTEGER;
+    v_OS_ID              INTEGER;
 BEGIN
     CALL Update_Asset(p_Chapter_ID, p_Asset_ID, p_Acquisition_Date, p_Value, p_Donor_ID);
 
@@ -37,6 +39,10 @@ BEGIN
         CALL Insert_Storage_Type(p_Storage_Type, v_Storage_Type_ID);
     END IF;
 
+    IF p_Operating_System IS NOT NULL THEN
+        CALL Insert_Operating_System(p_Operating_System, v_OS_ID);
+    END IF;
+
     UPDATE Device
     SET Manufacturer_ID = v_Manufacturer_ID,
         Model = p_Model,
@@ -48,7 +54,8 @@ BEGIN
         Storage_Type_ID = v_Storage_Type_ID,
         Status = p_Status,
         Recipient_ID = p_Recipient_ID,
-        Donated_Date = p_Donated_Date
+        Donated_Date = p_Donated_Date,
+        OS_ID = v_OS_ID
     WHERE ID = p_Asset_ID;
 END;
 $$;

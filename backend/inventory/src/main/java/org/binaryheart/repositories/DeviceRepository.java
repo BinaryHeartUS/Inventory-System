@@ -102,9 +102,10 @@ public class DeviceRepository {
         String workingBattery = rs.getString("working_battery");
         String chapter = rs.getString("chapter");
         LocalDate dateDonated = rs.getDate("Donated_Date") != null ? rs.getDate("Donated_Date").toLocalDate() : null;
+        String operatingSystem = rs.getString("operating_system");
         GetDeviceResponse response = new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value,
                 manufacturer, model, year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger,
-                designCap, actualCap, batteryHealth, workingBattery, chapter, dateDonated);
+                designCap, actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem);
         return response;
     }
 
@@ -143,9 +144,10 @@ public class DeviceRepository {
             String chapter = rs.getString("chapter");
             LocalDate dateDonated = rs.getDate("Donated_Date") != null ? rs.getDate("Donated_Date").toLocalDate()
                     : null;
+            String operatingSystem = rs.getString("operating_system");
             devices.add(new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model,
                     year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap,
-                    actualCap, batteryHealth, workingBattery, chapter, dateDonated));
+                    actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem));
         }
         return devices;
     }
@@ -156,7 +158,7 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
+                "call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
@@ -217,6 +219,11 @@ public class DeviceRepository {
         } else {
             stmt.setNull(16, java.sql.Types.BOOLEAN);
         }
+        if (request.operatingSystem() != null) {
+            stmt.setString(17, request.operatingSystem());
+        } else {
+            stmt.setNull(17, java.sql.Types.VARCHAR);
+        }
         stmt.execute();
     }
 
@@ -226,7 +233,7 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)");
+                "call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
@@ -293,6 +300,11 @@ public class DeviceRepository {
         } else {
             stmt.setNull(18, java.sql.Types.INTEGER);
         }
+        if (request.operatingSystem() != null) {
+            stmt.setString(19, request.operatingSystem());
+        } else {
+            stmt.setNull(19, java.sql.Types.VARCHAR);
+        }
 
         stmt.execute();
     }
@@ -303,7 +315,7 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?)");
+                "call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
@@ -361,6 +373,11 @@ public class DeviceRepository {
         } else {
             stmt.setNull(17, java.sql.Types.INTEGER);
         }
+        if (request.operatingSystem() != null) {
+            stmt.setString(18, request.operatingSystem());
+        } else {
+            stmt.setNull(18, java.sql.Types.VARCHAR);
+        }
 
         stmt.execute();
     }
@@ -371,7 +388,7 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Update_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
+                "call Update_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
@@ -428,6 +445,11 @@ public class DeviceRepository {
         } else {
             stmt.setNull(16, java.sql.Types.BOOLEAN);
         }
+        if (request.operatingSystem() != null) {
+            stmt.setString(17, request.operatingSystem());
+        } else {
+            stmt.setNull(17, java.sql.Types.VARCHAR);
+        }
         stmt.execute();
     }
 
@@ -437,7 +459,7 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Update_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)");
+                "call Update_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
@@ -500,6 +522,11 @@ public class DeviceRepository {
         } else {
             stmt.setNull(18, java.sql.Types.INTEGER);
         }
+        if (request.operatingSystem() != null) {
+            stmt.setString(19, request.operatingSystem());
+        } else {
+            stmt.setNull(19, java.sql.Types.VARCHAR);
+        }
 
         stmt.execute();
     }
@@ -510,7 +537,7 @@ public class DeviceRepository {
         }
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall(
-                "call Update_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?)");
+                "call Update_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
         stmt.setInt(1, request.chapterId());
         stmt.setString(2, request.manufacturer());
         stmt.setString(3, request.model());
@@ -563,6 +590,11 @@ public class DeviceRepository {
             stmt.setInt(17, request.donorId());
         } else {
             stmt.setNull(17, java.sql.Types.INTEGER);
+        }
+        if (request.operatingSystem() != null) {
+            stmt.setString(18, request.operatingSystem());
+        } else {
+            stmt.setNull(18, java.sql.Types.VARCHAR);
         }
 
         stmt.execute();

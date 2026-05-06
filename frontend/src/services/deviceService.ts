@@ -43,6 +43,7 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
     storageType: device.storageType ?? undefined,
     value: device.value ?? undefined,
     acquisitionDate: device.acquisitionDate ?? undefined,
+    operatingSystem: device.operatingSystem ?? undefined,
   }
 
   if (device.type === 'Desktop') {
@@ -103,6 +104,7 @@ export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyD
     storageType: updates.storageType ?? undefined,
     value: updates.value ?? undefined,
     acquisitionDate: updates.acquisitionDate ?? undefined,
+    operatingSystem: updates.operatingSystem ?? undefined,
   }
 
   if (updates.type === 'Desktop') {

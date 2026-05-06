@@ -15,6 +15,6 @@ export function renderDeviceRow(device: AnyDevice, exclude?: string[], onSelect?
 
 /** Column headers that match the DeviceRow layout. */
 export const DEVICE_TABLE_HEADERS = [
-  'ID', 'Type', 'Brand', 'Model', 'Year', 'CPU',
+  'ID', 'Type', 'Brand', 'Model', 'Year', 'CPU', 'OS',
   'RAM', 'Storage', 'Status', 'Details', 'Chapter', 'Acquired',
 ]

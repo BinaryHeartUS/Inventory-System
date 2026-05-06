@@ -52,6 +52,11 @@ export function DeviceRow({
           <span className="block truncate" title={device.cpu ?? undefined}>{device.cpu ?? '—'}</span>
         </td>
       )}
+      {!hide('OS') && (
+        <td className="px-5 py-5 text-slate-500 text-sm whitespace-nowrap max-w-[140px]">
+          <span className="block truncate" title={device.operatingSystem ?? undefined}>{device.operatingSystem ?? '—'}</span>
+        </td>
+      )}
       {!hide('RAM') && (
         <td className="px-5 py-5 text-slate-500 whitespace-nowrap">
           {device.ram} GB{device.ramGeneration ? ` ${device.ramGeneration}` : ''}

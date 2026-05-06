@@ -18,12 +18,13 @@ CREATE OR REPLACE PROCEDURE Insert_Tablet(
     IN p_Acquisition_Date DATE = NULL,
     IN p_Recipient_ID INTEGER = NULL,
     IN p_Donor_ID INTEGER = NULL,
+    IN p_Operating_System VARCHAR(50) = NULL,
     IN p_Donated_Date DATE = NULL
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    CALL Insert_Device(p_Chapter_ID, p_Manufacturer, p_Model, p_Year, p_Status, p_Asset_ID, p_CPU, p_RAM, p_RAM_Generation, p_Storage_Amount, p_Storage_Type, p_Value, p_Acquisition_Date, p_Recipient_ID, p_Donor_ID, p_Donated_Date);
+    CALL Insert_Device(p_Chapter_ID, p_Manufacturer, p_Model, p_Year, p_Status, p_Asset_ID, p_CPU, p_RAM, p_RAM_Generation, p_Storage_Amount, p_Storage_Type, p_Value, p_Acquisition_Date, p_Recipient_ID, p_Donor_ID, p_Donated_Date, p_Operating_System);
 
     INSERT INTO Tablet(ID, Includes_Charger, Working_Battery)
     VALUES (p_Asset_ID, p_Includes_Charger, p_Working_Battery);

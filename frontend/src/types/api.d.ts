@@ -1449,6 +1449,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/lookup/operating-systems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add an operating system */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddLookupRequest"];
+                };
+            };
+            responses: {
+                /** @description Added */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/lookup/operating-systems/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an operating system */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    name: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/lookup/part-types": {
         parameters: {
             query?: never;
@@ -1815,6 +1903,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/parts/device/{deviceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get all parts linked to a specific device */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Device ID whose linked parts to retrieve */
+                    deviceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Parts fetched successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartResponse"][];
+                    };
+                };
+                /** @description Non-positive or non-numeric device ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/parts/{id}": {
         parameters: {
             query?: never;
@@ -2167,26 +2308,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Date: {
-            /** Format: int32 */
-            year: number;
-            /** Format: int32 */
-            month: number;
-            /** Format: int32 */
-            date: number;
-            /** Format: int32 */
-            day: number;
-            /** Format: int64 */
-            time: number;
-            /** Format: int32 */
-            timezoneOffset: number;
-            /** Format: int32 */
-            hours: number;
-            /** Format: int32 */
-            minutes: number;
-            /** Format: int32 */
-            seconds: number;
-        };
         ChapterRole: {
             /** Format: int32 */
             chapterId: number;
@@ -2237,6 +2358,7 @@ export interface components {
             /** Format: int32 */
             donorId?: number;
             hasWifi?: boolean;
+            operatingSystem?: string;
         };
         InsertLaptopRequest: {
             /** Format: int32 */
@@ -2268,6 +2390,7 @@ export interface components {
             designBatteryCapacity?: number;
             /** Format: int32 */
             actualBatteryCapacity?: number;
+            operatingSystem?: string;
         };
         InsertPartRequest: {
             /** Format: int32 */
@@ -2313,6 +2436,7 @@ export interface components {
             /** Format: int32 */
             donorId?: number;
             workingBattery?: string;
+            operatingSystem?: string;
         };
         InsertToolRequest: {
             /** Format: int32 */
@@ -2381,6 +2505,7 @@ export interface components {
             chapter?: string;
             /** Format: date */
             donatedDate?: string;
+            operatingSystem?: string;
         };
         GetToolResponse: {
             /** Format: int32 */
@@ -2409,6 +2534,7 @@ export interface components {
             ramGenerations?: string[];
             storageTypes?: string[];
             partTypes?: string[];
+            operatingSystems?: string[];
         };
         NoteResponse: {
             /** Format: int32 */

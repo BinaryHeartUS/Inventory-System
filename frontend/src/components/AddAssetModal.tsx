@@ -22,6 +22,7 @@ interface FormState {
   ramGeneration: string | null
   storage: string
   storageType: string | null
+  operatingSystem: string | null
   status: DeviceStatus
   // Desktop
   hasWifi: 'Yes' | 'No' | 'Unknown'
@@ -53,6 +54,7 @@ const DEFAULT_FORM: FormState = {
   ramGeneration: null,
   storage: '',
   storageType: null,
+  operatingSystem: null,
   status: 'Not Started',
   hasWifi: 'Unknown',
   includesCharger: 'Unknown',
@@ -353,6 +355,7 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
         <FText label="Year" value={form.year} onChange={set('year')} req type="number" placeholder="e.g. 2021" min={1980} max={new Date().getFullYear()} />
         <FSelect label="Status" value={form.status} options={lookups.deviceStatuses} onChange={set('status')} req />
         <FText label="CPU" value={form.cpu} onChange={set('cpu')} placeholder="e.g. i5-1135G7" maxLength={50} />
+        <FCombo label="Operating System" value={form.operatingSystem} options={lookups.operatingSystems} onChange={set('operatingSystem')} placeholder="e.g. Windows 11" maxLength={50} />
         <FSelect label="Chapter" value={form.chapter} options={lookups.chapters} onChange={set('chapter')} req />
         <FText label="RAM (GB)" value={form.ram} onChange={set('ram')} type="number" placeholder="e.g. 16" min={0} />
         <FCombo label="RAM Generation" value={form.ramGeneration} options={lookups.ramGenerations} onChange={set('ramGeneration')} placeholder="e.g. DDR4" maxLength={20} />
@@ -535,6 +538,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
       ramGeneration: form.ramGeneration,
       storage: Number(form.storage),
       storageType: form.storageType,
+      operatingSystem: form.operatingSystem,
       status: form.status,
       chapter: form.chapter,
       acquisitionDate: form.acquisitionDate || null,

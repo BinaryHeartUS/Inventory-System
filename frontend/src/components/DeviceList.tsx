@@ -5,7 +5,7 @@ import { renderDeviceRow, DEVICE_TABLE_HEADERS } from '../utils/deviceUtils'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type SortKey = 'id' | 'type' | 'manufacturer' | 'model' | 'year' | 'cpu' |
-               'ram' | 'storage' | 'status' | 'chapter' | 'acquisitionDate'
+               'operatingSystem' | 'ram' | 'storage' | 'status' | 'chapter' | 'acquisitionDate'
 type SortDir = 'asc' | 'desc'
 
 const HEADER_SORT: Partial<Record<string, SortKey>> = {
@@ -15,6 +15,7 @@ const HEADER_SORT: Partial<Record<string, SortKey>> = {
   'Model':    'model',
   'Year':     'year',
   'CPU':      'cpu',
+  'OS':       'operatingSystem',
   'RAM':      'ram',
   'Storage':  'storage',
   'Status':   'status',

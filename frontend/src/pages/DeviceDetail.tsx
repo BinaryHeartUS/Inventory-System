@@ -293,6 +293,7 @@ export default function DeviceDetail() {
             {editing && form ? (
               <>
                 <EditCombo label="Manufacturer" value={form.manufacturer ?? null} options={lookups.manufacturers} onChange={v => set('manufacturer')(v ?? '')} placeholder="e.g. Asus" maxLength={50} />
+                <EditCombo label="Operating System" value={form.operatingSystem ?? null} options={lookups.operatingSystems} onChange={set('operatingSystem')} placeholder="e.g. Windows 11" maxLength={50} />
                 <EditText label="Model" value={form.model ?? ''} onChange={v => set('model')(v)} placeholder="e.g. ThinkPad X1" maxLength={50} />
                 <EditText label="Year" type="number" value={String(form.year)} onChange={v => set('year')(Number(v))} min={1980} max={new Date().getFullYear()} />
                 <EditText label="CPU" value={form.cpu ?? ''} onChange={v => set('cpu')(v || null)} placeholder="e.g. i5-1135G7" maxLength={50} />
@@ -311,6 +312,7 @@ export default function DeviceDetail() {
             ) : (
               <>
                 <Field label="Manufacturer" value={d.manufacturer} />
+                <Field label="Operating System" value={d.operatingSystem} />
                 <Field label="Model" value={d.model} />
                 <Field label="Year" value={d.year} />
                 <Field label="CPU" value={d.cpu} />

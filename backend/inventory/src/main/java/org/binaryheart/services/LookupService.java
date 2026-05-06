@@ -23,7 +23,8 @@ public class LookupService {
         List<String> workingBatteryOpts = Arrays.stream(WorkingBattery.values()).map(WorkingBattery::getDatabaseValue)
                 .collect(Collectors.toList());
         return new LookupResponse(deviceStatuses, chargerStatuses, workingBatteryOpts, repository.getManufacturers(),
-                repository.getRamGenerations(), repository.getStorageTypes(), repository.getPartTypes());
+                repository.getRamGenerations(), repository.getStorageTypes(), repository.getPartTypes(),
+                repository.getOperatingSystems());
     }
 
     public void addManufacturer(String name) throws SQLException {
@@ -60,6 +61,15 @@ public class LookupService {
 
     public void removePartType(String name) throws SQLException {
         repository.deletePartType(name);
+    }
+
+    public void addOperatingSystem(String name) throws SQLException {
+        validateName(name);
+        repository.insertOperatingSystem(name.strip());
+    }
+
+    public void removeOperatingSystem(String name) throws SQLException {
+        repository.deleteOperatingSystem(name);
     }
 
     private static void validateName(String name) {
