@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE Insert_Part(
     IN p_Chapter_ID INTEGER,
     IN p_Type VARCHAR(50),
-    IN p_Description varchar(500),
+    IN p_Description VARCHAR(500),
     IN p_Was_Purchased BOOLEAN,
     IN p_Contained_In INTEGER = NULL,
     INOUT p_Part_ID INTEGER = NULL,

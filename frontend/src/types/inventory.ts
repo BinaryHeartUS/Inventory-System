@@ -10,6 +10,7 @@ export type InsertDesktopRequest     = components["schemas"]["InsertDesktopReque
 export type InsertLaptopRequest      = components["schemas"]["InsertLaptopRequest"]
 export type InsertTabletRequest      = components["schemas"]["InsertTabletRequest"]
 export type InsertToolRequest        = components["schemas"]["InsertToolRequest"]
+export type InsertPartRequest        = components["schemas"]["InsertPartRequest"]
 export type LoginRequest             = components["schemas"]["LoginRequest"]
 export type PostNoteRequest          = components["schemas"]["PostNoteRequest"]
 export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"]
@@ -19,13 +20,14 @@ export type Note = Omit<components["schemas"]["NoteResponse"], "text" | "date"> 
 }
 export type Part = Omit<
   components["schemas"]["PartResponse"],
-  "type" | "description" | "containedIn" | "acquisitionDate" | "value"
+  "type" | "description" | "containedIn" | "acquisitionDate" | "value" | "donorId"
 > & {
   type: string
   description: string
   containedIn: number | null
   acquisitionDate: string | null
   value: number | null
+  donorId: number | null
 }
 export type LookupResponse           = Required<components["schemas"]["LookupResponse"]>
 

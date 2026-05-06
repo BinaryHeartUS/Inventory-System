@@ -494,6 +494,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         chapterId,
         acquisitionDate: form.acquisitionDate || null,
         value: form.value ? Number(form.value) : null,
+        donorId: null,
       }
       onAdd?.(part)
       return

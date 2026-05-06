@@ -390,7 +390,7 @@ public class DeviceController {
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateDesktop(request);
-			ctx.status(200).result("Desktop updated successfully");
+			ctx.status(201).result("Desktop updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {

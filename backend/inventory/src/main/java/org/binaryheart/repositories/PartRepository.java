@@ -1,5 +1,6 @@
 package org.binaryheart.repositories;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import org.binaryheart.DatabaseConnectionService;
+import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.PartResponse;
 
 public class PartRepository {
@@ -33,8 +35,9 @@ public class PartRepository {
             int chapterId = res.getInt("chapterID");
             Date acquisitionDate = res.getDate("acquisitionDate");
             Double value = res.getDouble("value");
+            Integer donorId = res.getInt("donorId");
             parts.add(new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(),
-                    value));
+                    value, donorId));
         }
 
         return parts.toArray(new PartResponse[0]);
@@ -62,8 +65,9 @@ public class PartRepository {
             int chapterId = res.getInt("chapterID");
             Date acquisitionDate = res.getDate("acquisitionDate");
             Double value = res.getDouble("value");
+            Integer donorId = res.getInt("donorId");
             return new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(),
-                    value);
+                    value, donorId);
         }
 
         return null;
@@ -77,6 +81,47 @@ public class PartRepository {
 
         PreparedStatement stmt = conn.prepareCall("call Delete_Part(?)");
         stmt.setInt(1, partId);
+        stmt.execute();
+    }
+
+    public void insertPart(InsertPartRequest request) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        CallableStatement stmt = conn.prepareCall("call Insert_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)");
+        // required parameters
+        stmt.setInt(1, request.chapterId());
+        stmt.setString(2, request.type());
+        stmt.setString(3, request.description());
+        stmt.setBoolean(4, request.wasPurchased());
+
+        // optional parameters
+        if (request.containedIn() == null) {
+            stmt.setNull(5, java.sql.Types.INTEGER);
+        } else {
+            stmt.setInt(5, request.containedIn());
+        }
+        if (request.id() == null) {
+            stmt.setNull(6, java.sql.Types.INTEGER);
+        } else {
+            stmt.setInt(6, request.id());
+        }
+        if (request.acquisitionDate() == null) {
+            stmt.setNull(7, java.sql.Types.DATE);
+        } else {
+            stmt.setDate(7, request.acquisitionDate());
+        }
+        if (request.value() == null) {
+            stmt.setDouble(8, 0);
+        } else {
+            stmt.setDouble(8, request.value());
+        }
+        if (request.donorId() == null) {
+            stmt.setNull(9, 0);
+        } else {
+            stmt.setInt(9, request.donorId());
+        }
         stmt.execute();
     }
 }

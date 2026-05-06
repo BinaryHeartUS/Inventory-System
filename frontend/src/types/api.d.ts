@@ -1749,7 +1749,66 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /**
+         * Add a new part to the database
+         * @description Adds a new part with the specified attributes
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *         "chapterId": 1,
+                     *         "type": "SATA SSD",
+                     *         "description": "256 GB SSD",
+                     *         "wasPurchased": true,
+                     *         "containedIn": null,
+                     *         "id": null,
+                     *         "acquisitionDate": null,
+                     *         "value": 0.00,
+                     *         "donorId": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertPartRequest"];
+                };
+            };
+            responses: {
+                /** @description Part added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Asset ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1808,9 +1867,61 @@ export interface paths {
                 };
             };
         };
-        put?: never;
+        /** Update a part currently in inventory */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Part ID to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertPartRequest"];
+                };
+            };
+            responses: {
+                /** @description Part updated successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartResponse"];
+                    };
+                };
+                /** @description Missing required parameters or invalid parameter */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Part with specified ID does not exist */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         post?: never;
-        /** Get information regarding a part currently in inventory */
+        /** Delete a part currently in inventory */
         delete: {
             parameters: {
                 query?: never;
@@ -2056,132 +2167,168 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Date: {
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            month: number;
+            /** Format: int32 */
+            date: number;
+            /** Format: int32 */
+            day: number;
+            /** Format: int64 */
+            time: number;
+            /** Format: int32 */
+            timezoneOffset: number;
+            /** Format: int32 */
+            hours: number;
+            /** Format: int32 */
+            minutes: number;
+            /** Format: int32 */
+            seconds: number;
+        };
         ChapterRole: {
-            role?: string;
             /** Format: int32 */
             chapterId: number;
+            role?: string;
         };
         AddAffiliationRequest: {
-            role?: string;
             /** Format: int32 */
             chapterId: number;
+            role?: string;
         };
         AddLookupRequest: {
             name?: string;
         };
         CreateAccountRequest: {
-            role?: string;
+            name?: string;
+            username?: string;
             password?: string;
             /** Format: int32 */
             chapterId: number;
-            name?: string;
-            username?: string;
+            role?: string;
         };
         CreateChapterRequest: {
             name?: string;
         };
         InsertDesktopRequest: {
-            /** Format: date */
-            acquisitionDate?: string;
-            hasWifi?: boolean;
-            ramGeneration?: string;
-            /** Format: int32 */
-            year: number;
-            /** Format: int32 */
-            storageAmount?: number;
-            manufacturer?: string;
-            /** Format: int32 */
-            assetId?: number;
             /** Format: int32 */
             chapterId: number;
-            /** Format: int32 */
-            recipientId?: number;
+            manufacturer?: string;
             model?: string;
-            /** Format: double */
-            value?: number;
-            /** Format: int32 */
-            ram?: number;
-            cpu?: string;
-            storageType?: string;
-            /** Format: int32 */
-            donorId?: number;
-            status?: string;
-        };
-        InsertLaptopRequest: {
-            /** Format: date */
-            acquisitionDate?: string;
-            ramGeneration?: string;
             /** Format: int32 */
             year: number;
+            status?: string;
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
+            hasWifi?: boolean;
+        };
+        InsertLaptopRequest: {
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            status?: string;
+            includesCharger?: string;
+            /** Format: int32 */
+            assetId?: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram?: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: int32 */
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
             /** Format: int32 */
             designBatteryCapacity?: number;
             /** Format: int32 */
-            storageAmount?: number;
-            manufacturer?: string;
-            /** Format: int32 */
-            assetId?: number;
+            actualBatteryCapacity?: number;
+        };
+        InsertPartRequest: {
             /** Format: int32 */
             chapterId: number;
+            type?: string;
+            description?: string;
+            wasPurchased?: boolean;
             /** Format: int32 */
-            actualBatteryCapacity?: number;
+            containedIn?: number;
             /** Format: int32 */
-            recipientId?: number;
-            model?: string;
+            id?: number;
+            acquisitionDate?: components["schemas"]["Date"];
             /** Format: double */
             value?: number;
             /** Format: int32 */
-            ram?: number;
-            cpu?: string;
-            includesCharger?: string;
-            storageType?: string;
-            /** Format: int32 */
             donorId?: number;
-            status?: string;
         };
         InsertTabletRequest: {
-            /** Format: date */
-            acquisitionDate?: string;
-            ramGeneration?: string;
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
             /** Format: int32 */
             year: number;
-            /** Format: int32 */
-            storageAmount?: number;
-            manufacturer?: string;
+            status?: string;
+            includesCharger?: string;
             /** Format: int32 */
             assetId?: number;
-            /** Format: int32 */
-            chapterId: number;
-            /** Format: int32 */
-            recipientId?: number;
-            model?: string;
-            /** Format: double */
-            value?: number;
+            cpu?: string;
             /** Format: int32 */
             ram?: number;
-            cpu?: string;
-            workingBattery?: string;
-            includesCharger?: string;
-            storageType?: string;
+            ramGeneration?: string;
             /** Format: int32 */
-            donorId?: number;
-            status?: string;
-        };
-        InsertToolRequest: {
+            storageAmount?: number;
+            storageType?: string;
+            /** Format: double */
+            value?: number;
             /** Format: date */
             acquisitionDate?: string;
-            description?: string;
             /** Format: int32 */
-            assetId?: number;
+            recipientId?: number;
+            /** Format: int32 */
+            donorId?: number;
+            workingBattery?: string;
+        };
+        InsertToolRequest: {
             /** Format: int32 */
             chapterId: number;
             /** Format: int32 */
-            donorId?: number;
+            assetId?: number;
+            description?: string;
+            /** Format: date */
+            acquisitionDate?: string;
             /** Format: double */
             value?: number;
+            /** Format: int32 */
+            donorId?: number;
         };
         LoginRequest: {
-            password?: string;
             username?: string;
+            password?: string;
         };
         PostNoteRequest: {
             text?: string;
@@ -2190,99 +2337,101 @@ export interface components {
             role?: string;
         };
         AccountSummary: {
-            chapterRoles?: components["schemas"]["ChapterRole"][];
-            name?: string;
             /** Format: int32 */
             id: number;
             username?: string;
+            name?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
         };
         ChapterSummary: {
-            name?: string;
             /** Format: int32 */
             id: number;
+            name?: string;
         };
         GetDeviceResponse: {
+            type?: string;
+            /** Format: int32 */
+            id: number;
             /** Format: date */
             acquisitionDate?: string;
-            chapter?: string;
-            hasWifi?: boolean;
-            ramGeneration?: string;
+            /** Format: double */
+            value: number;
+            manufacturer?: string;
+            model?: string;
             /** Format: int32 */
             year: number;
+            cpu?: string;
+            /** Format: int32 */
+            ram: number;
+            ramGeneration?: string;
+            /** Format: int32 */
+            storage: number;
+            storageType?: string;
+            status?: string;
+            hasWifi?: boolean;
+            includesCharger?: string;
             /** Format: int32 */
             designBatteryCapacity?: number;
             /** Format: int32 */
-            storage: number;
-            type?: string;
-            manufacturer?: string;
-            /** Format: date */
-            donatedDate?: string;
-            /** Format: int32 */
             actualBatteryCapacity?: number;
-            model?: string;
             /** Format: double */
             batteryHealth?: number;
-            /** Format: int32 */
-            id: number;
-            /** Format: double */
-            value: number;
-            /** Format: int32 */
-            ram: number;
-            cpu?: string;
             workingBattery?: string;
-            includesCharger?: string;
-            storageType?: string;
-            status?: string;
+            chapter?: string;
+            /** Format: date */
+            donatedDate?: string;
         };
         GetToolResponse: {
+            /** Format: int32 */
+            id: number;
             /** Format: date */
             acquisitionDate?: string;
+            /** Format: double */
+            value?: number;
             description?: string;
             /** Format: int32 */
             chapterId: number;
             /** Format: int32 */
             donorId?: number;
-            /** Format: int32 */
-            id: number;
-            /** Format: double */
-            value?: number;
         };
         LoginResponse: {
-            role?: string;
-            chapterRoles?: components["schemas"]["ChapterRole"][];
             token?: string;
             username?: string;
+            chapterRoles?: components["schemas"]["ChapterRole"][];
+            role?: string;
         };
         LookupResponse: {
-            manufacturers?: string[];
             deviceStatuses?: string[];
-            ramGenerations?: string[];
-            partTypes?: string[];
-            storageTypes?: string[];
-            workingBatteryOpts?: string[];
             chargerStatuses?: string[];
+            workingBatteryOpts?: string[];
+            manufacturers?: string[];
+            ramGenerations?: string[];
+            storageTypes?: string[];
+            partTypes?: string[];
         };
         NoteResponse: {
-            date?: string;
-            /** Format: int32 */
-            assetId: number;
             /** Format: int32 */
             id: number;
             text?: string;
+            date?: string;
+            /** Format: int32 */
+            assetId: number;
         };
         PartResponse: {
-            acquisitionDate?: string;
-            description?: string;
-            type?: string;
-            /** Format: int32 */
-            chapterId: number;
-            /** Format: int32 */
-            containedIn?: number;
-            wasPurchased: boolean;
             /** Format: int32 */
             id: number;
+            type?: string;
+            description?: string;
+            wasPurchased: boolean;
+            /** Format: int32 */
+            containedIn?: number;
+            /** Format: int32 */
+            chapterId: number;
+            acquisitionDate?: string;
             /** Format: double */
             value?: number;
+            /** Format: int32 */
+            donorId?: number;
         };
     };
     responses: never;
