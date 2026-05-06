@@ -57,14 +57,14 @@ public class ToolService {
         if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
             throw new BadArgumentException("Acquisition date cannot be in the future");
         }
-        if (request.assetId() != null && request.assetId() <= 0) {
+        if (request.id() != null && request.id() <= 0) {
             throw new BadArgumentException("Asset ID must be positive or not specified");
         }
         try {
             repository.insertTool(request);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
-                throw new DuplicateKeyException("An asset with identical ID already exists: " + request.assetId());
+                throw new DuplicateKeyException("An asset with identical ID already exists: " + request.id());
             } else {
                 throw e;
             }

@@ -115,7 +115,7 @@ public class ToolController {
                             example = """
                                     {
                                       "chapterId": 1,
-                                      "assetId": null,
+                                      "id": null,
                                       "description": null,
                                       "acquisitionDate": null,
                                       "value": null,
