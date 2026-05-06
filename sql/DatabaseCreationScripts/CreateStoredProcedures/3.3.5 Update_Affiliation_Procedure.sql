@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Update_Affiliation;
+
 CREATE OR REPLACE PROCEDURE Update_Affiliation(
     IN p_volunteer_id INTEGER,
     IN p_chapter_id INTEGER,

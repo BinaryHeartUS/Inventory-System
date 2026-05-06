@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Volunteer_For_Chapter;
+
 CREATE OR REPLACE PROCEDURE Insert_Volunteer_For_Chapter(
     IN p_name Name_Type,
     IN p_username Name_Type,

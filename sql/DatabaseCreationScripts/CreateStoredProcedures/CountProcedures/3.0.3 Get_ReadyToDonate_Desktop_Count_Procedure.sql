@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Get_ReadyToDonate_Desktop_Count;
+
 CREATE OR REPLACE PROCEDURE Get_ReadyToDonate_Desktop_Count(
     OUT p_count INTEGER
 )

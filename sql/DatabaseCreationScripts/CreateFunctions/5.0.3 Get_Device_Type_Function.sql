@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS Get_Device_Type;
+
 CREATE OR REPLACE FUNCTION Get_Device_Type (
 	p_desktopID INTEGER,
 	p_laptopID INTEGER,

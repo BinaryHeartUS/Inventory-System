@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Get_Asset_Exists;
+
 CREATE OR REPLACE PROCEDURE Get_Asset_Exists(
     IN p_id INTEGER,
     OUT p_exists BOOLEAN

@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS Get_Volunteers_For_Chapters;
+
 CREATE OR REPLACE FUNCTION Get_Volunteers_For_Chapters(
     p_chapter_ids INTEGER[]
 )

@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Delete_Part;
+
 CREATE OR REPLACE PROCEDURE Delete_Part(
     IN p_part_id INTEGER
 )

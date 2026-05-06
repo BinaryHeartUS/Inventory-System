@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Chapter;
+
 CREATE OR REPLACE PROCEDURE Insert_Chapter(
     IN p_name name_type,
     OUT p_id INTEGER

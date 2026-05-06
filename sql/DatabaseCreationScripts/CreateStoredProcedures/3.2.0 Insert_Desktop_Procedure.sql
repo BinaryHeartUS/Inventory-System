@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Desktop;
+
 CREATE OR REPLACE PROCEDURE Insert_Desktop(
     IN p_Chapter_ID INTEGER,
     IN p_Manufacturer VARCHAR(50),

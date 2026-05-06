@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Get_Device_Total_Count;
+
 CREATE OR REPLACE PROCEDURE Get_Device_Total_Count(
     OUT p_count INTEGER
 )

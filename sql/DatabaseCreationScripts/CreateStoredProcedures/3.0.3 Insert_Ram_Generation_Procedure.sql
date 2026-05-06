@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Ram_Generation;
+
 CREATE OR REPLACE PROCEDURE Insert_Ram_Generation(
     IN p_Name VARCHAR(20),
     OUT p_ID INTEGER

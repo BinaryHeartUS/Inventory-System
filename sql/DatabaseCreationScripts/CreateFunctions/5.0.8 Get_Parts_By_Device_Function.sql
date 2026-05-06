@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS Get_Parts_By_Device;
+
 CREATE OR REPLACE FUNCTION Get_Parts_By_Device (
     p_device_id INTEGER
 )

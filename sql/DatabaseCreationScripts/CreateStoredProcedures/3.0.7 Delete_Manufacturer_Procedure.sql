@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Delete_Manufacturer;
+
 CREATE OR REPLACE PROCEDURE Delete_Manufacturer(
     IN p_Name VARCHAR(50)
 )

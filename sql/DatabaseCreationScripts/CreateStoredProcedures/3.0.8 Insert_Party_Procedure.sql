@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Party;
+
 CREATE OR REPLACE PROCEDURE Insert_Party(
     OUT p_ID INTEGER,
     IN p_Name Name_Type,

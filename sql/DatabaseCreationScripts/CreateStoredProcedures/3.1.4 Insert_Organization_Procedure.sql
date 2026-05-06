@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Organization;
+
 CREATE OR REPLACE PROCEDURE Insert_Organization(
     OUT p_ID INTEGER,
     IN p_Name Name_Type,

@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS Get_Chapter_Roles_For_Volunteer;
+
 CREATE OR REPLACE FUNCTION Get_Chapter_Roles_For_Volunteer(
     p_volunteer_id INTEGER
 )

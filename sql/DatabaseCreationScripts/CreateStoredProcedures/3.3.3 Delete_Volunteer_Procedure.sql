@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Delete_Volunteer;
+
 CREATE OR REPLACE PROCEDURE Delete_Volunteer(
     IN p_volunteer_id INTEGER
 )

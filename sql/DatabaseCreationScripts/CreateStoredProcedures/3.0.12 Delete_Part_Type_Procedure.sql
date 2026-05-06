@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Delete_Part_Type;
+
 CREATE OR REPLACE PROCEDURE Delete_Part_Type(
     IN p_Name VARCHAR(50)
 )

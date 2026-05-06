@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Note;
+
 CREATE OR REPLACE PROCEDURE Insert_Note(
     IN p_Text VARCHAR(500),
     IN p_Date DATE,

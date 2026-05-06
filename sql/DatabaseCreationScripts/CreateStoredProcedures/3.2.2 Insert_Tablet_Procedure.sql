@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Tablet;
+
 CREATE OR REPLACE PROCEDURE Insert_Tablet(
     IN p_Chapter_ID INTEGER,
     IN p_Manufacturer VARCHAR(50),

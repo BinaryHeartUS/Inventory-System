@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Laptop;
+
 CREATE OR REPLACE PROCEDURE Insert_Laptop(
     IN p_Chapter_ID INTEGER,
     IN p_Manufacturer VARCHAR(50),

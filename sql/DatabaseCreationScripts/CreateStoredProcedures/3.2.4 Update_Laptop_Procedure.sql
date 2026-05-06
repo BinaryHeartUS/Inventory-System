@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Update_Laptop;
+
 CREATE OR REPLACE PROCEDURE Update_Laptop(
     IN p_Chapter_ID INTEGER,
     IN p_Manufacturer VARCHAR(50),

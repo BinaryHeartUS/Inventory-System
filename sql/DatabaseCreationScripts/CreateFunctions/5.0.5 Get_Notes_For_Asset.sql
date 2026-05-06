@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS Get_Notes_For_Asset;
+
 CREATE OR REPLACE FUNCTION Get_Notes_For_Asset(
     p_asset_id INTEGER
 )

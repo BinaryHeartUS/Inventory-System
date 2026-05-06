@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Update_Asset;
+
 CREATE OR REPLACE PROCEDURE Update_Asset(
     IN p_Chapter_ID INTEGER,
     IN p_ID INTEGER,

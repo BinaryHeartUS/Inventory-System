@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Delete_Ram_Generation;
+
 CREATE OR REPLACE PROCEDURE Delete_Ram_Generation(
     IN p_Name VARCHAR(20)
 )

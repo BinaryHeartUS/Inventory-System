@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Get_Volunteer_By_Username;
+
 CREATE OR REPLACE PROCEDURE Get_Volunteer_By_Username(
     IN p_username Name_Type,
     OUT p_id INTEGER,

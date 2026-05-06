@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Manufacturer;
+
 CREATE OR REPLACE PROCEDURE Insert_Manufacturer(
     IN p_Name VARCHAR(50),
     OUT p_ID INTEGER

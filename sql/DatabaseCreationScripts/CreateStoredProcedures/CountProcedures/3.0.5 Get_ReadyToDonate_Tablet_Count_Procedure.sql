@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Get_ReadyToDonate_Tablet_Count;
+
 CREATE OR REPLACE PROCEDURE Get_ReadyToDonate_Tablet_Count(
     OUT p_count INTEGER
 )

@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Part;
+
 CREATE OR REPLACE PROCEDURE Insert_Part(
     IN p_Chapter_ID INTEGER,
     IN p_Type VARCHAR(50),

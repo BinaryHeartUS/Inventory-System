@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Update_Device;
+
 CREATE OR REPLACE PROCEDURE Update_Device(
     IN p_Chapter_ID INTEGER,
     IN p_Manufacturer VARCHAR(50),

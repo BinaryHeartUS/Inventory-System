@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Delete_Storage_Type;
+
 CREATE OR REPLACE PROCEDURE Delete_Storage_Type(
     IN p_Name VARCHAR(30)
 )

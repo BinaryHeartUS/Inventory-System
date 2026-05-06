@@ -1,3 +1,5 @@
+DROP PROCEDURE IF EXISTS Insert_Storage_Type;
+
 CREATE OR REPLACE PROCEDURE Insert_Storage_Type(
     IN p_Name VARCHAR(30),
     OUT p_ID INTEGER

@@ -1,3 +1,5 @@
+DROP FUNCTION IF EXISTS Get_Charger_Status;
+
 create or replace function Get_Charger_Status (
 	p_laptopID INTEGER,
 	p_tabletID INTEGER,
