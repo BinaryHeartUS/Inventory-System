@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE Insert_Tool(
     IN p_Chapter_ID INTEGER,
-    IN p_Tool_ID INTEGER,
+    INOUT p_Tool_ID INTEGER,
     IN p_Description varchar(500),
     IN p_Acquisition_Date DATE = NULL,
     IN p_Value MONEY DEFAULT '0',
