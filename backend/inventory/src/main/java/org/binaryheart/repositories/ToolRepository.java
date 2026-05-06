@@ -1,5 +1,6 @@
 package org.binaryheart.repositories;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.binaryheart.DatabaseConnectionService;
+import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
 
 public class ToolRepository {
@@ -63,5 +65,36 @@ public class ToolRepository {
 
         // else nothing was found
         return null;
+    }
+
+    public void insertTool(InsertToolRequest request) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        CallableStatement stmt = conn.prepareCall("call Insert_Tool(?, ?, ?, ?, ?::Numeric::Money, ?)");
+        stmt.setInt(1, request.chapterId());
+        if (request.assetId() != null) {
+            stmt.setInt(2, request.assetId());
+        } else {
+            stmt.setNull(2, java.sql.Types.INTEGER);
+        }
+        stmt.setString(3, request.description());
+        if (request.acquisitionDate() != null) {
+            stmt.setDate(4, java.sql.Date.valueOf(request.acquisitionDate()));
+        } else {
+            stmt.setNull(4, java.sql.Types.DATE);
+        }
+        if (request.value() != null) {
+            stmt.setDouble(5, request.value());
+        } else {
+            stmt.setDouble(5, 0);
+        }
+        if (request.donorId() != null) {
+            stmt.setInt(6, request.donorId());
+        } else {
+            stmt.setNull(6, java.sql.Types.INTEGER);
+        }
+        stmt.execute();
     }
 }

@@ -7,11 +7,16 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.exceptions.BadArgumentException;
+import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
 import org.binaryheart.services.ToolService;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.post;
+// import static io.javalin.apibuilder.ApiBuilder.put;
 
 public class ToolController {
 
@@ -20,6 +25,8 @@ public class ToolController {
     public static void registerRoutes() {
         get("", ToolController::getAllTools, AppRole.AUTHENTICATED);
         get("/{id}", ToolController::getTool, AppRole.AUTHENTICATED);
+        post("", ToolController::insertTool, AppRole.AUTHENTICATED);
+        // put("/{id}", ToolController::updateTool, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
@@ -92,4 +99,54 @@ public class ToolController {
             ctx.status(400).result("Tool ID must be a positive integer");
         }
     }
+
+    @OpenApi(
+            path = "/api/tools",
+            methods = { HttpMethod.POST },
+            tags = { "Tools" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Add a new tool to the database",
+            description = "Adds a tool with the specified attributes",
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = InsertToolRequest.class,
+                            example = """
+                                    {
+                                      "chapterId": 1,
+                                      "assetId": null,
+                                      "description": null,
+                                      "acquisitionDate": null,
+                                      "value": null,
+                                      "donorId": null
+                                    }""") }),
+            responses = { @OpenApiResponse(
+                    status = "201",
+                    description = "Tool added successfully"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Missing required parameters or invalid field values"),
+                    @OpenApiResponse(
+                            status = "409",
+                            description = "Asset ID already exists"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void insertTool(Context ctx) {
+        InsertToolRequest request = ctx.bodyAsClass(InsertToolRequest.class);
+
+        try {
+            AuthController.requireChapterEditAccess(ctx, request.chapterId());
+            service.insertTool(request);
+            ctx.status(201).result("Tool added successfully");
+        } catch (MissingRequiredParametersException | BadArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (DuplicateKeyException e) {
+            ctx.status(409).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+    }
+
 }
