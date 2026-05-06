@@ -74,8 +74,8 @@ public class ToolRepository {
         Connection conn = DatabaseConnectionService.getConnection();
         CallableStatement stmt = conn.prepareCall("call Insert_Tool(?, ?, ?, ?, ?::Numeric::Money, ?)");
         stmt.setInt(1, request.chapterId());
-        if (request.id() != null) {
-            stmt.setInt(2, request.id());
+        if (request.assetId() != null) {
+            stmt.setInt(2, request.assetId());
         } else {
             stmt.setNull(2, java.sql.Types.INTEGER);
         }

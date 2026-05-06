@@ -9,6 +9,7 @@ export type CreateChapterRequest     = components["schemas"]["CreateChapterReque
 export type InsertDesktopRequest     = components["schemas"]["InsertDesktopRequest"]
 export type InsertLaptopRequest      = components["schemas"]["InsertLaptopRequest"]
 export type InsertTabletRequest      = components["schemas"]["InsertTabletRequest"]
+export type InsertToolRequest        = components["schemas"]["InsertToolRequest"]
 export type LoginRequest             = components["schemas"]["LoginRequest"]
 export type PostNoteRequest          = components["schemas"]["PostNoteRequest"]
 export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"]
