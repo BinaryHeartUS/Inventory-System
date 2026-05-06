@@ -66,11 +66,45 @@ public class PartRepository {
             Date acquisitionDate = res.getDate("acquisitionDate");
             Double value = res.getDouble("value");
             Integer donorId = res.getInt("donorId");
-            return new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(),
-                    value, donorId);
+            if (res.wasNull())
+                donorId = null;
+            return new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId,
+                    acquisitionDate != null ? acquisitionDate.toString() : null, value, donorId);
         }
 
         return null;
+    }
+
+    public PartResponse[] getPartsByDevice(Integer deviceId) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Parts_By_Device(?)");
+        stmt.setInt(1, deviceId);
+        stmt.execute();
+
+        ResultSet res = stmt.getResultSet();
+        ArrayList<PartResponse> parts = new ArrayList<>();
+        while (res.next()) {
+            int id = res.getInt("id");
+            String type = res.getString("type");
+            String desc = res.getString("description");
+            boolean wasPurchased = res.getBoolean("wasPurchased");
+            Integer containedIn = res.getInt("containedIn");
+            if (res.wasNull())
+                containedIn = null;
+            int chapterId = res.getInt("chapterId");
+            java.sql.Date acquisitionDate = res.getDate("acquisitionDate");
+            Double value = res.getDouble("value");
+            Integer donorId = res.getInt("donorId");
+            if (res.wasNull())
+                donorId = null;
+            parts.add(new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId,
+                    acquisitionDate != null ? acquisitionDate.toString() : null, value, donorId));
+        }
+        return parts.toArray(new PartResponse[0]);
     }
 
     public void deletePart(Integer partId) throws SQLException {

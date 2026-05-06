@@ -8,6 +8,7 @@ export default function Parts() {
 const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
   const [typeFilter,    setTypeFilter]    = useState('All')
   const [sourceFilter,  setSourceFilter]  = useState<'All' | 'Donated' | 'Purchased'>('All')
+  const [showInDevice,  setShowInDevice]  = useState(false)
 
   const [allParts,  setAllParts]  = useState<import('../types/inventory').Part[]>([])  
   const chapters = useVisibleChapters()
@@ -27,16 +28,18 @@ const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
       if (typeFilter    !== 'All' && p.type    !== typeFilter)    return false
       if (sourceFilter  === 'Donated'   && p.wasPurchased)  return false
       if (sourceFilter  === 'Purchased' && !p.wasPurchased) return false
+      if (!showInDevice && p.containedIn != null) return false
       return true
     })
-  }, [chapterFilter, typeFilter, sourceFilter, allParts])
+  }, [chapterFilter, typeFilter, sourceFilter, showInDevice, allParts])
 
-  const hasFilters = chapterFilter !== 'All' || typeFilter !== 'All' || sourceFilter !== 'All'
+  const hasFilters = chapterFilter !== 'All' || typeFilter !== 'All' || sourceFilter !== 'All' || showInDevice
 
   function clearFilters() {
     setChapterFilter('All')
     setTypeFilter('All')
     setSourceFilter('All')
+    setShowInDevice(false)
   }
 
   return (
@@ -75,6 +78,30 @@ const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
             <option value="Donated">Donated</option>
             <option value="Purchased">Purchased</option>
           </select>
+
+          <label className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            showInDevice
+              ? 'bg-heart-blue/10 border-heart-blue text-heart-blue font-medium'
+              : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+          }`}>
+            <input
+              type="checkbox"
+              checked={showInDevice}
+              onChange={e => setShowInDevice(e.target.checked)}
+              className="sr-only"
+            />
+            <span className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
+              showInDevice ? 'bg-heart-blue border-heart-blue' : 'border-slate-300'
+            }`}>
+              {showInDevice && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </span>
+            Include Parts in Devices
+          </label>
+
           {hasFilters && (
             <button
               onClick={clearFilters}

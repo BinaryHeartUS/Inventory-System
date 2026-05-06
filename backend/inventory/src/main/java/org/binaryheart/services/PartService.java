@@ -45,6 +45,18 @@ public class PartService {
         return null;
     }
 
+    public PartResponse[] getPartsByDevice(List<Integer> userChapterIds, Integer deviceId)
+            throws SQLException, MissingRequiredParametersException {
+        if (deviceId == null || deviceId <= 0)
+            throw new MissingRequiredParametersException("Device ID must be a positive integer");
+        if (userChapterIds == null || userChapterIds.isEmpty())
+            return new PartResponse[0];
+        PartResponse[] parts = repository.getPartsByDevice(deviceId);
+        if (userChapterIds.contains(chapterService.getNationalChapterId()))
+            return parts;
+        return List.of(parts).stream().filter(p -> userChapterIds.contains(p.chapterId())).toArray(PartResponse[]::new);
+    }
+
     public void deletePart(List<Integer> userChapterIds, Integer partId)
             throws SQLException, InvalidParameterException {
         if (partId == null || partId < 0)
