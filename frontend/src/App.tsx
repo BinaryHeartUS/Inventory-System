@@ -1,5 +1,6 @@
 import { BrowserRouter, NavLink, Route, Routes, useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useState, useCallback } from 'react'
+import { ToastProvider, useToast } from './context/ToastContext'
 import Dashboard    from './pages/Dashboard'
 import Devices      from './pages/Devices'
 import Parts        from './pages/Parts'
@@ -24,6 +25,7 @@ import { PrintLabelModal } from './components/PrintLabelModal'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ChapterProvider, useIsNationalAdmin } from './context/ChapterContext'
+
 import type { AnyDevice, Part, Tool } from './types/inventory'
 
 const Icons = {
@@ -246,7 +248,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ChapterProvider>
-          <AppInner />
+          <ToastProvider>
+            <AppInner />
+          </ToastProvider>
         </ChapterProvider>
       </AuthProvider>
     </BrowserRouter>
@@ -257,14 +261,9 @@ function AppInner() {
   const navigate = useNavigate()
   const location = useLocation()
   const { auth } = useAuth()
-  const [toast, setToast]               = useState<{ msg: string; ok: boolean } | null>(null)
+  const { showToast } = useToast()
   const [pendingScanId, setPendingScanId] = useState<number | null>(null)
   const [pendingPrintId, setPendingPrintId] = useState<number | null>(null)
-
-  const showToast = useCallback((msg: string, ok: boolean) => {
-    setToast({ msg, ok })
-    setTimeout(() => setToast(null), 3000)
-  }, [])
 
   useBarcodeScanner({
     onScan: useCallback(async (barcode: string) => {
@@ -360,20 +359,7 @@ function AppInner() {
         />
       )}
 
-      {/* Scan toast */}
-      {toast && (
-        <div className={`fixed bottom-6 right-6 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all z-50 ${
-          toast.ok
-            ? 'bg-heart-blue text-white'
-            : 'bg-red-50 border border-red-200 text-red-700'
-        }`}>
-          {toast.ok
-            ? Icons.barcode
-            : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          }
-          {toast.msg}
-        </div>
-      )}
+
     </div>
   )
 }

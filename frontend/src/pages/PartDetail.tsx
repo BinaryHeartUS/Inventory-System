@@ -7,6 +7,7 @@ import { getDevice } from '../services/deviceService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 import { useChapters } from '../context/ChapterContext'
+import { useToast } from '../context/ToastContext'
 import { DevicePickerModal } from '../components/DevicePickerModal'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -113,6 +114,7 @@ export default function PartDetail() {
 
   const lookups = useLookups()
   const { chapters, chapterName } = useChapters()
+  const { showToast } = useToast()
 
   const [part, setPart] = useState<Part | null>(null)
   const [loading, setLoading] = useState(true)
@@ -175,9 +177,13 @@ export default function PartDetail() {
   function cancelEdit() { setEditing(false); setEditDevice(null) }
   async function saveEdit() {
     if (!form) return
-    const updated = await updatePart(numId, form)
-    setPart(updated); setEditing(false); setEditDevice(null); setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      const updated = await updatePart(numId, form)
+      setPart(updated); setEditing(false); setEditDevice(null); setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Save failed', false)
+    }
   }
   function set(key: keyof Part) {
     return (value: string | number | boolean | null) =>

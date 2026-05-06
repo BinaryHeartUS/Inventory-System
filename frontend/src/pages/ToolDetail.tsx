@@ -4,6 +4,7 @@ import type { Tool } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
 import { getTool, updateTool } from '../services/toolService'
 import { useChapters, useVisibleChapters } from '../context/ChapterContext'
+import { useToast } from '../context/ToastContext'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -81,6 +82,7 @@ export default function ToolDetail() {
   const [form, setForm] = useState<Tool | null>(null)
   const [saved, setSaved] = useState(false)
   const [printId, setPrintId] = useState<number | null>(null)
+  const { showToast } = useToast()
 
   useEffect(() => {
     getTool(numId)
@@ -122,9 +124,13 @@ export default function ToolDetail() {
   function cancelEdit() { setEditing(false) }
   async function saveEdit() {
     if (!form) return
-    const updated = await updateTool(numId, form)
-    setTool(updated); setEditing(false); setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      const updated = await updateTool(numId, form)
+      setTool(updated); setEditing(false); setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Save failed', false)
+    }
   }
   function set(key: keyof Tool) {
     return (value: string | number | null) =>

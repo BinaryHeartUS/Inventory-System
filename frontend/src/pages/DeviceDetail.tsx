@@ -9,6 +9,7 @@ import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 import { useAuth } from '../context/AuthContext'
 import { useWritableChapters } from '../context/ChapterContext'
+import { useToast } from '../context/ToastContext'
 import { PartRow } from '../components/PartRow'
 
 
@@ -130,6 +131,7 @@ export default function DeviceDetail() {
 
   const { auth } = useAuth()
   const writableChapters = useWritableChapters()
+  const { showToast } = useToast()
   const lookups = useLookups()
 
   const [device, setDevice] = useState<AnyDevice | null>(null)
@@ -201,8 +203,12 @@ export default function DeviceDetail() {
   }
 
   async function handleUnlink(part: Part) {
-    const updated = await updatePart(part.id, { ...part, containedIn: null })
-    setLinkedParts(prev => prev.filter(p => p.id !== updated.id))
+    try {
+      const updated = await updatePart(part.id, { ...part, containedIn: null })
+      setLinkedParts(prev => prev.filter(p => p.id !== updated.id))
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to unlink part', false)
+    }
   }
 
   const d = editing && form ? form : device

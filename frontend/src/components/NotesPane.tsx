@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react'
 import type { Note } from '../types/inventory'
 import { getNotesByAsset, createNote, updateNote } from '../services/noteService'
+import { useToast } from '../context/ToastContext'
 
 function formatNoteDate(iso: string) {
   const d = new Date(iso)
@@ -23,6 +24,7 @@ export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 
   const [draft, setDraft] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editText, setEditText] = useState('')
+  const { showToast } = useToast()
 
   useEffect(() => {
     getNotesByAsset(assetId).then(setNotes)
@@ -38,6 +40,10 @@ export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 
     createNote(assetId, text).then(saved => {
       // Replace the optimistic entry with the server-returned note (real ID)
       setNotes(prev => prev.map(n => n.id === optimistic.id ? saved : n))
+    }).catch(err => {
+      // Revert optimistic update and show error
+      setNotes(prev => prev.filter(n => n.id !== optimistic.id))
+      showToast(err instanceof Error ? err.message : 'Failed to add note', false)
     })
   }
 
@@ -49,9 +55,14 @@ export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 
   function saveEdit(id: number) {
     const text = editText.trim()
     if (!text) return
+    const prev_text = notes.find(n => n.id === id)?.text ?? ''
     setNotes(prev => prev.map(n => n.id === id ? { ...n, text } : n))
     setEditingId(null)
-    updateNote(id, text)
+    updateNote(id, text).catch(err => {
+      // Revert optimistic update and show error
+      setNotes(prev => prev.map(n => n.id === id ? { ...n, text: prev_text } : n))
+      showToast(err instanceof Error ? err.message : 'Failed to update note', false)
+    })
   }
 
   function cancelEdit() {
