@@ -56,12 +56,11 @@ ssh "$TARGET" bash -s -- "$RESET" <<'ENDSSH'
   # Build all images first.
   docker compose -f docker-compose.prod.yml build
 
-  # Start the database, then run migrations synchronously so we wait for completion
-  # before starting the backend. Using `run --rm` guarantees the migration container
-  # runs to completion and its exit code is checked — unlike `up -d` which is fire-and-forget.
-  docker compose -f docker-compose.prod.yml up -d db
-  docker compose -f docker-compose.prod.yml run --rm db-migrate
-
+  # Bring everything up. Compose respects the depends_on conditions (service_healthy,
+  # service_completed_successfully) even in detached mode, so db-migrate will run and
+  # complete before the backend starts. Using `run --rm` previously removed the
+  # db-migrate container, causing compose to not satisfy the dependency check when
+  # starting the backend.
   # Caddy handles TLS automatically via Let's Encrypt on first boot.
   # On --reset, also run the importer to seed data from the Excel file.
   if [ "$RESET" = "--reset" ]; then
