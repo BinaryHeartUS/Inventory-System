@@ -300,7 +300,7 @@ function AppInner() {
       const saved = await createTool(asset as Tool)
       setPendingScanId(null)
       setPendingPrintId(saved.id)
-      navigate('/tools/${saved.id}')
+      navigate(`/tools/${saved.id}`)
     }
   }
 
