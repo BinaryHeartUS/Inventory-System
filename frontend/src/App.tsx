@@ -296,6 +296,7 @@ function AppInner() {
         const saved = await createPart(asset as Part)
         setPendingScanId(null)
         setPendingPrintId(saved.id)
+        navigate(`/parts/${saved.id}`)
       } else {
         const saved = await createTool(asset as Tool)
         setPendingScanId(null)
