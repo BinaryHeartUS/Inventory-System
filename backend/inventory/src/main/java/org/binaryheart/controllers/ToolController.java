@@ -10,6 +10,7 @@ import org.binaryheart.auth.AppRole;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.exceptions.ToolNotFoundException;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
 import org.binaryheart.services.ToolService;
@@ -17,6 +18,7 @@ import org.binaryheart.services.ToolService;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 // import static io.javalin.apibuilder.ApiBuilder.put;
+import static io.javalin.apibuilder.ApiBuilder.delete;
 
 public class ToolController {
 
@@ -27,6 +29,7 @@ public class ToolController {
         get("/{id}", ToolController::getTool, AppRole.AUTHENTICATED);
         post("", ToolController::insertTool, AppRole.AUTHENTICATED);
         // put("/{id}", ToolController::updateTool, AppRole.AUTHENTICATED);
+        delete("/{id}", ToolController::deleteTool, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
@@ -146,6 +149,42 @@ public class ToolController {
             ctx.status(409).result(e.getMessage());
         } catch (SQLException e) {
             ctx.status(500).result("Database error: " + e.getMessage());
+        }
+    }
+
+    @OpenApi(
+            path = "/api/tools/{id}",
+            methods = { HttpMethod.DELETE },
+            tags = { "Tools" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Delete a tool currently in inventory",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    required = true,
+                    description = "Tool ID to delete") },
+            responses = { @OpenApiResponse(
+                    status = "204",
+                    description = "Tool deleted successfully",
+                    content = { @OpenApiContent(
+                            from = GetToolResponse.class) }),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Non-positive or non-numeric ID provided"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void deleteTool(Context ctx) {
+        try {
+            List<Integer> userChapterIds = ctx.attribute("chapterIds");
+            service.deleteTool(userChapterIds, Integer.parseInt(ctx.pathParam("id")));
+            ctx.status(204).result("Tool deleted successfully");
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        } catch (BadArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (ToolNotFoundException e) {
+            ctx.status(404).result(e.getMessage());
         }
     }
 

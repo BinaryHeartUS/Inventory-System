@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.exceptions.ToolNotFoundException;
 import org.binaryheart.repositories.ToolRepository;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
@@ -68,6 +69,29 @@ public class ToolService {
             } else {
                 throw e;
             }
+        }
+    }
+
+    public void deleteTool(List<Integer> userChapterIDs, Integer toolID)
+            throws SQLException, BadArgumentException, ToolNotFoundException {
+        if (toolID == null || toolID < 0) {
+            throw new BadArgumentException("Non-numeric or non-positive tool ID provied");
+        }
+
+        GetToolResponse tool = repository.getTool(toolID);
+        if ((tool != null && userChapterIDs.contains(tool.chapterId()))
+                || userChapterIDs.contains(chapterService.getNationalChapterId())) {
+            try {
+                repository.deleteTool(toolID);
+            } catch (SQLException e) {
+                if ("02000".equals(e.getSQLState())) {
+                    throw new ToolNotFoundException("Could not find tool with specified ID: " + toolID);
+                } else {
+                    throw e;
+                }
+            }
+        } else {
+            throw new BadArgumentException("Tool not found in authorized chapters");
         }
     }
 }

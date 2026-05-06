@@ -97,4 +97,15 @@ public class ToolRepository {
         }
         stmt.execute();
     }
+
+    public void deleteTool(Integer toolID) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+
+        PreparedStatement stmt = conn.prepareCall("call Delete_Tool(?)");
+        stmt.setInt(1, toolID);
+        stmt.execute();
+    }
 }
