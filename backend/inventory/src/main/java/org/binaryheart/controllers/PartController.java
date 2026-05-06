@@ -29,7 +29,7 @@ public class PartController {
                 get("", PartController::getAllParts, AppRole.AUTHENTICATED);
                 get("/device/{deviceId}", PartController::getPartsByDevice, AppRole.AUTHENTICATED);
                 get("/{id}", PartController::getPart, AppRole.AUTHENTICATED);
-                delete("/{id}", PartController::deletePart, AppRole.AUTHENTICATED);
+                delete("/{id}", PartController::deletePart, AppRole.CHAPTER_ADMIN);
                 // put("/{id}", PartController::updatePart, AppRole.AUTHENTICATED);
                 post("", PartController::insertPart, AppRole.AUTHENTICATED);
         }
