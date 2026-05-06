@@ -68,4 +68,15 @@ public class PartRepository {
 
         return null;
     }
+
+    public void deletePart(Integer partId) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+
+        PreparedStatement stmt = conn.prepareCall("call Delete_Part(?)");
+        stmt.setInt(1, partId);
+        stmt.execute();
+    }
 }

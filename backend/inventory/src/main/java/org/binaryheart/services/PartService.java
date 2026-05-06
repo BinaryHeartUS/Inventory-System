@@ -1,6 +1,7 @@
 
 package org.binaryheart.services;
 
+import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +27,6 @@ public class PartService {
 
     public PartResponse getPart(List<Integer> userChapterIds, Integer partId)
             throws SQLException, MissingRequiredParametersException {
-
         if (partId == null || partId < 0)
             throw new MissingRequiredParametersException(
                     "Non-numeric or non-positive part ID provided, must be positive integer");
@@ -39,5 +39,20 @@ public class PartService {
             return part;
 
         return null;
+    }
+
+    public void deletePart(List<Integer> userChapterIds, Integer partId)
+            throws SQLException, InvalidParameterException {
+        if (partId == null || partId < 0)
+            throw new InvalidParameterException(
+                    "Non-numeric or non-positive part ID provided, must be positive integer");
+
+        PartResponse part = repository.getPart(partId);
+        if ((part != null && userChapterIds.contains(part.chapterId()))
+                || userChapterIds.contains(chapterService.getNationalChapterId())) {
+            repository.deletePart(partId);
+        } else {
+            throw new InvalidParameterException("Part not found");
+        }
     }
 }

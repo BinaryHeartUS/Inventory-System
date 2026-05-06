@@ -1,7 +1,9 @@
 package org.binaryheart.controllers;
 
+import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 
+import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -20,6 +22,7 @@ public class PartController {
     public static void registerRoutes() {
         get("", PartController::getAllParts, AppRole.AUTHENTICATED);
         get("/{id}", PartController::getPart, AppRole.AUTHENTICATED);
+        delete("/{id}", PartController::deletePart, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
@@ -85,9 +88,42 @@ public class PartController {
             }
         } catch (SQLException e) {
             ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
-            return;
         } catch (MissingRequiredParametersException e) {
             ctx.status(400).result("Part ID must be positive integer; was non-numeric or non-positive");
+        }
+    }
+
+    @OpenApi(
+            path = "/api/parts/{id}",
+            methods = { HttpMethod.DELETE },
+            tags = { "Parts" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Get information regarding a part currently in inventory",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    required = true,
+                    description = "Part ID to delete") },
+            responses = { @OpenApiResponse(
+                    status = "204",
+                    description = "Part deleted",
+                    content = { @OpenApiContent(
+                            from = PartResponse.class) }),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Non-positive or non-numeric ID provided"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error"), })
+    public static void deletePart(Context ctx) {
+        try {
+            List<Integer> userChapterIds = ctx.attribute("chapterIds");
+            service.deletePart(userChapterIds, Integer.parseInt(ctx.pathParam("id")));
+            ctx.status(204);
+        } catch (SQLException e) {
+            ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
+        } catch (InvalidParameterException e) {
+            ctx.status(400).result(e.getMessage());
         }
     }
 }
