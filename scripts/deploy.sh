@@ -27,8 +27,11 @@ REMOTE_DIR="/opt/inventory-system"
 
 echo "Deploying to $TARGET..."
 
-ssh "$TARGET" bash <<EOF
+ssh "$TARGET" bash -s -- "$RESET" <<'ENDSSH'
   set -euo pipefail
+
+  REMOTE_DIR="/opt/inventory-system"
+  RESET="${1:-}"
 
   if [ ! -d "$REMOTE_DIR" ]; then
     git clone git@github.com:BinaryHeartUS/Inventory-System.git "$REMOTE_DIR"
@@ -66,5 +69,5 @@ ssh "$TARGET" bash <<EOF
   else
     docker compose -f docker-compose.prod.yml up -d
   fi
-  echo "Deploy complete. Site available at https://\$(grep '^DOMAIN=' .env | cut -d= -f2)"
-EOF
+  echo "Deploy complete. Site available at https://$(grep '^DOMAIN=' .env | cut -d= -f2)"
+ENDSSH
