@@ -3,6 +3,7 @@ import type { AnyDevice, ChargerStatus, DeviceStatus, Part, Tool, WorkingBattery
 import { useLookups } from '../hooks/useLookups'
 import { useChapters } from '../context/ChapterContext'
 import { checkAssetIdExists } from '../services/assetService'
+import { DevicePickerModal } from './DevicePickerModal'
 
 type AssetCategory = 'Device' | 'Part' | 'Tool'
 type DeviceSubtype = 'Desktop' | 'Laptop' | 'Tablet'
@@ -249,12 +250,15 @@ function SubtypeStep({ onSelect }: { onSelect: (sub: DeviceSubtype) => void }) {
 }
 
 // ─── Step 3: Fields form ──────────────────────────────────────────────────────
-function FieldsForm({ category, subtype, form, setForm, lookups }: {
+function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice, onOpenDevicePicker, onClearDevice }: {
   category: AssetCategory
   subtype: DeviceSubtype | null
   form: FormState
   setForm: Dispatch<SetStateAction<FormState>>
   lookups: import('../hooks/useLookups').LookupData
+  selectedDevice: AnyDevice | null
+  onOpenDevicePicker: () => void
+  onClearDevice: () => void
 }) {
   function set<K extends keyof FormState>(key: K) {
     return (value: FormState[K]) => setForm(prev => ({ ...prev, [key]: value }))
@@ -302,15 +306,35 @@ function FieldsForm({ category, subtype, form, setForm, lookups }: {
           </div>
         </div>
         <div>
-          <label className={lCls}>Contained In (Device ID)</label>
-          <input
-            type="number" min="0" step="1"
-            value={form.containedIn}
-            placeholder="Optional — e.g. 1001"
-            onKeyDown={e => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-            onChange={e => set('containedIn')(e.target.value)}
-            className={iCls}
-          />
+          <label className={lCls}>Contained In</label>
+          {selectedDevice ? (
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="font-mono text-xs text-slate-400">#{selectedDevice.id}</span>
+              <span className="text-sm text-slate-700">{selectedDevice.manufacturer} {selectedDevice.model}</span>
+              <span className="text-slate-300 text-xs">· {selectedDevice.year}</span>
+              <button
+                type="button"
+                onClick={onClearDevice}
+                className="ml-auto text-slate-400 hover:text-red-500 p-0.5 rounded transition-colors"
+                title="Remove device link"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpenDevicePicker}
+              className="flex items-center gap-2 w-full text-sm text-slate-500 border border-slate-200 border-dashed rounded-lg px-3 py-2 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5 transition-all"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              Select device (optional)
+            </button>
+          )}
         </div>
         <FText label="Value ($)" value={form.value} onChange={set('value')} type="number" placeholder="e.g. 29.99" />
         <div>
@@ -400,6 +424,8 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
   const [subtype, setSubtype]   = useState<DeviceSubtype | null>(null)
   const [form, setForm]         = useState<FormState>({ ...DEFAULT_FORM })
   const [idConflict, setIdConflict] = useState(false)
+  const [devicePickerOpen, setDevicePickerOpen] = useState(false)
+  const [selectedDevice, setSelectedDevice] = useState<AnyDevice | null>(null)
 
   // Pre-select first chapter when lookups load
   useEffect(() => {
@@ -601,6 +627,18 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
           ))}
         </div>
 
+        {/* Device picker (rendered above the modal layer) */}
+        {devicePickerOpen && (
+          <DevicePickerModal
+            onSelect={device => {
+              setSelectedDevice(device)
+              setForm(prev => ({ ...prev, containedIn: String(device.id) }))
+              setDevicePickerOpen(false)
+            }}
+            onCancel={() => setDevicePickerOpen(false)}
+          />
+        )}
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {step === 'id' && (
@@ -652,7 +690,19 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
           {step === 'category' && <CategoryStep onSelect={handleSelectCategory} />}
           {step === 'subtype'  && <SubtypeStep  onSelect={handleSelectSubtype} />}
           {step === 'fields'   && (
-            <FieldsForm category={category!} subtype={subtype} form={form} setForm={setForm} lookups={lookups} />
+            <FieldsForm
+              category={category!}
+              subtype={subtype}
+              form={form}
+              setForm={setForm}
+              lookups={lookups}
+              selectedDevice={selectedDevice}
+              onOpenDevicePicker={() => setDevicePickerOpen(true)}
+              onClearDevice={() => {
+                setSelectedDevice(null)
+                setForm(prev => ({ ...prev, containedIn: '' }))
+              }}
+            />
           )}
         </div>
 

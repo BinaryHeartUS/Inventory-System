@@ -61,16 +61,16 @@ export async function createPart(part: Part): Promise<Part> {
   }
   await apiPostVoid('/parts', body)
 
-    if (assetId !== undefined) {
-      return apiGet<Part>(`/parts/${assetId}`)
-    }
-    // Auto-generated: re-fetch device list and find the most recently added match
-    const parts = await apiGet<Part[]>('/parts')
-    const match = parts
-      .filter(p => p.chapterId === part.chapterId && p.description === part.description)
-      .at(-1)
-    if (!match) throw new Error('Created part not found after insert')
-    return match
+  if (assetId !== undefined) {
+    return apiGet<Part>(`/parts/${assetId}`)
+  }
+  // Auto-generated: re-fetch device list and find the most recently added match
+  const parts = await apiGet<Part[]>('/parts')
+  const match = parts
+    .filter(p => p.chapterId === part.chapterId && p.description === part.description)
+    .at(-1)
+  if (!match) throw new Error('Created part not found after insert')
+  return match
 }
 
 export async function updatePart(id: number, updates: Part): Promise<Part> {
@@ -79,4 +79,8 @@ export async function updatePart(id: number, updates: Part): Promise<Part> {
 
 export async function deletePart(id: number): Promise<void> {
   return apiDelete(`/parts/${id}`)
+}
+
+export async function getPartsByDevice(deviceId: number): Promise<Part[]> {
+  return apiGet<Part[]>(`/parts/device/${deviceId}`)
 }

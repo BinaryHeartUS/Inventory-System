@@ -1,24 +1,15 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { getTools } from '../services/toolService'
 import { useVisibleChapters } from '../context/ChapterContext'
-import { useChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
-
-function formatDate(iso: string | null): string {
-  if (!iso) return '—'
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
+import { ToolRow } from '../components/ToolRow'
 
 export default function Tools() {
-  const navigate = useNavigate()
   const [chapterFilter, setChapterFilter] = useState('All')
 
   const [allTools, setAllTools] = useState<import('../types/inventory').Tool[]>([])
   const allChapters = useVisibleChapters()
   const chapters = allChapters.map(c => c.name)
-  const { chapterName } = useChapters()
 
   useEffect(() => {
     getTools().then(setAllTools)
@@ -96,19 +87,7 @@ export default function Tools() {
                   </td>
                 </tr>
               ) : filtered.map(t => (
-                <tr
-                  key={t.id}
-                  onClick={() => navigate(`/tools/${t.id}`)}
-                  className="hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  <td className="px-5 py-5 font-mono text-xs text-slate-400">{t.id}</td>
-                  <td className="px-5 py-5 text-slate-600 max-w-xs truncate">{t.description}</td>
-                  <td className="px-5 py-5 text-slate-500">{chapterName(t.chapterId)}</td>
-                  <td className="px-5 py-5 text-slate-700">
-                    {t.value != null ? `$${t.value.toFixed(2)}` : <span className="text-slate-300">—</span>}
-                  </td>
-                  <td className="px-5 py-5 text-slate-400 whitespace-nowrap">{formatDate(t.acquisitionDate)}</td>
-                </tr>
+                <ToolRow key={t.id} tool={t} />
               ))}
             </tbody>
           </table>

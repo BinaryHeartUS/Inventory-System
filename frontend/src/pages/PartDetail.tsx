@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import type { Part } from '../types/inventory'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import type { AnyDevice, Part } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
 import { getPart, updatePart } from '../services/partService'
+import { getDevice } from '../services/deviceService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 import { useChapters } from '../context/ChapterContext'
+import { DevicePickerModal } from '../components/DevicePickerModal'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -107,6 +109,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function PartDetail() {
   const { id } = useParams<{ id: string }>()
   const numId = Number(id)
+  const navigate = useNavigate()
 
   const lookups = useLookups()
   const { chapters, chapterName } = useChapters()
@@ -117,12 +120,26 @@ export default function PartDetail() {
   const [form, setForm] = useState<Part | null>(null)
   const [saved, setSaved] = useState(false)
   const [printId, setPrintId] = useState<number | null>(null)
+  // Device linked to this part (for view mode display)
+  const [linkedDevice, setLinkedDevice] = useState<AnyDevice | null>(null)
+  // Device selected while editing
+  const [editDevice, setEditDevice] = useState<AnyDevice | null>(null)
+  const [devicePickerOpen, setDevicePickerOpen] = useState(false)
 
   useEffect(() => {
     getPart(numId)
       .then(p => { setPart(p); setLoading(false) })
       .catch(() => setLoading(false))
   }, [numId])
+
+  // Fetch linked device info whenever the saved part's containedIn changes
+  useEffect(() => {
+    if (part?.containedIn != null) {
+      getDevice(part.containedIn).then(setLinkedDevice)
+    } else {
+      setLinkedDevice(null)
+    }
+  }, [part?.containedIn])
 
   if (loading) {
     return (
@@ -154,12 +171,12 @@ export default function PartDetail() {
     )
   }
 
-  function startEdit() { setForm({ ...part } as Part); setEditing(true) }
-  function cancelEdit() { setEditing(false) }
+  function startEdit() { setForm({ ...part } as Part); setEditDevice(linkedDevice); setEditing(true) }
+  function cancelEdit() { setEditing(false); setEditDevice(null) }
   async function saveEdit() {
     if (!form) return
     const updated = await updatePart(numId, form)
-    setPart(updated); setEditing(false); setSaved(true)
+    setPart(updated); setEditing(false); setEditDevice(null); setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
   function set(key: keyof Part) {
@@ -172,6 +189,16 @@ export default function PartDetail() {
   return (
     <>
     {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
+    {devicePickerOpen && (
+      <DevicePickerModal
+        onSelect={device => {
+          setEditDevice(device)
+          setForm(prev => prev ? { ...prev, containedIn: device.id } : prev)
+          setDevicePickerOpen(false)
+        }}
+        onCancel={() => setDevicePickerOpen(false)}
+      />
+    )}
     <div className="space-y-5">
 
       {/* Breadcrumb */}
@@ -254,15 +281,35 @@ export default function PartDetail() {
                 <EditText label="Description" value={form.description}
                   onChange={set('description')} placeholder="e.g. DDR4 8GB stick" maxLength={500} />
                 <div>
-                  <label className={labelCls}>Contained In (Device ID)</label>
-                  <input
-                    type="number" min="0" step="1"
-                    value={form.containedIn ?? ''}
-                    placeholder="Device ID or leave blank"
-                    onKeyDown={e => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-                    onChange={e => set('containedIn')(e.target.value ? Number(e.target.value) : null)}
-                    className={inputCls}
-                  />
+                  <label className={labelCls}>Contained In</label>
+                  {editDevice ? (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span className="font-mono text-xs text-slate-400">#{editDevice.id}</span>
+                      <span className="text-sm text-slate-800">{editDevice.manufacturer} {editDevice.model}</span>
+                      <span className="text-slate-300 text-xs">· {editDevice.year}</span>
+                      <button
+                        type="button"
+                        onClick={() => { setEditDevice(null); set('containedIn')(null) }}
+                        className="ml-auto text-slate-400 hover:text-red-500 p-0.5 rounded transition-colors"
+                        title="Remove device link"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setDevicePickerOpen(true)}
+                      className="flex items-center gap-2 w-full text-sm text-slate-500 border border-slate-200 border-dashed rounded-lg px-3 py-2 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5 transition-all"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                      Select device (optional)
+                    </button>
+                  )}
                 </div>
                 <EditText label="Value ($)" type="number"
                   value={String(form.value ?? '')}
@@ -281,7 +328,24 @@ export default function PartDetail() {
                 <Field label="Chapter" value={chapterName(p.chapterId)} />
                 <Field label="Source" value={p.wasPurchased ? 'Purchased' : 'Donated'} />
                 <Field label="Description" value={p.description} />
-                <Field label="Contained In" value={p.containedIn != null ? `#${p.containedIn}` : 'Loose'} />
+                <Field
+                  label="Contained In"
+                  value={
+                    p.containedIn != null
+                      ? linkedDevice
+                        ? (
+                          <button
+                            onClick={() => navigate(`/devices/${p.containedIn}`)}
+                            className="text-heart-blue hover:underline text-sm text-left"
+                          >
+                            {linkedDevice.manufacturer} {linkedDevice.model}
+                            <span className="font-mono text-xs text-slate-400 ml-1">· #{p.containedIn}</span>
+                          </button>
+                        )
+                        : <span className="font-mono text-xs">#{p.containedIn}</span>
+                      : 'Loose'
+                  }
+                />
                 <Field label="Value" value={p.value != null && p.value !== 0 ? `$${p.value.toFixed(2)}` : null} />
                 <Field label="Acquired" value={formatDate(p.acquisitionDate)} />
               </>

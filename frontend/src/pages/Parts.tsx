@@ -1,18 +1,16 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { getParts } from '../services/partService'
-import { useVisibleChapters, useChapters } from '../context/ChapterContext'
+import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
+import { PartRow } from '../components/PartRow'
 
 export default function Parts() {
-  const navigate = useNavigate()
 const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
   const [typeFilter,    setTypeFilter]    = useState('All')
   const [sourceFilter,  setSourceFilter]  = useState<'All' | 'Donated' | 'Purchased'>('All')
 
   const [allParts,  setAllParts]  = useState<import('../types/inventory').Part[]>([])  
   const chapters = useVisibleChapters()
-  const { chapterName } = useChapters()
 
   useEffect(() => {
     getParts().then(setAllParts)
@@ -114,27 +112,7 @@ const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
                   </td>
                 </tr>
               ) : filtered.map(p => (
-                <tr key={p.id} onClick={() => navigate(`/parts/${p.id}`)} className="hover:bg-slate-50 transition-colors cursor-pointer">
-                  <td className="px-5 py-5 font-mono text-xs text-slate-400">{p.id}</td>
-                  <td className="px-5 py-5">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
-                      {p.type}
-                    </span>
-                  </td>
-                  <td className="px-5 py-5 text-slate-700">{p.description}</td>
-                  <td className="px-5 py-5 text-slate-500">{chapterName(p.chapterId)}</td>
-                  <td className="px-5 py-5">
-                    <span className={`text-sm font-medium ${p.wasPurchased ? 'text-slate-500' : 'text-green-600'}`}>
-                      {p.wasPurchased ? 'Purchased' : 'Donated'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-5">
-                    {p.containedIn != null
-                      ? <span className="font-mono text-xs text-heart-blue">#{p.containedIn}</span>
-                      : <span className="text-slate-300 text-xs">Loose</span>}
-                  </td>
-                  <td className="px-5 py-5 text-slate-400 whitespace-nowrap">{p.acquisitionDate ?? '—'}</td>
-                </tr>
+                <PartRow key={p.id} part={p} />
               ))}
             </tbody>
           </table>

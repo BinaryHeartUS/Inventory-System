@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import type { AnyDevice, DeviceStatus, ChargerStatus, WorkingBattery } from '../types/inventory'
+import type { AnyDevice, DeviceStatus, ChargerStatus, WorkingBattery, Part } from '../types/inventory'
 import StatusBadge from '../components/StatusBadge'
 import NotesPane from '../components/NotesPane'
 import { getDevice, updateDevice } from '../services/deviceService'
+import { getPartsByDevice, updatePart } from '../services/partService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 import { useAuth } from '../context/AuthContext'
 import { useWritableChapters } from '../context/ChapterContext'
+import { PartRow } from '../components/PartRow'
 
 
 // ─── Field / form helpers ─────────────────────────────────────────────────────
@@ -143,11 +145,16 @@ export default function DeviceDetail() {
   const [saved, setSaved]         = useState(false)
   const [saveError, setSaveError]  = useState<string | null>(null)
   const [printId, setPrintId]      = useState<number | null>(null)
+  const [linkedParts, setLinkedParts] = useState<Part[]>([])
 
   useEffect(() => {
     getDevice(numId)
       .then(d => { setDevice(d); setLoading(false) })
       .catch(() => setLoading(false))
+  }, [numId])
+
+  useEffect(() => {
+    getPartsByDevice(numId).then(setLinkedParts).catch(() => setLinkedParts([]))
   }, [numId])
 
   if (loading) {
@@ -197,6 +204,11 @@ export default function DeviceDetail() {
   function set(key: string) {
     return (value: string | number | boolean | null) =>
       setForm(prev => prev ? ({ ...prev, [key]: value }) as AnyDevice : prev)
+  }
+
+  async function handleUnlink(part: Part) {
+    const updated = await updatePart(part.id, { ...part, containedIn: null })
+    setLinkedParts(prev => prev.filter(p => p.id !== updated.id))
   }
 
   const d = editing && form ? form : device
@@ -374,6 +386,46 @@ export default function DeviceDetail() {
               </Section>
             )
           })()}
+
+          {/* Linked Parts */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-700">Linked Parts</h2>
+              {linkedParts.length > 0 && (
+                <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                  {linkedParts.length}
+                </span>
+              )}
+            </div>
+            {linkedParts.length === 0 ? (
+              <p className="px-6 py-10 text-center text-sm text-slate-400">
+                No parts are linked to this device.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-100">
+                      {['ID', 'Type', 'Description', 'Chapter', 'Source', 'Contained In', 'Acquired', ''].map(h => (
+                        <th key={h} className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {linkedParts.map(p => (
+                      <PartRow
+                        key={p.id}
+                        part={p}
+                        onUnlink={e => { e.preventDefault(); handleUnlink(p) }}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
 
         </div>
 

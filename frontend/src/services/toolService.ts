@@ -40,17 +40,17 @@ export async function createTool(tool: Tool): Promise<Tool> {
   await apiPostVoid('/tools', body)
 
   // Backend returns 201 with no body; fetch the created tool by its ID.
-    // If assetId was pre-assigned, use it; otherwise search for the newest matching record.
-    if (assetId !== undefined) {
-      return apiGet<Tool>(`/tools/${assetId}`)
-    }
-    // Auto-generated: re-fetch device list and find the most recently added match
-    const tools = await apiGet<Tool[]>('/tools')
-    const match = tools
-      .filter(t => t.chapterId === tool.chapterId && t.description === tool.description)
-      .at(-1)
-    if (!match) throw new Error('Created tool not found after insert')
-    return match
+  // If assetId was pre-assigned, use it; otherwise search for the newest matching record.
+  if (assetId !== undefined) {
+    return apiGet<Tool>(`/tools/${assetId}`)
+  }
+  // Auto-generated: re-fetch device list and find the most recently added match
+  const tools = await apiGet<Tool[]>('/tools')
+  const match = tools
+    .filter(t => t.chapterId === tool.chapterId && t.description === tool.description)
+    .at(-1)
+  if (!match) throw new Error('Created tool not found after insert')
+  return match
 }
 
 export async function updateTool(id: number, updates: Tool): Promise<Tool> {
