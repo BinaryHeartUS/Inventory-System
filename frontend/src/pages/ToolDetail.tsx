@@ -3,8 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Tool } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
 import { getTool, updateTool, deleteTool } from '../services/toolService'
-import { useChapters, useVisibleChapters } from '../context/ChapterContext'
-import { useAuth } from '../context/AuthContext'
+import { useChapters, useVisibleChapters, useWritableChapters } from '../context/ChapterContext'
 import { useToast } from '../context/ToastContext'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 
@@ -77,7 +76,7 @@ export default function ToolDetail() {
 
   const { chapterName } = useChapters()
   const visibleChapters = useVisibleChapters()
-  const { auth } = useAuth()
+  const writableChapters = useWritableChapters()
 
   const [tool, setTool] = useState<Tool | null>(null)
   const [loading, setLoading] = useState(true)
@@ -150,9 +149,7 @@ export default function ToolDetail() {
       setForm(prev => prev ? { ...prev, [key]: value } : prev)
   }
 
-  const ADMIN_ROLES = new Set(['Admin', 'Chapter Admin'])
-  const canDelete = auth?.role === 'Admin' ||
-    auth?.chapterRoles.some(cr => cr.chapterId === tool.chapterId && ADMIN_ROLES.has(cr.role ?? ''))
+  const canDelete = writableChapters.some(c => c.id === tool.chapterId)
 
   const t = editing && form ? form : tool
 

@@ -6,8 +6,7 @@ import { getPart, updatePart, deletePart } from '../services/partService'
 import { getDevice } from '../services/deviceService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
-import { useChapters } from '../context/ChapterContext'
-import { useAuth } from '../context/AuthContext'
+import { useChapters, useWritableChapters } from '../context/ChapterContext'
 import { useToast } from '../context/ToastContext'
 import { DevicePickerModal } from '../components/DevicePickerModal'
 
@@ -115,7 +114,7 @@ export default function PartDetail() {
 
   const lookups = useLookups()
   const { chapters, chapterName } = useChapters()
-  const { auth } = useAuth()
+  const writableChapters = useWritableChapters()
   const { showToast } = useToast()
 
   const [part, setPart] = useState<Part | null>(null)
@@ -202,9 +201,7 @@ export default function PartDetail() {
       setForm(prev => prev ? { ...prev, [key]: value } : prev)
   }
 
-  const ADMIN_ROLES = new Set(['Admin', 'Chapter Admin'])
-  const canDelete = auth?.role === 'Admin' ||
-    auth?.chapterRoles.some(cr => cr.chapterId === part.chapterId && ADMIN_ROLES.has(cr.role ?? ''))
+  const canDelete = writableChapters.some(c => c.id === part.chapterId)
   const deleteBlocked = part.containedIn != null
 
   const p = editing && form ? form : part
