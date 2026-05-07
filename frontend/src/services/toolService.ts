@@ -35,7 +35,7 @@ export async function createTool(tool: Tool): Promise<Tool> {
     description: tool.description ?? undefined,
     acquisitionDate: tool.acquisitionDate ?? undefined,
     value: tool.value ?? undefined,
-    donorId: tool.donorId ?? undefined
+    donorId: tool.donorId || undefined
   }
   await apiPostVoid('/tools', body)
 
@@ -53,6 +53,10 @@ export async function createTool(tool: Tool): Promise<Tool> {
   return match
 }
 
+export async function deleteTool(id: number): Promise<void> {
+  return apiDelete(`/tools/${id}`)
+}
+
 export async function updateTool(id: number, updates: Tool): Promise<Tool> {
   const body: InsertToolRequest = {
     chapterId: updates.chapterId,
@@ -60,12 +64,8 @@ export async function updateTool(id: number, updates: Tool): Promise<Tool> {
     description: updates.description ?? undefined,
     acquisitionDate: updates.acquisitionDate ?? undefined,
     value: updates.value ?? undefined,
-    donorId: updates.donorId ?? undefined,
+    donorId: updates.donorId || undefined,
   }
   await apiPut<void>(`/tools/${id}`, body)
   return apiGet<Tool>(`/tools/${id}`)
-}
-
-export async function deleteTool(id: number): Promise<void> {
-  return apiDelete(`/tools/${id}`)
 }

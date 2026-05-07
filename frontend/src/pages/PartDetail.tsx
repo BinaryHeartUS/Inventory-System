@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { AnyDevice, Part } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
-import { getPart, updatePart } from '../services/partService'
+import { getPart, updatePart, deletePart } from '../services/partService'
 import { getDevice } from '../services/deviceService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 import { useChapters } from '../context/ChapterContext'
+import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { DevicePickerModal } from '../components/DevicePickerModal'
 
@@ -114,6 +115,7 @@ export default function PartDetail() {
 
   const lookups = useLookups()
   const { chapters, chapterName } = useChapters()
+  const { auth } = useAuth()
   const { showToast } = useToast()
 
   const [part, setPart] = useState<Part | null>(null)
@@ -122,6 +124,7 @@ export default function PartDetail() {
   const [form, setForm] = useState<Part | null>(null)
   const [saved, setSaved] = useState(false)
   const [printId, setPrintId] = useState<number | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   // Device linked to this part (for view mode display)
   const [linkedDevice, setLinkedDevice] = useState<AnyDevice | null>(null)
   // Device selected while editing
@@ -139,7 +142,7 @@ export default function PartDetail() {
     if (part?.containedIn != null) {
       getDevice(part.containedIn).then(setLinkedDevice)
     } else {
-      setLinkedDevice(null)
+      Promise.resolve().then(() => setLinkedDevice(null))
     }
   }, [part?.containedIn])
 
@@ -185,10 +188,24 @@ export default function PartDetail() {
       showToast(err instanceof Error ? err.message : 'Save failed', false)
     }
   }
+  async function handleDelete() {
+    try {
+      await deletePart(numId)
+      navigate('/parts')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Delete failed', false)
+      setShowDeleteConfirm(false)
+    }
+  }
   function set(key: keyof Part) {
     return (value: string | number | boolean | null) =>
       setForm(prev => prev ? { ...prev, [key]: value } : prev)
   }
+
+  const ADMIN_ROLES = new Set(['Admin', 'Chapter Admin'])
+  const canDelete = auth?.role === 'Admin' ||
+    auth?.chapterRoles.some(cr => cr.chapterId === part.chapterId && ADMIN_ROLES.has(cr.role ?? ''))
+  const deleteBlocked = part.containedIn != null
 
   const p = editing && form ? form : part
 
@@ -236,6 +253,31 @@ export default function PartDetail() {
                 </svg>
                 Print Label
               </button>
+            )}
+            {!editing && canDelete && (
+              showDeleteConfirm ? (
+                <>
+                  <span className="text-xs text-slate-500">Delete this part?</span>
+                  <button onClick={handleDelete}
+                    className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 px-4 py-2.5 rounded-lg transition-colors">
+                    Confirm
+                  </button>
+                  <button onClick={() => setShowDeleteConfirm(false)}
+                    className="text-sm font-medium text-slate-600 hover:text-slate-800 px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setShowDeleteConfirm(true)}
+                  disabled={deleteBlocked}
+                  title={deleteBlocked ? 'Unlink this part from its device before deleting' : undefined}
+                  className="flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2.5 rounded-lg transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                  Delete
+                </button>
+              )
             )}
             {!editing ? (
               <button onClick={startEdit}

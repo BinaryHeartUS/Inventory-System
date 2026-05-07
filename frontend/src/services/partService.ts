@@ -39,7 +39,7 @@ export async function createPart(part: Part): Promise<Part> {
     containedIn: part.containedIn ?? undefined,
     acquisitionDate: part.acquisitionDate ?? undefined,
     value: part.value ?? undefined,
-    donorId: part.donorId ?? undefined
+    donorId: part.donorId || undefined
   }
   await apiPostVoid('/parts', body)
 
