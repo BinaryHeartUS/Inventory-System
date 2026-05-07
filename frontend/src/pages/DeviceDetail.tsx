@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { AnyDevice, DeviceStatus, ChargerStatus, WorkingBattery, Part } from '../types/inventory'
 import StatusBadge from '../components/StatusBadge'
 import NotesPane from '../components/NotesPane'
-import { getDevice, updateDevice } from '../services/deviceService'
+import { getDevice, updateDevice, deleteDevice } from '../services/deviceService'
 import { getPartsByDevice, updatePart } from '../services/partService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
@@ -128,6 +128,7 @@ function BatteryBar({ health }: { health: number | null }) {
 export default function DeviceDetail() {
   const { id } = useParams<{ id: string }>()
   const numId   = Number(id)
+  const navigate = useNavigate()
 
   const { auth } = useAuth()
   const writableChapters = useWritableChapters()
@@ -142,6 +143,7 @@ export default function DeviceDetail() {
   const [saveError, setSaveError]  = useState<string | null>(null)
   const [printId, setPrintId]      = useState<number | null>(null)
   const [linkedParts, setLinkedParts] = useState<Part[]>([])
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     getDevice(numId)
@@ -211,6 +213,16 @@ export default function DeviceDetail() {
     }
   }
 
+  async function handleDelete() {
+    try {
+      await deleteDevice(numId)
+      navigate('/devices')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Delete failed', false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
   const d = editing && form ? form : device
 
   // Determine write access for this specific chapter, not just the global role.
@@ -219,6 +231,13 @@ export default function DeviceDetail() {
   const viewerLock = !canWriteThisChapter
   const donatedLock = canWriteThisChapter && auth?.role?.toLowerCase() === 'editor' && device.status === 'Donated'
   const editLock = viewerLock || donatedLock
+  const ADMIN_ROLES = new Set(['Admin', 'Chapter Admin'])
+  const canDelete = auth?.role === 'Admin' ||
+    auth?.chapterRoles.some(cr => {
+      const chapter = writableChapters.find(c => c.name === device.chapter)
+      return chapter && cr.chapterId === chapter.id && ADMIN_ROLES.has(cr.role ?? '')
+    })
+  const deleteBlocked = linkedParts.length > 0
 
   return (
     <>
@@ -255,6 +274,31 @@ export default function DeviceDetail() {
                 </svg>
                 Print Label
               </button>
+            )}
+            {!editing && canDelete && (
+              showDeleteConfirm ? (
+                <>
+                  <span className="text-xs text-slate-500">Delete this device?</span>
+                  <button onClick={handleDelete}
+                    className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 px-4 py-2.5 rounded-lg transition-colors">
+                    Confirm
+                  </button>
+                  <button onClick={() => setShowDeleteConfirm(false)}
+                    className="text-sm font-medium text-slate-600 hover:text-slate-800 px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setShowDeleteConfirm(true)}
+                  disabled={deleteBlocked}
+                  title={deleteBlocked ? 'Unlink all parts from this device before deleting' : undefined}
+                  className="flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2.5 rounded-lg transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                  Delete
+                </button>
+              )
             )}
             {!editing ? (
               <button onClick={startEdit}
