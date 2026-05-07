@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Tool } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
-import { getTool, updateTool } from '../services/toolService'
+import { getTool, updateTool, deleteTool } from '../services/toolService'
 import { useChapters, useVisibleChapters } from '../context/ChapterContext'
+import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { PrintLabelModal } from '../components/PrintLabelModal'
 
@@ -72,9 +73,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function ToolDetail() {
   const { id } = useParams<{ id: string }>()
   const numId = Number(id)
+  const navigate = useNavigate()
 
   const { chapterName } = useChapters()
   const visibleChapters = useVisibleChapters()
+  const { auth } = useAuth()
 
   const [tool, setTool] = useState<Tool | null>(null)
   const [loading, setLoading] = useState(true)
@@ -82,6 +85,7 @@ export default function ToolDetail() {
   const [form, setForm] = useState<Tool | null>(null)
   const [saved, setSaved] = useState(false)
   const [printId, setPrintId] = useState<number | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { showToast } = useToast()
 
   useEffect(() => {
@@ -132,10 +136,23 @@ export default function ToolDetail() {
       showToast(err instanceof Error ? err.message : 'Save failed', false)
     }
   }
+  async function handleDelete() {
+    try {
+      await deleteTool(numId)
+      navigate('/tools')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Delete failed', false)
+      setShowDeleteConfirm(false)
+    }
+  }
   function set(key: keyof Tool) {
     return (value: string | number | null) =>
       setForm(prev => prev ? { ...prev, [key]: value } : prev)
   }
+
+  const ADMIN_ROLES = new Set(['Admin', 'Chapter Admin'])
+  const canDelete = auth?.role === 'Admin' ||
+    auth?.chapterRoles.some(cr => cr.chapterId === tool.chapterId && ADMIN_ROLES.has(cr.role ?? ''))
 
   const t = editing && form ? form : tool
 
@@ -173,6 +190,29 @@ export default function ToolDetail() {
                 </svg>
                 Print Label
               </button>
+            )}
+            {!editing && canDelete && (
+              showDeleteConfirm ? (
+                <>
+                  <span className="text-xs text-slate-500">Delete this tool?</span>
+                  <button onClick={handleDelete}
+                    className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 px-4 py-2.5 rounded-lg transition-colors">
+                    Confirm
+                  </button>
+                  <button onClick={() => setShowDeleteConfirm(false)}
+                    className="text-sm font-medium text-slate-600 hover:text-slate-800 px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-lg transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                  Delete
+                </button>
+              )
             )}
             {!editing ? (
               <button onClick={startEdit}
