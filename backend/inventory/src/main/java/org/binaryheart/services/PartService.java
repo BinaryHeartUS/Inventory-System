@@ -74,8 +74,35 @@ public class PartService {
 
     public void updatePart(InsertPartRequest request)
             throws MissingRequiredParametersException, BadArgumentException, PartNotFoundException, SQLException {
-        if (request.chapterId() == 0 || request.description() == null) {
+        if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
+                || request.wasPurchased() == null || request.description() == null
+                || request.description().length() == 0) {
+            throw new MissingRequiredParametersException("Missing required parameters");
+        }
+        if (request.containedIn() != null && request.containedIn() <= 0) {
+            throw new BadArgumentException("Contained In ID must be positive or not specified");
+        }
+        if (request.id() != null && request.id() <= 0) {
+            throw new BadArgumentException("Asset ID must be positive or not specified");
+        }
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+            throw new BadArgumentException("Acquisition date cannot be in the future");
+        }
+        if (request.value() != null && request.value() < 0) {
+            throw new BadArgumentException("Value must be non-negative or not specified");
+        }
+        if (request.donorId() != null && request.donorId() <= 0) {
+            throw new BadArgumentException("Donor ID must be positive or not specified");
+        }
 
+        try {
+            repository.updatePart(request);
+        } catch (SQLException e) {
+            if ("02000".equals(e.getSQLState())) {
+                throw new PartNotFoundException("Could not find part with specified ID: " + request.id());
+            } else {
+                throw e;
+            }
         }
     }
 
