@@ -34,7 +34,7 @@ public class ToolRepository {
             Double value = rs.getDouble("value");
             String description = rs.getString("description");
             Integer chapterID = rs.getInt("chapter_id");
-            Integer donorID = rs.getInt("donor_id");
+            Integer donorID = rs.getObject("donor_id", Integer.class);
             tools.add(new GetToolResponse(toolID, acquisitionLocalDate, value, description, chapterID, donorID));
         }
         return tools;
@@ -59,7 +59,7 @@ public class ToolRepository {
             Double value = rs.getDouble("value");
             String description = rs.getString("description");
             Integer chapterID = rs.getInt("chapter_id");
-            Integer donorID = rs.getInt("donor_id");
+            Integer donorID = rs.getObject("donor_id", Integer.class);
             return new GetToolResponse(id, localAcquisitionDate, value, description, chapterID, donorID);
         }
 
