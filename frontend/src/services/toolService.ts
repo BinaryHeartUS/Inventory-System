@@ -54,7 +54,16 @@ export async function createTool(tool: Tool): Promise<Tool> {
 }
 
 export async function updateTool(id: number, updates: Tool): Promise<Tool> {
-  return apiPut<Tool>(`/tools/${id}`, updates)
+  const body: InsertToolRequest = {
+    chapterId: updates.chapterId,
+    assetId: updates.id,
+    description: updates.description ?? undefined,
+    acquisitionDate: updates.acquisitionDate ?? undefined,
+    value: updates.value ?? undefined,
+    donorId: updates.donorId ?? undefined,
+  }
+  await apiPut<void>(`/tools/${id}`, body)
+  return apiGet<Tool>(`/tools/${id}`)
 }
 
 export async function deleteTool(id: number): Promise<void> {
