@@ -9,7 +9,7 @@
  *   DELETE /api/parts/:id   → 204
  */
 
-import { apiGet, apiPut, apiDelete, apiPostVoid } from './api'
+import { apiGet, apiDelete, apiPostVoid, apiPutVoid } from './api'
 import type { InsertPartRequest, Part } from '../types/inventory'
 import { getChapters } from './chapterService'
 
@@ -56,7 +56,8 @@ export async function createPart(part: Part): Promise<Part> {
 }
 
 export async function updatePart(id: number, updates: Part): Promise<Part> {
-  return apiPut<Part>(`/parts/${id}`, updates)
+  await apiPutVoid(`/parts/${id}`, updates)
+  return apiGet<Part>(`/parts/${id}`)
 }
 
 export async function deletePart(id: number): Promise<void> {
