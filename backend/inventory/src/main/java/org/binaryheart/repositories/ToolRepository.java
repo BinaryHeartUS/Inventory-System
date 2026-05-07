@@ -98,6 +98,33 @@ public class ToolRepository {
         stmt.execute();
     }
 
+    public void updateTool(InsertToolRequest request) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        CallableStatement stmt = conn.prepareCall("call Update_Tool(?, ?, ?, ?, ?::Numeric::Money, ?)");
+        stmt.setInt(1, request.chapterId());
+        stmt.setInt(2, request.assetId());
+        stmt.setString(3, request.description());
+        if (request.acquisitionDate() != null) {
+            stmt.setDate(4, java.sql.Date.valueOf(request.acquisitionDate()));
+        } else {
+            stmt.setNull(4, java.sql.Types.DATE);
+        }
+        if (request.value() != null) {
+            stmt.setDouble(5, request.value());
+        } else {
+            stmt.setDouble(5, 0);
+        }
+        if (request.donorId() != null) {
+            stmt.setInt(6, request.donorId());
+        } else {
+            stmt.setNull(6, java.sql.Types.INTEGER);
+        }
+        stmt.execute();
+    }
+
     public void deleteTool(Integer toolID) throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();

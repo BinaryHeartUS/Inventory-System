@@ -17,7 +17,7 @@ import org.binaryheart.services.ToolService;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
-// import static io.javalin.apibuilder.ApiBuilder.put;
+import static io.javalin.apibuilder.ApiBuilder.put;
 import static io.javalin.apibuilder.ApiBuilder.delete;
 
 public class ToolController {
@@ -28,7 +28,7 @@ public class ToolController {
         get("", ToolController::getAllTools, AppRole.AUTHENTICATED);
         get("/{id}", ToolController::getTool, AppRole.AUTHENTICATED);
         post("", ToolController::insertTool, AppRole.AUTHENTICATED);
-        // put("/{id}", ToolController::updateTool, AppRole.AUTHENTICATED);
+        put("/{id}", ToolController::updateTool, AppRole.AUTHENTICATED);
         delete("/{id}", ToolController::deleteTool, AppRole.CHAPTER_ADMIN);
     }
 
@@ -185,6 +185,58 @@ public class ToolController {
             ctx.status(400).result(e.getMessage());
         } catch (ToolNotFoundException e) {
             ctx.status(404).result(e.getMessage());
+        }
+    }
+
+    @OpenApi(
+            path = "/api/tools/{id}",
+            methods = { HttpMethod.PUT },
+            tags = { "Tools" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Updates a tool in the database",
+            description = "Updates a tool with the specified ID and attributes",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    description = "The asset ID of the tool to update") },
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = InsertToolRequest.class,
+                            example = """
+                                    {
+                                      "chapterId": 1,
+                                      "assetId": null,
+                                      "description": null,
+                                      "acquisitionDate": null,
+                                      "value": null,
+                                      "donorId": null
+                                    }""") }),
+            responses = { @OpenApiResponse(
+                    status = "201",
+                    description = "Tool updated successfully"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Missing required parameters or invalid field values"),
+                    @OpenApiResponse(
+                            status = "401",
+                            description = "Tool with specified ID does not exist"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void updateTool(Context ctx) {
+        InsertToolRequest request = ctx.bodyAsClass(InsertToolRequest.class);
+
+        try {
+            AuthController.requireChapterEditAccess(ctx, request.chapterId());
+            service.updateTool(request);
+            ctx.status(201).result("Tool updated successfully");
+        } catch (MissingRequiredParametersException | BadArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (ToolNotFoundException e) {
+            ctx.status(404).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
         }
     }
 

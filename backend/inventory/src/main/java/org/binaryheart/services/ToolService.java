@@ -72,6 +72,34 @@ public class ToolService {
         }
     }
 
+    public void updateTool(InsertToolRequest request)
+            throws MissingRequiredParametersException, BadArgumentException, ToolNotFoundException, SQLException {
+        if (request.chapterId() == 0 || request.description() == null) {
+            throw new MissingRequiredParametersException("Missing required parameters");
+        }
+        if (request.description().length() == 0) {
+            throw new BadArgumentException("Description cannot be emptry string");
+        }
+        if (request.value() != null && request.value() < 0) {
+            throw new BadArgumentException("Value must be non-negative or not specified");
+        }
+        if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+            throw new BadArgumentException("Acquisition date cannot be in the future");
+        }
+        if (request.assetId() != null && request.assetId() <= 0) {
+            throw new BadArgumentException("Asset ID must be positive or not specified");
+        }
+        try {
+            repository.updateTool(request);
+        } catch (SQLException e) {
+            if ("02000".equals(e.getSQLState())) {
+                throw new ToolNotFoundException("Could not find tool with specified ID: " + request.assetId());
+            } else {
+                throw e;
+            }
+        }
+    }
+
     public void deleteTool(List<Integer> userChapterIDs, Integer toolID)
             throws SQLException, BadArgumentException, ToolNotFoundException {
         if (toolID == null || toolID < 0) {
