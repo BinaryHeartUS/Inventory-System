@@ -35,7 +35,7 @@ public class PartRepository {
             int chapterId = res.getInt("chapterID");
             Date acquisitionDate = res.getDate("acquisitionDate");
             Double value = res.getDouble("value");
-            Integer donorId = res.getInt("donorId");
+            Integer donorId = res.getObject("donorId", Integer.class);
             parts.add(new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(),
                     value, donorId));
         }
