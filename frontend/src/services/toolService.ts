@@ -9,7 +9,7 @@
  *   DELETE /api/tools/:id    → 204
  */
 
-import { apiGet, apiPut, apiDelete, apiPostVoid } from './api'
+import { apiGet, apiPutVoid, apiDelete, apiPostVoid } from './api'
 import type { InsertToolRequest, Tool } from '../types/inventory'
 import { getChapters } from './chapterService'
 
@@ -66,6 +66,6 @@ export async function updateTool(id: number, updates: Tool): Promise<Tool> {
     value: updates.value ?? undefined,
     donorId: updates.donorId || undefined,
   }
-  await apiPut<void>(`/tools/${id}`, body)
+  await apiPutVoid(`/tools/${id}`, body)
   return apiGet<Tool>(`/tools/${id}`)
 }
