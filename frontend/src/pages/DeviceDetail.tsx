@@ -7,6 +7,7 @@ import { getDevice, updateDevice, deleteDevice } from '../services/deviceService
 import { getPartsByDevice, updatePart } from '../services/partService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
+import { ReadyToDonateFormModal } from '../components/ReadyToDonateFormModal'
 import { useAuth } from '../context/AuthContext'
 import { useWritableChapters } from '../context/ChapterContext'
 import { useToast } from '../context/ToastContext'
@@ -144,6 +145,7 @@ export default function DeviceDetail() {
   const [printId, setPrintId]      = useState<number | null>(null)
   const [linkedParts, setLinkedParts] = useState<Part[]>([])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showDonateModal, setShowDonateModal] = useState(false)
 
   useEffect(() => {
     getDevice(numId)
@@ -204,6 +206,14 @@ export default function DeviceDetail() {
       setForm(prev => prev ? ({ ...prev, [key]: value }) as AnyDevice : prev)
   }
 
+  function handleStatusChange(newStatus: DeviceStatus) {
+    if (newStatus === 'Ready To Donate') {
+      setShowDonateModal(true)
+    } else {
+      set('status')(newStatus)
+    }
+  }
+
   async function handleUnlink(part: Part) {
     try {
       const updated = await updatePart(part.id, { ...part, containedIn: null })
@@ -242,6 +252,12 @@ export default function DeviceDetail() {
   return (
     <>
     {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
+    {showDonateModal && (
+      <ReadyToDonateFormModal
+        onConfirm={() => { set('status')('Ready To Donate'); setShowDonateModal(false) }}
+        onCancel={() => setShowDonateModal(false)}
+      />
+    )}
     <div className="space-y-5">
 
       {/* Breadcrumb */}
@@ -345,7 +361,7 @@ export default function DeviceDetail() {
                 <EditCombo label="RAM Generation" value={form.ramGeneration ?? null} options={lookups.ramGenerations} onChange={set('ramGeneration')} placeholder="e.g. LPDDR5" maxLength={20} />
                 <EditText label="Storage (GB)" type="number" value={String(form.storage)} onChange={v => set('storage')(Number(v))} min={0} />
                 <EditCombo label="Storage Type" value={form.storageType ?? null} options={lookups.storageTypes} onChange={set('storageType')} placeholder="e.g. eMMC" maxLength={30} />
-                <EditSelect label="Status" value={(form.status ?? 'Unknown') as DeviceStatus} options={lookups.deviceStatuses} onChange={set('status') as (v: DeviceStatus) => void} />
+                <EditSelect label="Status" value={(form.status ?? 'Unknown') as DeviceStatus} options={lookups.deviceStatuses} onChange={handleStatusChange} />
                 <EditSelect label="Chapter" value={form.chapter ?? ''} options={lookups.chapters} onChange={set('chapter')} />
                 <div>
                   <label className={labelCls}>Acquired</label>
