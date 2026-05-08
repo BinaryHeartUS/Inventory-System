@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION Get_Tool(
 RETURNS TABLE (
     id INTEGER,
     acquisition_date DATE,
-    value MONEY,
+    value NUMERIC,
     description VARCHAR(500),
     chapter_id INTEGER,
     donor_id INTEGER
