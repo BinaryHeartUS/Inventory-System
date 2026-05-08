@@ -13,7 +13,6 @@ import org.binaryheart.controllers.LookupController;
 import org.binaryheart.controllers.NoteController;
 import org.binaryheart.controllers.PartController;
 import org.binaryheart.controllers.ToolController;
-import org.binaryheart.services.ChapterService;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -24,22 +23,7 @@ import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 
 public class Main {
-    private static final ChapterService chapterService = new ChapterService();
-
     public static void main(String[] args) {
-        // AccountService serv = new AccountService();
-        // try {
-        // serv.createAccount(
-        // new CreateAccountRequest("Developer", "developer", "mjy0XYJ6jyd_ufx3hxe",
-        // chapterService.getNationalChapterId(), "Admin"),
-        // "Admin",
-        // new ArrayList<>(Arrays.asList(new
-        // ChapterRole(chapterService.getNationalChapterId(), "Admin"))));
-
-        // System.out.println("added developer");
-        // } catch (SQLException e) {
-        // e.printStackTrace();
-        // }
 
         Javalin.create(config -> {
             config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
