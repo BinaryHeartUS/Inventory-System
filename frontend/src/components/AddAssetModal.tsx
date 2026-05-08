@@ -1,9 +1,10 @@
 import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
-import type { AnyDevice, ChargerStatus, DeviceStatus, Part, Tool, WorkingBattery } from '../types/inventory'
+import type { AnyDevice, ChargerStatus, DeviceStatus, Part, PartySummary, Tool, WorkingBattery } from '../types/inventory'
 import { useLookups } from '../hooks/useLookups'
 import { useChapters } from '../context/ChapterContext'
 import { checkAssetIdExists } from '../services/assetService'
 import { DevicePickerModal } from './DevicePickerModal'
+import { PartyPickerModal } from './PartyPickerModal'
 
 type AssetCategory = 'Device' | 'Part' | 'Tool'
 type DeviceSubtype = 'Desktop' | 'Laptop' | 'Tablet'
@@ -251,8 +252,52 @@ function SubtypeStep({ onSelect }: { onSelect: (sub: DeviceSubtype) => void }) {
   )
 }
 
+// ─── Donor field ─────────────────────────────────────────────────────────────
+function DonorField({ selectedParty, onOpen, onClear, colSpan = true }: {
+  selectedParty: PartySummary | null
+  onOpen: () => void
+  onClear: () => void
+  colSpan?: boolean
+}) {
+  return (
+    <div className={colSpan ? 'col-span-full' : ''}>
+      <label className={lCls}>Donor</label>
+      {selectedParty ? (
+        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+          <span className="text-sm text-slate-700">{selectedParty.name}</span>
+          <span className={`ml-1 text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${selectedParty.type === 'Person' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+            {selectedParty.type === 'Person' ? 'Individual' : 'Organization'}
+          </span>
+          <button
+            type="button"
+            onClick={onClear}
+            className="ml-auto text-slate-400 hover:text-red-500 p-0.5 rounded transition-colors"
+            title="Remove donor"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex items-center gap-2 w-full text-sm text-slate-500 border border-slate-200 border-dashed rounded-lg px-3 py-2 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5 transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Select donor (optional)
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ─── Step 3: Fields form ──────────────────────────────────────────────────────
-function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice, onOpenDevicePicker, onClearDevice }: {
+function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice, onOpenDevicePicker, onClearDevice, selectedParty, onOpenPartyPicker, onClearParty }: {
   category: AssetCategory
   subtype: DeviceSubtype | null
   form: FormState
@@ -261,6 +306,9 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
   selectedDevice: AnyDevice | null
   onOpenDevicePicker: () => void
   onClearDevice: () => void
+  selectedParty: PartySummary | null
+  onOpenPartyPicker: () => void
+  onClearParty: () => void
 }) {
   function set<K extends keyof FormState>(key: K) {
     return (value: FormState[K]) => setForm(prev => ({ ...prev, [key]: value }))
@@ -277,6 +325,7 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
           <input type="date" value={form.acquisitionDate} onChange={e => set('acquisitionDate')(e.target.value)}
             className={iCls} />
         </div>
+        <DonorField selectedParty={selectedParty} onOpen={onOpenPartyPicker} onClear={onClearParty} />
       </div>
     )
   }
@@ -342,6 +391,7 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
           <input type="date" value={form.acquisitionDate} onChange={e => set('acquisitionDate')(e.target.value)}
             className={iCls} />
         </div>
+        <DonorField selectedParty={selectedParty} onOpen={onOpenPartyPicker} onClear={onClearParty} />
       </div>
     )
   }
@@ -367,6 +417,7 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
           <input type="date" value={form.acquisitionDate} onChange={e => set('acquisitionDate')(e.target.value)}
             className={iCls} />
         </div>
+        <DonorField selectedParty={selectedParty} onOpen={onOpenPartyPicker} onClear={onClearParty} colSpan={false} />
       </div>
 
       {subtype === 'Desktop' && (
@@ -427,6 +478,8 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
   const [idConflict, setIdConflict] = useState(false)
   const [devicePickerOpen, setDevicePickerOpen] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState<AnyDevice | null>(null)
+  const [partyPickerOpen, setPartyPickerOpen] = useState(false)
+  const [selectedParty, setSelectedParty] = useState<PartySummary | null>(null)
 
   // Pre-select first chapter when lookups load
   useEffect(() => {
@@ -504,7 +557,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         chapterId: chapterList.find(c => c.name === form.chapter)?.id ?? 0,
         acquisitionDate: form.acquisitionDate || null,
         value: form.value ? Number(form.value) : null,
-        donorId: null,
+        donorId: selectedParty?.id ?? null,
       }
       onAdd?.(tool)
       return
@@ -521,7 +574,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
         chapterId,
         acquisitionDate: form.acquisitionDate || null,
         value: form.value ? Number(form.value) : null,
-        donorId: null,
+        donorId: selectedParty?.id ?? null,
       }
       onAdd?.(part)
       return
@@ -544,6 +597,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
       acquisitionDate: form.acquisitionDate || null,
       donatedDate: null,
       value: form.value ? Number(form.value) : null,
+      donorId: selectedParty?.id ?? null,
     }
 
     if (subtype === 'Desktop') {
@@ -642,6 +696,17 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
           />
         )}
 
+        {/* Party picker (rendered above the modal layer) */}
+        {partyPickerOpen && (
+          <PartyPickerModal
+            onSelect={party => {
+              setSelectedParty(party)
+              setPartyPickerOpen(false)
+            }}
+            onCancel={() => setPartyPickerOpen(false)}
+          />
+        )}
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {step === 'id' && (
@@ -714,6 +779,9 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
                 setSelectedDevice(null)
                 setForm(prev => ({ ...prev, containedIn: '' }))
               }}
+              selectedParty={selectedParty}
+              onOpenPartyPicker={() => setPartyPickerOpen(true)}
+              onClearParty={() => setSelectedParty(null)}
             />
           )}
         </div>
