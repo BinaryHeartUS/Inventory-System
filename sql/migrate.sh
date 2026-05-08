@@ -61,7 +61,7 @@ echo "=== Running stored procedure scripts ==="
 while IFS= read -r -d '' f; do run_always "$f"; done \
   < <(find "$SCRIPTS_DIR/CreateStoredProcedures" -maxdepth 1 -name "*.sql" -print0 | sort -z)
 while IFS= read -r -d '' f; do run_always "$f"; done \
-  < <(find "$SCRIPTS_DIR/CreateStoredProcedures/CountProcedures" -name "*.sql" -print0 | sort -z)
+  < <(find "$SCRIPTS_DIR/CreateStoredProcedures/StatsProcedures" -name "*.sql" -print0 | sort -z)
 
 echo "=== Running function scripts ==="
 while IFS= read -r -d '' f; do run_always "$f"; done \

@@ -8,3 +8,4 @@ COPY DatabaseCreationScripts/CreateStoredProcedures/CountProcedures/*.sql /docke
 COPY DatabaseCreationScripts/CreateFunctions/*.sql /docker-entrypoint-initdb.d/
 COPY DatabaseCreationScripts/CreateViews/*.sql /docker-entrypoint-initdb.d/
 COPY DatabaseCreationScripts/CreateTriggers/*.sql /docker-entrypoint-initdb.d/
+COPY DatabaseCreationScripts/CreateStoredProcedures/StatsProcedures/*.sql /docker-entrypoint-initdb.d/
