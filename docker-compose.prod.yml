@@ -6,6 +6,8 @@ services:
       POSTGRES_DB: inventory
       POSTGRES_USER: binaryheart
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - /opt/inventory-system/pgdata:/var/lib/postgresql/data
     healthcheck:
