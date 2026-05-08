@@ -13,33 +13,45 @@ import org.binaryheart.responses.GetPartyResponse;
 
 public class PartyRepository {
 
-    public List<GetPartyResponse> getAllParties() throws SQLException {
-        if (!DatabaseConnectionService.isConnected()) {
-            DatabaseConnectionService.connect();
-        }
-        Connection conn = DatabaseConnectionService.getConnection();
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Parties");
-        ResultSet rs = stmt.executeQuery();
-        List<GetPartyResponse> parties = new ArrayList<>();
-        while (rs.next()) {
-            // TODO: Actually parse the response from getAllParties
-        }
-        return parties;
-    }
+	public List<GetPartyResponse> getAllParties() throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Parties");
+		ResultSet rs = stmt.executeQuery();
+		List<GetPartyResponse> parties = new ArrayList<>();
+		while (rs.next()) {
+			Integer partyID = rs.getInt("ID");
+			String name = rs.getString("Name");
+			String location = rs.getString("Location");
+			String individualEmail = rs.getString("IndividualEmail");
+			String contactName = rs.getString("ContactName");
+			String contactEmail = rs.getString("ContactEmail");
+			parties.add(new GetPartyResponse(partyID, name, location, individualEmail, contactName, contactEmail));
+		}
+		return parties;
+	}
 
-    public GetPartyResponse getParty(int id) throws SQLException, PartyNotFoundException {
-        if (!DatabaseConnectionService.isConnected()) {
-            DatabaseConnectionService.connect();
-        }
-        Connection conn = DatabaseConnectionService.getConnection();
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Party(?)");
-        stmt.setInt(1, id);
-        ResultSet rs = stmt.executeQuery();
-        if (!rs.next()) {
-            throw new PartyNotFoundException("Given ID did not match a party in database");
-        }
-        // TODO: Parse the response from GetParty
-        GetPartyResponse response = new GetPartyResponse();
-        return response;
-    }
+	public GetPartyResponse getParty(int id) throws SQLException, PartyNotFoundException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Party(?)");
+		stmt.setInt(1, id);
+		ResultSet rs = stmt.executeQuery();
+		if (!rs.next()) {
+			throw new PartyNotFoundException("Given ID did not match a party in database");
+		}
+		Integer partyID = rs.getInt("ID");
+		String name = rs.getString("Name");
+		String location = rs.getString("Location");
+		String individualEmail = rs.getString("IndividualEmail");
+		String contactName = rs.getString("ContactName");
+		String contactEmail = rs.getString("ContactEmail");
+		GetPartyResponse response = new GetPartyResponse(partyID, name, location, individualEmail, contactName,
+				contactEmail);
+		return response;
+	}
 }
