@@ -7,7 +7,7 @@ RETURNS TABLE (
 	type VARCHAR(10),
     ID INTEGER,
     acquisition_date DATE,
-    value MONEY,
+    value NUMERIC,
     manufacturer VARCHAR(50),
     model VARCHAR(50),
     year INTEGER,

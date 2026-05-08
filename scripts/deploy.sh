@@ -51,8 +51,10 @@ ssh "$TARGET" bash <<EOF
   fi
 
   # Caddy handles TLS automatically via Let's Encrypt on first boot.
-  # db-migrate runs once and exits; backend/frontend/caddy restart if already running.
+  # db-migrate runs once and exits; force-remove it so it always re-runs on deploy.
   # On --reset, also run the importer to seed data from the Excel file.
+  docker compose -f docker-compose.prod.yml rm -f db-migrate
+
   if [ "$RESET" = "--reset" ]; then
     COMPOSE_PROFILES=import docker compose -f docker-compose.prod.yml up --build -d
   else
