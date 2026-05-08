@@ -1,4 +1,4 @@
-import { BrowserRouter, NavLink, Route, Routes, useNavigate, useLocation, useParams } from 'react-router-dom'
+import { BrowserRouter, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { useState, useCallback } from 'react'
 import { ToastProvider, useToast } from './context/ToastContext'
 import Dashboard    from './pages/Dashboard'
@@ -25,6 +25,7 @@ import { PrintLabelModal } from './components/PrintLabelModal'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ChapterProvider, useIsNationalAdmin } from './context/ChapterContext'
+import { AddAssetProvider } from './context/AddAssetContext'
 
 import type { AnyDevice, Part, Tool } from './types/inventory'
 
@@ -259,7 +260,6 @@ function App() {
 
 function AppInner() {
   const navigate = useNavigate()
-  const location = useLocation()
   const { auth } = useAuth()
   const { showToast } = useToast()
   const [pendingScanId, setPendingScanId] = useState<number | null>(null)
@@ -308,20 +308,11 @@ function AppInner() {
   }
 
   return (
-    <div className="flex min-h-dvh bg-slate-50 text-slate-900">
-      {auth && <Sidebar />}
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-end px-10 pt-6">
-          {auth && auth.role !== 'Viewer' && ['/', '/devices', '/parts', '/tools'].includes(location.pathname) && (
-            <button
-              onClick={() => setPendingScanId(-1)}
-              className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors">
-              {Icons.plus}
-              Add Asset
-            </button>
-          )}
-        </div>
-        <main className="px-10 py-6">
+    <AddAssetProvider onOpen={(scanId?: number) => setPendingScanId(scanId ?? -1)}>
+      <div className="flex min-h-dvh bg-slate-50 text-slate-900">
+        {auth && <Sidebar />}
+        <div className="flex-1 min-w-0">
+          <main className="px-10 py-12">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -360,7 +351,8 @@ function AppInner() {
       )}
 
 
-    </div>
+      </div>
+    </AddAssetProvider>
   )
 }
 

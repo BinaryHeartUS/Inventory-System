@@ -5,6 +5,8 @@ import { getDevices } from '../services/deviceService'
 import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 import { DeviceList } from '../components/DeviceList'
+import AddAssetButton from '../components/AddAssetButton'
+// import AddAssetButton from '../components/AddAssetButton'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,11 +73,15 @@ export default function Devices() {
   return (
     <div className="space-y-6">
 
-      {/* Page heading */}
-      <PageHeading
-        title="Devices"
-        subtitle={filtered.length === total ? `All ${total} devices` : `${filtered.length} of ${total} devices`}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeading
+          title="Devices"
+          subtitle={filtered.length === total ? `All ${total} devices` : `${filtered.length} of ${total} devices`}
+        />
+        <div className="flex justify-end">
+          <AddAssetButton />
+        </div>
+      </div>
 
       {/* Filter bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">

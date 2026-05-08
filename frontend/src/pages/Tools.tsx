@@ -3,6 +3,7 @@ import { getTools } from '../services/toolService'
 import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 import { ToolRow } from '../components/ToolRow'
+import AddAssetButton from '../components/AddAssetButton'
 
 export default function Tools() {
   const [chapterFilter, setChapterFilter] = useState('All')
@@ -34,10 +35,15 @@ export default function Tools() {
   return (
     <div className="space-y-6">
 
-      <PageHeading
-        title="Tools"
-        subtitle={filtered.length === allTools.length ? `All ${allTools.length} tools` : `${filtered.length} of ${allTools.length} tools`}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeading
+          title="Tools"
+          subtitle={filtered.length === allTools.length ? `All ${allTools.length} tools` : `${filtered.length} of ${allTools.length} tools`}
+        />
+        <div className="flex justify-end">
+          <AddAssetButton />
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

@@ -3,6 +3,7 @@ import { getParts } from '../services/partService'
 import { useVisibleChapters } from '../context/ChapterContext'
 import PageHeading from '../components/PageHeading'
 import { PartRow } from '../components/PartRow'
+import AddAssetButton from '../components/AddAssetButton'
 
 export default function Parts() {
 const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
@@ -45,10 +46,15 @@ const [chapterFilter, setChapterFilter] = useState<number | 'All'>('All')
   return (
     <div className="space-y-6">
 
-      <PageHeading
-        title="Parts"
-        subtitle={filtered.length === allParts.length ? `All ${allParts.length} parts` : `${filtered.length} of ${allParts.length} parts`}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeading
+          title="Parts"
+          subtitle={filtered.length === allParts.length ? `All ${allParts.length} parts` : `${filtered.length} of ${allParts.length} parts`}
+        />
+        <div className="flex justify-end">
+          <AddAssetButton />
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">

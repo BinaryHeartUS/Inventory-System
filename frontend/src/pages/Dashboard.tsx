@@ -5,6 +5,7 @@ import ActivityChart from '../components/ActivityChart'
 import DeviceValueChart from '../components/DeviceValueChart'
 import PageHeading from '../components/PageHeading'
 import ChapterTabs from '../components/ChapterTabs'
+import AddAssetButton from '../components/AddAssetButton'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -62,8 +63,12 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
 
-      {/* Page heading */}
-      <PageHeading title="Dashboard" subtitle="Inventory overview by chapter" compact />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <PageHeading title="Dashboard" subtitle="Inventory overview by chapter" />
+        <div className="flex justify-end">
+          <AddAssetButton />
+        </div>
+      </div>
 
       {/* Chapter tabs */}
       <ChapterTabs chapters={chapters} selected={selectedChapter} onChange={setSelectedChapter} />
