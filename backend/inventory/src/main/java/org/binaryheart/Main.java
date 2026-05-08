@@ -2,10 +2,6 @@ package org.binaryheart;
 
 import static io.javalin.apibuilder.ApiBuilder.path;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import org.binaryheart.auth.JwtAccessManager;
 import org.binaryheart.controllers.AccountController;
 import org.binaryheart.controllers.AssetController;
@@ -17,13 +13,11 @@ import org.binaryheart.controllers.LookupController;
 import org.binaryheart.controllers.NoteController;
 import org.binaryheart.controllers.PartController;
 import org.binaryheart.controllers.ToolController;
-import org.binaryheart.models.ChapterRole;
-import org.binaryheart.requests.CreateAccountRequest;
-import org.binaryheart.services.AccountService;
 import org.binaryheart.services.ChapterService;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import io.javalin.Javalin;
 import io.javalin.json.JavalinJackson;
 import io.javalin.openapi.plugin.OpenApiPlugin;

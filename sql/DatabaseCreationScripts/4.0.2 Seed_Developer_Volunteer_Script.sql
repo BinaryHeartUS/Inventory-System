@@ -26,21 +26,21 @@ BEGIN
     ON CONFLICT (Volunteer_ID, Chapter_ID) DO NOTHING;
 
     -- Viewer --
-    -- SELECT ID INTO v_viewer_id FROM Role WHERE Name = 'Viewer';
+    SELECT ID INTO v_viewer_id FROM Role WHERE Name = 'Viewer';
 
-    -- INSERT INTO Volunteer (Name, Username, Password_Hash, Password_Salt)
-    -- VALUES (
-    --     'viewer',
-    --     'viewer',
-    --     '',
-    --     ''
-    -- )
-    -- ON CONFLICT (Username) DO NOTHING;
+    INSERT INTO Volunteer (Name, Username, Password_Hash, Password_Salt)
+    VALUES (
+        'viewer',
+        'viewer',
+        'aGsi+zb5wd9Xnmi1vU637Q==',
+        'gC8E6YE1FoszhH82tPXS2Q=='
+    )
+    ON CONFLICT (Username) DO NOTHING;
 
-    -- SELECT ID INTO v_volunteer_id FROM Volunteer WHERE Username = 'viewer';
+    SELECT ID INTO v_volunteer_id FROM Volunteer WHERE Username = 'viewer';
 
-    -- INSERT INTO Affiliated_With (Volunteer_ID, Chapter_ID, Role_ID)
-    -- VALUES (v_volunteer_id, v_national_id, v_viewer_id)
-    -- ON CONFLICT (Volunteer_ID, Chapter_ID) DO NOTHING;
+    INSERT INTO Affiliated_With (Volunteer_ID, Chapter_ID, Role_ID)
+    VALUES (v_volunteer_id, v_national_id, v_viewer_id)
+    ON CONFLICT (Volunteer_ID, Chapter_ID) DO NOTHING;
 END;
 $$;
