@@ -20,6 +20,6 @@ BEGIN
     RETURN QUERY
     SELECT *
     FROM Get_Parts gp
-    WHERE gp.ID = p_ID;
+    WHERE gp.ID = p_assetID;
 END;
 $$;
