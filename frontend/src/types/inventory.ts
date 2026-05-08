@@ -88,3 +88,53 @@ export type Tool = Omit<
   description: string
   donorId: number | null
 }
+
+// --- Party (donor / recipient) -----------------------------------------------
+
+export interface AddressForm {
+  street:  string
+  city:    string
+  state:   string
+  zipCode: string
+  country: string
+}
+
+/** Lightweight summary returned by GET /api/party for all authenticated users. */
+export interface PartySummary {
+  id:   number
+  name: string
+  type: 'Person' | 'Organization'
+}
+
+/** Full person record returned by GET /api/party/{id} (admins only). */
+export interface PersonDetail extends PartySummary {
+  type:      'Person'
+  email?:    string | null
+  location?: AddressForm | null
+}
+
+/** Full organization record returned by GET /api/party/{id} (admins only). */
+export interface OrgDetail extends PartySummary {
+  type:          'Organization'
+  contactName?:  string | null
+  contactEmail?: string | null
+  location?:     AddressForm | null
+}
+
+export type PartyDetail = PersonDetail | OrgDetail
+
+export interface CreatePersonRequest {
+  name:      string
+  email?:    string
+  location?: Partial<AddressForm>
+}
+
+export interface CreateOrgRequest {
+  name:          string
+  contactName?:  string
+  contactEmail?: string
+  location?:     Partial<AddressForm>
+}
+
+export type UpdatePersonRequest = CreatePersonRequest
+export type UpdateOrgRequest    = CreateOrgRequest
