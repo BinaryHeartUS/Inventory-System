@@ -1,8 +1,6 @@
 package org.binaryheart.controllers;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
-import static io.javalin.apibuilder.ApiBuilder.post;
-import static io.javalin.apibuilder.ApiBuilder.put;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -14,12 +12,10 @@ import org.binaryheart.responses.GetPartyResponse;
 import org.binaryheart.services.PartyService;
 
 import io.javalin.http.Context;
-import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiParam;
-import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 import io.javalin.openapi.OpenApiSecurity;
 
