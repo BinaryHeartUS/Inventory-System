@@ -318,6 +318,10 @@ public class DatabaseImporter {
             DatabaseConnectionService.connect();
         }
 
+        if (note == null || note.strip().isEmpty()) {
+            return;
+        }
+
         Connection conn = DatabaseConnectionService.getConnection();
         try (CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?, ?)")) {
             stmt.setString(1, note);
