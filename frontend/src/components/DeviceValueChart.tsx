@@ -2,25 +2,20 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import type { AnyDevice } from '../types/inventory'
+import type { MonthlyValuePoint } from '../types/inventory'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function monthKey(iso: string): string {
-  return iso.slice(0, 7)
+function formatMonthLabel(year: number, month: number): string {
+  return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
 }
 
-function formatMonthLabel(key: string): string {
-  const [y, m] = key.split('-').map(Number)
-  return new Date(y, m - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
-}
-
-function lastNMonths(n: number): string[] {
-  const keys: string[] = []
+function lastNMonths(n: number): { year: number; month: number }[] {
+  const keys: { year: number; month: number }[] = []
   const now = new Date()
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+    keys.push({ year: d.getFullYear(), month: d.getMonth() + 1 })
   }
   return keys
 }
@@ -37,7 +32,7 @@ interface ChartPoint {
 }
 
 interface Props {
-  devices: AnyDevice[]
+  data: MonthlyValuePoint[]
   months?: number
 }
 
@@ -63,29 +58,21 @@ function CustomTooltip({ active, payload, label }: {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function DeviceValueChart({ devices, months = 12 }: Props) {
+export default function DeviceValueChart({ data, months = 12 }: Props) {
   const keys = lastNMonths(months)
 
-  const valueByMonth: Record<string, number> = {}
-  keys.forEach(k => { valueByMonth[k] = 0 })
+  const byKey: Record<string, number> = {}
+  for (const pt of data) {
+    byKey[`${pt.year}-${pt.month}`] = pt.value
+  }
 
-  devices.forEach(d => {
-    if (d.status === 'Donated' && d.donatedDate && d.value != null) {
-      const k = monthKey(d.donatedDate)
-      if (k in valueByMonth) valueByMonth[k] += d.value
-    }
-  })
-
-  const data: ChartPoint[] = keys.map(k => ({
-    month: formatMonthLabel(k),
-    value: valueByMonth[k],
+  const chartData: ChartPoint[] = keys.map(({ year, month }) => ({
+    month: formatMonthLabel(year, month),
+    value: byKey[`${year}-${month}`] ?? 0,
   }))
 
-  const totalValue = devices
-    .filter(d => d.status === 'Donated' && d.value != null)
-    .reduce((sum, d) => sum + d.value!, 0)
-
-  const hasData = data.some(p => p.value > 0)
+  const totalValue = data.reduce((sum, pt) => sum + pt.value, 0)
+  const hasData = chartData.some(p => p.value > 0)
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
@@ -103,7 +90,7 @@ export default function DeviceValueChart({ devices, months = 12 }: Props) {
       ) : (
         <div className="min-h-[220px]">
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={data} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
               <XAxis
                 dataKey="month"

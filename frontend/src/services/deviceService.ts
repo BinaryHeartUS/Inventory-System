@@ -10,7 +10,18 @@
  */
 
 import { apiGet, apiPostVoid, apiPutVoid, apiDelete } from './api'
-import type { AnyDevice, InsertDesktopRequest, InsertLaptopRequest, InsertTabletRequest } from '../types/inventory'
+import type {
+  AnyDevice,
+  InsertDesktopRequest,
+  InsertLaptopRequest,
+  InsertTabletRequest,
+  AvgTimeInInventoryResponse,
+  CompletionRateResponse,
+  ChapterActivityStatsResponse,
+  DashboardCountsResponse,
+  MonthlyCountPoint,
+  MonthlyValuePoint,
+} from '../types/inventory'
 import { getChapters } from './chapterService'
 
 export async function getDevices(): Promise<AnyDevice[]> {
@@ -135,3 +146,60 @@ export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyD
 export async function deleteDevice(id: number): Promise<void> {
   return apiDelete(`/devices/${id}`)
 }
+
+function chaptersParam(chapterIds: number[]): string {
+  return chapterIds.length > 0 ? `?chapters=${chapterIds.join(',')}` : ''
+}
+
+function chaptersAndMonthsParam(chapterIds: number[], months: number): string {
+  const parts: string[] = [`months=${months}`]
+  if (chapterIds.length > 0) parts.push(`chapters=${chapterIds.join(',')}`)
+  return `?${parts.join('&')}`
+}
+
+export async function getDashboardCounts(chapterIds: number[]): Promise<DashboardCountsResponse> {
+  const params = chapterIds.length > 0 ? `?chapters=${chapterIds.join(',')}` : ''
+  return apiGet<DashboardCountsResponse>(`/devices/stats/counts${params}`)
+}
+
+export async function getDeviceCount(
+  type: 'desktop' | 'laptop' | 'tablet' | 'total',
+  status: 'active' | 'not-started' | 'in-progress' | 'ready-to-donate' | 'donated',
+  chapterIds: number[],
+): Promise<number> {
+  return apiGet<number>(`/devices/stats/count/${type}?status=${status}${chapterIds.length > 0 ? `&chapters=${chapterIds.join(',')}` : ''}`)
+}
+
+export async function getAvgTimeInInventory(chapterIds: number[]): Promise<AvgTimeInInventoryResponse> {
+  return apiGet<AvgTimeInInventoryResponse>(`/devices/stats/avg-time${chaptersParam(chapterIds)}`)
+}
+
+export async function getCompletionRate(chapterIds: number[]): Promise<CompletionRateResponse> {
+  return apiGet<CompletionRateResponse>(`/devices/stats/completion-rate${chaptersParam(chapterIds)}`)
+}
+
+export async function getChapterActivityStats(): Promise<ChapterActivityStatsResponse> {
+  return apiGet<ChapterActivityStatsResponse>('/devices/stats/chapter-activity')
+}
+
+export async function getDevicesReceived(
+  chapterIds: number[],
+  months = 12,
+): Promise<MonthlyCountPoint[]> {
+  return apiGet<MonthlyCountPoint[]>(`/devices/stats/devices-received${chaptersAndMonthsParam(chapterIds, months)}`)
+}
+
+export async function getDevicesDonated(
+  chapterIds: number[],
+  months = 12,
+): Promise<MonthlyCountPoint[]> {
+  return apiGet<MonthlyCountPoint[]>(`/devices/stats/devices-donated${chaptersAndMonthsParam(chapterIds, months)}`)
+}
+
+export async function getDonatedDeviceValue(
+  chapterIds: number[],
+  months = 12,
+): Promise<MonthlyValuePoint[]> {
+  return apiGet<MonthlyValuePoint[]>(`/devices/stats/donated-value${chaptersAndMonthsParam(chapterIds, months)}`)
+}
+

@@ -3,27 +3,21 @@ import {
   Legend, ResponsiveContainer,
 } from 'recharts'
 import { useMemo } from 'react'
-import type { AnyDevice } from '../types/inventory'
+import type { MonthlyCountPoint } from '../types/inventory'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function monthKey(iso: string): string {
-  // Returns 'YYYY-MM' from an ISO date string
-  return iso.slice(0, 7)
-}
-
-function formatMonthLabel(key: string): string {
-  const [y, m] = key.split('-').map(Number)
-  return new Date(y, m - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+function formatMonthLabel(year: number, month: number): string {
+  return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
 }
 
 // Generates the last N month keys ending at today
-function lastNMonths(n: number): string[] {
-  const keys: string[] = []
+function lastNMonths(n: number): { year: number; month: number }[] {
+  const keys: { year: number; month: number }[] = []
   const now = new Date()
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+    keys.push({ year: d.getFullYear(), month: d.getMonth() + 1 })
   }
   return keys
 }
@@ -37,8 +31,10 @@ interface ChartPoint {
 }
 
 interface Props {
-  devices: AnyDevice[]
+  receivedData: MonthlyCountPoint[]
+  donatedData: MonthlyCountPoint[]
   months?: number
+  loading?: boolean
 }
 
 // ─── Custom tooltip ───────────────────────────────────────────────────────────
@@ -65,35 +61,26 @@ function CustomTooltip({ active, payload, label }: {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ActivityChart({ devices, months = 12 }: Props) {
-  const keys = lastNMonths(months)
+export default function ActivityChart({ receivedData, donatedData, months = 12, loading = false }: Props) {
+  const skeletonKeys = lastNMonths(months)
 
   // Stable skeleton heights — fixed wave pattern
   const skeletonHeights = useMemo(
-    () => keys.map((_, i) => 25 + Math.abs(Math.sin(i * 0.8)) * 55),
+    () => skeletonKeys.map((_, i) => 25 + Math.abs(Math.sin(i * 0.8)) * 55),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [months]
   )
 
-  const receivedByMonth: Record<string, number> = {}
-  const donatedByMonth:  Record<string, number> = {}
-  keys.forEach(k => { receivedByMonth[k] = 0; donatedByMonth[k] = 0 })
+  const receivedByKey: Record<string, number> = {}
+  for (const pt of receivedData) receivedByKey[`${pt.year}-${pt.month}`] = pt.count
 
-  devices.forEach(d => {
-    if (d.acquisitionDate) {
-      const k = monthKey(d.acquisitionDate)
-      if (k in receivedByMonth) receivedByMonth[k]++
-    }
-    if (d.donatedDate) {
-      const k = monthKey(d.donatedDate)
-      if (k in donatedByMonth) donatedByMonth[k]++
-    }
-  })
+  const donatedByKey: Record<string, number> = {}
+  for (const pt of donatedData) donatedByKey[`${pt.year}-${pt.month}`] = pt.count
 
-  const data: ChartPoint[] = keys.map(k => ({
-    month:    formatMonthLabel(k),
-    received: receivedByMonth[k],
-    donated:  donatedByMonth[k],
+  const chartData: ChartPoint[] = skeletonKeys.map(({ year, month }) => ({
+    month:    formatMonthLabel(year, month),
+    received: receivedByKey[`${year}-${month}`] ?? 0,
+    donated:  donatedByKey[`${year}-${month}`]  ?? 0,
   }))
 
   return (
@@ -102,17 +89,17 @@ export default function ActivityChart({ devices, months = 12 }: Props) {
         Devices Received vs Donated — Last 12 Months
       </p>
       <div className="min-h-[320px]">
-        {devices.length === 0 ? (
+        {loading ? (
           <div className="h-[320px] flex items-end gap-2 px-2 pb-6 pt-4">
-            {keys.map((k, i) => (
-              <div key={k} className="flex-1 flex flex-col justify-end gap-1">
+            {skeletonKeys.map(({ year, month }, i) => (
+              <div key={`${year}-${month}`} className="flex-1 flex flex-col justify-end gap-1">
                 <div className="w-full rounded-sm bg-slate-100 animate-pulse" style={{ height: `${skeletonHeights[i]}px` }} />
               </div>
             ))}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
-          <LineChart data={data}>
+          <LineChart data={chartData}>
             <CartesianGrid vertical={false} stroke="#f1f5f9" />
             <XAxis
               dataKey="month"
@@ -142,3 +129,4 @@ export default function ActivityChart({ devices, months = 12 }: Props) {
     </div>
   )
 }
+

@@ -8,38 +8,111 @@ import java.util.stream.Collectors;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
+import org.binaryheart.responses.AvgTimeInInventoryResponse;
+import org.binaryheart.responses.ChapterActivityStatsResponse;
 import org.binaryheart.responses.ChapterSummary;
+import org.binaryheart.responses.CompletionRateResponse;
+import org.binaryheart.responses.DashboardCountsResponse;
 import org.binaryheart.responses.GetDeviceResponse;
+import org.binaryheart.responses.MonthlyCountPoint;
+import org.binaryheart.responses.MonthlyValuePoint;
 
 public class DeviceService {
+
+    private static final List<String> VALID_TYPES = List.of("desktop", "laptop", "tablet", "total");
+    private static final List<String> VALID_STATUSES = List.of("active", "not-started", "in-progress",
+            "ready-to-donate", "donated");
 
     private final DeviceRepository repository = new DeviceRepository();
     private final ChapterService chapterService = new ChapterService();
 
-    public int getDeviceCount(String type, String status) throws BadArgumentException, SQLException {
-        if (!type.equals("desktop") && !type.equals("laptop") && !type.equals("tablet")) {
+    private List<Integer> resolveChapterIds(List<Integer> requestedChapterIds, List<Integer> userChapterIds)
+            throws SQLException, ForbiddenException {
+        int nationalId = chapterService.getNationalChapterId();
+        boolean isNational = userChapterIds != null && userChapterIds.contains(nationalId);
+
+        if (requestedChapterIds == null || requestedChapterIds.isEmpty()) {
+            return isNational ? null : userChapterIds;
+        }
+
+        if (!isNational) {
+            for (int id : requestedChapterIds) {
+                if (userChapterIds == null || !userChapterIds.contains(id)) {
+                    throw new ForbiddenException("Access denied for chapter " + id);
+                }
+            }
+        }
+        return requestedChapterIds;
+    }
+
+    public int getDeviceCount(String type, String status, List<Integer> requestedChapterIds,
+            List<Integer> userChapterIds) throws BadArgumentException, ForbiddenException, SQLException {
+        if (!VALID_TYPES.contains(type)) {
             throw new BadArgumentException("Unknown device type: " + type);
         }
-        if (!status.equals("active") && !status.equals("ready-to-donate") && !status.equals("donated")) {
+        if (!VALID_STATUSES.contains(status)) {
             throw new BadArgumentException("Unknown status: " + status);
         }
-        return switch (status + ":" + type) {
-        case "active:desktop" -> repository.getNumberOfDesktops();
-        case "active:laptop" -> repository.getNumberOfLaptops();
-        case "active:tablet" -> repository.getNumberOfTablets();
-        case "ready-to-donate:desktop" -> repository.getNumberOfReadyToDonateDesktops();
-        case "ready-to-donate:laptop" -> repository.getNumberOfReadyToDonateLaptops();
-        case "ready-to-donate:tablet" -> repository.getNumberOfReadyToDonateTablets();
-        case "donated:desktop" -> repository.getNumberOfDonatedDesktops();
-        case "donated:laptop" -> repository.getNumberOfDonatedLaptops();
-        case "donated:tablet" -> repository.getNumberOfDonatedTablets();
-        default -> throw new IllegalStateException("Unhandled combination: " + status + ":" + type);
-        };
+        List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+        return repository.getDeviceCountByChapters(type, status, effectiveChapterIds);
+    }
+
+    public DashboardCountsResponse getDashboardCounts(List<Integer> requestedChapterIds, List<Integer> userChapterIds)
+            throws ForbiddenException, SQLException {
+        List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+        return repository.getDashboardCounts(effectiveChapterIds);
+    }
+
+    public AvgTimeInInventoryResponse getAvgTimeInInventory(List<Integer> requestedChapterIds,
+            List<Integer> userChapterIds) throws ForbiddenException, SQLException {
+        List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+        return repository.getAvgTimeInInventory(effectiveChapterIds);
+    }
+
+    public CompletionRateResponse getCompletionRate(List<Integer> requestedChapterIds, List<Integer> userChapterIds)
+            throws ForbiddenException, SQLException {
+        List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+        return repository.getCompletionRate(effectiveChapterIds);
+    }
+
+    public ChapterActivityStatsResponse getChapterActivityStats(List<Integer> userChapterIds)
+            throws ForbiddenException, SQLException {
+        // Chapter activity stats always use all chapters visible to the user
+        List<Integer> effectiveChapterIds = resolveChapterIds(null, userChapterIds);
+        return repository.getChapterActivityStats(effectiveChapterIds);
+    }
+
+    public List<MonthlyCountPoint> getDevicesReceived(List<Integer> requestedChapterIds, List<Integer> userChapterIds,
+            int months) throws BadArgumentException, ForbiddenException, SQLException {
+        if (months < 1 || months > 120) {
+            throw new BadArgumentException("months must be between 1 and 120");
+        }
+        List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+        return repository.getDevicesReceived(effectiveChapterIds, months);
+    }
+
+    public List<MonthlyCountPoint> getDevicesDonated(List<Integer> requestedChapterIds, List<Integer> userChapterIds,
+            int months) throws BadArgumentException, ForbiddenException, SQLException {
+        if (months < 1 || months > 120) {
+            throw new BadArgumentException("months must be between 1 and 120");
+        }
+        List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+        return repository.getDevicesDonated(effectiveChapterIds, months);
+    }
+
+    public List<MonthlyValuePoint> getDonatedDeviceValue(List<Integer> requestedChapterIds,
+            List<Integer> userChapterIds, int months) throws BadArgumentException, ForbiddenException, SQLException {
+        if (months < 1 || months > 120) {
+            throw new BadArgumentException("months must be between 1 and 120");
+        }
+        List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+        return repository.getDonatedDeviceValue(effectiveChapterIds, months);
     }
 
     public GetDeviceResponse getDevice(int id) throws BadArgumentException, DeviceNotFoundException, SQLException {

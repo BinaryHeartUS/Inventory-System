@@ -5,65 +5,164 @@ import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
+import org.binaryheart.responses.AvgTimeInInventoryResponse;
+import org.binaryheart.responses.ChapterActivityStatsResponse;
+import org.binaryheart.responses.CompletionRateResponse;
+import org.binaryheart.responses.DashboardCountsResponse;
 import org.binaryheart.responses.GetDeviceResponse;
+import org.binaryheart.responses.MonthlyCountPoint;
+import org.binaryheart.responses.MonthlyValuePoint;
 
+import java.sql.Array;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DeviceRepository {
 
-    private int callCountProcedure(String procedureName) throws SQLException {
+    public int getDeviceCountByChapters(String type, String status, List<Integer> chapterIds) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Get_Device_Count_By_Chapters(?, ?, ?, ?)")) {
+            stmt.setString(1, type);
+            stmt.setString(2, status);
+            setIntegerArray(stmt, 3, chapterIds, conn);
+            stmt.registerOutParameter(4, Types.INTEGER);
+            stmt.execute();
+            return stmt.getInt(4);
+        }
+    }
+
+    public DashboardCountsResponse getDashboardCounts(List<Integer> chapterIds) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Get_Dashboard_Counts(?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            setIntegerArray(stmt, 1, chapterIds, conn);
+            stmt.registerOutParameter(2, Types.INTEGER);
+            stmt.registerOutParameter(3, Types.INTEGER);
+            stmt.registerOutParameter(4, Types.INTEGER);
+            stmt.registerOutParameter(5, Types.INTEGER);
+            stmt.registerOutParameter(6, Types.INTEGER);
+            stmt.registerOutParameter(7, Types.INTEGER);
+            stmt.registerOutParameter(8, Types.INTEGER);
+            stmt.registerOutParameter(9, Types.INTEGER);
+            stmt.execute();
+            return new DashboardCountsResponse(stmt.getInt(2), stmt.getInt(3), stmt.getInt(4), stmt.getInt(5),
+                    stmt.getInt(6), stmt.getInt(7), stmt.getInt(8), stmt.getInt(9));
+        }
+    }
+
+    public AvgTimeInInventoryResponse getAvgTimeInInventory(List<Integer> chapterIds) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Get_Avg_Time_In_Inventory(?, ?, ?)")) {
+            setIntegerArray(stmt, 1, chapterIds, conn);
+            stmt.registerOutParameter(2, Types.NUMERIC);
+            stmt.registerOutParameter(3, Types.INTEGER);
+            stmt.execute();
+            java.math.BigDecimal avgDecimal = stmt.getBigDecimal(2);
+            Double avgDays = (avgDecimal != null) ? avgDecimal.doubleValue() : null;
+            int sampleSize = stmt.getInt(3);
+            return new AvgTimeInInventoryResponse(avgDays, sampleSize);
+        }
+    }
+
+    public CompletionRateResponse getCompletionRate(List<Integer> chapterIds) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Get_Completion_Rate(?, ?, ?)")) {
+            setIntegerArray(stmt, 1, chapterIds, conn);
+            stmt.registerOutParameter(2, Types.INTEGER);
+            stmt.registerOutParameter(3, Types.INTEGER);
+            stmt.execute();
+            return new CompletionRateResponse(stmt.getInt(2), stmt.getInt(3));
+        }
+    }
+
+    public ChapterActivityStatsResponse getChapterActivityStats(List<Integer> chapterIds) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Get_Chapter_Activity_Stats(?, ?, ?, ?, ?)")) {
+            setIntegerArray(stmt, 1, chapterIds, conn);
+            stmt.registerOutParameter(2, Types.INTEGER);
+            stmt.registerOutParameter(3, Types.INTEGER);
+            stmt.registerOutParameter(4, Types.INTEGER);
+            stmt.registerOutParameter(5, Types.INTEGER);
+            stmt.execute();
+            return new ChapterActivityStatsResponse(stmt.getInt(2), stmt.getInt(3), stmt.getInt(4), stmt.getInt(5));
+        }
+    }
+
+    public List<MonthlyCountPoint> getDevicesReceived(List<Integer> chapterIds, int months) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT yr, mo, count FROM Get_Devices_Received(?, ?)")) {
+            stmt.setArray(1, toSqlArray(chapterIds, conn));
+            stmt.setInt(2, months);
+            ResultSet rs = stmt.executeQuery();
+            List<MonthlyCountPoint> points = new ArrayList<>();
+            while (rs.next()) {
+                points.add(new MonthlyCountPoint(rs.getInt("yr"), rs.getInt("mo"), rs.getLong("count")));
+            }
+            return points;
+        }
+    }
+
+    public List<MonthlyCountPoint> getDevicesDonated(List<Integer> chapterIds, int months) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (PreparedStatement stmt = conn.prepareStatement("SELECT yr, mo, count FROM Get_Devices_Donated(?, ?)")) {
+            stmt.setArray(1, toSqlArray(chapterIds, conn));
+            stmt.setInt(2, months);
+            ResultSet rs = stmt.executeQuery();
+            List<MonthlyCountPoint> points = new ArrayList<>();
+            while (rs.next()) {
+                points.add(new MonthlyCountPoint(rs.getInt("yr"), rs.getInt("mo"), rs.getLong("count")));
+            }
+            return points;
+        }
+    }
+
+    public List<MonthlyValuePoint> getDonatedDeviceValue(List<Integer> chapterIds, int months) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        Array arr = toSqlArray(chapterIds, conn);
+        try (PreparedStatement stmt = conn
+                .prepareStatement("SELECT yr, mo, total_value FROM Get_Donated_Device_Value(?, ?)")) {
+            stmt.setArray(1, arr);
+            stmt.setInt(2, months);
+            ResultSet rs = stmt.executeQuery();
+            List<MonthlyValuePoint> points = new ArrayList<>();
+            while (rs.next()) {
+                points.add(new MonthlyValuePoint(rs.getInt("yr"), rs.getInt("mo"), rs.getDouble("total_value")));
+            }
+            return points;
+        }
+    }
+
+    private static void setIntegerArray(CallableStatement stmt, int paramIndex, List<Integer> ids, Connection conn)
+            throws SQLException {
+        stmt.setArray(paramIndex, toSqlArray(ids, conn));
+    }
+
+    private static Array toSqlArray(List<Integer> ids, Connection conn) throws SQLException {
+        if (ids == null || ids.isEmpty()) {
+            return null;
+        }
+        return conn.createArrayOf("integer", ids.toArray());
+    }
+
+    private static void ensureConnected() throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
-        Connection conn = DatabaseConnectionService.getConnection();
-        CallableStatement stmt = conn.prepareCall("call " + procedureName + "(?)");
-        stmt.registerOutParameter(1, java.sql.Types.INTEGER);
-        stmt.execute();
-        return stmt.getInt(1);
-    }
-
-    public int getNumberOfDesktops() throws SQLException {
-        return callCountProcedure("Get_Desktop_Count");
-    }
-
-    public int getNumberOfLaptops() throws SQLException {
-        return callCountProcedure("Get_Laptop_Count");
-    }
-
-    public int getNumberOfTablets() throws SQLException {
-        return callCountProcedure("Get_Tablet_Count");
-    }
-
-    public int getNumberOfReadyToDonateDesktops() throws SQLException {
-        return callCountProcedure("Get_ReadyToDonate_Desktop_Count");
-    }
-
-    public int getNumberOfReadyToDonateLaptops() throws SQLException {
-        return callCountProcedure("Get_ReadyToDonate_Laptop_Count");
-    }
-
-    public int getNumberOfReadyToDonateTablets() throws SQLException {
-        return callCountProcedure("Get_ReadyToDonate_Tablet_Count");
-    }
-
-    public int getNumberOfDonatedDesktops() throws SQLException {
-        return callCountProcedure("Get_Donated_Desktop_Count");
-    }
-
-    public int getNumberOfDonatedLaptops() throws SQLException {
-        return callCountProcedure("Get_Donated_Laptop_Count");
-    }
-
-    public int getNumberOfDonatedTablets() throws SQLException {
-        return callCountProcedure("Get_Donated_Tablet_Count");
     }
 
     public GetDeviceResponse getDevice(int id) throws SQLException, DeviceNotFoundException {

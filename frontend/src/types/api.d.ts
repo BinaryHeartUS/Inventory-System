@@ -654,63 +654,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/devices/count/{type}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve the number of devices of a given type
-         * @description Returns the count of devices by type (desktop, laptop, tablet). Optionally filter by status: 'ready-to-donate' or 'donated'. Omitting the status parameter returns the active inventory count.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Filter by status: ready-to-donate or donated */
-                    status?: string;
-                };
-                header?: never;
-                path: {
-                    /** @description Device type: desktop, laptop, or tablet */
-                    type: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Count retrieved successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid device type or status */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/devices/desktop": {
         parameters: {
             query?: never;
@@ -1042,6 +985,490 @@ export interface paths {
                 };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/avg-time": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Average time from acquisition to donation
+         * @description Returns the average number of days between acquisition and donation for donated devices, optionally filtered to specific chapters.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Comma-separated chapter IDs. Defaults to all accessible chapters. */
+                    chapters?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Average time retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AvgTimeInInventoryResponse"];
+                    };
+                };
+                /** @description Access denied for a requested chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/chapter-activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Chapter activity summary
+         * @description Returns counts of active chapters, chapters working on devices, and chapters with pickups ready, across all chapters visible to the caller.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Chapter activity stats retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChapterActivityStatsResponse"];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/completion-rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Donated vs total (non-scrapped) device completion rate
+         * @description Returns the count of donated devices and the count of all non-scrapped/unknown devices, optionally filtered to specific chapters.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Comma-separated chapter IDs. Defaults to all accessible chapters. */
+                    chapters?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Completion rate data retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompletionRateResponse"];
+                    };
+                };
+                /** @description Access denied for a requested chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/count/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve the number of devices of a given type
+         * @description Returns the count of devices by type and status, optionally filtered to specific chapters. Status values: active (default), not-started, in-progress, ready-to-donate, donated. Type values: desktop, laptop, tablet, total.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter by status: active (default), not-started, in-progress, ready-to-donate, donated */
+                    status?: string;
+                    /** @description Comma-separated list of chapter IDs to filter by. Defaults to all accessible chapters. */
+                    chapters?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Device type: desktop, laptop, tablet, or total */
+                    type: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Count retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": number;
+                    };
+                };
+                /** @description Invalid device type, status, or chapter ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied for a requested chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * All dashboard counts in a single request
+         * @description Returns all eight pipeline and device-type counts needed by the dashboard in one call, optionally filtered to specific chapters. Pipeline counts (not-started, in-progress, ready-to-donate, donated) cover all device types. Active type counts (desktop, laptop, tablet, total) exclude Donated and Ready To Donate devices.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Comma-separated list of chapter IDs to filter by. Defaults to all accessible chapters. */
+                    chapters?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Dashboard counts retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DashboardCountsResponse"];
+                    };
+                };
+                /** @description Invalid chapter ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied for a requested chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/devices-donated": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Monthly devices donated
+         * @description Returns the count of devices donated per month for the last N months (default 12). Optionally filtered to specific chapters.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Number of months to look back (1-120, default 12) */
+                    months?: string;
+                    /** @description Comma-separated chapter IDs. Defaults to all accessible chapters. */
+                    chapters?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Monthly donated data retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MonthlyCountPoint"][];
+                    };
+                };
+                /** @description Invalid months value or chapter ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied for a requested chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/devices-received": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Monthly devices received
+         * @description Returns the count of devices received (by acquisition date) per month for the last N months (default 12). Optionally filtered to specific chapters.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Number of months to look back (1-120, default 12) */
+                    months?: string;
+                    /** @description Comma-separated chapter IDs. Defaults to all accessible chapters. */
+                    chapters?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Monthly received data retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MonthlyCountPoint"][];
+                    };
+                };
+                /** @description Invalid months value or chapter ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied for a requested chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/devices/stats/donated-value": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Monthly value of donated devices
+         * @description Returns the total value of donated devices per month for the last N months (default 12). Optionally filtered to specific chapters.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Number of months to look back (1-120, default 12) */
+                    months?: string;
+                    /** @description Comma-separated chapter IDs. Defaults to all accessible chapters. */
+                    chapters?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Monthly value data retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MonthlyValuePoint"][];
+                    };
+                };
+                /** @description Invalid months value or chapter ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Access denied for a requested chapter */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -2023,6 +2450,15 @@ export interface paths {
                 content: {
                     /**
                      * @example {
+                     *         "chapterId": 1,
+                     *         "type": "SATA SSD",
+                     *         "description": "256 GB SSD",
+                     *         "wasPurchased": true,
+                     *         "containedIn": null,
+                     *         "id": null,
+                     *         "acquisitionDate": null,
+                     *         "value": 0.00,
+                     *         "donorId": null
                      *     }
                      */
                     "application/json": components["schemas"]["InsertPartRequest"];
@@ -2564,10 +3000,50 @@ export interface components {
             name?: string;
             chapterRoles?: components["schemas"]["ChapterRole"][];
         };
+        AvgTimeInInventoryResponse: {
+            /** Format: double */
+            avgDays?: number;
+            /** Format: int32 */
+            sampleSize: number;
+        };
+        ChapterActivityStatsResponse: {
+            /** Format: int32 */
+            totalChapters: number;
+            /** Format: int32 */
+            activeChapters: number;
+            /** Format: int32 */
+            chaptersWithPickupsReady: number;
+            /** Format: int32 */
+            chaptersWorkingOnDevices: number;
+        };
         ChapterSummary: {
             /** Format: int32 */
             id: number;
             name?: string;
+        };
+        CompletionRateResponse: {
+            /** Format: int32 */
+            donated: number;
+            /** Format: int32 */
+            total: number;
+        };
+        DashboardCountsResponse: {
+            /** Format: int32 */
+            notStarted: number;
+            /** Format: int32 */
+            inProgress: number;
+            /** Format: int32 */
+            readyToDonate: number;
+            /** Format: int32 */
+            donated: number;
+            /** Format: int32 */
+            desktopActive: number;
+            /** Format: int32 */
+            laptopActive: number;
+            /** Format: int32 */
+            tabletActive: number;
+            /** Format: int32 */
+            totalActive: number;
         };
         GetDeviceResponse: {
             type?: string;
@@ -2631,6 +3107,22 @@ export interface components {
             storageTypes?: string[];
             partTypes?: string[];
             operatingSystems?: string[];
+        };
+        MonthlyCountPoint: {
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            month: number;
+            /** Format: int64 */
+            count: number;
+        };
+        MonthlyValuePoint: {
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            month: number;
+            /** Format: double */
+            value: number;
         };
         NoteResponse: {
             /** Format: int32 */

@@ -70,12 +70,21 @@ export type AnyDevice = Omit<
   operatingSystem?: string | null
 }
 
+// --- Dashboard stat response types ------------------------------------------
+export type AvgTimeInInventoryResponse    = Required<components["schemas"]["AvgTimeInInventoryResponse"]> & { avgDays: number | null }
+export type CompletionRateResponse        = components["schemas"]["CompletionRateResponse"]
+export type DashboardCountsResponse       = components["schemas"]["DashboardCountsResponse"]
+export type ChapterActivityStatsResponse  = components["schemas"]["ChapterActivityStatsResponse"]
+export type MonthlyCountPoint             = components["schemas"]["MonthlyCountPoint"]
+export type MonthlyValuePoint             = components["schemas"]["MonthlyValuePoint"]
+
 // --- Tool ---------------------------------------------------------------------
-export interface Tool {
-  id: number
+export type Tool = Omit<
+  components["schemas"]["GetToolResponse"],
+  "acquisitionDate" | "value" | "description" | "donorId"
+> & {
   acquisitionDate: string | null
   value: number | null
   description: string
-  chapterId: number
   donorId: number | null
 }
