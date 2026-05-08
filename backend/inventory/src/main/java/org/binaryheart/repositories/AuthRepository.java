@@ -15,11 +15,12 @@ public class AuthRepository {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        try (CallableStatement stmt = conn.prepareCall("call Get_Volunteer_By_Username(?, ?, ?, ?)")) {
+        try (CallableStatement stmt = conn.prepareCall("call Get_Volunteer_By_Username(?, ?, ?, ?, ?)")) {
             stmt.setString(1, username);
             stmt.registerOutParameter(2, Types.INTEGER);
             stmt.registerOutParameter(3, Types.VARCHAR);
             stmt.registerOutParameter(4, Types.VARCHAR);
+            stmt.registerOutParameter(5, Types.VARCHAR);
             stmt.execute();
 
             if (stmt.getObject(2) == null) {
@@ -28,10 +29,11 @@ public class AuthRepository {
 
             int id = stmt.getInt(2);
             String passwordHash = stmt.getString(3);
-            String effectiveRole = stmt.getString(4);
+            String passwordSalt = stmt.getString(4);
+            String effectiveRole = stmt.getString(5);
 
             List<ChapterRole> chapterRoles = getChapterRoles(conn, id);
-            return new VolunteerCredentials(id, username, passwordHash, chapterRoles,
+            return new VolunteerCredentials(id, username, passwordHash, passwordSalt, chapterRoles,
                     effectiveRole != null ? effectiveRole : "Viewer");
         }
     }

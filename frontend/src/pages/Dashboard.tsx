@@ -112,6 +112,7 @@ export default function Dashboard() {
 
       {/* Chapter tabs */}
       <ChapterTabs chapters={chapters} selected={selectedChapter} onChange={setSelectedChapter} />
+      
 
       {/* Pipeline card */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

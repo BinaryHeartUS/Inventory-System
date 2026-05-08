@@ -9,19 +9,20 @@ import java.util.*;
 
 public class AccountRepository {
 
-    public int createVolunteer(String name, String username, String passwordHash, int chapterId, String roleName)
-            throws SQLException {
+    public int createVolunteer(String name, String username, String passwordHash, String passwordSalt, int chapterId,
+            String roleName) throws SQLException {
         ensureConnected();
         Connection conn = DatabaseConnectionService.getConnection();
-        try (CallableStatement stmt = conn.prepareCall("call Insert_Volunteer_For_Chapter(?, ?, ?, ?, ?, ?)")) {
+        try (CallableStatement stmt = conn.prepareCall("call Insert_Volunteer_For_Chapter(?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, name);
             stmt.setString(2, username);
             stmt.setString(3, passwordHash);
-            stmt.setInt(4, chapterId);
-            stmt.setString(5, roleName);
-            stmt.registerOutParameter(6, Types.INTEGER);
+            stmt.setString(4, passwordSalt);
+            stmt.setInt(5, chapterId);
+            stmt.setString(6, roleName);
+            stmt.registerOutParameter(7, Types.INTEGER);
             stmt.execute();
-            return stmt.getInt(6);
+            return stmt.getInt(7);
         }
     }
 

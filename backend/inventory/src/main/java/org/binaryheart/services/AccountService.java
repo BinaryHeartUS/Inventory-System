@@ -1,7 +1,12 @@
 package org.binaryheart.services;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
 
+import org.binaryheart.auth.EncryptionHelper;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.models.ChapterRole;
 import org.binaryheart.repositories.AccountRepository;
@@ -10,15 +15,10 @@ import org.binaryheart.requests.CreateAccountRequest;
 import org.binaryheart.requests.UpdateAffiliationRequest;
 import org.binaryheart.responses.AccountSummary;
 
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
-
 public class AccountService {
 
     private static final Set<String> ADMIN_CREATABLE_ROLES = Set.of("Admin", "Chapter Admin", "Editor", "Viewer");
     private static final Set<String> CHAPTER_ADMIN_CREATABLE_ROLES = Set.of("Editor", "Viewer");
-
     private final ChapterService chapterService = new ChapterService();
 
     /**
@@ -73,11 +73,17 @@ public class AccountService {
             throw new IllegalArgumentException("Name, username, and password are required");
         }
 
-        String passwordHash = BCrypt.withDefaults().hashToString(12, request.password().toCharArray());
+        byte[] passwordSalt = EncryptionHelper.getNewSalt();
+        String passwordHash;
+        try {
+            passwordHash = EncryptionHelper.hashPassword(passwordSalt, request.password());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Something went wrong when encrypting password");
+        }
 
         try {
-            int id = repository.createVolunteer(request.name(), request.username(), passwordHash, request.chapterId(),
-                    request.role());
+            int id = repository.createVolunteer(request.name(), request.username(), passwordHash,
+                    EncryptionHelper.getStringFromBytes(passwordSalt), request.chapterId(), request.role());
             return new AccountSummary(id, request.username(), request.name(),
                     List.of(new ChapterRole(request.chapterId(), request.role())));
         } catch (SQLException e) {
