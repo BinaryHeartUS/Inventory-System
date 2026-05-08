@@ -82,7 +82,7 @@ public class DeviceController {
 		} catch (BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
-			ctx.status(500).result("Database error");
+			ctx.status(500).result("Database error: " + e.getMessage());
 		}
 	}
 
@@ -128,7 +128,7 @@ public class DeviceController {
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
-			ctx.status(500).result("Database error");
+			ctx.status(500).result("Database error: " + e.getMessage());
 		}
 	}
 
