@@ -4,6 +4,7 @@ CREATE OR REPLACE PROCEDURE Insert_Volunteer_For_Chapter(
     IN p_name Name_Type,
     IN p_username Name_Type,
     IN p_password_hash VARCHAR(60),
+    IN p_password_salt VARCHAR(60),
     IN p_chapter_id INTEGER,
     IN p_role_name VARCHAR(100),
     OUT p_volunteer_id INTEGER
@@ -18,8 +19,8 @@ BEGIN
         RAISE EXCEPTION 'Unknown role: %', p_role_name;
     END IF;
 
-    INSERT INTO Volunteer (Name, Username, Password_Hash)
-    VALUES (p_name, p_username, p_password_hash)
+    INSERT INTO Volunteer (Name, Username, Password_Hash, Password_Salt)
+    VALUES (p_name, p_username, p_password_hash, p_password_salt)
     RETURNING ID INTO p_volunteer_id;
 
     INSERT INTO Affiliated_With (Volunteer_ID, Chapter_ID, Role_ID)

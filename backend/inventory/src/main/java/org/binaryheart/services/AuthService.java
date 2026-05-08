@@ -1,13 +1,14 @@
 package org.binaryheart.services;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 
+import org.binaryheart.auth.EncryptionHelper;
 import org.binaryheart.auth.JwtService;
 import org.binaryheart.models.VolunteerCredentials;
 import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.responses.LoginResponse;
-
-import at.favre.lib.crypto.bcrypt.BCrypt;
 
 public class AuthService {
 
@@ -19,9 +20,17 @@ public class AuthService {
         if (credentials == null) {
             return null;
         }
-        BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(),
-                credentials.passwordHash().toCharArray());
-        if (!result.verified) {
+        boolean result;
+        try {
+            System.out.println(credentials.passwordHash().concat(credentials.passwordSalt()));
+            result = EncryptionHelper
+                    .hashPassword(EncryptionHelper.DECODER.decode(credentials.passwordSalt()), password)
+                    .equals(credentials.passwordHash());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return null;
+        }
+
+        if (!result) {
             return null;
         }
         String token = JwtService.create(credentials.id(), credentials.username(), credentials.chapterRoles(),
