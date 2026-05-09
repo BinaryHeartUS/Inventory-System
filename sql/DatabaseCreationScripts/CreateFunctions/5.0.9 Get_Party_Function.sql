@@ -8,7 +8,7 @@ RETURNS TABLE (
     Name Name_Type,
     Location ADDRESS,
     IndividualEmail Email_Type,
-    ContactName Name_Type
+    ContactName Name_Type,
     ContactEmail Email_Type
 )
 LANGUAGE plpgsql
