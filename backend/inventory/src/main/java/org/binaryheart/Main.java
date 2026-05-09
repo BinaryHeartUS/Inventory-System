@@ -12,6 +12,7 @@ import org.binaryheart.controllers.HealthController;
 import org.binaryheart.controllers.LookupController;
 import org.binaryheart.controllers.NoteController;
 import org.binaryheart.controllers.PartController;
+import org.binaryheart.controllers.PartyController;
 import org.binaryheart.controllers.ToolController;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -51,6 +52,7 @@ public class Main {
                 });
                 path("/api/parts", PartController::registerRoutes);
                 path("/api/tools", ToolController::registerRoutes);
+                path("/api/party", PartyController::registerRoutes);
             });
         }).start(8080);
     }
