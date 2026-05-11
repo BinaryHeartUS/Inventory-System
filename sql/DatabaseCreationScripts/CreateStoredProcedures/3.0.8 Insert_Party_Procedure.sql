@@ -8,7 +8,11 @@ CREATE OR REPLACE PROCEDURE Insert_Party(
 LANGUAGE
 plpgsql
 AS $$
-BEGIN
+BEGIN 
+    SELECT ID INTO p_ID
+    FROM Party
+    WHERE Name = p_Name;
+
     IF p_ID IS NULL THEN
         INSERT INTO Party (Name, Location)
         VALUES (p_Name, p_Location)
