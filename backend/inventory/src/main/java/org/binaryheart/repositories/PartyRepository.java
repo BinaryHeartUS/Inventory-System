@@ -11,6 +11,7 @@ import java.util.List;
 import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.exceptions.PartyNotFoundException;
 import org.binaryheart.requests.InsertOrganizationRequest;
+import org.binaryheart.requests.InsertPersonRequest;
 import org.binaryheart.responses.GetPartyResponse;
 
 public class PartyRepository {
@@ -83,6 +84,31 @@ public class PartyRepository {
 			stmt.setString(5, request.contactEmail());
 		} else {
 			stmt.setNull(5, java.sql.Types.VARCHAR);
+		}
+		stmt.execute();
+	}
+
+	public void addPerson(InsertPersonRequest request) throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		CallableStatement stmt = conn.prepareCall("call Insert_Person(?, ?::Name_Type, ?::Address, ?::Email_Type)");
+		if (request.partyId() != null) {
+			stmt.setInt(1, request.partyId());
+		} else {
+			stmt.setNull(1, java.sql.Types.INTEGER);
+		}
+		stmt.setString(2, request.name());
+		if (request.location() != null) {
+			stmt.setString(3, request.location());
+		} else {
+			stmt.setNull(3, java.sql.Types.VARCHAR);
+		}
+		if (request.email() != null) {
+			stmt.setString(4, request.email());
+		} else {
+			stmt.setNull(4, java.sql.Types.VARCHAR);
 		}
 		stmt.execute();
 	}

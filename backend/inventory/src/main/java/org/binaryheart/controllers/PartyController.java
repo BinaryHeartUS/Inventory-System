@@ -12,6 +12,7 @@ import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartyNotFoundException;
 import org.binaryheart.requests.InsertOrganizationRequest;
+import org.binaryheart.requests.InsertPersonRequest;
 import org.binaryheart.responses.GetPartyResponse;
 import org.binaryheart.services.PartyService;
 
@@ -151,7 +152,51 @@ public class PartyController {
         ctx.status(201);
     }
 
+    @OpenApi(
+            path = "/api/party/person",
+            methods = { HttpMethod.POST },
+            tags = { "Party" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Insert a new person",
+            description = "Creates a new person with the provided attributes",
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = InsertPersonRequest.class,
+                            example = """
+                                    {
+                                        "partyId": null,
+                                        "name": "John Doe",
+                                        "location": "(123 Main St, Terre Haute, IN, 47803, USA)",
+                                        "email": ""
+                                    }
+                                    """) }),
+            responses = { @OpenApiResponse(
+                    status = "201",
+                    description = "Person added successfully"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Missing required parameters or invalid field values"),
+                    @OpenApiResponse(
+                            status = "409",
+                            description = "Party ID already exists"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
     public static void insertPerson(Context ctx) {
+        InsertPersonRequest request = ctx.bodyAsClass(InsertPersonRequest.class);
 
+        try {
+            service.addPerson(request);
+            ctx.status(201).result("Person added successfully");
+        } catch (BadArgumentException | MissingRequiredParametersException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (DuplicateKeyException e) {
+            ctx.status(409).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+        ctx.status(201);
     }
 }
