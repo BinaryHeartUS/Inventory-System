@@ -1,7 +1,7 @@
 DROP PROCEDURE IF EXISTS Insert_Organization;
 
 CREATE OR REPLACE PROCEDURE Insert_Organization(
-    INOUT p_ID INTEGER,
+    OUT p_ID INTEGER,
     IN p_Name Name_Type,
     IN p_Location Address,
     IN p_ContactName Name_Type,
@@ -11,9 +11,14 @@ LANGUAGE
 plpgsql
 AS $$
 BEGIN
-    CALL Insert_Party(p_ID, p_Name, p_Location);
+    SELECT ID INTO p_ID FROM Party WHERE Name = p_Name;
 
-    INSERT INTO Organization(ID, ContactName, ContactEmail)
-    VALUES (p_ID, p_ContactName, p_ContactEmail);
+    IF p_ID IS NULL THEN
+        CALL Insert_Party(p_ID, p_Name, p_Location);
+
+        INSERT INTO Organization(ID, ContactName, ContactEmail)
+        VALUES (p_ID, p_ContactName, p_ContactEmail)
+        RETURNING ID INTO p_ID;
+    END IF;
 END;
 $$;
