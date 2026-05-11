@@ -117,7 +117,6 @@ public class PartyController {
                             from = InsertOrganizationRequest.class,
                             example = """
                                     {
-                                        "partyId": null,
                                         "name": "Rose-Hulman Institute of Technology",
                                         "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
                                         "contactName": null,
@@ -166,7 +165,6 @@ public class PartyController {
                             from = InsertPersonRequest.class,
                             example = """
                                     {
-                                        "partyId": null,
                                         "name": "John Doe",
                                         "location": "(123 Main St, Terre Haute, IN, 47803, USA)",
                                         "email": ""

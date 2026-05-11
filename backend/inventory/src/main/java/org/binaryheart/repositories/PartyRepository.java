@@ -64,12 +64,8 @@ public class PartyRepository {
 		}
 		Connection conn = DatabaseConnectionService.getConnection();
 		CallableStatement stmt = conn.prepareCall("call Insert_Organization(?, ?::Name_Type, ?::Address, ?::Name_Type, ?::Email_Type)");
+		stmt.setNull(1, java.sql.Types.INTEGER);
 		stmt.setString(2, request.name());
-		if (request.partyId() != null) {
-			stmt.setInt(1, request.partyId());
-		} else {
-			stmt.setNull(1, java.sql.Types.INTEGER);
-		}
 		if (request.location() != null) {
 			stmt.setString(3, request.location());
 		} else {
@@ -94,11 +90,7 @@ public class PartyRepository {
 		}
 		Connection conn = DatabaseConnectionService.getConnection();
 		CallableStatement stmt = conn.prepareCall("call Insert_Person(?, ?::Name_Type, ?::Address, ?::Email_Type)");
-		if (request.partyId() != null) {
-			stmt.setInt(1, request.partyId());
-		} else {
-			stmt.setNull(1, java.sql.Types.INTEGER);
-		}
+		stmt.setNull(1, java.sql.Types.INTEGER);
 		stmt.setString(2, request.name());
 		if (request.location() != null) {
 			stmt.setString(3, request.location());

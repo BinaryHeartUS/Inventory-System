@@ -32,9 +32,6 @@ public class PartyService {
         if (request.name() == null) {
             throw new MissingRequiredParametersException("Organization name must be non-null");
         }
-        if (request.partyId() != null && request.partyId() < 0) {
-            throw new BadArgumentException("Party ID must be non-negative, or null");
-        }
         if (request.contactName() != null && request.contactName().length() == 0) {
             throw new BadArgumentException("Contact name must be non-empty, or null");
         }
@@ -48,7 +45,7 @@ public class PartyService {
             repository.addOrganization(request);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
-                throw new DuplicateKeyException("A party with the same ID already exists: " + request.partyId());
+                throw new DuplicateKeyException("A party with the same ID already exists");
             } else {
                 throw e;
             }
@@ -60,9 +57,6 @@ public class PartyService {
         if (request.name() == null) {
             throw new MissingRequiredParametersException("Person name must be non-null");
         }
-        if (request.partyId() != null && request.partyId() < 0) {
-            throw new BadArgumentException("Party ID must be non-negative, or null");
-        }
         if (request.email() != null && request.email().length() == 0) {
             throw new BadArgumentException("Email must be non-empty, or null");
         }
@@ -73,7 +67,7 @@ public class PartyService {
             repository.addPerson(request);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
-                throw new DuplicateKeyException("A party with the same ID already exists: " + request.partyId());
+                throw new DuplicateKeyException("A party with the same ID already exists");
             } else {
                 throw e;
             }
