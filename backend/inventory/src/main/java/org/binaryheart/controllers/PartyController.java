@@ -118,7 +118,7 @@ public class PartyController {
                                     {
                                         "partyId": null,
                                         "name": "Rose-Hulman Institute of Technology",
-                                        "location": null,
+                                        "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
                                         "contactName": null,
                                         "contactEmail": null
                                     }
@@ -140,7 +140,7 @@ public class PartyController {
 
         try {
             service.addOrganization(request);
-            ctx.status(201).result("Organization added successfull");
+            ctx.status(201).result("Organization added successfully");
         } catch (BadArgumentException | MissingRequiredParametersException e) {
             ctx.status(400).result(e.getMessage());
         } catch (DuplicateKeyException e) {

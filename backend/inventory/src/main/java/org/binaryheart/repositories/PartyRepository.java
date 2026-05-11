@@ -62,7 +62,7 @@ public class PartyRepository {
 			DatabaseConnectionService.connect();
 		}
 		Connection conn = DatabaseConnectionService.getConnection();
-		CallableStatement stmt = conn.prepareCall("call Insert_Organization(?, ?, ?, ?, ?)");
+		CallableStatement stmt = conn.prepareCall("call Insert_Organization(?, ?::Name_Type, ?::Address, ?::Name_Type, ?::Email_Type)");
 		stmt.setString(2, request.name());
 		if (request.partyId() != null) {
 			stmt.setInt(1, request.partyId());

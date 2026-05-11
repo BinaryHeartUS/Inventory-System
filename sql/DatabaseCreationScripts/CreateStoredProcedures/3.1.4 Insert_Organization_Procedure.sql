@@ -13,9 +13,7 @@ AS $$
 BEGIN
     CALL Insert_Party(p_ID, p_Name, p_Location);
 
-    IF (SELECT COUNT(*) FROM Organization WHERE ID = p_ID) = 0 THEN
-        INSERT INTO Organization(ID, ContactName, ContactEmail)
-        VALUES (p_ID, p_ContactName, p_ContactEmail);
-    END IF;
+    INSERT INTO Organization(ID, ContactName, ContactEmail)
+    VALUES (p_ID, p_ContactName, p_ContactEmail);
 END;
 $$;
