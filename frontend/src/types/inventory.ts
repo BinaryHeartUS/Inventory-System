@@ -68,6 +68,7 @@ export type AnyDevice = Omit<
   workingBattery?: string | null
   includesCharger?: string | null
   operatingSystem?: string | null
+  donorId?: number | null
 }
 
 // --- Dashboard stat response types ------------------------------------------

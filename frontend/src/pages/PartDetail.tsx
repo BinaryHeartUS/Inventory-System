@@ -9,6 +9,9 @@ import { PrintLabelModal } from '../components/PrintLabelModal'
 import { useChapters, useWritableChapters } from '../context/ChapterContext'
 import { useToast } from '../context/ToastContext'
 import { DevicePickerModal } from '../components/DevicePickerModal'
+import { PartyPickerModal } from '../components/PartyPickerModal'
+import type { PartySummary } from '../types/inventory'
+import { getParty } from '../services/partyService'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -129,6 +132,9 @@ export default function PartDetail() {
   // Device selected while editing
   const [editDevice, setEditDevice] = useState<AnyDevice | null>(null)
   const [devicePickerOpen, setDevicePickerOpen] = useState(false)
+  const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null)
+  const [editParty, setEditParty] = useState<PartySummary | null>(null)
+  const [partyPickerOpen, setPartyPickerOpen] = useState(false)
 
   useEffect(() => {
     getPart(numId)
@@ -144,6 +150,15 @@ export default function PartDetail() {
       Promise.resolve().then(() => setLinkedDevice(null))
     }
   }, [part?.containedIn])
+
+  // Fetch donor info whenever the saved part's donorId changes
+  useEffect(() => {
+    if (part?.donorId != null) {
+      getParty(part.donorId).then(setLinkedParty).catch(() => setLinkedParty(null))
+    } else {
+      setLinkedParty(null)
+    }
+  }, [part?.donorId])
 
   if (loading) {
     return (
@@ -175,8 +190,8 @@ export default function PartDetail() {
     )
   }
 
-  function startEdit() { setForm({ ...part } as Part); setEditDevice(linkedDevice); setEditing(true) }
-  function cancelEdit() { setEditing(false); setEditDevice(null) }
+  function startEdit() { setForm({ ...part } as Part); setEditDevice(linkedDevice); setEditParty(linkedParty); setEditing(true) }
+  function cancelEdit() { setEditing(false); setEditDevice(null); setEditParty(null) }
   async function saveEdit() {
     if (!form) return
     try {
@@ -209,6 +224,16 @@ export default function PartDetail() {
   return (
     <>
     {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
+    {partyPickerOpen && (
+      <PartyPickerModal
+        onSelect={party => {
+          setEditParty(party)
+          setForm(prev => prev ? { ...prev, donorId: party.id } : prev)
+          setPartyPickerOpen(false)
+        }}
+        onCancel={() => setPartyPickerOpen(false)}
+      />
+    )}
     {devicePickerOpen && (
       <DevicePickerModal
         onSelect={device => {
@@ -366,6 +391,31 @@ export default function PartDetail() {
                     onChange={e => set('acquisitionDate')(e.target.value || null)}
                     className={inputCls} />
                 </div>
+                <div>
+                  <label className={labelCls}>Donor</label>
+                  {editParty ? (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span className="text-sm text-slate-800">{editParty.name}</span>
+                      <span className="text-xs text-slate-400">· {editParty.type}</span>
+                      <button type="button"
+                        onClick={() => { setEditParty(null); setForm(prev => prev ? { ...prev, donorId: null } : prev) }}
+                        className="ml-auto text-slate-400 hover:text-red-500 p-0.5 rounded transition-colors"
+                        title="Remove donor">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setPartyPickerOpen(true)}
+                      className="flex items-center gap-2 w-full text-sm text-slate-500 border border-slate-200 border-dashed rounded-lg px-3 py-2 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5 transition-all">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      Select donor (optional)
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -393,6 +443,7 @@ export default function PartDetail() {
                 />
                 <Field label="Value" value={p.value != null && p.value !== 0 ? `$${p.value.toFixed(2)}` : null} />
                 <Field label="Acquired" value={formatDate(p.acquisitionDate)} />
+                <Field label="Donor" value={linkedParty?.name ?? null} />
               </>
             )}
           </Section>

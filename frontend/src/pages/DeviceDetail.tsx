@@ -12,6 +12,9 @@ import { useAuth } from '../context/AuthContext'
 import { useWritableChapters } from '../context/ChapterContext'
 import { useToast } from '../context/ToastContext'
 import { PartRow } from '../components/PartRow'
+import { PartyPickerModal } from '../components/PartyPickerModal'
+import type { PartySummary } from '../types/inventory'
+import { getParty } from '../services/partyService'
 
 
 // ─── Field / form helpers ─────────────────────────────────────────────────────
@@ -146,6 +149,9 @@ export default function DeviceDetail() {
   const [linkedParts, setLinkedParts] = useState<Part[]>([])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showDonateModal, setShowDonateModal] = useState(false)
+  const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null)
+  const [editParty, setEditParty] = useState<PartySummary | null>(null)
+  const [partyPickerOpen, setPartyPickerOpen] = useState(false)
 
   useEffect(() => {
     getDevice(numId)
@@ -156,6 +162,14 @@ export default function DeviceDetail() {
   useEffect(() => {
     getPartsByDevice(numId).then(setLinkedParts).catch(() => setLinkedParts([]))
   }, [numId])
+
+  useEffect(() => {
+    if (device?.donorId != null) {
+      getParty(device.donorId).then(setLinkedParty).catch(() => setLinkedParty(null))
+    } else {
+      setLinkedParty(null)
+    }
+  }, [device?.donorId])
 
   if (loading) {
     return (
@@ -187,8 +201,8 @@ export default function DeviceDetail() {
     )
   }
 
-  function startEdit() { setForm({ ...device } as AnyDevice); setEditing(true) }
-  function cancelEdit() { setEditing(false) }
+  function startEdit() { setForm({ ...device } as AnyDevice); setEditParty(linkedParty); setEditing(true) }
+  function cancelEdit() { setEditing(false); setEditParty(null) }
   async function saveEdit() {
     if (!form) return
     setSaveError(null)
@@ -252,6 +266,16 @@ export default function DeviceDetail() {
   return (
     <>
     {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
+    {partyPickerOpen && (
+      <PartyPickerModal
+        onSelect={party => {
+          setEditParty(party)
+          setForm(prev => prev ? ({ ...prev, donorId: party.id }) as AnyDevice : prev)
+          setPartyPickerOpen(false)
+        }}
+        onCancel={() => setPartyPickerOpen(false)}
+      />
+    )}
     {showDonateModal && (
       <ReadyToDonateFormModal
         onConfirm={() => { set('status')('Ready To Donate'); setShowDonateModal(false) }}
@@ -368,6 +392,31 @@ export default function DeviceDetail() {
                   <input type="date" value={form.acquisitionDate ?? ''} onChange={e => set('acquisitionDate')(e.target.value || null)} className={inputCls} />
                 </div>
                 <EditText label="Value ($)" type="number" value={String(form.value ?? '')} onChange={v => set('value')(v ? Number(v) : null)} placeholder="e.g. 150.00" />
+                <div>
+                  <label className={labelCls}>Donor</label>
+                  {editParty ? (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span className="text-sm text-slate-800">{editParty.name}</span>
+                      <span className="text-xs text-slate-400">· {editParty.type}</span>
+                      <button type="button"
+                        onClick={() => { setEditParty(null); setForm(prev => prev ? ({ ...prev, donorId: null }) as AnyDevice : prev) }}
+                        className="ml-auto text-slate-400 hover:text-red-500 p-0.5 rounded transition-colors"
+                        title="Remove donor">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setPartyPickerOpen(true)}
+                      className="flex items-center gap-2 w-full text-sm text-slate-500 border border-slate-200 border-dashed rounded-lg px-3 py-2 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5 transition-all">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      Select donor (optional)
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -382,6 +431,7 @@ export default function DeviceDetail() {
                 <Field label="Chapter" value={d.chapter} />
                 <Field label="Acquired" value={formatDate(d.acquisitionDate ?? null)} />
                 <Field label="Value" value={d.value != null && d.value !== 0 ? `$${d.value.toFixed(2)}` : null} />
+                <Field label="Donor" value={linkedParty?.name ?? null} />
               </>
             )}
           </Section>
