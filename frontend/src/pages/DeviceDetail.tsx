@@ -15,103 +15,14 @@ import { PartRow } from '../components/PartRow'
 import { PartyPickerModal } from '../components/PartyPickerModal'
 import type { PartySummary } from '../types/inventory'
 import { getParty } from '../services/partyService'
-
-
-// ─── Field / form helpers ─────────────────────────────────────────────────────
-
-function formatDate(iso: string | null): string | null {
-  if (!iso) return null
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
-      <p className="text-sm text-slate-800">{value ?? <span className="text-slate-300">—</span>}</p>
-    </div>
-  )
-}
-
-const inputCls = 'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white'
-const labelCls = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1 block'
-
-function EditText({ label, value, onChange, type = 'text', placeholder, min, max, maxLength }: {
-  label: string; value: string; onChange: (v: string) => void
-  type?: string; placeholder?: string; min?: string | number; max?: string | number; maxLength?: number
-}) {
-  return (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <input type={type} value={value} placeholder={placeholder}
-        min={min} max={max} maxLength={maxLength}
-        onChange={e => onChange(e.target.value)} className={inputCls} />
-    </div>
-  )
-}
-
-function EditSelect<T extends string>({ label, value, options, onChange }: {
-  label: string; value: T; options: T[]; onChange: (v: T) => void
-}) {
-  return (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <select value={value} onChange={e => onChange(e.target.value as T)}
-        className={`${inputCls} cursor-pointer`}>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-    </div>
-  )
-}
-
-function EditCombo({ label, value, options, onChange, placeholder, maxLength }: {
-  label: string; value: string | null; options: string[]
-  onChange: (v: string | null) => void; placeholder?: string; maxLength?: number
-}) {
-  const startsCustom = value !== null && value !== '' && !options.includes(value)
-  const [customMode, setCustomMode] = useState(startsCustom)
-  const [customText, setCustomText] = useState(startsCustom ? (value ?? '') : '')
-  const selectVal = customMode ? '__custom__' : (value ?? '')
-
-  function handleSelect(v: string) {
-    if (v === '__custom__') { setCustomMode(true) }
-    else if (v === '') { setCustomMode(false); onChange(null) }
-    else { setCustomMode(false); onChange(v) }
-  }
-  function handleCustom(v: string) { setCustomText(v); onChange(v || null) }
-
-  return (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <select value={selectVal} onChange={e => handleSelect(e.target.value)}
-        className={`${inputCls} cursor-pointer`}>
-        <option value="">—</option>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-        <option value="__custom__">Custom…</option>
-      </select>
-      {customMode && (
-        <input autoFocus type="text" value={customText}
-          placeholder={placeholder ?? 'Enter value'} maxLength={maxLength}
-          onChange={e => handleCustom(e.target.value)}
-          className={`${inputCls} mt-2`} />
-      )}
-    </div>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100">
-        <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
-      </div>
-      <div className="px-6 py-6 grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-8">
-        {children}
-      </div>
-    </div>
-  )
-}
+import { Field } from '../components/Field'
+import { EditText, EditSelect, EditCombo } from '../components/EditField'
+import { Section } from '../components/Section'
+import { LoadingSpinner } from '../components/LoadingSpinner'
+import { Breadcrumb } from '../components/Breadcrumb'
+import { DeleteConfirmButton } from '../components/DeleteConfirmButton'
+import { formatDate } from '../utils/dateUtils'
+import { labelCls, inputCls } from '../utils/formStyles'
 
 function BatteryBar({ health }: { health: number | null }) {
   if (health == null) return <span className="text-slate-300 text-sm">—</span>
@@ -182,13 +93,7 @@ export default function DeviceDetail() {
     }
   }, [device?.recipientId])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <LoadingSpinner />
 
   if (!device) {
     return (
@@ -319,11 +224,7 @@ export default function DeviceDetail() {
     <div className="space-y-5">
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/devices" className="hover:text-slate-600 transition-colors">Devices</Link>
-        <span>/</span>
-        <span className="text-slate-600 font-medium">{device.manufacturer} {device.model}</span>
-      </div>
+      <Breadcrumb backHref="/devices" backLabel="Devices" current={`${device.manufacturer} ${device.model}`} />
 
       {/* Header */}
       <div className="bg-white border border-slate-200 rounded-xl px-8 py-6">
@@ -350,29 +251,15 @@ export default function DeviceDetail() {
               </button>
             )}
             {!editing && canDelete && (
-              showDeleteConfirm ? (
-                <>
-                  <span className="text-xs text-slate-500">Delete this device?</span>
-                  <button onClick={handleDelete}
-                    className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 px-4 py-2.5 rounded-lg transition-colors">
-                    Confirm
-                  </button>
-                  <button onClick={() => setShowDeleteConfirm(false)}
-                    className="text-sm font-medium text-slate-600 hover:text-slate-800 px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => setShowDeleteConfirm(true)}
-                  disabled={deleteBlocked}
-                  title={deleteBlocked ? 'Unlink all parts from this device before deleting' : undefined}
-                  className="flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2.5 rounded-lg transition-colors">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                  </svg>
-                  Delete
-                </button>
-              )
+              <DeleteConfirmButton
+                noun="device"
+                showing={showDeleteConfirm}
+                onShowConfirm={() => setShowDeleteConfirm(true)}
+                onConfirm={handleDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
+                disabled={deleteBlocked}
+                disabledTitle={deleteBlocked ? 'Unlink all parts from this device before deleting' : undefined}
+              />
             )}
             {!editing ? (
               <button onClick={startEdit}
