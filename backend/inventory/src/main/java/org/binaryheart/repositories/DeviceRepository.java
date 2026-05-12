@@ -203,9 +203,11 @@ public class DeviceRepository {
         LocalDate dateDonated = rs.getDate("Donated_Date") != null ? rs.getDate("Donated_Date").toLocalDate() : null;
         String operatingSystem = rs.getString("operating_system");
         Integer donorId = rs.getObject("donor_id", Integer.class);
+        Integer recipientId = rs.getObject("recipient_id", Integer.class);
         GetDeviceResponse response = new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value,
                 manufacturer, model, year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger,
-                designCap, actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId);
+                designCap, actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId,
+                recipientId);
         return response;
     }
 
@@ -246,9 +248,11 @@ public class DeviceRepository {
                     : null;
             String operatingSystem = rs.getString("operating_system");
             Integer donorId = rs.getObject("donor_id", Integer.class);
+            Integer recipientId = rs.getObject("recipient_id", Integer.class);
             devices.add(new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model,
                     year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap,
-                    actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId));
+                    actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId,
+                    recipientId));
         }
         return devices;
     }

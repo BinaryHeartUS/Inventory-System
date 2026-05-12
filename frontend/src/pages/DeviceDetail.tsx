@@ -152,6 +152,9 @@ export default function DeviceDetail() {
   const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null)
   const [editParty, setEditParty] = useState<PartySummary | null>(null)
   const [partyPickerOpen, setPartyPickerOpen] = useState(false)
+  const [linkedRecipient, setLinkedRecipient] = useState<PartySummary | null>(null)
+  const [editRecipient, setEditRecipient] = useState<PartySummary | null>(null)
+  const [recipientPickerOpen, setRecipientPickerOpen] = useState(false)
 
   useEffect(() => {
     getDevice(numId)
@@ -170,6 +173,14 @@ export default function DeviceDetail() {
       setLinkedParty(null)
     }
   }, [device?.donorId])
+
+  useEffect(() => {
+    if (device?.recipientId != null) {
+      getParty(device.recipientId).then(setLinkedRecipient).catch(() => setLinkedRecipient(null))
+    } else {
+      setLinkedRecipient(null)
+    }
+  }, [device?.recipientId])
 
   if (loading) {
     return (
@@ -201,14 +212,22 @@ export default function DeviceDetail() {
     )
   }
 
-  function startEdit() { setForm({ ...device } as AnyDevice); setEditParty(linkedParty); setEditing(true) }
-  function cancelEdit() { setEditing(false); setEditParty(null) }
+  function startEdit() { setForm({ ...device } as AnyDevice); setEditParty(linkedParty); setEditRecipient(linkedRecipient); setEditing(true) }
+  function cancelEdit() { setEditing(false); setEditParty(null); setEditRecipient(null) }
   async function saveEdit() {
     if (!form) return
+    if (form.status === 'Donated' && !editRecipient) {
+      setSaveError('A recipient must be selected when status is Donated.')
+      setTimeout(() => setSaveError(null), 5000)
+      return
+    }
     setSaveError(null)
     try {
-      const updated = await updateDevice(numId, form)
-      setDevice(updated); setEditing(false); setSaved(true)
+      const updated = await updateDevice(numId, { ...form, recipientId: editRecipient?.id ?? null })
+      setDevice(updated)
+      setLinkedParty(editParty)
+      setLinkedRecipient(editRecipient)
+      setEditing(false); setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Save failed')
@@ -223,6 +242,9 @@ export default function DeviceDetail() {
   function handleStatusChange(newStatus: DeviceStatus) {
     if (newStatus === 'Ready To Donate') {
       setShowDonateModal(true)
+    } else if (newStatus === 'Donated') {
+      set('status')(newStatus)
+      setRecipientPickerOpen(true)
     } else {
       set('status')(newStatus)
     }
@@ -274,6 +296,16 @@ export default function DeviceDetail() {
           setPartyPickerOpen(false)
         }}
         onCancel={() => setPartyPickerOpen(false)}
+      />
+    )}
+    {recipientPickerOpen && (
+      <PartyPickerModal
+        onSelect={party => {
+          setEditRecipient(party)
+          setForm(prev => prev ? ({ ...prev, recipientId: party.id }) as AnyDevice : prev)
+          setRecipientPickerOpen(false)
+        }}
+        onCancel={() => setRecipientPickerOpen(false)}
       />
     )}
     {showDonateModal && (
@@ -417,6 +449,31 @@ export default function DeviceDetail() {
                     </button>
                   )}
                 </div>
+                <div>
+                  <label className={labelCls}>Recipient {form?.status === 'Donated' && <span className="text-red-500">*</span>}</label>
+                  {editRecipient ? (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+                      <span className="text-sm text-slate-800">{editRecipient.name}</span>
+                      <span className="text-xs text-slate-400">· {editRecipient.type}</span>
+                      <button type="button"
+                        onClick={() => { setEditRecipient(null); setForm(prev => prev ? ({ ...prev, recipientId: null }) as AnyDevice : prev) }}
+                        className="ml-auto text-slate-400 hover:text-red-500 p-0.5 rounded transition-colors"
+                        title="Remove recipient">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setRecipientPickerOpen(true)}
+                      className={`flex items-center gap-2 w-full text-sm border border-dashed rounded-lg px-3 py-2 transition-all ${form?.status === 'Donated' ? 'border-red-300 text-red-500 hover:border-red-400 hover:bg-red-50' : 'border-slate-200 text-slate-500 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5'}`}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      {form?.status === 'Donated' ? 'Select recipient (required)' : 'Select recipient (optional)'}
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -432,6 +489,9 @@ export default function DeviceDetail() {
                 <Field label="Acquired" value={formatDate(d.acquisitionDate ?? null)} />
                 <Field label="Value" value={d.value != null && d.value !== 0 ? `$${d.value.toFixed(2)}` : null} />
                 <Field label="Donor" value={linkedParty?.name ?? null} />
+                {d.status === 'Donated' && (
+                  <Field label="Recipient" value={linkedRecipient?.name ?? null} />
+                )}
               </>
             )}
           </Section>

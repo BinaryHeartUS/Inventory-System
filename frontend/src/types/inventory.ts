@@ -53,7 +53,7 @@ export type AnyDevice = Omit<
   GetDeviceResponse,
   | "value" | "cpu" | "ramGeneration" | "storageType" | "donatedDate" | "acquisitionDate"
   | "hasWifi" | "designBatteryCapacity" | "actualBatteryCapacity" | "batteryHealth"
-  | "workingBattery" | "includesCharger" | "operatingSystem" | "donorId"
+  | "workingBattery" | "includesCharger" | "operatingSystem" | "donorId" | "recipientId"
 > & {
   value: number | null
   cpu?: string | null
@@ -69,6 +69,7 @@ export type AnyDevice = Omit<
   includesCharger?: string | null
   operatingSystem?: string | null
   donorId?: number | null
+  recipientId?: number | null
 }
 
 // --- Dashboard stat response types ------------------------------------------
