@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { PartySummary, CreatePersonRequest, CreateOrgRequest } from '../types/inventory'
+import { formatLocation } from '../types/inventory'
 import { getParties, createPerson, createOrg } from '../services/partyService'
 
 // ─── Shared style constants ───────────────────────────────────────────────────
@@ -32,7 +33,7 @@ function CreatePartyForm({
   onCancel,
 }: {
   mode: 'Person' | 'Organization'
-  onCreated: (party: PartySummary) => void
+  onCreated: (name: string) => void
   onCancel: () => void
 }) {
   const [name, setName]               = useState('')
@@ -52,34 +53,27 @@ function CreatePartyForm({
     setSaving(true)
     setError(null)
     try {
-      const loc = hasAddress(address)
-        ? {
-            street:  address.street  || undefined,
-            city:    address.city    || undefined,
-            state:   address.state   || undefined,
-            zipCode: address.zipCode || undefined,
-            country: address.country || undefined,
-          }
+      const location = hasAddress(address)
+        ? formatLocation(address)
         : undefined
 
-      let result: PartySummary
       if (mode === 'Person') {
         const req: CreatePersonRequest = {
           name: name.trim(),
           ...(email.trim() ? { email: email.trim() } : {}),
-          ...(loc ? { location: loc } : {}),
+          ...(location ? { location } : {}),
         }
-        result = await createPerson(req)
+        await createPerson(req)
       } else {
         const req: CreateOrgRequest = {
           name: name.trim(),
           ...(contactName.trim()  ? { contactName:  contactName.trim()  } : {}),
           ...(contactEmail.trim() ? { contactEmail: contactEmail.trim() } : {}),
-          ...(loc ? { location: loc } : {}),
+          ...(location ? { location } : {}),
         }
-        result = await createOrg(req)
+        await createOrg(req)
       }
-      onCreated(result)
+      onCreated(name.trim())
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to save')
     } finally {
@@ -188,7 +182,7 @@ function CreatePartyForm({
               </div>
               <div>
                 <label className={labelCls}>ZIP</label>
-                <input value={address.zipCode} onChange={e => setAddr('zipCode')(e.target.value)} maxLength={20} className={inputCls} />
+                <input value={address.zipCode} onChange={e => setAddr('zipCode')(e.target.value.replace(/\D/g, ''))} maxLength={20} inputMode="numeric" className={inputCls} />
               </div>
               <div>
                 <label className={labelCls}>Country</label>
@@ -248,14 +242,24 @@ export function PartyPickerModal({
     const s = search.toLowerCase()
     return parties.filter(p =>
       p.name.toLowerCase().includes(s) ||
-      p.type.toLowerCase().includes(s),
+      (p.type ?? '').toLowerCase().includes(s),
     )
   }, [parties, search])
 
-  function handleCreated(party: PartySummary) {
-    setParties(prev => [...prev, party])
+  async function handleCreated(createdName: string) {
     setCreateMode(null)
-    onSelect(party)
+    // Re-fetch the list so the new party (returned as void by the API) appears
+    try {
+      const updated = await getParties()
+      setParties(updated)
+      // Find the newly created entry by name (last match wins in case of duplicates)
+      const match = [...updated].reverse().find(
+        p => p.name.toLowerCase() === createdName.toLowerCase()
+      )
+      if (match) onSelect(match)
+    } catch {
+      // List refresh failed — just close the create form; party won't auto-select
+    }
   }
 
   return (

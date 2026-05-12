@@ -475,6 +475,12 @@ export interface paths {
             };
             requestBody: {
                 content: {
+                    /**
+                     * @example {
+                     *         "username": "user123",
+                     *         "password": "pass123"
+                     *     }
+                     */
                     "application/json": components["schemas"]["LoginRequest"];
                 };
             };
@@ -2541,6 +2547,254 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/party": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve all parties
+         * @description Returns a list of all parties.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Parties retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GetPartyResponse"][];
+                    };
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/party/organization": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Insert a new organization
+         * @description Creates a new organization with the provided attributes
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *         "name": "Rose-Hulman Institute of Technology",
+                     *         "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
+                     *         "contactName": null,
+                     *         "contactEmail": null
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertOrganizationRequest"];
+                };
+            };
+            responses: {
+                /** @description Organization added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Party ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/party/person": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Insert a new person
+         * @description Creates a new person with the provided attributes
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *         "name": "John Doe",
+                     *         "location": "(123 Main St, Terre Haute, IN, 47803, USA)",
+                     *         "email": ""
+                     *     }
+                     */
+                    "application/json": components["schemas"]["InsertPersonRequest"];
+                };
+            };
+            responses: {
+                /** @description Person added successfully */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing required parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Party ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/party/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a party with specific ID
+         * @description Returns the device with the given ID.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Party ID: A unique number assigned to each party */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Party retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GetPartyResponse"];
+                    };
+                };
+                /** @description Non-numeric or non-positive party ID */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description ID does not match any existing devices */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ping": {
         parameters: {
             query?: never;
@@ -2924,6 +3178,12 @@ export interface components {
             actualBatteryCapacity?: number;
             operatingSystem?: string;
         };
+        InsertOrganizationRequest: {
+            name?: string;
+            location?: string;
+            contactName?: string;
+            contactEmail?: string;
+        };
         InsertPartRequest: {
             /** Format: int32 */
             chapterId: number;
@@ -2940,6 +3200,11 @@ export interface components {
             value?: number;
             /** Format: int32 */
             donorId?: number;
+        };
+        InsertPersonRequest: {
+            name?: string;
+            location?: string;
+            email?: string;
         };
         InsertTabletRequest: {
             /** Format: int32 */
@@ -2986,6 +3251,7 @@ export interface components {
         LoginRequest: {
             username?: string;
             password?: string;
+            salt?: string;
         };
         PostNoteRequest: {
             text?: string;
@@ -3078,6 +3344,17 @@ export interface components {
             /** Format: date */
             donatedDate?: string;
             operatingSystem?: string;
+            /** Format: int32 */
+            donorId?: number;
+        };
+        GetPartyResponse: {
+            /** Format: int32 */
+            id: number;
+            name?: string;
+            location?: string;
+            individualEmail?: string;
+            contactName?: string;
+            contactEmail?: string;
         };
         GetToolResponse: {
             /** Format: int32 */

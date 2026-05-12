@@ -297,7 +297,7 @@ function DonorField({ selectedParty, onOpen, onClear, colSpan = true }: {
 }
 
 // ─── Step 3: Fields form ──────────────────────────────────────────────────────
-function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice, onOpenDevicePicker, onClearDevice, selectedParty, onOpenPartyPicker, onClearParty }: {
+function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice, onOpenDevicePicker, onClearDevice, selectedParty, onOpenPartyPicker, onClearParty, selectedRecipient, onOpenRecipientPicker, onClearRecipient, onDeviceStatusChange }: {
   category: AssetCategory
   subtype: DeviceSubtype | null
   form: FormState
@@ -309,6 +309,10 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
   selectedParty: PartySummary | null
   onOpenPartyPicker: () => void
   onClearParty: () => void
+  selectedRecipient: PartySummary | null
+  onOpenRecipientPicker: () => void
+  onClearRecipient: () => void
+  onDeviceStatusChange: (status: DeviceStatus) => void
 }) {
   function set<K extends keyof FormState>(key: K) {
     return (value: FormState[K]) => setForm(prev => ({ ...prev, [key]: value }))
@@ -403,7 +407,7 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
         <FCombo label="Manufacturer" value={form.manufacturer} options={lookups.manufacturers} onChange={set('manufacturer')} req placeholder="e.g. Asus" maxLength={50} />
         <FText label="Model" value={form.model} onChange={set('model')} req placeholder="e.g. ThinkPad X1" maxLength={50} />
         <FText label="Year" value={form.year} onChange={set('year')} req type="number" placeholder="e.g. 2021" min={1980} max={new Date().getFullYear()} />
-        <FSelect label="Status" value={form.status} options={lookups.deviceStatuses} onChange={set('status')} req />
+        <FSelect label="Status" value={form.status} options={lookups.deviceStatuses} onChange={onDeviceStatusChange} req />
         <FText label="CPU" value={form.cpu} onChange={set('cpu')} placeholder="e.g. i5-1135G7" maxLength={50} />
         <FCombo label="Operating System" value={form.operatingSystem} options={lookups.operatingSystems} onChange={set('operatingSystem')} placeholder="e.g. Windows 11" maxLength={50} />
         <FSelect label="Chapter" value={form.chapter} options={lookups.chapters} onChange={set('chapter')} req />
@@ -418,6 +422,32 @@ function FieldsForm({ category, subtype, form, setForm, lookups, selectedDevice,
             className={iCls} />
         </div>
         <DonorField selectedParty={selectedParty} onOpen={onOpenPartyPicker} onClear={onClearParty} colSpan={false} />
+        <div>
+          <label className={lCls}>Recipient{form.status === 'Donated' && <Req />}</label>
+          {selectedRecipient ? (
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-sm text-slate-700">{selectedRecipient.name}</span>
+              <span className={`ml-1 text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${selectedRecipient.type === 'Person' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                {selectedRecipient.type === 'Person' ? 'Individual' : 'Organization'}
+              </span>
+              <button type="button" onClick={onClearRecipient}
+                className="ml-auto text-slate-400 hover:text-red-500 p-0.5 rounded transition-colors" title="Remove recipient">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={onOpenRecipientPicker}
+              className={`flex items-center gap-2 w-full text-sm border border-dashed rounded-lg px-3 py-2 transition-all ${form.status === 'Donated' ? 'border-red-300 text-red-500 hover:border-red-400 hover:bg-red-50' : 'border-slate-200 text-slate-500 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5'}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              {form.status === 'Donated' ? 'Select recipient (required)' : 'Select recipient (optional)'}
+            </button>
+          )}
+        </div>
       </div>
 
       {subtype === 'Desktop' && (
@@ -480,6 +510,8 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
   const [selectedDevice, setSelectedDevice] = useState<AnyDevice | null>(null)
   const [partyPickerOpen, setPartyPickerOpen] = useState(false)
   const [selectedParty, setSelectedParty] = useState<PartySummary | null>(null)
+  const [recipientPickerOpen, setRecipientPickerOpen] = useState(false)
+  const [selectedRecipient, setSelectedRecipient] = useState<PartySummary | null>(null)
 
   // Pre-select first chapter when lookups load
   useEffect(() => {
@@ -534,6 +566,15 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
     else if (step === 'category' && scanId === undefined) setStep('id')
   }
 
+  function handleDeviceStatusChange(newStatus: DeviceStatus) {
+    setForm(prev => ({ ...prev, status: newStatus }))
+    if (newStatus === 'Donated') {
+      setRecipientPickerOpen(true)
+    } else {
+      setSelectedRecipient(null)
+    }
+  }
+
   function isValid(): boolean {
     if (!category) return false
     const f = form
@@ -541,6 +582,8 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
     if (category === 'Part') return !!f.partType && f.description.trim() !== '' && f.chapter !== ''
     // Device — RAM and storage default to 0 in the DB, so 0 is valid; only require non-empty strings
     if (!(f.manufacturer?.trim() && f.model.trim() && f.year && f.chapter)) return false
+    // Donated devices require a recipient
+    if (f.status === 'Donated' && !selectedRecipient) return false
     // Battery cross-validation: actual ≤ design (DB CHECK constraint)
     if (subtype === 'Laptop' && f.actualBatteryCapacity && f.designBatteryCapacity &&
         Number(f.actualBatteryCapacity) > Number(f.designBatteryCapacity)) return false
@@ -598,6 +641,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
       donatedDate: null,
       value: form.value ? Number(form.value) : null,
       donorId: selectedParty?.id ?? null,
+      recipientId: selectedRecipient?.id ?? null,
     }
 
     if (subtype === 'Desktop') {
@@ -696,7 +740,7 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
           />
         )}
 
-        {/* Party picker (rendered above the modal layer) */}
+        {/* Party picker — donor */}
         {partyPickerOpen && (
           <PartyPickerModal
             onSelect={party => {
@@ -704,6 +748,17 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
               setPartyPickerOpen(false)
             }}
             onCancel={() => setPartyPickerOpen(false)}
+          />
+        )}
+
+        {/* Party picker — recipient */}
+        {recipientPickerOpen && (
+          <PartyPickerModal
+            onSelect={party => {
+              setSelectedRecipient(party)
+              setRecipientPickerOpen(false)
+            }}
+            onCancel={() => setRecipientPickerOpen(false)}
           />
         )}
 
@@ -782,6 +837,10 @@ export function AddAssetModal({ scanId, onAdd, onCancel }: {
               selectedParty={selectedParty}
               onOpenPartyPicker={() => setPartyPickerOpen(true)}
               onClearParty={() => setSelectedParty(null)}
+              selectedRecipient={selectedRecipient}
+              onOpenRecipientPicker={() => setRecipientPickerOpen(true)}
+              onClearRecipient={() => setSelectedRecipient(null)}
+              onDeviceStatusChange={handleDeviceStatusChange}
             />
           )}
         </div>

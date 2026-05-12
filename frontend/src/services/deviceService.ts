@@ -116,6 +116,8 @@ export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyD
     value: updates.value ?? undefined,
     acquisitionDate: updates.acquisitionDate ?? undefined,
     operatingSystem: updates.operatingSystem ?? undefined,
+    donorId: updates.donorId ?? undefined,
+    recipientId: updates.recipientId ?? undefined,
   }
 
   if (updates.type === 'Desktop') {
