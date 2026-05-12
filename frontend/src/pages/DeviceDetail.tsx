@@ -247,6 +247,8 @@ export default function DeviceDetail() {
       setRecipientPickerOpen(true)
     } else {
       set('status')(newStatus)
+      setEditRecipient(null)
+      setForm(prev => prev ? ({ ...prev, recipientId: null }) as AnyDevice : prev)
     }
   }
 
@@ -449,8 +451,9 @@ export default function DeviceDetail() {
                     </button>
                   )}
                 </div>
+                {form?.status === 'Donated' && (
                 <div>
-                  <label className={labelCls}>Recipient {form?.status === 'Donated' && <span className="text-red-500">*</span>}</label>
+                  <label className={labelCls}>Recipient <span className="text-red-500">*</span></label>
                   {editRecipient ? (
                     <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
                       <span className="text-sm text-slate-800">{editRecipient.name}</span>
@@ -466,14 +469,15 @@ export default function DeviceDetail() {
                     </div>
                   ) : (
                     <button type="button" onClick={() => setRecipientPickerOpen(true)}
-                      className={`flex items-center gap-2 w-full text-sm border border-dashed rounded-lg px-3 py-2 transition-all ${form?.status === 'Donated' ? 'border-red-300 text-red-500 hover:border-red-400 hover:bg-red-50' : 'border-slate-200 text-slate-500 hover:border-heart-blue hover:text-heart-blue hover:bg-heart-blue/5'}`}>
+                      className="flex items-center gap-2 w-full text-sm border border-red-300 text-red-500 hover:border-red-400 hover:bg-red-50 border-dashed rounded-lg px-3 py-2 transition-all">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                       </svg>
-                      {form?.status === 'Donated' ? 'Select recipient (required)' : 'Select recipient (optional)'}
+                      Select recipient (required)
                     </button>
                   )}
                 </div>
+                )}
               </>
             ) : (
               <>
