@@ -218,6 +218,8 @@ export default function PartyDetailPage() {
   const [selectMode, setSelectMode]  = useState(false)
   const [selected, setSelected]       = useState<Set<number>>(new Set())
   const [showReceipt, setShowReceipt] = useState(false)
+  const [donatedOpen, setDonatedOpen] = useState(true)
+  const [receivedOpen, setReceivedOpen] = useState(true)
 
   useEffect(() => {
     if (!numId) return
@@ -262,11 +264,11 @@ export default function PartyDetailPage() {
   const selectedItems: ReceiptItem[] = Array.from(selected).map(i => allDonatedById.get(i)!).filter(Boolean)
 
   function toggle(id: number) {
-    setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+    setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
   }
   function toggleAll(ids: number[]) {
     const allIn = ids.every(id => selected.has(id))
-    setSelected(prev => { const n = new Set(prev); allIn ? ids.forEach(id => n.delete(id)) : ids.forEach(id => n.add(id)); return n })
+    setSelected(prev => { const n = new Set(prev); if (allIn) ids.forEach(id => n.delete(id)); else ids.forEach(id => n.add(id)); return n })
   }
 
   const deviceIcon = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -363,40 +365,86 @@ export default function PartyDetailPage() {
           </div>
         )}
 
-        {/* Donated devices */}
-        <Section title="Donated Devices" count={donatedDevices.length} icon={deviceIcon}>
-          <DonatedTable
-            rows={donatedDevices.map(d => ({ id: d.id, label: `${d.manufacturer} ${d.model}`, year: d.year, detail: `${d.type} · ${d.year}`, value: d.value, acquired: d.acquisitionDate ?? null }))}
-            basePath="/devices" emptyMessage="No donated devices." selectMode={selectMode}
-            selected={selected} onToggle={toggle} onToggleAll={toggleAll}
-          />
-        </Section>
+        {/* Donated group */}
+        <div className="space-y-3">
+          <button
+            onClick={() => setDonatedOpen(o => !o)}
+            className="w-full flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+          >
+            <svg
+              width="16" height="16" viewBox="0 0 16 16" fill="none"
+              className={`transition-transform duration-200 flex-shrink-0 ${donatedOpen ? 'rotate-90' : ''}`}
+            >
+              <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Donated
+            <span className="ml-1 text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+              {donatedDevices.length + donatedParts.length + donatedTools.length}
+            </span>
+          </button>
 
-        {/* Received devices */}
-        <Section title="Received Devices" count={receivedDevices.length} icon={receiveIcon}>
-          <AssetTable
-            rows={receivedDevices.map(d => ({ id: d.id, label: `${d.manufacturer} ${d.model}`, detail: `${d.type} · ${d.year}`, status: d.status, chapter: d.chapter, acquired: d.acquisitionDate ?? null }))}
-            basePath="/devices" emptyMessage="No received devices."
-          />
-        </Section>
+          {donatedOpen && (
+            <div className="space-y-3">
+              {/* Donated devices */}
+              <Section title="Donated Devices" count={donatedDevices.length} icon={deviceIcon}>
+                <DonatedTable
+                  rows={donatedDevices.map(d => ({ id: d.id, label: `${d.manufacturer} ${d.model}`, year: d.year, detail: `${d.type} · ${d.year}`, value: d.value, acquired: d.acquisitionDate ?? null }))}
+                  basePath="/devices" emptyMessage="No donated devices." selectMode={selectMode}
+                  selected={selected} onToggle={toggle} onToggleAll={toggleAll}
+                />
+              </Section>
 
-        {/* Donated parts */}
-        <Section title="Donated Parts" count={donatedParts.length} icon={partIcon}>
-          <DonatedTable
-            rows={donatedParts.map(p => ({ id: p.id, label: p.type, year: null, detail: p.description, value: p.value, acquired: p.acquisitionDate }))}
-            basePath="/parts" emptyMessage="No donated parts." selectMode={selectMode}
-            selected={selected} onToggle={toggle} onToggleAll={toggleAll}
-          />
-        </Section>
+              {/* Donated parts */}
+              <Section title="Donated Parts" count={donatedParts.length} icon={partIcon}>
+                <DonatedTable
+                  rows={donatedParts.map(p => ({ id: p.id, label: p.type, year: null, detail: p.description, value: p.value, acquired: p.acquisitionDate }))}
+                  basePath="/parts" emptyMessage="No donated parts." selectMode={selectMode}
+                  selected={selected} onToggle={toggle} onToggleAll={toggleAll}
+                />
+              </Section>
 
-        {/* Donated tools */}
-        <Section title="Donated Tools" count={donatedTools.length} icon={toolIcon}>
-          <DonatedTable
-            rows={donatedTools.map(t => ({ id: t.id, label: t.description, year: null, detail: '', value: t.value, acquired: t.acquisitionDate }))}
-            basePath="/tools" emptyMessage="No donated tools." selectMode={selectMode}
-            selected={selected} onToggle={toggle} onToggleAll={toggleAll}
-          />
-        </Section>
+              {/* Donated tools */}
+              <Section title="Donated Tools" count={donatedTools.length} icon={toolIcon}>
+                <DonatedTable
+                  rows={donatedTools.map(t => ({ id: t.id, label: t.description, year: null, detail: '', value: t.value, acquired: t.acquisitionDate }))}
+                  basePath="/tools" emptyMessage="No donated tools." selectMode={selectMode}
+                  selected={selected} onToggle={toggle} onToggleAll={toggleAll}
+                />
+              </Section>
+            </div>
+          )}
+        </div>
+
+        {/* Received group */}
+        <div className="space-y-3">
+          <button
+            onClick={() => setReceivedOpen(o => !o)}
+            className="w-full flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+          >
+            <svg
+              width="16" height="16" viewBox="0 0 16 16" fill="none"
+              className={`transition-transform duration-200 flex-shrink-0 ${receivedOpen ? 'rotate-90' : ''}`}
+            >
+              <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Received
+            <span className="ml-1 text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+              {receivedDevices.length}
+            </span>
+          </button>
+
+          {receivedOpen && (
+            <div className="space-y-3">
+              {/* Received devices */}
+              <Section title="Received Devices" count={receivedDevices.length} icon={receiveIcon}>
+                <AssetTable
+                  rows={receivedDevices.map(d => ({ id: d.id, label: `${d.manufacturer} ${d.model}`, detail: `${d.type} · ${d.year}`, status: d.status, chapter: d.chapter, acquired: d.acquisitionDate ?? null }))}
+                  basePath="/devices" emptyMessage="No received devices."
+                />
+              </Section>
+            </div>
+          )}
+        </div>
       </div>
     </>
   )
