@@ -16,8 +16,7 @@ import Settings     from './pages/Settings'
 import Login        from './pages/Login'
 import Account      from './pages/Account'
 import AdminAccounts from './pages/AdminAccounts'
-import ManageIndividuals from './pages/ManageIndividuals'
-import ManageOrganizations from './pages/ManageOrganizations'
+import ManageParties from './pages/ManageParties'
 import { useBarcodeScanner } from './hooks/useBarcodeScanner'
 import { getDevice, createDevice } from './services/deviceService'
 import { getPart, createPart } from './services/partService'
@@ -114,14 +113,9 @@ const adminNavItems = [
     </svg>
   )},
   { to: '/settings', label: 'Manage Options', icon: Icons.settings },
-  { to: '/admin/individuals', label: 'Manage Individuals', icon: (
+  { to: '/admin/parties', label: 'Manage Parties', icon: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-    </svg>
-  )},
-  { to: '/admin/organizations', label: 'Manage Organizations', icon: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+      <circle cx="9" cy="8" r="3"/><path d="M2 20c0-3 2.7-5 6-5"/><circle cx="16" cy="8" r="3"/><path d="M13 20c0-3 2.7-5 6-5"/>
     </svg>
   )},
 ]
@@ -340,9 +334,8 @@ function AppInner() {
             <Route path="/reports"     element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/settings"    element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/account"          element={<ProtectedRoute><Account /></ProtectedRoute>} />
-            <Route path="/admin/accounts"       element={<ProtectedRoute><AdminAccounts /></ProtectedRoute>} />
-            <Route path="/admin/individuals"    element={<ProtectedRoute><ManageIndividuals /></ProtectedRoute>} />
-            <Route path="/admin/organizations"  element={<ProtectedRoute><ManageOrganizations /></ProtectedRoute>} />
+            <Route path="/admin/accounts"   element={<ProtectedRoute><AdminAccounts /></ProtectedRoute>} />
+            <Route path="/admin/parties"     element={<ProtectedRoute><ManageParties /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>
