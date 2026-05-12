@@ -88,7 +88,13 @@ public class AuthController {
             requestBody = @OpenApiRequestBody(
                     required = true,
                     content = { @OpenApiContent(
-                            from = LoginRequest.class) }),
+                            from = LoginRequest.class,
+                            example = """
+                                    {
+                                        "username": "user123",
+                                        "password": "pass123"
+                                    }
+                                    """) }),
             responses = { @OpenApiResponse(
                     status = "200",
                     description = "Login successful",

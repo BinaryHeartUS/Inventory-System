@@ -2,6 +2,7 @@ package org.binaryheart.repositories;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -9,6 +10,8 @@ import java.util.List;
 
 import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.exceptions.PartyNotFoundException;
+import org.binaryheart.requests.InsertOrganizationRequest;
+import org.binaryheart.requests.InsertPersonRequest;
 import org.binaryheart.responses.GetPartyResponse;
 
 public class PartyRepository {
@@ -53,5 +56,52 @@ public class PartyRepository {
 		GetPartyResponse response = new GetPartyResponse(partyID, name, location, individualEmail, contactName,
 				contactEmail);
 		return response;
+	}
+
+	public void addOrganization(InsertOrganizationRequest request) throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		CallableStatement stmt = conn.prepareCall("call Insert_Organization(?, ?::Name_Type, ?::Address, ?::Name_Type, ?::Email_Type)");
+		stmt.registerOutParameter(1, java.sql.Types.INTEGER);
+		stmt.setString(2, request.name());
+		if (request.location() != null) {
+			stmt.setString(3, request.location());
+		} else {
+			stmt.setNull(3, java.sql.Types.VARCHAR);
+		}
+		if (request.contactName() != null) {
+			stmt.setString(4, request.contactName());
+		} else {
+			stmt.setNull(4, java.sql.Types.VARCHAR);
+		}
+		if (request.contactEmail() != null) {
+			stmt.setString(5, request.contactEmail());
+		} else {
+			stmt.setNull(5, java.sql.Types.VARCHAR);
+		}
+		stmt.execute();
+	}
+
+	public void addPerson(InsertPersonRequest request) throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		CallableStatement stmt = conn.prepareCall("call Insert_Person(?, ?::Name_Type, ?::Address, ?::Email_Type)");
+		stmt.registerOutParameter(1, java.sql.Types.INTEGER);
+		stmt.setString(2, request.name());
+		if (request.location() != null) {
+			stmt.setString(3, request.location());
+		} else {
+			stmt.setNull(3, java.sql.Types.VARCHAR);
+		}
+		if (request.email() != null) {
+			stmt.setString(4, request.email());
+		} else {
+			stmt.setNull(4, java.sql.Types.VARCHAR);
+		}
+		stmt.execute();
 	}
 }

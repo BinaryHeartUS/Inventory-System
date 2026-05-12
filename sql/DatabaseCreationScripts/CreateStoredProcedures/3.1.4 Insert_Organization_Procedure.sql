@@ -11,11 +11,14 @@ LANGUAGE
 plpgsql
 AS $$
 BEGIN
-    CALL Insert_Party(p_ID, p_Name, p_Location);
+    SELECT ID INTO p_ID FROM Party WHERE Name = p_Name;
 
-    IF (SELECT COUNT(*) FROM Organization WHERE ID = p_ID) = 0 THEN
+    IF p_ID IS NULL THEN
+        CALL Insert_Party(p_ID, p_Name, p_Location);
+
         INSERT INTO Organization(ID, ContactName, ContactEmail)
-        VALUES (p_ID, p_ContactName, p_ContactEmail);
+        VALUES (p_ID, p_ContactName, p_ContactEmail)
+        RETURNING ID INTO p_ID;
     END IF;
 END;
 $$;

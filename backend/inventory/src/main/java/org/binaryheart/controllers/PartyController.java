@@ -1,13 +1,18 @@
 package org.binaryheart.controllers;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.post;
 
 import java.sql.SQLException;
 import java.util.List;
 
 import org.binaryheart.auth.AppRole;
 import org.binaryheart.exceptions.BadArgumentException;
+import org.binaryheart.exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartyNotFoundException;
+import org.binaryheart.requests.InsertOrganizationRequest;
+import org.binaryheart.requests.InsertPersonRequest;
 import org.binaryheart.responses.GetPartyResponse;
 import org.binaryheart.services.PartyService;
 
@@ -16,6 +21,7 @@ import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiParam;
+import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 import io.javalin.openapi.OpenApiSecurity;
 
@@ -26,6 +32,8 @@ public class PartyController {
     public static void registerRoutes() {
         get("", PartyController::getAllParties, AppRole.AUTHENTICATED);
         get("/{id}", PartyController::getParty, AppRole.AUTHENTICATED);
+        post("/organization", PartyController::insertOrg, AppRole.AUTHENTICATED);
+        post("/person", PartyController::insertPerson, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
@@ -93,5 +101,100 @@ public class PartyController {
         } catch (SQLException e) {
             ctx.status(500).result("Database error: " + e.getMessage());
         }
+    }
+
+    @OpenApi(
+            path = "/api/party/organization",
+            methods = { HttpMethod.POST },
+            tags = { "Party" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Insert a new organization",
+            description = "Creates a new organization with the provided attributes",
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = InsertOrganizationRequest.class,
+                            example = """
+                                    {
+                                        "name": "Rose-Hulman Institute of Technology",
+                                        "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
+                                        "contactName": null,
+                                        "contactEmail": null
+                                    }
+                                    """) }),
+            responses = { @OpenApiResponse(
+                    status = "201",
+                    description = "Organization added successfully"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Missing required parameters or invalid field values"),
+                    @OpenApiResponse(
+                            status = "409",
+                            description = "Party ID already exists"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void insertOrg(Context ctx) {
+        InsertOrganizationRequest request = ctx.bodyAsClass(InsertOrganizationRequest.class);
+
+        try {
+            service.addOrganization(request);
+            ctx.status(201).result("Organization added successfully");
+        } catch (BadArgumentException | MissingRequiredParametersException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (DuplicateKeyException e) {
+            ctx.status(409).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+        ctx.status(201);
+    }
+
+    @OpenApi(
+            path = "/api/party/person",
+            methods = { HttpMethod.POST },
+            tags = { "Party" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Insert a new person",
+            description = "Creates a new person with the provided attributes",
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = InsertPersonRequest.class,
+                            example = """
+                                    {
+                                        "name": "John Doe",
+                                        "location": "(123 Main St, Terre Haute, IN, 47803, USA)",
+                                        "email": ""
+                                    }
+                                    """) }),
+            responses = { @OpenApiResponse(
+                    status = "201",
+                    description = "Person added successfully"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Missing required parameters or invalid field values"),
+                    @OpenApiResponse(
+                            status = "409",
+                            description = "Party ID already exists"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void insertPerson(Context ctx) {
+        InsertPersonRequest request = ctx.bodyAsClass(InsertPersonRequest.class);
+
+        try {
+            service.addPerson(request);
+            ctx.status(201).result("Person added successfully");
+        } catch (BadArgumentException | MissingRequiredParametersException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (DuplicateKeyException e) {
+            ctx.status(409).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+        ctx.status(201);
     }
 }
