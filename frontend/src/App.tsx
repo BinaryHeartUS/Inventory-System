@@ -17,6 +17,7 @@ import Login        from './pages/Login'
 import Account      from './pages/Account'
 import AdminAccounts from './pages/AdminAccounts'
 import ManageParties from './pages/ManageParties'
+import PartyDetail   from './pages/PartyDetail'
 import { useBarcodeScanner } from './hooks/useBarcodeScanner'
 import { getDevice, createDevice } from './services/deviceService'
 import { getPart, createPart } from './services/partService'
@@ -336,6 +337,7 @@ function AppInner() {
             <Route path="/account"          element={<ProtectedRoute><Account /></ProtectedRoute>} />
             <Route path="/admin/accounts"   element={<ProtectedRoute><AdminAccounts /></ProtectedRoute>} />
             <Route path="/admin/parties"     element={<ProtectedRoute><ManageParties /></ProtectedRoute>} />
+            <Route path="/admin/parties/:id" element={<ProtectedRoute><PartyDetail /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

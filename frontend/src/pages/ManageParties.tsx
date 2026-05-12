@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import PageHeading from '../components/PageHeading'
 import {
@@ -379,10 +379,16 @@ function PartySection({ kind, refreshKey, onRefresh }: {
                   <tr key={p.id} className={`transition-colors ${expandedId === p.id ? 'bg-slate-50' : 'hover:bg-slate-50'}`}>
                     <td className="px-6 py-3 font-medium text-slate-800">{p.name}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                        className="text-xs font-medium text-heart-blue hover:underline">
-                        {expandedId === p.id ? 'Close' : 'Edit'}
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <Link to={`/admin/parties/${p.id}`}
+                          className="text-xs font-medium text-slate-500 hover:text-slate-700 hover:underline">
+                          View
+                        </Link>
+                        <button onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
+                          className="text-xs font-medium text-heart-blue hover:underline">
+                          {expandedId === p.id ? 'Close' : 'Edit'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   {expandedId === p.id && (
