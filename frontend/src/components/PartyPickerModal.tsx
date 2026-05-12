@@ -182,7 +182,7 @@ function CreatePartyForm({
               </div>
               <div>
                 <label className={labelCls}>ZIP</label>
-                <input value={address.zipCode} onChange={e => setAddr('zipCode')(e.target.value)} maxLength={20} className={inputCls} />
+                <input value={address.zipCode} onChange={e => setAddr('zipCode')(e.target.value.replace(/\D/g, ''))} maxLength={20} inputMode="numeric" className={inputCls} />
               </div>
               <div>
                 <label className={labelCls}>Country</label>
