@@ -12,6 +12,8 @@ import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.exceptions.PartyNotFoundException;
 import org.binaryheart.requests.InsertOrganizationRequest;
 import org.binaryheart.requests.InsertPersonRequest;
+import org.binaryheart.requests.UpdateOrganizationRequest;
+import org.binaryheart.requests.UpdatePersonRequest;
 import org.binaryheart.responses.GetPartyResponse;
 
 public class PartyRepository {
@@ -63,7 +65,8 @@ public class PartyRepository {
 			DatabaseConnectionService.connect();
 		}
 		Connection conn = DatabaseConnectionService.getConnection();
-		CallableStatement stmt = conn.prepareCall("call Insert_Organization(?, ?::Name_Type, ?::Address, ?::Name_Type, ?::Email_Type)");
+		CallableStatement stmt = conn
+				.prepareCall("call Insert_Organization(?, ?::Name_Type, ?::Address, ?::Name_Type, ?::Email_Type)");
 		stmt.registerOutParameter(1, java.sql.Types.INTEGER);
 		stmt.setString(2, request.name());
 		if (request.location() != null) {
@@ -101,6 +104,54 @@ public class PartyRepository {
 			stmt.setString(4, request.email());
 		} else {
 			stmt.setNull(4, java.sql.Types.VARCHAR);
+		}
+		stmt.execute();
+	}
+
+	public void updatePerson(int id, UpdatePersonRequest request) throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		CallableStatement stmt = conn.prepareCall("call Update_Person(?, ?::Name_Type, ?::Address, ?::Email_Type)");
+		stmt.setInt(1, id);
+		stmt.setString(2, request.name());
+		if (request.location() != null) {
+			stmt.setString(3, request.location());
+		} else {
+			stmt.setNull(3, java.sql.Types.VARCHAR);
+		}
+		if (request.email() != null) {
+			stmt.setString(4, request.email());
+		} else {
+			stmt.setNull(4, java.sql.Types.VARCHAR);
+		}
+		stmt.execute();
+	}
+
+	public void updateOrganization(int id, UpdateOrganizationRequest request) throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		CallableStatement stmt = conn
+				.prepareCall("call Update_Organization(?, ?::Name_Type, ?::Address, ?::Name_Type, ?::Email_Type)");
+		stmt.setInt(1, id);
+		stmt.setString(2, request.name());
+		if (request.location() != null) {
+			stmt.setString(3, request.location());
+		} else {
+			stmt.setNull(3, java.sql.Types.VARCHAR);
+		}
+		if (request.contactName() != null) {
+			stmt.setString(4, request.contactName());
+		} else {
+			stmt.setNull(4, java.sql.Types.VARCHAR);
+		}
+		if (request.contactEmail() != null) {
+			stmt.setString(5, request.contactEmail());
+		} else {
+			stmt.setNull(5, java.sql.Types.VARCHAR);
 		}
 		stmt.execute();
 	}
