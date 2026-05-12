@@ -9,66 +9,14 @@ import { PrintLabelModal } from '../components/PrintLabelModal'
 import { PartyPickerModal } from '../components/PartyPickerModal'
 import type { PartySummary } from '../types/inventory'
 import { getParty } from '../services/partyService'
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string | null): string | null {
-  if (!iso) return null
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
-      <p className="text-sm text-slate-800">{value ?? <span className="text-slate-300">—</span>}</p>
-    </div>
-  )
-}
-
-const inputCls = 'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white'
-const labelCls = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1 block'
-
-function EditText({ label, value, onChange, type = 'text', placeholder, maxLength }: {
-  label: string; value: string; onChange: (v: string) => void
-  type?: string; placeholder?: string; maxLength?: number
-}) {
-  return (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <input type={type} value={value} placeholder={placeholder} maxLength={maxLength}
-        onChange={e => onChange(e.target.value)} className={inputCls} />
-    </div>
-  )
-}
-
-function EditSelect<T extends string>({ label, value, options, onChange }: {
-  label: string; value: T; options: T[]; onChange: (v: T) => void
-}) {
-  return (
-    <div>
-      <label className={labelCls}>{label}</label>
-      <select value={value} onChange={e => onChange(e.target.value as T)}
-        className={`${inputCls} cursor-pointer`}>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-    </div>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100">
-        <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
-      </div>
-      <div className="px-6 py-6 grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-8">
-        {children}
-      </div>
-    </div>
-  )
-}
+import { Field } from '../components/Field'
+import { EditText, EditSelect } from '../components/EditField'
+import { Section } from '../components/Section'
+import { LoadingSpinner } from '../components/LoadingSpinner'
+import { Breadcrumb } from '../components/Breadcrumb'
+import { DeleteConfirmButton } from '../components/DeleteConfirmButton'
+import { formatDate } from '../utils/dateUtils'
+import { labelCls, inputCls } from '../utils/formStyles'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -107,13 +55,7 @@ export default function ToolDetail() {
     }
   }, [tool?.donorId])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <LoadingSpinner />
 
   if (!tool) {
     return (
@@ -183,11 +125,7 @@ export default function ToolDetail() {
     <div className="space-y-5">
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-slate-400">
-        <Link to="/tools" className="hover:text-slate-600 transition-colors">Tools</Link>
-        <span>/</span>
-        <span className="text-slate-600 font-medium">{tool.description}</span>
-      </div>
+      <Breadcrumb backHref="/tools" backLabel="Tools" current={tool.description} />
 
       {/* Header */}
       <div className="bg-white border border-slate-200 rounded-xl px-8 py-6">
@@ -213,27 +151,13 @@ export default function ToolDetail() {
               </button>
             )}
             {!editing && canDelete && (
-              showDeleteConfirm ? (
-                <>
-                  <span className="text-xs text-slate-500">Delete this tool?</span>
-                  <button onClick={handleDelete}
-                    className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 px-4 py-2.5 rounded-lg transition-colors">
-                    Confirm
-                  </button>
-                  <button onClick={() => setShowDeleteConfirm(false)}
-                    className="text-sm font-medium text-slate-600 hover:text-slate-800 px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => setShowDeleteConfirm(true)}
-                  className="flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2.5 rounded-lg transition-colors">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                  </svg>
-                  Delete
-                </button>
-              )
+              <DeleteConfirmButton
+                noun="tool"
+                showing={showDeleteConfirm}
+                onShowConfirm={() => setShowDeleteConfirm(true)}
+                onConfirm={handleDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
+              />
             )}
             {!editing ? (
               <button onClick={startEdit}

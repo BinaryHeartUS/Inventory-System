@@ -9,25 +9,9 @@ import type { PartyDetail, PersonDetail, OrgDetail, AnyDevice, Part, Tool } from
 import StatusBadge from '../components/StatusBadge'
 import type { DeviceStatus } from '../types/inventory'
 import { generateDonationReceipt, buildDescription } from '../utils/generateDonationReceipt'
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function formatDate(iso: string | null | undefined): string | null {
-  if (!iso) return null
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">{label}</p>
-      <p className="text-sm text-slate-800">{value ?? <span className="text-slate-300">—</span>}</p>
-    </div>
-  )
-}
-
-const inputCls = 'w-full text-sm border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white'
-const labelCls = 'text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1 block'
+import { Field } from '../components/Field'
+import { formatDate } from '../utils/dateUtils'
+import { inputCls, labelCls } from '../utils/formStyles'
 
 // ─── Receipt item type ────────────────────────────────────────────────────────
 interface ReceiptItem { id: number; label: string; year?: number | string | null; value: number | null }
