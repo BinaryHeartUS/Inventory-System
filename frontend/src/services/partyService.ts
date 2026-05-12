@@ -9,7 +9,7 @@
  *     The service layer parses it on read and serialises it on write.
  */
 
-import { apiGet, apiPost, apiPut } from './api'
+import { apiGet, apiPostVoid, apiPutVoid } from './api'
 import type { components } from '../types/api'
 import type {
   PartySummary,
@@ -83,7 +83,7 @@ export async function getParty(id: number): Promise<PartyDetail> {
 }
 
 export async function createPerson(req: CreatePersonRequest): Promise<void> {
-  await apiPost<void>('/party/person', {
+  await apiPostVoid('/party/person', {
     name:     req.name,
     email:    req.email,
     location: typeof req.location === 'string'
@@ -93,7 +93,7 @@ export async function createPerson(req: CreatePersonRequest): Promise<void> {
 }
 
 export async function createOrg(req: CreateOrgRequest): Promise<void> {
-  await apiPost<void>('/party/organization', {
+  await apiPostVoid('/party/organization', {
     name:         req.name,
     contactName:  req.contactName,
     contactEmail: req.contactEmail,
@@ -104,7 +104,7 @@ export async function createOrg(req: CreateOrgRequest): Promise<void> {
 }
 
 export async function updatePerson(id: number, req: UpdatePersonRequest): Promise<void> {
-  await apiPut<void>(`/party/person/${id}`, {
+  await apiPutVoid(`/party/person/${id}`, {
     name:     req.name,
     email:    req.email,
     location: typeof req.location === 'string'
@@ -114,7 +114,7 @@ export async function updatePerson(id: number, req: UpdatePersonRequest): Promis
 }
 
 export async function updateOrg(id: number, req: UpdateOrgRequest): Promise<void> {
-  await apiPut<void>(`/party/organization/${id}`, {
+  await apiPutVoid(`/party/organization/${id}`, {
     name:         req.name,
     contactName:  req.contactName,
     contactEmail: req.contactEmail,

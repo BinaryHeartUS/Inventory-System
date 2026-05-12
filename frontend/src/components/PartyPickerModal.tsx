@@ -242,7 +242,7 @@ export function PartyPickerModal({
     const s = search.toLowerCase()
     return parties.filter(p =>
       p.name.toLowerCase().includes(s) ||
-      p.type.toLowerCase().includes(s),
+      (p.type ?? '').toLowerCase().includes(s),
     )
   }, [parties, search])
 
