@@ -53,7 +53,7 @@ export type AnyDevice = Omit<
   GetDeviceResponse,
   | "value" | "cpu" | "ramGeneration" | "storageType" | "donatedDate" | "acquisitionDate"
   | "hasWifi" | "designBatteryCapacity" | "actualBatteryCapacity" | "batteryHealth"
-  | "workingBattery" | "includesCharger" | "operatingSystem"
+  | "workingBattery" | "includesCharger" | "operatingSystem" | "donorId"
 > & {
   value: number | null
   cpu?: string | null

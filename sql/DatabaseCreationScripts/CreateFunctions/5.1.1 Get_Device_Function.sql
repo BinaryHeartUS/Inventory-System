@@ -25,7 +25,8 @@ RETURNS TABLE (
     working_battery WORKING_BATTERY,
     chapter Name_Type,
     donated_date DATE,
-    operating_system VARCHAR(50)
+    operating_system VARCHAR(50),
+    donor_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$

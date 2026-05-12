@@ -3344,6 +3344,8 @@ export interface components {
             /** Format: date */
             donatedDate?: string;
             operatingSystem?: string;
+            /** Format: int32 */
+            donorId?: number;
         };
         GetPartyResponse: {
             /** Format: int32 */
