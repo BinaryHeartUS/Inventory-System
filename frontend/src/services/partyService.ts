@@ -71,10 +71,18 @@ function buildLocation(addr: Partial<AddressForm> | undefined): string | undefin
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export async function getParties(status?: 'donor' | 'recipient'): Promise<PartySummary[]> {
-  const query = status ? `?status=${status}` : ''
+export async function getParties(opts?: { status?: 'donor' | 'recipient', type?: 'person' | 'organization' }): Promise<PartySummary[]> {
+  const params = new URLSearchParams()
+  if (opts?.status) params.set('status', opts.status)
+  if (opts?.type)   params.set('type',   opts.type)
+  const query = params.toString() ? `?${params}` : ''
   const raw = await apiGet<WireParty[]>(`/party${query}`)
-  return raw.map(wireToSummary)
+  // If we requested a specific type, tag every result with it so inference isn't needed
+  const knownType: PartySummary['type'] | undefined =
+    opts?.type === 'person' ? 'Person' :
+    opts?.type === 'organization' ? 'Organization' :
+    undefined
+  return raw.map(w => knownType ? { ...wireToSummary(w), type: knownType } : wireToSummary(w))
 }
 
 export async function getParty(id: number): Promise<PartyDetail> {

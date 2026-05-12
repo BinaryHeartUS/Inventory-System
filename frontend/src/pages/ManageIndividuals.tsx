@@ -193,10 +193,10 @@ export default function ManageIndividuals() {
 
   useEffect(() => {
     let cancelled = false
-    getParties()
+    getParties({ type: 'person' })
       .then(all => {
         if (cancelled) return
-        setIndividuals(all.filter(p => p.type === 'Person'))
+        setIndividuals(all)
         setLoading(false)
       })
       .catch(e => {

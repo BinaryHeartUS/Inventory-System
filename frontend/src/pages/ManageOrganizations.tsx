@@ -200,10 +200,10 @@ export default function ManageOrganizations() {
 
   useEffect(() => {
     let cancelled = false
-    getParties()
+    getParties({ type: 'organization' })
       .then(all => {
         if (cancelled) return
-        setOrgs(all.filter(p => p.type === 'Organization'))
+        setOrgs(all)
         setLoading(false)
       })
       .catch(e => {
