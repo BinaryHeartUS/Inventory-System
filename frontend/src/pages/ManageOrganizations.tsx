@@ -6,6 +6,7 @@ import {
   getParties, getParty, createOrg, updateOrg,
 } from '../services/partyService'
 import type { PartySummary, OrgDetail } from '../types/inventory'
+import { formatLocation } from '../types/inventory'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 const inputCls =
@@ -63,14 +64,14 @@ function OrgPanel({
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true); setError(null)
-    const loc = (street || city || state || zipCode || country)
-      ? { street: street || undefined, city: city || undefined, state: state || undefined, zipCode: zipCode || undefined, country: country || undefined }
+    const location = (street || city || state || zipCode || country)
+      ? formatLocation({ street, city, state, zipCode, country })
       : undefined
     const req = {
       name: name.trim(),
       ...(contactName.trim()  ? { contactName:  contactName.trim()  } : {}),
       ...(contactEmail.trim() ? { contactEmail: contactEmail.trim() } : {}),
-      ...(loc ? { location: loc } : {}),
+      ...(location ? { location } : {}),
     }
     try {
       if (isNew) {

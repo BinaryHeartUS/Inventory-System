@@ -99,6 +99,37 @@ export interface AddressForm {
   country: string
 }
 
+// --- Party location helpers --------------------------------------------------
+// PostgreSQL composite format: (street,city,state,zip_code,country)
+// e.g. "(123 Main St,Terre Haute,IN,47803,USA)"
+
+/** Serialize structured address fields into a PostgreSQL composite string. */
+export function formatLocation(a: Partial<AddressForm>): string {
+  return `(${a.street ?? ''},${a.city ?? ''},${a.state ?? ''},${a.zipCode ?? ''},${a.country ?? ''})`
+}
+
+/** Parse a PostgreSQL composite location string into structured fields.
+ *  Returns null if the string is empty, null, or malformed. */
+export function parseLocation(raw: string | null | undefined): AddressForm | null {
+  if (!raw) return null
+  // Strip surrounding parens
+  const inner = raw.replace(/^\(/, '').replace(/\)$/, '')
+  const parts = inner.split(',')
+  if (parts.length < 5) return null
+  const [street, city, state, zipCode, ...rest] = parts
+  const country = rest.join(',') // country may contain a comma theoretically
+  const result: AddressForm = {
+    street:  street.trim(),
+    city:    city.trim(),
+    state:   state.trim(),
+    zipCode: zipCode.trim(),
+    country: country.trim(),
+  }
+  // Return null if all fields are empty (no address provided)
+  if (Object.values(result).every(v => v === '')) return null
+  return result
+}
+
 /** Lightweight summary returned by GET /api/party for all authenticated users. */
 export interface PartySummary {
   id:   number
@@ -106,7 +137,9 @@ export interface PartySummary {
   type: 'Person' | 'Organization'
 }
 
-/** Full person record returned by GET /api/party/{id} (admins only). */
+/** Full person record returned by GET /api/party/{id} (admins only).
+ *  `location` is kept as a parsed AddressForm for UI convenience; the service
+ *  layer handles serialization to/from the PostgreSQL composite string. */
 export interface PersonDetail extends PartySummary {
   type:      'Person'
   email?:    string | null
@@ -123,17 +156,19 @@ export interface OrgDetail extends PartySummary {
 
 export type PartyDetail = PersonDetail | OrgDetail
 
+/** Wire shapes sent to POST /api/party/person and PUT /api/party/person/{id}. */
 export interface CreatePersonRequest {
   name:      string
   email?:    string
-  location?: Partial<AddressForm>
+  location?: string   // PostgreSQL composite: "(street,city,state,zip,country)"
 }
 
+/** Wire shapes sent to POST /api/party/organization and PUT /api/party/organization/{id}. */
 export interface CreateOrgRequest {
   name:          string
   contactName?:  string
   contactEmail?: string
-  location?:     Partial<AddressForm>
+  location?:     string
 }
 
 export type UpdatePersonRequest = CreatePersonRequest

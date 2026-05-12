@@ -6,6 +6,7 @@ import {
   getParties, getParty, createPerson, updatePerson,
 } from '../services/partyService'
 import type { PartySummary, PersonDetail } from '../types/inventory'
+import { formatLocation } from '../types/inventory'
 
 // ─── Style constants ──────────────────────────────────────────────────────────
 const inputCls =
@@ -61,13 +62,13 @@ function PersonPanel({
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true); setError(null)
-    const loc = (street || city || state || zipCode || country)
-      ? { street: street || undefined, city: city || undefined, state: state || undefined, zipCode: zipCode || undefined, country: country || undefined }
+    const location = (street || city || state || zipCode || country)
+      ? formatLocation({ street, city, state, zipCode, country })
       : undefined
     const req = {
       name: name.trim(),
       ...(email.trim() ? { email: email.trim() } : {}),
-      ...(loc ? { location: loc } : {}),
+      ...(location ? { location } : {}),
     }
     try {
       if (isNew) {
