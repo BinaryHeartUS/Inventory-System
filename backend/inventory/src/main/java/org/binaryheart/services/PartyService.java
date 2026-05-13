@@ -2,6 +2,7 @@ package org.binaryheart.services;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
@@ -18,8 +19,19 @@ public class PartyService {
 
     private final PartyRepository repository = new PartyRepository();
 
-    public List<GetPartyResponse> getAllParties() throws SQLException {
-        return repository.getAllParties();
+    public List<GetPartyResponse> getAllParties(boolean getPerson, boolean getOrg) throws SQLException {
+        if (getPerson && getOrg) {
+            // get all parties
+            return repository.getAllParties();
+        } else if (getPerson) {
+            // just get persons
+            return repository.getAllPersons();
+        } else if (getOrg) {
+            // just get organizations
+            return repository.getAllOrganizations();
+        } else {
+            return new ArrayList<GetPartyResponse>(); // empty list
+        }
     }
 
     public GetPartyResponse getParty(int id) throws BadArgumentException, PartyNotFoundException, SQLException {

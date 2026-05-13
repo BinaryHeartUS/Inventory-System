@@ -49,6 +49,10 @@ public class PartyController {
                     name = "BearerAuth") },
             summary = "Retrieve all parties",
             description = "Returns a list of all parties.",
+            queryParams = { @OpenApiParam(
+                    name = "type",
+                    type = String.class,
+                    required = false) },
             responses = { @OpenApiResponse(
                     status = "200",
                     description = "Parties retrieved successfully",
@@ -59,7 +63,14 @@ public class PartyController {
                             description = "Database error") })
     public static void getAllParties(Context ctx) {
         try {
-            List<GetPartyResponse> parties = service.getAllParties();
+            String type = ctx.queryParam("type");
+            boolean getPerson = true;
+            boolean getOrg = true;
+            if (type != null) {
+                getPerson = type.equals("person");
+                getOrg = type.equals("organization");
+            }
+            List<GetPartyResponse> parties = service.getAllParties(getPerson, getOrg);
             ctx.status(200).json(parties.toArray(new GetPartyResponse[0]));
         } catch (SQLException e) {
             ctx.status(500).result("Database error: " + e.getMessage());

@@ -38,6 +38,43 @@ public class PartyRepository {
 		return parties;
 	}
 
+	public List<GetPartyResponse> getAllPersons() throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Persons");
+		ResultSet rs = stmt.executeQuery();
+		List<GetPartyResponse> persons = new ArrayList<>();
+		while (rs.next()) {
+			Integer partyID = rs.getInt("ID");
+			String name = rs.getString("Name");
+			String location = rs.getString("Location");
+			String individualEmail = rs.getString("IndividualEmail");
+			persons.add(new GetPartyResponse(partyID, name, location, individualEmail, null, null));
+		}
+		return persons;
+	}
+
+	public List<GetPartyResponse> getAllOrganizations() throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Organizations");
+		ResultSet rs = stmt.executeQuery();
+		List<GetPartyResponse> orgs = new ArrayList<>();
+		while (rs.next()) {
+			Integer partyID = rs.getInt("ID");
+			String name = rs.getString("Name");
+			String location = rs.getString("Location");
+			String contactName = rs.getString("ContactName");
+			String contactEmail = rs.getString("ContactEmail");
+			orgs.add(new GetPartyResponse(partyID, name, location, null, contactName, contactEmail));
+		}
+		return orgs;
+	}
+
 	public GetPartyResponse getParty(int id) throws SQLException, PartyNotFoundException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
