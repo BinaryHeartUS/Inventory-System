@@ -37,8 +37,8 @@ public class PartyController {
         get("/{id}", PartyController::getParty, AppRole.AUTHENTICATED);
         post("/organization", PartyController::insertOrg, AppRole.AUTHENTICATED);
         post("/person", PartyController::insertPerson, AppRole.AUTHENTICATED);
-        put("/person/{id}", PartyController::updatePerson, AppRole.AUTHENTICATED);
-        put("/organization/{id}", PartyController::updateOrganization, AppRole.AUTHENTICATED);
+        put("/person/{id}", PartyController::updatePerson, AppRole.CHAPTER_ADMIN);
+        put("/organization/{id}", PartyController::updateOrganization, AppRole.CHAPTER_ADMIN);
     }
 
     @OpenApi(
