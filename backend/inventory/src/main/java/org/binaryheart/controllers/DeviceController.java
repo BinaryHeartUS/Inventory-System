@@ -546,7 +546,7 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.insertDesktop(request);
+			service.insertDesktop(request, ctx.attribute("username"));
 			ctx.status(201).result("Desktop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
@@ -607,7 +607,7 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.insertLaptop(request);
+			service.insertLaptop(request, ctx.attribute("username"));
 			ctx.status(201).result("Laptop added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
@@ -667,7 +667,7 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.insertTablet(request);
+			service.insertTablet(request, ctx.attribute("username"));
 			ctx.status(201).result("Tablet added successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
@@ -729,7 +729,7 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.updateDesktop(request);
+			service.updateDesktop(request, ctx.attribute("username"));
 			ctx.status(201).result("Desktop updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
@@ -793,7 +793,7 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.updateLaptop(request);
+			service.updateLaptop(request, ctx.attribute("username"));
 			ctx.status(200).result("Laptop updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
@@ -856,7 +856,7 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.updateTablet(request);
+			service.updateTablet(request, ctx.attribute("username"));
 			ctx.status(200).result("Tablet updated successfully");
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());

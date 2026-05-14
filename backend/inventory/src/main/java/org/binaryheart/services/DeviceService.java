@@ -135,7 +135,7 @@ public class DeviceService {
         }).collect(Collectors.toList());
     }
 
-    public void insertDesktop(InsertDesktopRequest request)
+    public void insertDesktop(InsertDesktopRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null) {
@@ -157,7 +157,7 @@ public class DeviceService {
             throw new BadArgumentException("Asset ID must be positive or not specified");
         }
         try {
-            repository.insertDesktop(request);
+            repository.insertDesktop(request, username);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
@@ -167,7 +167,7 @@ public class DeviceService {
         }
     }
 
-    public void insertLaptop(InsertLaptopRequest request)
+    public void insertLaptop(InsertLaptopRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null
@@ -196,7 +196,7 @@ public class DeviceService {
             throw new BadArgumentException("Actual battery capacity must be non-negative or not specified");
         }
         try {
-            repository.insertLaptop(request);
+            repository.insertLaptop(request, username);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
@@ -206,7 +206,7 @@ public class DeviceService {
         }
     }
 
-    public void insertTablet(InsertTabletRequest request)
+    public void insertTablet(InsertTabletRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null
@@ -229,7 +229,7 @@ public class DeviceService {
             throw new BadArgumentException("Asset ID must be positive or not specified");
         }
         try {
-            repository.insertTablet(request);
+            repository.insertTablet(request, username);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
@@ -239,7 +239,7 @@ public class DeviceService {
         }
     }
 
-    public void updateDesktop(InsertDesktopRequest request)
+    public void updateDesktop(InsertDesktopRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null
@@ -262,7 +262,7 @@ public class DeviceService {
             throw new BadArgumentException("Asset ID must be positive");
         }
         try {
-            repository.updateDesktop(request);
+            repository.updateDesktop(request, username);
         } catch (SQLException e) {
             if ("02000".equals(e.getSQLState())) {
                 throw new DeviceNotFoundException("Could not find desktop with specified ID: " + request.assetId());
@@ -272,7 +272,7 @@ public class DeviceService {
         }
     }
 
-    public void updateLaptop(InsertLaptopRequest request)
+    public void updateLaptop(InsertLaptopRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null
@@ -301,7 +301,7 @@ public class DeviceService {
             throw new BadArgumentException("Actual battery capacity must be non-negative or not specified");
         }
         try {
-            repository.updateLaptop(request);
+            repository.updateLaptop(request, username);
         } catch (SQLException e) {
             if ("02000".equals(e.getSQLState())) {
                 throw new DeviceNotFoundException("Could not find laptop with specified ID: " + request.assetId());
@@ -311,7 +311,7 @@ public class DeviceService {
         }
     }
 
-    public void updateTablet(InsertTabletRequest request)
+    public void updateTablet(InsertTabletRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
         if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
                 || request.model() == null || request.year() == 0 || request.status() == null
@@ -334,7 +334,7 @@ public class DeviceService {
             throw new BadArgumentException("Asset ID must be positive");
         }
         try {
-            repository.updateTablet(request);
+            repository.updateTablet(request, username);
         } catch (SQLException e) {
             if ("02000".equals(e.getSQLState())) {
                 throw new DeviceNotFoundException("Could not find tablet with specified ID: " + request.assetId());
