@@ -2,15 +2,17 @@
  * Part service — CRUD for Part assets.
  *
  * Endpoints (Javalin backend):
- *   GET    /api/parts       → Part[]  (chapter filtering is enforced via JWT claims)
- *   GET    /api/parts/:id   → Part
- *   POST   /api/parts       → Part   (body: Part)
- *   PUT    /api/parts/:id   → Part   (body: Part)
- *   DELETE /api/parts/:id   → 204
+ *   GET    /api/parts                  → Part[]  (chapter filtering is enforced via JWT claims)
+ *   GET    /api/parts/:id              → Part
+ *   GET    /api/parts/:id/changelog    → PartChangelogEntry[]
+ *   POST   /api/parts                  → Part   (body: Part)
+ *   PUT    /api/parts/:id              → Part   (body: Part)
+ *   DELETE /api/parts/:id              → 204
  */
 
 import { apiGet, apiDelete, apiPostVoid, apiPutVoid } from './api'
-import type { InsertPartRequest, Part } from '../types/inventory'
+import type { InsertPartRequest, Part, PartChangelogResponse } from '../types/inventory'
+import type { PartChangelogEntry } from '../types/changelog'
 import { getChapters } from './chapterService'
 
 export async function getParts(): Promise<Part[]> {
@@ -66,4 +68,9 @@ export async function deletePart(id: number): Promise<void> {
 
 export async function getPartsByDevice(deviceId: number): Promise<Part[]> {
   return apiGet<Part[]>(`/parts/device/${deviceId}`)
+}
+
+export async function getPartChangelog(id: number): Promise<PartChangelogEntry[]> {
+  const raw = await apiGet<PartChangelogResponse[]>(`/parts/${id}/changelog`)
+  return raw.map(e => ({ ...e, assetId: e.partID ?? 0 }))
 }
