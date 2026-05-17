@@ -2547,6 +2547,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/parts/{id}/changelog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the service history for a part */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Part ID to retrieve changelog for */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Changelog fetched successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PartChangelogResponse"][];
+                    };
+                };
+                /** @description Non-positive or non-numeric ID provided */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Part not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/party": {
         parameters: {
             query?: never;
@@ -2560,7 +2620,9 @@ export interface paths {
          */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    type?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -2663,6 +2725,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/party/organization/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update an existing organization
+         * @description Updates the organization with the given ID
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Party ID of the organization to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *         "name": "Rose-Hulman Institute of Technology",
+                     *         "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
+                     *         "contactName": "John Smith",
+                     *         "contactEmail": "jsmith@rose-hulman.edu"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["UpdateOrganizationRequest"];
+                };
+            };
+            responses: {
+                /** @description Organization updated successfully */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid ID or missing/invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No party with the given ID exists */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/party/person": {
         parameters: {
             query?: never;
@@ -2726,6 +2861,78 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/party/person/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update an existing person
+         * @description Updates the person with the given ID
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Party ID of the person to update */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *         "name": "Jane Doe",
+                     *         "location": "(456 Elm St, Terre Haute, IN, 47803, USA)",
+                     *         "email": "jane@example.com"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["UpdatePersonRequest"];
+                };
+            };
+            responses: {
+                /** @description Person updated successfully */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid ID or missing/invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description No party with the given ID exists */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3259,6 +3466,17 @@ export interface components {
         UpdateAffiliationRequest: {
             role?: string;
         };
+        UpdateOrganizationRequest: {
+            name?: string;
+            location?: string;
+            contactName?: string;
+            contactEmail?: string;
+        };
+        UpdatePersonRequest: {
+            name?: string;
+            location?: string;
+            email?: string;
+        };
         AccountSummary: {
             /** Format: int32 */
             id: number;
@@ -3346,6 +3564,8 @@ export interface components {
             operatingSystem?: string;
             /** Format: int32 */
             donorId?: number;
+            /** Format: int32 */
+            recipientId?: number;
         };
         GetPartyResponse: {
             /** Format: int32 */
@@ -3408,6 +3628,40 @@ export interface components {
             date?: string;
             /** Format: int32 */
             assetId: number;
+        };
+        PartChangelogResponse: {
+            /** Format: int32 */
+            partID?: number;
+            modifiedBy?: string;
+            /** Format: date-time */
+            modifiedAt?: string;
+            changeType?: string;
+            /** Format: date */
+            oldAcquisitionDate?: string;
+            /** Format: date */
+            newAcquisitionDate?: string;
+            /** Format: double */
+            oldValue?: number;
+            /** Format: double */
+            newValue: number;
+            /** Format: int32 */
+            oldChapterID?: number;
+            /** Format: int32 */
+            newChapterID?: number;
+            /** Format: int32 */
+            oldDonorID?: number;
+            /** Format: int32 */
+            newDonorID?: number;
+            oldType?: string;
+            newType?: string;
+            oldDescription?: string;
+            newDescription?: string;
+            oldWasPurchased?: boolean;
+            newWasPurchased?: boolean;
+            /** Format: int32 */
+            oldContainedIn?: number;
+            /** Format: int32 */
+            newContainedIn?: number;
         };
         PartResponse: {
             /** Format: int32 */

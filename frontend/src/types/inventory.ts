@@ -14,6 +14,7 @@ export type InsertPartRequest        = components["schemas"]["InsertPartRequest"
 export type LoginRequest             = components["schemas"]["LoginRequest"]
 export type PostNoteRequest          = components["schemas"]["PostNoteRequest"]
 export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"]
+export type PartChangelogResponse    = components["schemas"]["PartChangelogResponse"]
 export type Note = Omit<components["schemas"]["NoteResponse"], "text" | "date"> & {
   text: string
   date: string

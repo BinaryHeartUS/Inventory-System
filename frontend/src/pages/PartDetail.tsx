@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { AnyDevice, Part } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
-import { getPart, updatePart, deletePart } from '../services/partService'
+import { getPart, updatePart, deletePart, getPartChangelog } from '../services/partService'
 import { getDevice } from '../services/deviceService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
@@ -20,6 +20,9 @@ import { Breadcrumb } from '../components/Breadcrumb'
 import { DeleteConfirmButton } from '../components/DeleteConfirmButton'
 import { formatDate } from '../utils/dateUtils'
 import { labelCls, inputCls } from '../utils/formStyles'
+import { ModificationLog } from '../components/ModificationLog'
+import { PartModificationModal } from '../components/PartModificationModal'
+import type { PartChangelogEntry } from '../types/changelog'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -48,6 +51,7 @@ export default function PartDetail() {
   const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null)
   const [editParty, setEditParty] = useState<PartySummary | null>(null)
   const [partyPickerOpen, setPartyPickerOpen] = useState(false)
+  const [changelog, setChangelog] = useState<PartChangelogEntry[]>([])
 
   useEffect(() => {
     getPart(numId)
@@ -72,6 +76,10 @@ export default function PartDetail() {
       setLinkedParty(null)
     }
   }, [part?.donorId])
+
+  useEffect(() => {
+    getPartChangelog(numId).then(setChangelog).catch(() => setChangelog([]))
+  }, [numId])
 
   if (loading) return <LoadingSpinner />
 
@@ -105,6 +113,7 @@ export default function PartDetail() {
       const updated = await updatePart(numId, form)
       setPart(updated); setEditing(false); setEditDevice(null); setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      getPartChangelog(numId).then(setChangelog).catch(() => {})
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Save failed', false)
     }
@@ -336,6 +345,14 @@ export default function PartDetail() {
               </>
             )}
           </Section>
+
+          {/* Modification History */}
+          <ModificationLog
+            entries={changelog}
+            detailRenderer={(entry, onClose) => (
+              <PartModificationModal entry={entry} onClose={onClose} />
+            )}
+          />
         </div>
 
         <div className="flex-[1] min-w-64 sticky top-20">
