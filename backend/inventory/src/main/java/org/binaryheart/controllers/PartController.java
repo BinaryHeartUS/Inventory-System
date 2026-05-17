@@ -15,6 +15,7 @@ import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartNotFoundException;
 import org.binaryheart.requests.InsertPartRequest;
+import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
 import org.binaryheart.services.PartService;
 
@@ -29,6 +30,7 @@ public class PartController {
         get("", PartController::getAllParts, AppRole.AUTHENTICATED);
         get("/device/{deviceId}", PartController::getPartsByDevice, AppRole.AUTHENTICATED);
         get("/{id}", PartController::getPart, AppRole.AUTHENTICATED);
+        get("/{id}/changelog", PartController::getPartChangelog, AppRole.AUTHENTICATED);
         delete("/{id}", PartController::deletePart, AppRole.CHAPTER_ADMIN);
         put("/{id}", PartController::updatePart, AppRole.AUTHENTICATED);
         post("", PartController::insertPart, AppRole.AUTHENTICATED);
@@ -277,6 +279,48 @@ public class PartController {
             ctx.status(400).result(e.getMessage());
         } catch (DuplicateKeyException e) {
             ctx.status(409).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+    }
+
+    @OpenApi(
+            path = "/api/parts/{id}/changelog",
+            methods = { HttpMethod.GET },
+            tags = { "Parts" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Get the service history for a part",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    required = true,
+                    description = "Part ID to retrieve changelog for") },
+            responses = { @OpenApiResponse(
+                    status = "200",
+                    description = "Changelog fetched successfully",
+                    content = { @OpenApiContent(
+                            from = PartChangelogResponse[].class) }),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Non-positive or non-numeric ID provided"),
+                    @OpenApiResponse(
+                            status = "404",
+                            description = "Part not found"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void getPartChangelog(Context ctx) {
+        try {
+            List<Integer> userChapterIds = ctx.attribute("chapterIds");
+            int partId = Integer.parseInt(ctx.pathParam("id"));
+            PartChangelogResponse[] changelog = service.getPartChangelog(userChapterIds, partId);
+            ctx.status(200).json(changelog);
+        } catch (NumberFormatException e) {
+            ctx.status(400).result("Part ID must be a positive integer");
+        } catch (MissingRequiredParametersException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (InvalidParameterException e) {
+            ctx.status(404).result(e.getMessage());
         } catch (SQLException e) {
             ctx.status(500).result("Database error: " + e.getMessage());
         }

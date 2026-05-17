@@ -5,11 +5,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 
 import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.requests.InsertPartRequest;
+import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
 
 public class PartRepository {
@@ -168,7 +171,7 @@ public class PartRepository {
                 stmt.setDouble(8, request.value());
             }
             if (request.donorId() == null) {
-                stmt.setNull(9, 0);
+                stmt.setNull(9, java.sql.Types.INTEGER);
             } else {
                 stmt.setInt(9, request.donorId());
             }
@@ -221,7 +224,7 @@ public class PartRepository {
                 stmt.setDouble(8, request.value());
             }
             if (request.donorId() == null) {
-                stmt.setNull(9, 0);
+                stmt.setNull(9, java.sql.Types.INTEGER);
             } else {
                 stmt.setInt(9, request.donorId());
             }
@@ -233,5 +236,71 @@ public class PartRepository {
         } finally {
             conn.setAutoCommit(true);
         }
+    }
+
+    public PartChangelogResponse[] getPartChangelog(Integer partId) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Part_Changelog_By_ID(?)");
+        stmt.setInt(1, partId);
+        stmt.execute();
+
+        ResultSet rs = stmt.getResultSet();
+        ArrayList<PartChangelogResponse> entries = new ArrayList<>();
+        while (rs.next()) {
+            Integer id = rs.getInt("id");
+            String modifiedBy = rs.getString("Modified_By");
+            OffsetDateTime modifiedAt = rs.getObject("Modified_At", OffsetDateTime.class);
+            String changeType = rs.getString("Change_Type");
+
+            LocalDate oldAcquisitionDate = rs.getObject("Old_Acquisition_Date", LocalDate.class);
+            LocalDate newAcquisitionDate = rs.getObject("New_Acquisition_Date", LocalDate.class);
+
+            Double oldValue = rs.getDouble("Old_Value");
+            if (rs.wasNull())
+                oldValue = null;
+            double newValue = rs.getDouble("New_Value");
+
+            Integer oldChapterId = rs.getInt("Old_Chapter_ID");
+            if (rs.wasNull())
+                oldChapterId = null;
+            Integer newChapterId = rs.getInt("New_Chapter_ID");
+            if (rs.wasNull())
+                newChapterId = null;
+
+            Integer oldDonorId = rs.getInt("Old_Donor_ID");
+            if (rs.wasNull())
+                oldDonorId = null;
+            Integer newDonorId = rs.getInt("New_Donor_ID");
+            if (rs.wasNull())
+                newDonorId = null;
+
+            String oldType = rs.getString("Old_type");
+            String newType = rs.getString("New_Type");
+            String oldDescription = rs.getString("Old_Description");
+            String newDescription = rs.getString("New_Description");
+
+            Boolean oldWasPurchased = rs.getBoolean("Old_Was_Purchased");
+            if (rs.wasNull())
+                oldWasPurchased = null;
+            Boolean newWasPurchased = rs.getBoolean("New_Was_Purchased");
+            if (rs.wasNull())
+                newWasPurchased = null;
+
+            Integer oldContainedIn = rs.getInt("Old_Contained_In");
+            if (rs.wasNull())
+                oldContainedIn = null;
+            Integer newContainedIn = rs.getInt("New_Contained_In");
+            if (rs.wasNull())
+                newContainedIn = null;
+
+            entries.add(new PartChangelogResponse(id, modifiedBy, modifiedAt, changeType, oldAcquisitionDate,
+                    newAcquisitionDate, oldValue, newValue, oldChapterId, newChapterId, oldDonorId, newDonorId, oldType,
+                    newType, oldDescription, newDescription, oldWasPurchased, newWasPurchased, oldContainedIn,
+                    newContainedIn));
+        }
+        return entries.toArray(new PartChangelogResponse[0]);
     }
 }

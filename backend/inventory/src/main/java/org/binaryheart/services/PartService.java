@@ -12,6 +12,7 @@ import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartNotFoundException;
 import org.binaryheart.repositories.PartRepository;
 import org.binaryheart.requests.InsertPartRequest;
+import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
 
 public class PartService {
@@ -138,5 +139,20 @@ public class PartService {
                 throw e;
             }
         }
+    }
+
+    public PartChangelogResponse[] getPartChangelog(List<Integer> userChapterIds, Integer partId)
+            throws SQLException, MissingRequiredParametersException, InvalidParameterException {
+        if (partId == null || partId <= 0)
+            throw new MissingRequiredParametersException(
+                    "Non-numeric or non-positive part ID provided, must be positive integer");
+
+        PartResponse part = repository.getPart(partId);
+        if (part == null || (!userChapterIds.contains(part.chapterId())
+                && !userChapterIds.contains(chapterService.getNationalChapterId()))) {
+            throw new InvalidParameterException("Part not found");
+        }
+
+        return repository.getPartChangelog(partId);
     }
 }
