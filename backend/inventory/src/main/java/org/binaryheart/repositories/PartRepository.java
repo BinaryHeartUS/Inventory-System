@@ -107,96 +107,131 @@ public class PartRepository {
         return parts.toArray(new PartResponse[0]);
     }
 
-    public void deletePart(Integer partId) throws SQLException {
+    public void deletePart(Integer partId, String username) throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-
-        PreparedStatement stmt = conn.prepareCall("call Delete_Part(?)");
-        stmt.setInt(1, partId);
-        stmt.execute();
+        conn.setAutoCommit(false);
+        try {
+            PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
+            ps.setString(1, username);
+            ps.execute();
+            PreparedStatement stmt = conn.prepareCall("call Delete_Part(?)");
+            stmt.setInt(1, partId);
+            stmt.execute();
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(true);
+        }
     }
 
-    public void insertPart(InsertPartRequest request) throws SQLException {
+    public void insertPart(InsertPartRequest request, String username) throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        CallableStatement stmt = conn.prepareCall("call Insert_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)");
-        // required parameters
-        stmt.setInt(1, request.chapterId());
-        stmt.setString(2, request.type());
-        stmt.setString(3, request.description());
-        stmt.setBoolean(4, request.wasPurchased());
+        conn.setAutoCommit(false);
+        try {
+            PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
+            ps.setString(1, username);
+            ps.execute();
+            CallableStatement stmt = conn.prepareCall("call Insert_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)");
+            // required parameters
+            stmt.setInt(1, request.chapterId());
+            stmt.setString(2, request.type());
+            stmt.setString(3, request.description());
+            stmt.setBoolean(4, request.wasPurchased());
 
-        // optional parameters
-        if (request.containedIn() == null) {
-            stmt.setNull(5, java.sql.Types.INTEGER);
-        } else {
-            stmt.setInt(5, request.containedIn());
+            // optional parameters
+            if (request.containedIn() == null) {
+                stmt.setNull(5, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(5, request.containedIn());
+            }
+            if (request.id() == null) {
+                stmt.setNull(6, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(6, request.id());
+            }
+            if (request.acquisitionDate() == null) {
+                stmt.setNull(7, java.sql.Types.DATE);
+            } else {
+                stmt.setDate(7, java.sql.Date.valueOf(request.acquisitionDate()));
+            }
+            if (request.value() == null) {
+                stmt.setDouble(8, 0);
+            } else {
+                stmt.setDouble(8, request.value());
+            }
+            if (request.donorId() == null) {
+                stmt.setNull(9, 0);
+            } else {
+                stmt.setInt(9, request.donorId());
+            }
+            stmt.execute();
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(true);
         }
-        if (request.id() == null) {
-            stmt.setNull(6, java.sql.Types.INTEGER);
-        } else {
-            stmt.setInt(6, request.id());
-        }
-        if (request.acquisitionDate() == null) {
-            stmt.setNull(7, java.sql.Types.DATE);
-        } else {
-            stmt.setDate(7, java.sql.Date.valueOf(request.acquisitionDate()));
-        }
-        if (request.value() == null) {
-            stmt.setDouble(8, 0);
-        } else {
-            stmt.setDouble(8, request.value());
-        }
-        if (request.donorId() == null) {
-            stmt.setNull(9, 0);
-        } else {
-            stmt.setInt(9, request.donorId());
-        }
-        stmt.execute();
     }
 
-    public void updatePart(InsertPartRequest request) throws SQLException {
+    public void updatePart(InsertPartRequest request, String username) throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
         }
         Connection conn = DatabaseConnectionService.getConnection();
-        CallableStatement stmt = conn.prepareCall("call Update_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)");
-        // required parameters
-        stmt.setInt(1, request.chapterId());
-        stmt.setString(2, request.type());
-        stmt.setString(3, request.description());
-        stmt.setBoolean(4, request.wasPurchased());
+        conn.setAutoCommit(false);
+        try {
+            PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
+            ps.setString(1, username);
+            ps.execute();
+            CallableStatement stmt = conn.prepareCall("call Update_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)");
+            // required parameters
+            stmt.setInt(1, request.chapterId());
+            stmt.setString(2, request.type());
+            stmt.setString(3, request.description());
+            stmt.setBoolean(4, request.wasPurchased());
 
-        // optional parameters
-        if (request.containedIn() == null) {
-            stmt.setNull(5, java.sql.Types.INTEGER);
-        } else {
-            stmt.setInt(5, request.containedIn());
+            // optional parameters
+            if (request.containedIn() == null) {
+                stmt.setNull(5, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(5, request.containedIn());
+            }
+            if (request.id() == null) {
+                stmt.setNull(6, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(6, request.id());
+            }
+            if (request.acquisitionDate() == null) {
+                stmt.setNull(7, java.sql.Types.DATE);
+            } else {
+                stmt.setDate(7, java.sql.Date.valueOf(request.acquisitionDate()));
+            }
+            if (request.value() == null) {
+                stmt.setDouble(8, 0);
+            } else {
+                stmt.setDouble(8, request.value());
+            }
+            if (request.donorId() == null) {
+                stmt.setNull(9, 0);
+            } else {
+                stmt.setInt(9, request.donorId());
+            }
+            stmt.execute();
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(true);
         }
-        if (request.id() == null) {
-            stmt.setNull(6, java.sql.Types.INTEGER);
-        } else {
-            stmt.setInt(6, request.id());
-        }
-        if (request.acquisitionDate() == null) {
-            stmt.setNull(7, java.sql.Types.DATE);
-        } else {
-            stmt.setDate(7, java.sql.Date.valueOf(request.acquisitionDate()));
-        }
-        if (request.value() == null) {
-            stmt.setDouble(8, 0);
-        } else {
-            stmt.setDouble(8, request.value());
-        }
-        if (request.donorId() == null) {
-            stmt.setNull(9, 0);
-        } else {
-            stmt.setInt(9, request.donorId());
-        }
-        stmt.execute();
     }
 }
