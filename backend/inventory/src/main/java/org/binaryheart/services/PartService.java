@@ -57,7 +57,7 @@ public class PartService {
         return List.of(parts).stream().filter(p -> userChapterIds.contains(p.chapterId())).toArray(PartResponse[]::new);
     }
 
-    public void deletePart(List<Integer> userChapterIds, Integer partId)
+    public void deletePart(List<Integer> userChapterIds, Integer partId, String username)
             throws SQLException, InvalidParameterException {
         if (partId == null || partId < 0)
             throw new InvalidParameterException(
@@ -66,13 +66,13 @@ public class PartService {
         PartResponse part = repository.getPart(partId);
         if ((part != null && userChapterIds.contains(part.chapterId()))
                 || userChapterIds.contains(chapterService.getNationalChapterId())) {
-            repository.deletePart(partId);
+            repository.deletePart(partId, username);
         } else {
             throw new InvalidParameterException("Part not found");
         }
     }
 
-    public void updatePart(InsertPartRequest request)
+    public void updatePart(InsertPartRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, PartNotFoundException, SQLException {
         if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
                 || request.wasPurchased() == null || request.description() == null
@@ -96,7 +96,7 @@ public class PartService {
         }
 
         try {
-            repository.updatePart(request);
+            repository.updatePart(request, username);
         } catch (SQLException e) {
             if ("02000".equals(e.getSQLState())) {
                 throw new PartNotFoundException("Could not find part with specified ID: " + request.id());
@@ -106,7 +106,7 @@ public class PartService {
         }
     }
 
-    public void insertPart(InsertPartRequest request)
+    public void insertPart(InsertPartRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
         if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
                 || request.wasPurchased() == null || request.description() == null
@@ -130,7 +130,7 @@ public class PartService {
         }
 
         try {
-            repository.insertPart(request);
+            repository.insertPart(request, username);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.id());

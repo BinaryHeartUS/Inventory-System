@@ -127,7 +127,7 @@ public class PartController {
     public static void deletePart(Context ctx) {
         try {
             List<Integer> userChapterIds = ctx.attribute("chapterIds");
-            service.deletePart(userChapterIds, Integer.parseInt(ctx.pathParam("id")));
+            service.deletePart(userChapterIds, Integer.parseInt(ctx.pathParam("id")), ctx.attribute("username"));
             ctx.status(204);
         } catch (SQLException e) {
             ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
@@ -182,7 +182,7 @@ public class PartController {
 
         try {
             AuthController.requireChapterEditAccess(ctx, request.chapterId());
-            service.updatePart(request);
+            service.updatePart(request, ctx.attribute("username"));
             ctx.status(201).result("Part updated successfully");
         } catch (MissingRequiredParametersException | BadArgumentException e) {
             ctx.status(400).result(e.getMessage());
@@ -271,7 +271,7 @@ public class PartController {
 
         try {
             AuthController.requireChapterEditAccess(ctx, request.chapterId());
-            service.insertPart(request);
+            service.insertPart(request, ctx.attribute("username"));
             ctx.status(201).result("Part added successfully");
         } catch (MissingRequiredParametersException | BadArgumentException e) {
             ctx.status(400).result(e.getMessage());
