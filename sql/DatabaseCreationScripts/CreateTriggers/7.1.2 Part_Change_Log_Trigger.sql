@@ -1,10 +1,10 @@
-CREATE OR REPLACE FUNCTION Update_Asset_Change_Log()
+CREATE OR REPLACE FUNCTION Update_Part_Change_Log()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO Asset_Change_Log(Asset_ID, Modified_By, Change_Type,
+        INSERT INTO Part_Change_Log(Part_ID, Modified_By, Change_Type,
             New_Type_ID, New_Description, New_Was_Purchased, New_Contained_In)
         VALUES (NEW.ID, COALESCE(current_setting('app.current_username', true), current_user),
             'Insert', NEW.Type_ID, NEW.Description, NEW.Was_Purchased, NEW.Contained_In);
@@ -13,7 +13,7 @@ BEGIN
            OLD.Description IS DISTINCT FROM NEW.Description OR
            OLD.Was_Purchased IS DISTINCT FROM NEW.Was_Purchased OR
            OLD.Contained_In IS DISTINCT FROM NEW.Contained_In THEN
-            INSERT INTO Asset_Change_Log(Asset_ID, Modified_By, Change_Type,
+            INSERT INTO Part_Change_Log(Part_ID, Modified_By, Change_Type,
                 Old_Type_ID, New_Type_ID,
                 Old_Description, New_Description,
                 Old_Was_Purchased, New_Was_Purchased,
@@ -33,7 +33,7 @@ BEGIN
             );
         END IF;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO Asset_Change_Log(Asset_ID, Modified_By, Change_Type,
+        INSERT INTO Part_Change_Log(Part_ID, Modified_By, Change_Type,
             Old_Type_ID, Old_Description, Old_Was_Purchased, Old_Contained_In)
         VALUES (OLD.ID, COALESCE(current_setting('app.current_username', true), current_user),
             'Delete', OLD.Type_ID, OLD.Description, OLD.Was_Purchased, OLD.Contained_In);
@@ -42,7 +42,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER Trg_Update_Asset_Change_Log
-    AFTER INSERT OR UPDATE OR DELETE ON Asset
+CREATE OR REPLACE TRIGGER Trg_Update_Part_Change_Log
+    AFTER INSERT OR UPDATE OR DELETE ON Part
     FOR EACH ROW
-    EXECUTE FUNCTION Update_Asset_Change_Log();
+    EXECUTE FUNCTION Update_Part_Change_Log();

@@ -1,6 +1,6 @@
-CREATE TABLE IF NOT EXISTS Asset_Change_Log (
+CREATE TABLE IF NOT EXISTS Part_Change_Log (
     ID INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    Asset_ID INTEGER NOT NULL,
+    Part_ID INTEGER NOT NULL,
     Modified_By Name_Type NOT NULL,
     Modified_At TIMESTAMPTZ DEFAULT now(),
     transaction_id BIGINT NOT NULL DEFAULT txid_current(),
