@@ -1,0 +1,13 @@
+CREATE OR REPLACE FUNCTION Update_Desktop_Change_Log()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER Trg_Update_Desktop_Change_Log
+    AFTER INSERT OR UPDATE OR DELETE ON Desktop
+    FOR EACH ROW
+    EXECUTE FUNCTION Update_Desktop_Change_Log();
