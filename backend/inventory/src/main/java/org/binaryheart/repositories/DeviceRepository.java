@@ -21,6 +21,7 @@ import org.binaryheart.responses.AvgTimeInInventoryResponse;
 import org.binaryheart.responses.ChapterActivityStatsResponse;
 import org.binaryheart.responses.CompletionRateResponse;
 import org.binaryheart.responses.DashboardCountsResponse;
+import org.binaryheart.responses.DeviceChangelogResponse;
 import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.responses.MonthlyCountPoint;
 import org.binaryheart.responses.MonthlyValuePoint;
@@ -776,5 +777,23 @@ public class DeviceRepository {
         } finally {
             conn.setAutoCommit(true);
         }
+    }
+
+    public DeviceChangelogResponse[] getDeviceChangelog(Integer deviceID) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Device_Changelog_By_ID(?)");
+        stmt.setInt(1, deviceID);
+
+        ResultSet rs = stmt.executeQuery();
+        ArrayList<DeviceChangelogResponse> entries = new ArrayList<>();
+        while (rs.next()) {
+            // extract the device changelog fields
+
+            // entries.add(new DeviceChangelogResponse());
+        }
+        return entries.toArray(new DeviceChangelogResponse[0]);
     }
 }

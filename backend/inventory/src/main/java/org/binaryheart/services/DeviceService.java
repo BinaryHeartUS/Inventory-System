@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.binaryheart.responses.ChapterActivityStatsResponse;
 import org.binaryheart.responses.ChapterSummary;
 import org.binaryheart.responses.CompletionRateResponse;
 import org.binaryheart.responses.DashboardCountsResponse;
+import org.binaryheart.responses.DeviceChangelogResponse;
 import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.responses.MonthlyCountPoint;
 import org.binaryheart.responses.MonthlyValuePoint;
@@ -342,5 +344,21 @@ public class DeviceService {
                 throw e;
             }
         }
+    }
+
+    public DeviceChangelogResponse[] getDeviceChangelog(List<Integer> userChapterIds, Integer deviceID)
+            throws SQLException, MissingRequiredParametersException, InvalidParameterException {
+        if (deviceID == null || deviceID <= 0)
+            throw new MissingRequiredParametersException(
+                    "Non-numeric or non-positive device ID provided, must be a positive integer");
+
+        GetDeviceResponse device = repository.getDevice(deviceID);
+        Integer chapterID = chapterService.getChapterIdByName(device.chapter());
+        if (device == null || (!userChapterIds.contains(chapterID)
+                && !userChapterIds.contains(chapterService.getNationalChapterId()))) {
+            throw new InvalidParameterException("Device not found");
+        }
+
+        return repository.getDeviceChangelog(deviceID);
     }
 }

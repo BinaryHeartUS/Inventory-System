@@ -5,6 +5,7 @@ import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.put;
 
+import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +24,7 @@ import org.binaryheart.responses.AvgTimeInInventoryResponse;
 import org.binaryheart.responses.ChapterActivityStatsResponse;
 import org.binaryheart.responses.CompletionRateResponse;
 import org.binaryheart.responses.DashboardCountsResponse;
+import org.binaryheart.responses.DeviceChangelogResponse;
 import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.responses.MonthlyCountPoint;
 import org.binaryheart.responses.MonthlyValuePoint;
@@ -56,6 +58,7 @@ public class DeviceController {
 			get("/donated-value", DeviceController::getDonatedDeviceValue, AppRole.AUTHENTICATED);
 		});
 		get("/{id}", DeviceController::getDevice, AppRole.AUTHENTICATED);
+		get("/{id}/changelog", DeviceController::getDeviceChangelog, AppRole.AUTHENTICATED);
 		get("", DeviceController::getAllDevices, AppRole.AUTHENTICATED);
 		post("/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
 		post("/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
@@ -861,6 +864,48 @@ public class DeviceController {
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
+			ctx.status(404).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
+
+	@OpenApi(
+			path = "/api/devices/{id}/changelog",
+			methods = { HttpMethod.GET },
+			tags = { "Devices" },
+			security = { @OpenApiSecurity(
+					name = "BearerAuth") },
+			summary = "Get the service history for a device",
+			pathParams = { @OpenApiParam(
+					name = "id",
+					required = true,
+					description = "Device ID for which to retrieve changelog") },
+			responses = { @OpenApiResponse(
+					status = "200",
+					description = "Changelog fetched successfully",
+					content = { @OpenApiContent(
+							from = DeviceChangelogResponse[].class) }),
+					@OpenApiResponse(
+							status = "400",
+							description = "Non-positive or non-numeric ID provided"),
+					@OpenApiResponse(
+							status = "404",
+							description = "Device not found"),
+					@OpenApiResponse(
+							status = "500",
+							description = "Database error") })
+	public static void getDeviceChangelog(Context ctx) {
+		try {
+			List<Integer> userChapterIds = ctx.attribute("chapterIds");
+			int deviceID = Integer.parseInt(ctx.pathParam("id"));
+			DeviceChangelogResponse[] changelog = service.getDeviceChangelog(userChapterIds, deviceID);
+			ctx.status(200).json(changelog);
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Device ID must be a positive integer");
+		} catch (MissingRequiredParametersException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (InvalidParameterException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
