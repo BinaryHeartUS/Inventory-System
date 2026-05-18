@@ -38,7 +38,7 @@ RETURNS TABLE (
     Old_HasWifi BOOLEAN,
     New_HasWifi BOOLEAN,
     Old_Includes_Charger CHARGER_STATUS,
-    New_Includes_Charger CHARGER_STATUS
+    New_Includes_Charger CHARGER_STATUS,
     Old_Design_Capacity INTEGER,
     New_Design_Capacity INTEGER,
     Old_Actual_Capacity INTEGER,
