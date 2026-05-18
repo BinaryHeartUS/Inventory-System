@@ -1,7 +1,7 @@
 DROP FUNCTION IF EXISTS Get_Device_Type;
 
 CREATE OR REPLACE FUNCTION Get_Device_Type (
-	p_deviceID INTEGER,
+	p_deviceID INTEGER
 )
 RETURNS VARCHAR(10)
 LANGUAGE plpgsql
