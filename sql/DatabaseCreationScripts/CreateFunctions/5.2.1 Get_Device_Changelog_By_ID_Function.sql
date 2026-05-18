@@ -12,9 +12,9 @@ RETURNS TABLE (
     Old_Acquisition_Date DATE,
     New_Acquisition_Date DATE,
     Old_Value MONEY,
-    New_Value MONEY
+    New_Value MONEY,
     Old_Chapter_ID INTEGER,
-    New_Chapter_ID INTEGER
+    New_Chapter_ID INTEGER,
     Old_Donor_ID INTEGER,
     New_Donor_ID INTEGER,
     Old_Manufacturer VARCHAR(50),
@@ -121,6 +121,6 @@ BEGIN
     LEFT JOIN Storage_Type newStorage_Type ON deviceLog.New_Storage_Type_ID = newStorage_Type.ID
     LEFT JOIN Operating_System oldOS ON deviceLog.Old_OS_ID = oldOS.ID
     LEFT JOIN Operating_System newOS ON deviceLog.New_OS_ID = newOS.ID
-    WHERE deviceLog.Device_ID = p_assetID
+    WHERE deviceLog.Device_ID = p_assetID;
 END;
 $$;
