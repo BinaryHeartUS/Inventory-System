@@ -1,23 +1,27 @@
 DROP FUNCTION IF EXISTS Get_Device_Type;
 
 CREATE OR REPLACE FUNCTION Get_Device_Type (
-	p_desktopID INTEGER,
-	p_laptopID INTEGER,
-	p_tabletID INTEGER
+	p_deviceID INTEGER,
 )
 RETURNS VARCHAR(10)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-	IF p_desktopID IS NOT NULL THEN
+	IF ((SELECT COUNT(*)
+		FROM Desktop d
+		WHERE d.ID = p_deviceID) > 0) THEN
 		RETURN 'Desktop';
 	END IF;
 
-	IF p_laptopID IS NOT NULL THEN
+	IF ((SELECT COUNT(*)
+		FROM Laptop l
+		WHERE l.ID = p_deviceID) > 0) THEN
 		RETURN 'Laptop';
 	END IF;
 
-	IF p_tabletID IS NOT NULL THEN
+	IF ((SELECT COUNT(*)
+		FROM Tablet t
+		WHERE t.ID = p_deviceID) > 0) THEN
 		RETURN 'Tablet';
 	END IF;
 
