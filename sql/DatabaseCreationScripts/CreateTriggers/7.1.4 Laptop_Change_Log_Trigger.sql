@@ -1,0 +1,13 @@
+CREATE OR REPLACE FUNCTION Update_Laptop_Change_Log()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER Trg_Update_Laptop_Change_Log
+    AFTER INSERT OR UPDATE OR DELETE ON Laptop
+    FOR EACH ROW
+    EXECUTE FUNCTION Update_Laptop_Change_Log();
