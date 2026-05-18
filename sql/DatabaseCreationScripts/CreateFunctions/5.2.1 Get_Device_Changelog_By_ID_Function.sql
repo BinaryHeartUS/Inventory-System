@@ -60,10 +60,10 @@ BEGIN
     RETURN QUERY
     SELECT
         Get_Device_Type(deviceLog.device_ID) as type,
-        deviceLog.Device_ID,
-        deviceLog.Modified_By,
-        deviceLog.Modified_At,
-        deviceLog.Change_Type,
+        COALESCE(deviceLog.Device_ID, assetLog.Asset_ID, desktopLog.Desktop_ID, laptopLog.Laptop_ID, tabletLog.Tablet_ID) AS Device_ID,
+        COALESCE(deviceLog.Modified_By, assetLog.Modified_By, desktopLog.Modified_By, laptopLog.Modified_By, tabletLog.Modified_By) AS Modified_By,
+        COALESCE(deviceLog.Modified_At, assetLog.Modified_At, desktopLog.Modified_At, laptopLog.Modified_At, tabletLog.Modified_At) AS Modified_At,
+        COALESCE(deviceLog.Change_Type, assetLog.Change_Type, desktopLog.Change_Type, laptopLog.Change_Type, tabletLog.Change_Type) AS Change_Type,
         assetLog.Old_Acquisition_Date,
         assetLog.New_Acquisition_Date,
         assetLog.Old_Value,
