@@ -30,10 +30,10 @@ AS $$
 BEGIN
     RETURN QUERY
     SELECT
-        partLog.Part_ID,
-        partLog.Modified_By,
-        partLog.Modified_At,
-        partLog.Change_Type,
+        COALESCE(partLog.Part_ID, assetLog.Asset_ID) AS id,
+        COALESCE(partLog.Modified_By, assetLog.Modified_By) AS Modified_By,
+        COALESCE(partLog.Modified_At, assetLog.Modified_At) AS Modified_At,
+        COALESCE(partLog.Change_Type, assetLog.Change_Type) AS Change_Type,
         assetLog.Old_Acquisition_Date,
         assetLog.New_Acquisition_Date,
         assetLog.Old_Value,
@@ -50,10 +50,10 @@ BEGIN
         partLog.New_Was_Purchased,
         partLog.Old_Contained_In,
         partLog.New_Contained_In
-    FROM Part_Change_Log partLog
-    LEFT JOIN Asset_Change_Log assetLog ON partLog.transaction_id = assetLog.transaction_id
-    LEFT JOIN Part_Type oldType ON partLog.Old_Type_ID = oldType.ID
-    LEFT JOIN Part_Type newType ON partLog.New_Type_ID = newType.ID
-    WHERE partLog.Part_ID = p_assetID;
+    FROM Asset_Change_Log assetLog
+    FULL JOIN Part_Change_Log partLog ON partLog.transaction_id = assetLog.transaction_id
+    FULL JOIN Part_Type oldType ON partLog.Old_Type_ID = oldType.ID
+    FULL JOIN Part_Type newType ON partLog.New_Type_ID = newType.ID
+    WHERE partLog.Part_ID = p_assetID OR assetLog.Asset_ID = p_assetID;
 END;
 $$;

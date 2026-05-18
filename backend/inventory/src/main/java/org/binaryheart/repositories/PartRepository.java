@@ -261,7 +261,9 @@ public class PartRepository {
             Double oldValue = rs.getDouble("Old_Value");
             if (rs.wasNull())
                 oldValue = null;
-            double newValue = rs.getDouble("New_Value");
+            Double newValue = rs.getDouble("New_Value");
+            if (rs.wasNull())
+                newValue = null;
 
             Integer oldChapterId = rs.getInt("Old_Chapter_ID");
             if (rs.wasNull())
