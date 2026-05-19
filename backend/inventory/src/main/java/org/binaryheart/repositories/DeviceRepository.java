@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -791,8 +792,107 @@ public class DeviceRepository {
         ArrayList<DeviceChangelogResponse> entries = new ArrayList<>();
         while (rs.next()) {
             // extract the device changelog fields
-
-            // entries.add(new DeviceChangelogResponse());
+            String deviceType = rs.getString("Device_Type");
+            Integer ID = rs.getInt("Device_ID");
+            String modifiedBy = rs.getString("Modified_By");
+            OffsetDateTime modifiedAt = rs.getObject("Modified_At", OffsetDateTime.class);
+            String changeType = rs.getString("Change_Type");
+            LocalDate oldAcquisitionDate = rs.getObject("Old_Acquisition_Date", LocalDate.class);
+            LocalDate newAcquisitionDate = rs.getObject("New_Acquisition_Date", LocalDate.class);
+            Double oldValue = rs.getDouble("Old_Value");
+            if (rs.wasNull())
+                oldValue = null;
+            Double newValue = rs.getDouble("New_Value");
+            if (rs.wasNull())
+                newValue = null;
+            Integer oldChapterID = rs.getInt("Old_Chapter_ID");
+            if (rs.wasNull())
+                oldChapterID = null;
+            Integer newChapterID = rs.getInt("New_Chapter_ID");
+            if (rs.wasNull())
+                newChapterID = null;
+            Integer oldDonorID = rs.getInt("Old_Donor_ID");
+            if (rs.wasNull())
+                oldDonorID = null;
+            Integer newDonorID = rs.getInt("New_Donor_ID");
+            if (rs.wasNull())
+                newDonorID = null;
+            String oldManf = rs.getString("Old_Manufacturer");
+            String newManf = rs.getString("New_Manufacturer");
+            String oldModel = rs.getString("Old_Model");
+            String newModel = rs.getString("New_Model");
+            Integer oldYear = rs.getInt("Old_Year");
+            if (rs.wasNull())
+                oldYear = null;
+            Integer newYear = rs.getInt("New_Year");
+            if (rs.wasNull())
+                newYear = null;
+            String oldCPU = rs.getString("Old_CPU");
+            String newCPU = rs.getString("New_CPU");
+            Integer oldRam = rs.getInt("Old_RAM");
+            if (rs.wasNull())
+                oldRam = null;
+            Integer newRam = rs.getInt("New_RAM");
+            if (rs.wasNull())
+                newRam = null;
+            String oldRamGeneration = rs.getString("Old_RAM_Generation");
+            String newRamGeneration = rs.getString("New_RAM_Generation");
+            Integer oldStorageAmount = rs.getInt("Old_Storage_Amount");
+            if (rs.wasNull())
+                oldStorageAmount = null;
+            Integer newStorageAmount = rs.getInt("New_Storage_Amount");
+            if (rs.wasNull())
+                newStorageAmount = null;
+            String oldStorageType = rs.getString("Old_Storage_Type");
+            String newStorageType = rs.getString("New_Storage_Type");
+            String oldStatus = rs.getString("Old_Status");
+            String newStatus = rs.getString("New_Status");
+            Boolean oldHasWifi = rs.getBoolean("Old_HasWifi");
+            if (rs.wasNull())
+                oldHasWifi = null;
+            Boolean newHasWifi = rs.getBoolean("New_HasWifi");
+            if (rs.wasNull())
+                newHasWifi = null;
+            String oldIncludesCharger = rs.getString("Old_Includes_Charger");
+            String newIncludesCharger = rs.getString("New_Includes_Charger");
+            Integer oldDesignCap = rs.getInt("Old_Design_Capacity");
+            if (rs.wasNull())
+                oldDesignCap = null;
+            Integer newDesignCap = rs.getInt("New_Design_Capacity");
+            if (rs.wasNull())
+                newDesignCap = null;
+            Integer oldActualCap = rs.getInt("Old_Actual_Capacity");
+            if (rs.wasNull())
+                oldActualCap = null;
+            Integer newActualCap = rs.getInt("New_Actual_Capacity");
+            if (rs.wasNull())
+                newActualCap = null;
+            Double oldBatteryHealth = rs.getDouble("Old_Battery_Health");
+            if (rs.wasNull())
+                oldBatteryHealth = null;
+            Double newBatteryHealth = rs.getDouble("New_Battery_Health");
+            if (rs.wasNull())
+                newBatteryHealth = null;
+            String oldWorkingBattery = rs.getString("Old_Working_Battery");
+            String newWorkingBattery = rs.getString("New_Working_Battery");
+            LocalDate oldDonatedDate = rs.getObject("Old_Donated_Date", LocalDate.class);
+            LocalDate newDonatedDate = rs.getObject("New_Donated_Date", LocalDate.class);
+            String oldOS = rs.getString("Old_Operating_System");
+            String newOS = rs.getString("New_Operating_System");
+            Integer oldRecipientID = rs.getInt("Old_Recipient_ID");
+            if (rs.wasNull())
+                oldRecipientID = null;
+            Integer newRecipientID = rs.getInt("New_Recipient_ID");
+            if (rs.wasNull())
+                newRecipientID = null;
+            entries.add(new DeviceChangelogResponse(deviceType, ID, modifiedBy, modifiedAt, changeType,
+                    oldAcquisitionDate, newAcquisitionDate, oldValue, newValue, oldChapterID, newChapterID, oldDonorID,
+                    newDonorID, oldManf, newManf, oldModel, newModel, oldYear, newYear, oldCPU, newCPU, oldRam, newRam,
+                    oldRamGeneration, newRamGeneration, oldStorageAmount, newStorageAmount, oldStorageType,
+                    newStorageType, oldStatus, newStatus, oldHasWifi, newHasWifi, oldIncludesCharger,
+                    newIncludesCharger, oldDesignCap, newDesignCap, oldActualCap, newActualCap, oldBatteryHealth,
+                    newBatteryHealth, oldWorkingBattery, newWorkingBattery, oldDonatedDate, newDonatedDate, oldOS,
+                    newOS, oldRecipientID, newRecipientID));
         }
         return entries.toArray(new DeviceChangelogResponse[0]);
     }
