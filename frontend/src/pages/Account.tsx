@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useChapters } from '../context/ChapterContext'
+import { getStoredToken } from '../services/authService'
+import { updatePassword } from '../services/accountService'
 import PageHeading from '../components/PageHeading'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -42,8 +44,10 @@ export default function Account() {
 
     setPwLoading(true)
     try {
-      // TODO: wire to PUT /api/auth/password when backend endpoint is ready
-      await new Promise(r => setTimeout(r, 400)) // simulate request
+      const token = getStoredToken()
+      if (!token) throw new Error('Not authenticated')
+      const volunteerId = Number(JSON.parse(atob(token.split('.')[1])).sub)
+      await updatePassword(volunteerId, newPassword)
       setPwSuccess(true)
       setCurrentPassword('')
       setNewPassword('')
