@@ -9,7 +9,9 @@ import java.util.Set;
 import org.binaryheart.auth.EncryptionHelper;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.models.ChapterRole;
+import org.binaryheart.models.VolunteerCredentials;
 import org.binaryheart.repositories.AccountRepository;
+import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.requests.AddAffiliationRequest;
 import org.binaryheart.requests.CreateAccountRequest;
 import org.binaryheart.requests.UpdateAffiliationRequest;
@@ -140,9 +142,25 @@ public class AccountService {
         repository.deleteVolunteer(targetId);
     }
 
-    public void updatePassword(int volunteerId, UpdatePasswordRequest request) throws SQLException {
+    public void updatePassword(int volunteerId, String username, UpdatePasswordRequest request) throws SQLException {
         if (request.newPassword() == null || request.newPassword().isBlank()) {
             throw new IllegalArgumentException("New password is required");
+        }
+
+        AuthRepository authRepo = new AuthRepository();
+        VolunteerCredentials credentials = authRepo.findByUsername(username);
+
+        boolean currentPasswordValid;
+        try {
+            currentPasswordValid = EncryptionHelper
+                    .hashPassword(EncryptionHelper.DECODER.decode(credentials.passwordSalt()), request.currentPassword())
+                    .equals(credentials.passwordHash());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid current password");
+        }
+
+        if (!currentPasswordValid) {
+            throw new IllegalArgumentException("Current password is incorrect");
         }
 
         byte[] passwordSalt = EncryptionHelper.getNewSalt();

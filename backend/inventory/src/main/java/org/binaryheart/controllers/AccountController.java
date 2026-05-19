@@ -159,6 +159,7 @@ public class AccountController {
                             from = UpdatePasswordRequest.class,
                             example = """
                                     {
+                                        "currentPassword": "oldPassword123",
                                         "newPassword": "12345678"
                                     }
                                     """) }),
@@ -186,7 +187,7 @@ public class AccountController {
         UpdatePasswordRequest request = ctx.bodyAsClass(UpdatePasswordRequest.class);
 
         try {
-            service.updatePassword(volunteerId, request);
+            service.updatePassword(volunteerId, ctx.attribute("username"), request);
             ctx.status(204);
         } catch (IllegalArgumentException e) {
             ctx.status(400).result(e.getMessage());

@@ -47,7 +47,7 @@ export default function Account() {
       const token = getStoredToken()
       if (!token) throw new Error('Not authenticated')
       const volunteerId = Number(JSON.parse(atob(token.split('.')[1])).sub)
-      await updatePassword(volunteerId, newPassword)
+      await updatePassword(volunteerId, currentPassword, newPassword)
       setPwSuccess(true)
       setCurrentPassword('')
       setNewPassword('')
