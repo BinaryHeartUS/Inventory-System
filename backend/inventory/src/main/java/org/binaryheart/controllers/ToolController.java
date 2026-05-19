@@ -3,6 +3,7 @@ package org.binaryheart.controllers;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 
+import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.ToolNotFoundException;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
+import org.binaryheart.responses.ToolChangelogResponse;
 import org.binaryheart.services.ToolService;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
@@ -27,6 +29,7 @@ public class ToolController {
     public static void registerRoutes() {
         get("", ToolController::getAllTools, AppRole.AUTHENTICATED);
         get("/{id}", ToolController::getTool, AppRole.AUTHENTICATED);
+        get("/{id}/changelog", ToolController::getToolChangelog, AppRole.AUTHENTICATED);
         post("", ToolController::insertTool, AppRole.AUTHENTICATED);
         put("/{id}", ToolController::updateTool, AppRole.AUTHENTICATED);
         delete("/{id}", ToolController::deleteTool, AppRole.CHAPTER_ADMIN);
@@ -234,6 +237,48 @@ public class ToolController {
         } catch (MissingRequiredParametersException | BadArgumentException e) {
             ctx.status(400).result(e.getMessage());
         } catch (ToolNotFoundException e) {
+            ctx.status(404).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: " + e.getMessage());
+        }
+    }
+
+    @OpenApi(
+            path = "/api/tools/{id}/changelog",
+            methods = { HttpMethod.GET },
+            tags = { "Tools" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Get the changelog for a tool",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    required = true,
+                    description = "Tool ID to retrieve changelog for") },
+            responses = { @OpenApiResponse(
+                    status = "200",
+                    description = "Changelog fetched successfully",
+                    content = { @OpenApiContent(
+                            from = ToolChangelogResponse[].class) }),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Non-positive or non-numeric ID provided"),
+                    @OpenApiResponse(
+                            status = "404",
+                            description = "Tool not found"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void getToolChangelog(Context ctx) {
+        try {
+            List<Integer> userChapterIds = ctx.attribute("chapterIds");
+            int toolId = Integer.parseInt(ctx.pathParam("id"));
+            ToolChangelogResponse[] changelog = service.getToolChangelog(userChapterIds, toolId);
+            ctx.status(200).json(changelog);
+        } catch (NumberFormatException e) {
+            ctx.status(400).result("Tool ID must be a positive integer");
+        } catch (MissingRequiredParametersException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (InvalidParameterException e) {
             ctx.status(404).result(e.getMessage());
         } catch (SQLException e) {
             ctx.status(500).result("Database error: " + e.getMessage());
