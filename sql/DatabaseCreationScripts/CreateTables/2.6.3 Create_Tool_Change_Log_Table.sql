@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS Tool_Change_Log (
     transaction_id BIGINT NOT NULL DEFAULT txid_current(),
     Change_Type Change_Type NOT NULL,
     Old_Description VARCHAR(500) NULL,
-    New_Description VARCHAR(500) NULL,
+    New_Description VARCHAR(500) NULL
 );

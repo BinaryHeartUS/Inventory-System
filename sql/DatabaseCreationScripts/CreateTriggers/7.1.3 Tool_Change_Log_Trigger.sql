@@ -33,4 +33,4 @@ $$;
 CREATE OR REPLACE TRIGGER Trg_Update_Tool_Change_Log
     AFTER INSERT OR UPDATE OR DELETE ON Tool
     FOR EACH ROW
-    EXECUTE FUNCTION Update_Part_Change_Log();
+    EXECUTE FUNCTION Update_Tool_Change_Log();
