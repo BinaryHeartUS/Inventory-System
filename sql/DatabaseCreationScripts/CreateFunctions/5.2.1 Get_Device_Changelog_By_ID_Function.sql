@@ -121,6 +121,6 @@ BEGIN
     LEFT JOIN Storage_Type newStorage_Type ON deviceLog.New_Storage_Type_ID = newStorage_Type.ID
     LEFT JOIN Operating_System oldOS ON deviceLog.Old_OS_ID = oldOS.ID
     LEFT JOIN Operating_System newOS ON deviceLog.New_OS_ID = newOS.ID
-    WHERE deviceLog.Device_ID = p_assetID;
+    WHERE deviceLog.Device_ID = p_assetID OR assetLog.Asset_ID = p_assetID OR desktopLog.Desktop_ID = p_assetID OR laptopLog.Laptop_ID = p_assetID OR tabletLog.Tablet_ID = p_assetID;
 END;
 $$;

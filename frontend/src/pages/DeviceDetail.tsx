@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { AnyDevice, DeviceStatus, ChargerStatus, WorkingBattery, Part } from '../types/inventory'
 import StatusBadge from '../components/StatusBadge'
 import NotesPane from '../components/NotesPane'
-import { getDevice, updateDevice, deleteDevice } from '../services/deviceService'
+import { getDevice, updateDevice, deleteDevice, getDeviceChangelog } from '../services/deviceService'
 import { getPartsByDevice, updatePart } from '../services/partService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
@@ -23,6 +23,9 @@ import { Breadcrumb } from '../components/Breadcrumb'
 import { DeleteConfirmButton } from '../components/DeleteConfirmButton'
 import { formatDate } from '../utils/dateUtils'
 import { labelCls, inputCls } from '../utils/formStyles'
+import { ModificationLog } from '../components/ModificationLog'
+import { DeviceModificationModal } from '../components/DeviceModificationModal'
+import type { DeviceChangelogEntry } from '../types/changelog'
 
 function BatteryBar({ health }: { health: number | null }) {
   if (health == null) return <span className="text-slate-300 text-sm">—</span>
@@ -66,6 +69,7 @@ export default function DeviceDetail() {
   const [linkedRecipient, setLinkedRecipient] = useState<PartySummary | null>(null)
   const [editRecipient, setEditRecipient] = useState<PartySummary | null>(null)
   const [recipientPickerOpen, setRecipientPickerOpen] = useState(false)
+  const [changelog, setChangelog] = useState<DeviceChangelogEntry[]>([])
 
   useEffect(() => {
     getDevice(numId)
@@ -78,10 +82,14 @@ export default function DeviceDetail() {
   }, [numId])
 
   useEffect(() => {
+    getDeviceChangelog(numId).then(setChangelog).catch(() => setChangelog([]))
+  }, [numId])
+
+  useEffect(() => {
     if (device?.donorId != null) {
       getParty(device.donorId).then(setLinkedParty).catch(() => setLinkedParty(null))
     } else {
-      setLinkedParty(null)
+      Promise.resolve().then(() => setLinkedParty(null))
     }
   }, [device?.donorId])
 
@@ -89,7 +97,7 @@ export default function DeviceDetail() {
     if (device?.recipientId != null) {
       getParty(device.recipientId).then(setLinkedRecipient).catch(() => setLinkedRecipient(null))
     } else {
-      setLinkedRecipient(null)
+      Promise.resolve().then(() => setLinkedRecipient(null))
     }
   }, [device?.recipientId])
 
@@ -134,6 +142,7 @@ export default function DeviceDetail() {
       setLinkedRecipient(editRecipient)
       setEditing(false); setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      getDeviceChangelog(numId).then(setChangelog).catch(() => {})
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Save failed')
       setTimeout(() => setSaveError(null), 5000)
@@ -489,6 +498,14 @@ export default function DeviceDetail() {
               </div>
             )}
           </div>
+
+          {/* Modification History */}
+          <ModificationLog
+            entries={changelog}
+            detailRenderer={(entry, onClose) => (
+              <DeviceModificationModal entry={entry} onClose={onClose} />
+            )}
+          />
 
         </div>
 

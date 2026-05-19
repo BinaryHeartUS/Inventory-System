@@ -47,7 +47,7 @@ public class ToolService {
         return null;
     }
 
-    public void insertTool(InsertToolRequest request)
+    public void insertTool(InsertToolRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
         if (request.chapterId() == 0 || request.description() == null) {
             throw new MissingRequiredParametersException("Missing required parameters");
@@ -65,7 +65,7 @@ public class ToolService {
             throw new BadArgumentException("Asset ID must be positive or not specified");
         }
         try {
-            repository.insertTool(request);
+            repository.insertTool(request, username);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new DuplicateKeyException("An asset with identical ID already exists: " + request.assetId());
@@ -75,7 +75,7 @@ public class ToolService {
         }
     }
 
-    public void updateTool(InsertToolRequest request)
+    public void updateTool(InsertToolRequest request, String username)
             throws MissingRequiredParametersException, BadArgumentException, ToolNotFoundException, SQLException {
         if (request.chapterId() == 0 || request.description() == null) {
             throw new MissingRequiredParametersException("Missing required parameters");
@@ -93,7 +93,7 @@ public class ToolService {
             throw new BadArgumentException("Asset ID must be positive or not specified");
         }
         try {
-            repository.updateTool(request);
+            repository.updateTool(request, username);
         } catch (SQLException e) {
             if ("02000".equals(e.getSQLState())) {
                 throw new ToolNotFoundException("Could not find tool with specified ID: " + request.assetId());

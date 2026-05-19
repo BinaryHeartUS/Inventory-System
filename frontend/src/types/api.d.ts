@@ -1714,6 +1714,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/devices/{id}/changelog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the service history for a device */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Device ID for which to retrieve changelog */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Changelog fetched successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeviceChangelogResponse"][];
+                    };
+                };
+                /** @description Non-positive or non-numeric ID provided */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Device not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -3297,6 +3357,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tools/{id}/changelog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the changelog for a tool */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Tool ID to retrieve changelog for */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Changelog fetched successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ToolChangelogResponse"][];
+                    };
+                };
+                /** @description Non-positive or non-numeric ID provided */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Tool not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3529,6 +3649,83 @@ export interface components {
             /** Format: int32 */
             totalActive: number;
         };
+        DeviceChangelogResponse: {
+            deviceType?: string;
+            /** Format: int32 */
+            deviceID?: number;
+            modifiedBy?: string;
+            /** Format: date-time */
+            modifiedAt?: string;
+            changeType?: string;
+            /** Format: date */
+            oldAcquisitionDate?: string;
+            /** Format: date */
+            newAcquisitionDate?: string;
+            /** Format: double */
+            oldValue?: number;
+            /** Format: double */
+            newValue?: number;
+            /** Format: int32 */
+            oldChapterID?: number;
+            /** Format: int32 */
+            newChapterID?: number;
+            /** Format: int32 */
+            oldDonorID?: number;
+            /** Format: int32 */
+            newDonorID?: number;
+            oldManufacturer?: string;
+            newManufacturer?: string;
+            oldModel?: string;
+            newModel?: string;
+            /** Format: int32 */
+            oldYear?: number;
+            /** Format: int32 */
+            newYear?: number;
+            oldCPU?: string;
+            newCPU?: string;
+            /** Format: int32 */
+            oldRam?: number;
+            /** Format: int32 */
+            newRam?: number;
+            oldRamGeneration?: string;
+            newRamGeneration?: string;
+            /** Format: int32 */
+            oldStorageAmount?: number;
+            /** Format: int32 */
+            newStorageAmount?: number;
+            oldStorageType?: string;
+            newStorageType?: string;
+            oldStatus?: string;
+            newStatus?: string;
+            oldHasWifi?: boolean;
+            newHasWifi?: boolean;
+            oldIncludesCharger?: string;
+            newIncludesCharger?: string;
+            /** Format: int32 */
+            oldDesignCapacity?: number;
+            /** Format: int32 */
+            newDesignCapacity?: number;
+            /** Format: int32 */
+            oldActualCapacity?: number;
+            /** Format: int32 */
+            newActualCapacity?: number;
+            /** Format: double */
+            oldBatteryHealth?: number;
+            /** Format: double */
+            newBatteryHealth?: number;
+            oldWorkingBattery?: string;
+            newWorkingBattery?: string;
+            /** Format: date */
+            oldDonatedDate?: string;
+            /** Format: date */
+            newDonatedDate?: string;
+            oldOperatingSystem?: string;
+            newOperatingSystem?: string;
+            /** Format: int32 */
+            oldRecipientID?: number;
+            /** Format: int32 */
+            newRecipientID?: number;
+        };
         GetDeviceResponse: {
             type?: string;
             /** Format: int32 */
@@ -3643,7 +3840,7 @@ export interface components {
             /** Format: double */
             oldValue?: number;
             /** Format: double */
-            newValue: number;
+            newValue?: number;
             /** Format: int32 */
             oldChapterID?: number;
             /** Format: int32 */
@@ -3678,6 +3875,32 @@ export interface components {
             value?: number;
             /** Format: int32 */
             donorId?: number;
+        };
+        ToolChangelogResponse: {
+            /** Format: int32 */
+            toolID?: number;
+            modifiedBy?: string;
+            /** Format: date-time */
+            modifiedAt?: string;
+            changeType?: string;
+            /** Format: date */
+            oldAcquisitionDate?: string;
+            /** Format: date */
+            newAcquisitionDate?: string;
+            /** Format: double */
+            oldValue?: number;
+            /** Format: double */
+            newValue?: number;
+            /** Format: int32 */
+            oldChapterID?: number;
+            /** Format: int32 */
+            newChapterID?: number;
+            /** Format: int32 */
+            oldDonorID?: number;
+            /** Format: int32 */
+            newDonorID?: number;
+            oldDescription?: string;
+            newDescription?: string;
         };
     };
     responses: never;

@@ -144,7 +144,7 @@ public class ToolController {
 
         try {
             AuthController.requireChapterEditAccess(ctx, request.chapterId());
-            service.insertTool(request);
+            service.insertTool(request, ctx.attribute("username"));
             ctx.status(201).result("Tool added successfully");
         } catch (MissingRequiredParametersException | BadArgumentException e) {
             ctx.status(400).result(e.getMessage());
@@ -232,7 +232,7 @@ public class ToolController {
 
         try {
             AuthController.requireChapterEditAccess(ctx, request.chapterId());
-            service.updateTool(request);
+            service.updateTool(request, ctx.attribute("username"));
             ctx.status(201).result("Tool updated successfully");
         } catch (MissingRequiredParametersException | BadArgumentException e) {
             ctx.status(400).result(e.getMessage());

@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "psql -U binaryheart -d inventory -c 'SELECT 1 FROM Volunteer LIMIT 1' -q --no-align --tuples-only 2>/dev/null | grep -q 1 || exit 1"]
+      test: ["CMD-SHELL", "psql -h localhost -U binaryheart -d inventory -c 'SELECT 1 FROM Volunteer LIMIT 1' -q --no-align --tuples-only 2>/dev/null | grep -q 1 || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 20

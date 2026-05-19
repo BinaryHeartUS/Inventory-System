@@ -22,6 +22,8 @@ import type {
   MonthlyCountPoint,
   MonthlyValuePoint,
 } from '../types/inventory'
+import type { DeviceChangelogEntry } from '../types/changelog'
+import type { DeviceChangelogResponse } from "../types/inventory"
 import { getChapters } from './chapterService'
 
 export async function getDevices(): Promise<AnyDevice[]> {
@@ -203,5 +205,10 @@ export async function getDonatedDeviceValue(
   months = 12,
 ): Promise<MonthlyValuePoint[]> {
   return apiGet<MonthlyValuePoint[]>(`/devices/stats/donated-value${chaptersAndMonthsParam(chapterIds, months)}`)
+}
+
+export async function getDeviceChangelog(id: number): Promise<DeviceChangelogEntry[]> {
+  const raw = await apiGet<DeviceChangelogResponse[]>(`/devices/${id}/changelog`)
+  return raw.map(e => ({ ...e, assetId: e.deviceID ?? 0 }))
 }
 

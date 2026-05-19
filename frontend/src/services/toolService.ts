@@ -10,7 +10,8 @@
  */
 
 import { apiGet, apiPutVoid, apiDelete, apiPostVoid } from './api'
-import type { InsertToolRequest, Tool } from '../types/inventory'
+import type { InsertToolRequest, Tool, ToolChangelogResponse } from '../types/inventory'
+import type { ToolChangelogEntry } from '../types/changelog'
 import { getChapters } from './chapterService'
 
 export async function getTools(): Promise<Tool[]> {
@@ -68,4 +69,9 @@ export async function updateTool(id: number, updates: Tool): Promise<Tool> {
   }
   await apiPutVoid(`/tools/${id}`, body)
   return apiGet<Tool>(`/tools/${id}`)
+}
+
+export async function getToolChangelog(id: number): Promise<ToolChangelogEntry[]> {
+  const raw = await apiGet<ToolChangelogResponse[]>(`/tools/${id}/changelog`)
+  return raw.map(e => ({ ...e, assetId: e.toolID ?? 0 }))
 }

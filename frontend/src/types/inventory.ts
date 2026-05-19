@@ -15,6 +15,8 @@ export type LoginRequest             = components["schemas"]["LoginRequest"]
 export type PostNoteRequest          = components["schemas"]["PostNoteRequest"]
 export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"]
 export type PartChangelogResponse    = components["schemas"]["PartChangelogResponse"]
+export type ToolChangelogResponse    = components["schemas"]["ToolChangelogResponse"]
+export type DeviceChangelogResponse  = components["schemas"]["DeviceChangelogResponse"]
 export type Note = Omit<components["schemas"]["NoteResponse"], "text" | "date"> & {
   text: string
   date: string

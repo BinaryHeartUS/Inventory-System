@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import type { Tool } from '../types/inventory'
 import NotesPane from '../components/NotesPane'
-import { getTool, updateTool, deleteTool } from '../services/toolService'
+import { getTool, updateTool, deleteTool, getToolChangelog } from '../services/toolService'
 import { useChapters, useVisibleChapters, useWritableChapters } from '../context/ChapterContext'
 import { useToast } from '../context/ToastContext'
 import { PrintLabelModal } from '../components/PrintLabelModal'
@@ -17,6 +17,9 @@ import { Breadcrumb } from '../components/Breadcrumb'
 import { DeleteConfirmButton } from '../components/DeleteConfirmButton'
 import { formatDate } from '../utils/dateUtils'
 import { labelCls, inputCls } from '../utils/formStyles'
+import { ModificationLog } from '../components/ModificationLog'
+import { ToolModificationModal } from '../components/ToolModificationModal'
+import type { ToolChangelogEntry } from '../types/changelog'
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -40,6 +43,7 @@ export default function ToolDetail() {
   const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null)
   const [editParty, setEditParty] = useState<PartySummary | null>(null)
   const [partyPickerOpen, setPartyPickerOpen] = useState(false)
+  const [changelog, setChangelog] = useState<ToolChangelogEntry[]>([])
 
   useEffect(() => {
     getTool(numId)
@@ -54,6 +58,10 @@ export default function ToolDetail() {
       setLinkedParty(null)
     }
   }, [tool?.donorId])
+
+  useEffect(() => {
+    getToolChangelog(numId).then(setChangelog).catch(() => setChangelog([]))
+  }, [numId])
 
   if (loading) return <LoadingSpinner />
 
@@ -87,6 +95,7 @@ export default function ToolDetail() {
       const updated = await updateTool(numId, form)
       setTool(updated); setEditing(false); setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      getToolChangelog(numId).then(setChangelog).catch(() => {})
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Save failed', false)
     }
@@ -242,6 +251,14 @@ export default function ToolDetail() {
               </>
             )}
           </Section>
+
+          {/* Modification History */}
+          <ModificationLog
+            entries={changelog}
+            detailRenderer={(entry, onClose) => (
+              <ToolModificationModal entry={entry} onClose={onClose} />
+            )}
+          />
         </div>
 
         <div className="flex-[1] min-w-64 sticky top-20">
