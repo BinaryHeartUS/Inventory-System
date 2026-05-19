@@ -1,4 +1,4 @@
 package org.binaryheart.requests;
 
-public record UpdatePasswordRequest(int volunteerId, String currentPassword, String newPassword) {
+public record UpdatePasswordRequest(int volunteerId, String newPassword) {
 }
