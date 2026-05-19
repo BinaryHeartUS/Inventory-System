@@ -13,6 +13,7 @@ import org.binaryheart.repositories.AccountRepository;
 import org.binaryheart.requests.AddAffiliationRequest;
 import org.binaryheart.requests.CreateAccountRequest;
 import org.binaryheart.requests.UpdateAffiliationRequest;
+import org.binaryheart.requests.UpdatePasswordRequest;
 import org.binaryheart.responses.AccountSummary;
 
 public class AccountService {
@@ -137,6 +138,22 @@ public class AccountService {
             }
         }
         repository.deleteVolunteer(targetId);
+    }
+
+    public void updatePassword(UpdatePasswordRequest request) throws SQLException {
+        if (request.newPassword() == null || request.newPassword().isBlank()) {
+            throw new IllegalArgumentException("New password is required");
+        }
+
+        byte[] passwordSalt = EncryptionHelper.getNewSalt();
+        String passwordHash;
+        try {
+            passwordHash = EncryptionHelper.hashPassword(passwordSalt, request.newPassword());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Something went wrong when encrypting password");
+        }
+
+        repository.updatePassword(request.volunteerId(), passwordHash, EncryptionHelper.getStringFromBytes(passwordSalt));
     }
 
     /**
