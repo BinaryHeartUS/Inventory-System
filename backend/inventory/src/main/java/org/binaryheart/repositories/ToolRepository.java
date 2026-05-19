@@ -7,12 +7,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
+import org.binaryheart.responses.ToolChangelogResponse;
 
 public class ToolRepository {
 
@@ -134,5 +136,56 @@ public class ToolRepository {
         PreparedStatement stmt = conn.prepareCall("call Delete_Tool(?)");
         stmt.setInt(1, toolID);
         stmt.execute();
+    }
+
+    public ToolChangelogResponse[] getToolChangelog(Integer toolId) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Tool_Changelog_By_ID(?)");
+        stmt.setInt(1, toolId);
+        stmt.execute();
+
+        ResultSet rs = stmt.getResultSet();
+        ArrayList<ToolChangelogResponse> entries = new ArrayList<>();
+        while (rs.next()) {
+            Integer id = rs.getInt("id");
+            String modifiedBy = rs.getString("Modified_By");
+            OffsetDateTime modifiedAt = rs.getObject("Modified_At", OffsetDateTime.class);
+            String changeType = rs.getString("Change_Type");
+
+            LocalDate oldAcquisitionDate = rs.getObject("Old_Acquisition_Date", LocalDate.class);
+            LocalDate newAcquisitionDate = rs.getObject("New_Acquisition_Date", LocalDate.class);
+
+            Double oldValue = rs.getDouble("Old_Value");
+            if (rs.wasNull())
+                oldValue = null;
+            Double newValue = rs.getDouble("New_Value");
+            if (rs.wasNull())
+                newValue = null;
+
+            Integer oldChapterId = rs.getInt("Old_Chapter_ID");
+            if (rs.wasNull())
+                oldChapterId = null;
+            Integer newChapterId = rs.getInt("New_Chapter_ID");
+            if (rs.wasNull())
+                newChapterId = null;
+
+            Integer oldDonorId = rs.getInt("Old_Donor_ID");
+            if (rs.wasNull())
+                oldDonorId = null;
+            Integer newDonorId = rs.getInt("New_Donor_ID");
+            if (rs.wasNull())
+                newDonorId = null;
+
+            String oldDescription = rs.getString("Old_Description");
+            String newDescription = rs.getString("New_Description");
+
+            entries.add(new ToolChangelogResponse(id, modifiedBy, modifiedAt, changeType, oldAcquisitionDate,
+                    newAcquisitionDate, oldValue, newValue, oldChapterId, newChapterId, oldDonorId, newDonorId,
+                    oldDescription, newDescription));
+        }
+        return entries.toArray(new ToolChangelogResponse[0]);
     }
 }
