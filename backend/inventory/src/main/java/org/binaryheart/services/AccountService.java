@@ -140,7 +140,7 @@ public class AccountService {
         repository.deleteVolunteer(targetId);
     }
 
-    public void updatePassword(UpdatePasswordRequest request) throws SQLException {
+    public void updatePassword(int volunteerId, UpdatePasswordRequest request) throws SQLException {
         if (request.newPassword() == null || request.newPassword().isBlank()) {
             throw new IllegalArgumentException("New password is required");
         }
@@ -153,7 +153,7 @@ public class AccountService {
             throw new IllegalArgumentException("Something went wrong when encrypting password");
         }
 
-        repository.updatePassword(request.volunteerId(), passwordHash, EncryptionHelper.getStringFromBytes(passwordSalt));
+        repository.updatePassword(volunteerId, passwordHash, EncryptionHelper.getStringFromBytes(passwordSalt));
     }
 
     /**

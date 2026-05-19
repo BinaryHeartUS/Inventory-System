@@ -159,7 +159,6 @@ public class AccountController {
                             from = UpdatePasswordRequest.class,
                             example = """
                                     {
-                                        "volunteerId": 1,
                                         "newPassword": "12345678"
                                     }
                                     """) }),
@@ -177,15 +176,17 @@ public class AccountController {
                             description = "Database error") })
     public static void updatePassword(Context ctx) {
         int targetId = Integer.parseInt(ctx.pathParam("id"));
-        UpdatePasswordRequest request = ctx.bodyAsClass(UpdatePasswordRequest.class);
+        int volunteerId = ctx.attribute("volunteerId");
 
-        if (targetId != request.volunteerId()) {
+        if (targetId != volunteerId) {
             ctx.status(403).result("You may only change your own password");
             return;
         }
 
+        UpdatePasswordRequest request = ctx.bodyAsClass(UpdatePasswordRequest.class);
+
         try {
-            service.updatePassword(request);
+            service.updatePassword(volunteerId, request);
             ctx.status(204);
         } catch (IllegalArgumentException e) {
             ctx.status(400).result(e.getMessage());
