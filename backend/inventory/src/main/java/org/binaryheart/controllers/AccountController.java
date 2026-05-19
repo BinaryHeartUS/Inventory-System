@@ -9,6 +9,7 @@ import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.AddAffiliationRequest;
 import org.binaryheart.requests.CreateAccountRequest;
 import org.binaryheart.requests.UpdateAffiliationRequest;
+import org.binaryheart.requests.UpdatePasswordRequest;
 import org.binaryheart.responses.AccountSummary;
 import org.binaryheart.services.AccountService;
 
@@ -24,6 +25,7 @@ public class AccountController {
     public static void registerRoutes() {
         post("", AccountController::createAccount, AppRole.CHAPTER_ADMIN);
         get("", AccountController::getAccounts, AppRole.CHAPTER_ADMIN);
+        put("/{id}", AccountController::updatePassword, AppRole.AUTHENTICATED);
         delete("/{id}", AccountController::deleteAccount, AppRole.CHAPTER_ADMIN);
         post("/{id}/roles", AccountController::addAffiliation, AppRole.CHAPTER_ADMIN);
         put("/{id}/roles/{chapterId}", AccountController::updateAffiliation, AppRole.CHAPTER_ADMIN);
@@ -136,6 +138,61 @@ public class AccountController {
             ctx.status(400).result(e.getMessage());
         } catch (SQLException e) {
             ctx.status(500).result("Database error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @OpenApi(
+            path = "/api/accounts/{id}",
+            methods = { HttpMethod.PUT },
+            tags = { "Accounts" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Update account password",
+            description = "Allows a logged-in user to update their own password.",
+            pathParams = { @OpenApiParam(
+                    name = "id",
+                    description = "The ID of the account whose password to change") },
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = UpdatePasswordRequest.class,
+                            example = """
+                                    {
+                                        "currentPassword": "oldPassword123",
+                                        "newPassword": "12345678"
+                                    }
+                                    """) }),
+            responses = { @OpenApiResponse(
+                    status = "204",
+                    description = "Password updated"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Invalid request or wrong current password"),
+                    @OpenApiResponse(
+                            status = "403",
+                            description = "Cannot change another user's password"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void updatePassword(Context ctx) {
+        int targetId = Integer.parseInt(ctx.pathParam("id"));
+        int volunteerId = ctx.attribute("volunteerId");
+
+        if (targetId != volunteerId) {
+            ctx.status(403).result("You may only change your own password");
+            return;
+        }
+
+        UpdatePasswordRequest request = ctx.bodyAsClass(UpdatePasswordRequest.class);
+
+        try {
+            service.updatePassword(volunteerId, ctx.attribute("username"), request);
+            ctx.status(204);
+        } catch (IllegalArgumentException e) {
+            ctx.status(400).result(e.getMessage());
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error");
             e.printStackTrace();
         }
     }

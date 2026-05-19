@@ -88,6 +88,17 @@ public class AccountRepository {
         }
     }
 
+    public void updatePassword(int volunteerId, String passwordHash, String passwordSalt) throws SQLException {
+        ensureConnected();
+        Connection conn = DatabaseConnectionService.getConnection();
+        try (CallableStatement stmt = conn.prepareCall("call Update_Volunteer_Password(?, ?, ?)")) {
+            stmt.setInt(1, volunteerId);
+            stmt.setString(2, passwordHash);
+            stmt.setString(3, passwordSalt);
+            stmt.execute();
+        }
+    }
+
     private static void ensureConnected() throws SQLException {
         if (!DatabaseConnectionService.isConnected()) {
             DatabaseConnectionService.connect();
