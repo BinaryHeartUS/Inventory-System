@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.security.InvalidParameterException;
+
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
@@ -11,6 +13,7 @@ import org.binaryheart.exceptions.ToolNotFoundException;
 import org.binaryheart.repositories.ToolRepository;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
+import org.binaryheart.responses.ToolChangelogResponse;
 
 public class ToolService {
 
@@ -98,6 +101,21 @@ public class ToolService {
                 throw e;
             }
         }
+    }
+
+    public ToolChangelogResponse[] getToolChangelog(List<Integer> userChapterIds, Integer toolId)
+            throws SQLException, MissingRequiredParametersException, InvalidParameterException {
+        if (toolId == null || toolId <= 0)
+            throw new MissingRequiredParametersException(
+                    "Non-numeric or non-positive tool ID provided, must be positive integer");
+
+        GetToolResponse tool = repository.getTool(toolId);
+        if (tool == null || (!userChapterIds.contains(tool.chapterId())
+                && !userChapterIds.contains(chapterService.getNationalChapterId()))) {
+            throw new InvalidParameterException("Tool not found");
+        }
+
+        return repository.getToolChangelog(toolId);
     }
 
     public void deleteTool(List<Integer> userChapterIDs, Integer toolID)
