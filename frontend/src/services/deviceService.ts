@@ -9,7 +9,7 @@
  *   DELETE /api/devices/:id    → 204
  */
 
-import { apiGet, apiPostVoid, apiPutVoid, apiDelete } from './api'
+import { apiGet, apiGetOrNull, apiPostVoid, apiPutVoid, apiDelete } from './api'
 import type {
   AnyDevice,
   InsertDesktopRequest,
@@ -32,7 +32,7 @@ export async function getDevices(): Promise<AnyDevice[]> {
 
 /** Returns null when no device with the given ID exists. */
 export async function getDevice(id: number): Promise<AnyDevice | null> {
-  return apiGet<AnyDevice>(`/devices/${id}`)
+  return apiGetOrNull<AnyDevice>(`/devices/${id}`)
 }
 
 export async function createDevice(device: AnyDevice): Promise<AnyDevice> {

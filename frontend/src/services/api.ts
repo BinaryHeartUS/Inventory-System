@@ -51,6 +51,20 @@ export async function apiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** Like apiGet but returns null on 404 instead of throwing. */
+export async function apiGetOrNull<T>(path: string): Promise<T | null> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: authHeaders(),
+  })
+  if (res.status === 401) handleUnauthorized()
+  if (res.status === 404) return null
+  if (!res.ok) {
+    const body = await res.text().catch(() => '')
+    throw new Error(body || `GET ${path} failed: ${res.status} ${res.statusText}`)
+  }
+  return res.json() as Promise<T>
+}
+
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',

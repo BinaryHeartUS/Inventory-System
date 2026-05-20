@@ -10,7 +10,7 @@
  *   DELETE /api/parts/:id              → 204
  */
 
-import { apiGet, apiDelete, apiPostVoid, apiPutVoid } from './api'
+import { apiGet, apiGetOrNull, apiDelete, apiPostVoid, apiPutVoid } from './api'
 import type { InsertPartRequest, Part, PartChangelogResponse } from '../types/inventory'
 import type { PartChangelogEntry } from '../types/changelog'
 import { getChapters } from './chapterService'
@@ -21,7 +21,7 @@ export async function getParts(): Promise<Part[]> {
 
 /** Returns null when no part with the given ID exists. */
 export async function getPart(id: number): Promise<Part | null> {
-  return apiGet<Part>(`/parts/${id}`)
+  return apiGetOrNull<Part>(`/parts/${id}`)
 }
 
 export async function createPart(part: Part): Promise<Part> {

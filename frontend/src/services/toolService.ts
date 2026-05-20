@@ -9,7 +9,7 @@
  *   DELETE /api/tools/:id    → 204
  */
 
-import { apiGet, apiPutVoid, apiDelete, apiPostVoid } from './api'
+import { apiGet, apiGetOrNull, apiPutVoid, apiDelete, apiPostVoid } from './api'
 import type { InsertToolRequest, Tool, ToolChangelogResponse } from '../types/inventory'
 import type { ToolChangelogEntry } from '../types/changelog'
 import { getChapters } from './chapterService'
@@ -20,7 +20,7 @@ export async function getTools(): Promise<Tool[]> {
 
 /** Returns null when no tool with the given ID exists. */
 export async function getTool(id: number): Promise<Tool | null> {
-  return apiGet<Tool>(`/tools/${id}`)
+  return apiGetOrNull<Tool>(`/tools/${id}`)
 }
 
 export async function createTool(tool: Tool): Promise<Tool> {

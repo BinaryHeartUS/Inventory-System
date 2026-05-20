@@ -18,7 +18,7 @@ import { useEffect, useRef } from 'react'
 
 const SCAN_MAX_MS = 60   // max ms between chars for it to count as a scan
 const IDLE_MS     = 300  // gap that resets the buffer (human pause)
-const MIN_LEN     = 3    // minimum barcode length to act on
+const MIN_LEN     = 1    // minimum barcode length to act on
 
 interface Options {
   /** Called with the final barcode string when a scan is detected. */
