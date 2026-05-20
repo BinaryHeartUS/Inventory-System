@@ -48,3 +48,7 @@ export async function updateAccountRole(id: number, chapterId: number, role: str
 export async function removeAccountRole(id: number, chapterId: number): Promise<void> {
   return apiDelete(`/accounts/${id}/roles/${chapterId}`)
 }
+
+export async function updatePassword(id: number, currentPassword: string, newPassword: string): Promise<void> {
+  return apiPutVoid(`/accounts/${id}`, { currentPassword, newPassword })
+}
