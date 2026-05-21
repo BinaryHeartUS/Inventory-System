@@ -13,8 +13,9 @@ RETURNS TABLE (
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    RETURN QUERY
     SELECT *
-    FROM Asset
-    WHERE ID = p_assetID;
+    FROM Asset a
+    WHERE a.ID = p_assetID;
 END;
 $$;
