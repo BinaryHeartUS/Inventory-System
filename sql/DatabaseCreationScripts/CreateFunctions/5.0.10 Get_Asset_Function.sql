@@ -5,10 +5,10 @@ CREATE OR REPLACE FUNCTION Get_Asset (
 )
 RETURNS TABLE (
     ID INTEGER,
-    Acquisition_Date DATE NULL,
-    Value MONEY NOT NULL,
-    Chapter_ID INTEGER NOT NULL,
-    Donor_ID INTEGER NULL
+    Acquisition_Date DATE,
+    Value MONEY,
+    Chapter_ID INTEGER,
+    Donor_ID INTEGER
 )
 LANGUAGE plpgsql
 AS $$
