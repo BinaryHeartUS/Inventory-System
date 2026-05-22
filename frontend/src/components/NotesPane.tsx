@@ -58,7 +58,7 @@ export default function NotesPane({ assetId, readOnly = false, readOnlyReason = 
     const prev_text = notes.find(n => n.id === id)?.text ?? ''
     setNotes(prev => prev.map(n => n.id === id ? { ...n, text } : n))
     setEditingId(null)
-    updateNote(id, text).catch(err => {
+    updateNote(assetId, id, text).catch(err => {
       // Revert optimistic update and show error
       setNotes(prev => prev.map(n => n.id === id ? { ...n, text: prev_text } : n))
       showToast(err instanceof Error ? err.message : 'Failed to update note', false)
