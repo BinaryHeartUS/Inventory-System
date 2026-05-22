@@ -54,4 +54,28 @@ public class NoteRepository {
 
         return notes.toArray(new NoteResponse[0]);
     }
+
+    public int getAssetChapterId(int assetId) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Asset(?)");
+        stmt.setInt(1, assetId);
+        stmt.execute();
+        ResultSet rs = stmt.getResultSet();
+        rs.next();
+        return rs.getInt("Chapter_ID");
+    }
+
+    public void updateNote(int assetId, int noteId, String text) throws SQLException {
+        if (!DatabaseConnectionService.isConnected()) {
+            DatabaseConnectionService.connect();
+        }
+        Connection conn = DatabaseConnectionService.getConnection();
+        CallableStatement stmt = conn.prepareCall("call Update_Note(?, ?)");
+        stmt.setString(1, text);
+        stmt.setInt(2, noteId);
+        stmt.execute();
+    }
 }
