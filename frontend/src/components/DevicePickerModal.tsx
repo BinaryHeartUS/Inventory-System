@@ -43,8 +43,8 @@ export function DevicePickerModal({
       if (chapterName !== undefined && d.chapter !== chapterName) return false
       return true
     })
-    if (!search.trim()) return base
-    const s = search.toLowerCase()
+    if (!search.trim().replace(/^0+|0+$/g, "")) return base
+    const s = search.toLowerCase().trim().replace(/^0+|0+$/g, "")
     return base.filter(d =>
       String(d.id).includes(s) ||
       (d.manufacturer ?? '').toLowerCase().includes(s) ||
