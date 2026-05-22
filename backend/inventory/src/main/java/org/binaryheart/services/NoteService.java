@@ -20,4 +20,15 @@ public class NoteService {
     public NoteResponse[] getNotes(int assetId) throws SQLException {
         return repository.getNotes(assetId);
     }
+
+    public int getAssetChapterId(int assetId) throws SQLException {
+        return repository.getAssetChapterId(assetId);
+    }
+
+    public void updateNote(int assetId, int noteId, String text) throws MissingRequiredParametersException, SQLException {
+        if (text == null || text.length() == 0)
+            throw new MissingRequiredParametersException("Note must be provided with length > 0");
+
+        repository.updateNote(assetId, noteId, text);
+    }
 }

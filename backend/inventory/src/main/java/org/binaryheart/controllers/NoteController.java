@@ -13,6 +13,7 @@ import java.sql.SQLException;
 
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.get;
+import static io.javalin.apibuilder.ApiBuilder.put;
 
 public class NoteController {
 
@@ -21,6 +22,7 @@ public class NoteController {
     public static void registerRoutes() {
         post("/{id}/notes", NoteController::postNote, AppRole.AUTHENTICATED);
         get("/{id}/notes", NoteController::getNotes, AppRole.AUTHENTICATED);
+        put("/{id}/notes/{noteId}", NoteController::updateNote, AppRole.AUTHENTICATED);
     }
 
     @OpenApi(
@@ -94,6 +96,56 @@ public class NoteController {
         } catch (SQLException e) {
             ctx.status(500).result("Database error: ".concat(e.getMessage()));
             e.printStackTrace();
+            return;
+        }
+    }
+
+    @OpenApi(
+            path = "/api/assets/{id}/notes/{noteId}",
+            methods = { HttpMethod.PUT },
+            tags = { "Assets" },
+            security = { @OpenApiSecurity(
+                    name = "BearerAuth") },
+            summary = "Update a note belonging to an asset",
+            requestBody = @OpenApiRequestBody(
+                    required = true,
+                    content = { @OpenApiContent(
+                            from = PostNoteRequest.class,
+                            example = """
+                                    {
+                                        "text": "Updated Note"
+                                    }
+                                    """) }),
+            pathParams = {
+                    @OpenApiParam(
+                            name = "id",
+                            description = "The unique ID of the asset"),
+                    @OpenApiParam(
+                            name = "noteId",
+                            description = "The unique ID of the note to update") },
+            responses = { @OpenApiResponse(
+                            status = "201",
+                            description = "Note updated successfully"),
+                    @OpenApiResponse(
+                            status = "400",
+                            description = "Missing required parameters"),
+                    @OpenApiResponse(
+                            status = "500",
+                            description = "Database error") })
+    public static void updateNote(Context ctx) {
+        try {
+            PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
+            int assetId = Integer.parseInt(ctx.pathParam("id"));
+            int noteId = Integer.parseInt(ctx.pathParam("noteId"));
+            int chapterId = service.getAssetChapterId(assetId);
+            AuthController.requireChapterEditAccess(ctx, chapterId);
+            service.updateNote(assetId, noteId, body.text());
+            ctx.status(201).result("Note updated successfully");
+        } catch (SQLException e) {
+            ctx.status(500).result("Database error: ".concat(e.getMessage()));
+            return;
+        } catch (MissingRequiredParametersException e) {
+            ctx.status(400).result("Missing required parameter(s)");
             return;
         }
     }
