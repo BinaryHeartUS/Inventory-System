@@ -20,6 +20,7 @@ import { EditText, EditSelect, EditCombo } from '../components/EditField'
 import { Section } from '../components/Section'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { Breadcrumb } from '../components/Breadcrumb'
+import AddAssetButton from '../components/AddAssetButton'
 
 import { formatDate } from '../utils/dateUtils'
 import { labelCls, inputCls } from '../utils/formStyles'
@@ -212,8 +213,11 @@ export default function DeviceDetail() {
     )}
     <div className="space-y-5">
 
-      {/* Breadcrumb */}
-      <Breadcrumb backHref="/devices" backLabel="Devices" current={`${device.manufacturer} ${device.model}`} />
+      {/* Breadcrumb + Add Asset */}
+      <div className="flex items-center justify-between">
+        <Breadcrumb backHref="/devices" backLabel="Devices" current={`${device.manufacturer} ${device.model}`} />
+        <AddAssetButton />
+      </div>
 
       {/* Header */}
       <div className="bg-white border border-slate-200 rounded-xl px-8 py-6">
