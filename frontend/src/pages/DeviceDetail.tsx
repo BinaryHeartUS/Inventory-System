@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import type { AnyDevice, DeviceStatus, ChargerStatus, WorkingBattery, Part } from '../types/inventory'
 import StatusBadge from '../components/StatusBadge'
 import NotesPane from '../components/NotesPane'
-import { getDevice, updateDevice, deleteDevice, getDeviceChangelog } from '../services/deviceService'
+import { getDevice, updateDevice, getDeviceChangelog } from '../services/deviceService'
 import { getPartsByDevice, updatePart } from '../services/partService'
 import { useLookups } from '../hooks/useLookups'
 import { PrintLabelModal } from '../components/PrintLabelModal'
@@ -20,7 +20,7 @@ import { EditText, EditSelect, EditCombo } from '../components/EditField'
 import { Section } from '../components/Section'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { Breadcrumb } from '../components/Breadcrumb'
-import { DeleteConfirmButton } from '../components/DeleteConfirmButton'
+
 import { formatDate } from '../utils/dateUtils'
 import { labelCls, inputCls } from '../utils/formStyles'
 import { ModificationLog } from '../components/ModificationLog'
@@ -46,8 +46,6 @@ function BatteryBar({ health }: { health: number | null }) {
 export default function DeviceDetail() {
   const { id } = useParams<{ id: string }>()
   const numId   = Number(id)
-  const navigate = useNavigate()
-
   const { auth } = useAuth()
   const writableChapters = useWritableChapters()
   const { showToast } = useToast()
@@ -61,7 +59,6 @@ export default function DeviceDetail() {
   const [saveError, setSaveError]  = useState<string | null>(null)
   const [printId, setPrintId]      = useState<number | null>(null)
   const [linkedParts, setLinkedParts] = useState<Part[]>([])
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showDonateModal, setShowDonateModal] = useState(false)
   const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null)
   const [editParty, setEditParty] = useState<PartySummary | null>(null)
@@ -175,16 +172,6 @@ export default function DeviceDetail() {
     }
   }
 
-  async function handleDelete() {
-    try {
-      await deleteDevice(numId)
-      navigate('/devices')
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Delete failed', false)
-      setShowDeleteConfirm(false)
-    }
-  }
-
   const d = editing && form ? form : device
 
   // Determine write access for this specific chapter, not just the global role.
@@ -193,13 +180,6 @@ export default function DeviceDetail() {
   const viewerLock = !canWriteThisChapter
   const donatedLock = canWriteThisChapter && auth?.role?.toLowerCase() === 'editor' && device.status === 'Donated'
   const editLock = viewerLock || donatedLock
-  const ADMIN_ROLES = new Set(['Admin', 'Chapter Admin'])
-  const canDelete = auth?.role === 'Admin' ||
-    auth?.chapterRoles.some(cr => {
-      const chapter = writableChapters.find(c => c.name === device.chapter)
-      return chapter && cr.chapterId === chapter.id && ADMIN_ROLES.has(cr.role ?? '')
-    })
-  const deleteBlocked = linkedParts.length > 0
 
   return (
     <>
@@ -258,17 +238,6 @@ export default function DeviceDetail() {
                 </svg>
                 Print Label
               </button>
-            )}
-            {!editing && canDelete && (
-              <DeleteConfirmButton
-                noun="device"
-                showing={showDeleteConfirm}
-                onShowConfirm={() => setShowDeleteConfirm(true)}
-                onConfirm={handleDelete}
-                onCancel={() => setShowDeleteConfirm(false)}
-                disabled={deleteBlocked}
-                disabledTitle={deleteBlocked ? 'Unlink all parts from this device before deleting' : undefined}
-              />
             )}
             {!editing ? (
               <button onClick={startEdit}

@@ -6,10 +6,9 @@
  *   GET    /api/devices/:id    → AnyDevice
  *   POST   /api/devices        → AnyDevice   (body: AnyDevice)
  *   PUT    /api/devices/:id    → AnyDevice   (body: AnyDevice)
- *   DELETE /api/devices/:id    → 204
  */
 
-import { apiGet, apiGetOrNull, apiPostVoid, apiPutVoid, apiDelete } from './api'
+import { apiGet, apiGetOrNull, apiPostVoid, apiPutVoid } from './api'
 import type {
   AnyDevice,
   InsertDesktopRequest,
@@ -145,10 +144,6 @@ export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyD
   }
 
   return apiGet<AnyDevice>(`/devices/${id}`)
-}
-
-export async function deleteDevice(id: number): Promise<void> {
-  return apiDelete(`/devices/${id}`)
 }
 
 function chaptersParam(chapterIds: number[]): string {
