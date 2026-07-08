@@ -8,7 +8,10 @@ import type { MonthlyCountPoint } from '../types/inventory'
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatMonthLabel(year: number, month: number): string {
-  return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+  const d = new Date(year, month - 1)
+  const mon = d.toLocaleDateString('en-US', { month: 'short' })
+  const yr  = d.toLocaleDateString('en-US', { year: '2-digit' })
+  return `${mon} '${yr}`
 }
 
 // Generates the last N month keys ending at today

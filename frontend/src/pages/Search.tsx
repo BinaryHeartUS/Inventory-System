@@ -21,7 +21,7 @@ export default function Search() {
       .then(([d, p, t]) => { setDevices(d); setParts(p); setTools(t) })
   }, [])
 
-  const q = query.trim().toLowerCase()
+  const q = query.trim().toLowerCase().replace(/^0+|0+$/g, "")
 
   const { deviceResults, partResults, toolResults } = useMemo(() => {
     if (!q) return { deviceResults: [], partResults: [], toolResults: [] }
