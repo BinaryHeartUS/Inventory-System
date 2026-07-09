@@ -9,8 +9,8 @@
  *     The service layer parses it on read and serialises it on write.
  */
 
-import { apiGet, apiPostVoid, apiPutVoid } from './api'
-import type { components } from '../types/api'
+import { apiGet, apiPostVoid, apiPutVoid } from "./api";
+import type { components } from "../types/api";
 import type {
   PartySummary,
   PartyDetail,
@@ -21,114 +21,118 @@ import type {
   UpdatePersonRequest,
   UpdateOrgRequest,
   AddressForm,
-} from '../types/inventory'
-import { parseLocation, formatLocation } from '../types/inventory'
+} from "../types/inventory";
+import { parseLocation, formatLocation } from "../types/inventory";
 
-type WireParty = components['schemas']['GetPartyResponse']
+type WireParty = components["schemas"]["GetPartyResponse"];
 
 // ─── Wire → domain mapping ────────────────────────────────────────────────────
 
 function wireToSummary(w: WireParty): PartySummary {
   // Infer type: persons have individualEmail, orgs have contactName/contactEmail.
   // Fall back to 'Person' until the backend adds an explicit type field.
-  const type: 'Person' | 'Organization' =
-    ('contactName' in w && (w.contactName != null || w.contactEmail != null))
-      ? 'Organization'
-      : 'Person'
-  return { id: w.id, name: w.name ?? '', type }
+  const type: "Person" | "Organization" =
+    "contactName" in w && (w.contactName != null || w.contactEmail != null)
+      ? "Organization"
+      : "Person";
+  return { id: w.id, name: w.name ?? "", type };
 }
 
 function wireToDetail(w: WireParty): PartyDetail {
-  const summary = wireToSummary(w)
-  const location = parseLocation(w.location)
-  if (summary.type === 'Organization') {
+  const summary = wireToSummary(w);
+  const location = parseLocation(w.location);
+  if (summary.type === "Organization") {
     const org: OrgDetail = {
       ...summary,
-      type:         'Organization',
-      contactName:  w.contactName  ?? null,
+      type: "Organization",
+      contactName: w.contactName ?? null,
       contactEmail: w.contactEmail ?? null,
       location,
-    }
-    return org
+    };
+    return org;
   }
   const person: PersonDetail = {
     ...summary,
-    type:     'Person',
-    email:    w.individualEmail ?? null,
+    type: "Person",
+    email: w.individualEmail ?? null,
     location,
-  }
-  return person
+  };
+  return person;
 }
 
 // ─── Domain → wire mapping ────────────────────────────────────────────────────
 
 function buildLocation(addr: Partial<AddressForm> | undefined): string | undefined {
-  if (!addr) return undefined
-  const { street = '', city = '', state = '', zipCode = '', country = '' } = addr
-  if (!street && !city && !state && !zipCode && !country) return undefined
-  return formatLocation({ street, city, state, zipCode, country })
+  if (!addr) return undefined;
+  const { street = "", city = "", state = "", zipCode = "", country = "" } = addr;
+  if (!street && !city && !state && !zipCode && !country) return undefined;
+  return formatLocation({ street, city, state, zipCode, country });
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export async function getParties(opts?: { status?: 'donor' | 'recipient', type?: 'person' | 'organization' }): Promise<PartySummary[]> {
-  const params = new URLSearchParams()
-  if (opts?.status) params.set('status', opts.status)
-  if (opts?.type)   params.set('type',   opts.type)
-  const query = params.toString() ? `?${params}` : ''
-  const raw = await apiGet<WireParty[]>(`/party${query}`)
+export async function getParties(opts?: {
+  status?: "donor" | "recipient";
+  type?: "person" | "organization";
+}): Promise<PartySummary[]> {
+  const params = new URLSearchParams();
+  if (opts?.status) params.set("status", opts.status);
+  if (opts?.type) params.set("type", opts.type);
+  const query = params.toString() ? `?${params}` : "";
+  const raw = await apiGet<WireParty[]>(`/party${query}`);
   // If we requested a specific type, tag every result with it so inference isn't needed
-  const knownType: PartySummary['type'] | undefined =
-    opts?.type === 'person' ? 'Person' :
-    opts?.type === 'organization' ? 'Organization' :
-    undefined
-  return raw.map(w => knownType ? { ...wireToSummary(w), type: knownType } : wireToSummary(w))
+  const knownType: PartySummary["type"] | undefined =
+    opts?.type === "person" ? "Person" : opts?.type === "organization" ? "Organization" : undefined;
+  return raw.map((w) => (knownType ? { ...wireToSummary(w), type: knownType } : wireToSummary(w)));
 }
 
 export async function getParty(id: number): Promise<PartyDetail> {
-  const raw = await apiGet<WireParty>(`/party/${id}`)
-  return wireToDetail(raw)
+  const raw = await apiGet<WireParty>(`/party/${id}`);
+  return wireToDetail(raw);
 }
 
 export async function createPerson(req: CreatePersonRequest): Promise<void> {
-  await apiPostVoid('/party/person', {
-    name:     req.name,
-    email:    req.email,
-    location: typeof req.location === 'string'
-      ? req.location
-      : buildLocation(req.location as Partial<AddressForm> | undefined),
-  })
+  await apiPostVoid("/party/person", {
+    name: req.name,
+    email: req.email,
+    location:
+      typeof req.location === "string"
+        ? req.location
+        : buildLocation(req.location as Partial<AddressForm> | undefined),
+  });
 }
 
 export async function createOrg(req: CreateOrgRequest): Promise<void> {
-  await apiPostVoid('/party/organization', {
-    name:         req.name,
-    contactName:  req.contactName,
+  await apiPostVoid("/party/organization", {
+    name: req.name,
+    contactName: req.contactName,
     contactEmail: req.contactEmail,
-    location: typeof req.location === 'string'
-      ? req.location
-      : buildLocation(req.location as Partial<AddressForm> | undefined),
-  })
+    location:
+      typeof req.location === "string"
+        ? req.location
+        : buildLocation(req.location as Partial<AddressForm> | undefined),
+  });
 }
 
 export async function updatePerson(id: number, req: UpdatePersonRequest): Promise<void> {
   await apiPutVoid(`/party/person/${id}`, {
-    name:     req.name,
-    email:    req.email,
-    location: typeof req.location === 'string'
-      ? req.location
-      : buildLocation(req.location as Partial<AddressForm> | undefined),
-  })
+    name: req.name,
+    email: req.email,
+    location:
+      typeof req.location === "string"
+        ? req.location
+        : buildLocation(req.location as Partial<AddressForm> | undefined),
+  });
 }
 
 export async function updateOrg(id: number, req: UpdateOrgRequest): Promise<void> {
   await apiPutVoid(`/party/organization/${id}`, {
-    name:         req.name,
-    contactName:  req.contactName,
+    name: req.name,
+    contactName: req.contactName,
     contactEmail: req.contactEmail,
-    location: typeof req.location === 'string'
-      ? req.location
-      : buildLocation(req.location as Partial<AddressForm> | undefined),
-  })
+    location:
+      typeof req.location === "string"
+        ? req.location
+        : buildLocation(req.location as Partial<AddressForm> | undefined),
+  });
 }
-

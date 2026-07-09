@@ -1,24 +1,24 @@
-import { useState } from 'react'
-import type { BaseChangelogEntry } from '../types/changelog'
-import { ModificationLogRow } from './ModificationLogRow'
+import { useState } from "react";
+import type { BaseChangelogEntry } from "../types/changelog";
+import { ModificationLogRow } from "./ModificationLogRow";
 
 interface ModificationLogProps<T extends BaseChangelogEntry> {
-  entries: T[]
-  detailRenderer: (entry: T, onClose: () => void) => React.ReactNode
+  entries: T[];
+  detailRenderer: (entry: T, onClose: () => void) => React.ReactNode;
 }
 
-export function ModificationLog<T extends BaseChangelogEntry,>({
+export function ModificationLog<T extends BaseChangelogEntry>({
   entries,
   detailRenderer,
 }: ModificationLogProps<T>) {
-  const [selected, setSelected] = useState<T | null>(null)
+  const [selected, setSelected] = useState<T | null>(null);
 
   const sorted = [...entries].sort((a, b) => {
-    if (!a.modifiedAt && !b.modifiedAt) return 0
-    if (!a.modifiedAt) return 1
-    if (!b.modifiedAt) return -1
-    return b.modifiedAt.localeCompare(a.modifiedAt)
-  })
+    if (!a.modifiedAt && !b.modifiedAt) return 0;
+    if (!a.modifiedAt) return 1;
+    if (!b.modifiedAt) return -1;
+    return b.modifiedAt.localeCompare(a.modifiedAt);
+  });
 
   return (
     <>
@@ -38,20 +38,24 @@ export function ModificationLog<T extends BaseChangelogEntry,>({
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-slate-50">
-                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Asset ID</th>
-                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Change Type</th>
-                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Date Modified</th>
-                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Modified By</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Asset ID
+                  </th>
+                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Change Type
+                  </th>
+                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Date Modified
+                  </th>
+                  <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Modified By
+                  </th>
                   <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody>
                 {sorted.map((entry, i) => (
-                  <ModificationLogRow
-                    key={i}
-                    entry={entry}
-                    onViewMore={() => setSelected(entry)}
-                  />
+                  <ModificationLogRow key={i} entry={entry} onViewMore={() => setSelected(entry)} />
                 ))}
               </tbody>
             </table>
@@ -59,5 +63,5 @@ export function ModificationLog<T extends BaseChangelogEntry,>({
         )}
       </div>
     </>
-  )
+  );
 }

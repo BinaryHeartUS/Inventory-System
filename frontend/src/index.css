@@ -1,27 +1,30 @@
-
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'Lato';
+  font-family: "Lato";
   font-style: normal;
   font-weight: 600 700;
   font-display: swap;
-  src: url('/fonts/lato-700.woff2') format('woff2');
+  src: url("/fonts/lato-700.woff2") format("woff2");
 }
 
 @theme {
-  --color-brand-red:       #FF0040;
-  --color-brand-red-dark:  #d70036;
-  --color-heart-blue:      #193961;
+  --color-brand-red: #ff0040;
+  --color-brand-red-dark: #d70036;
+  --color-heart-blue: #193961;
   --color-heart-blue-dark: #112440;
-  --font-lato: 'Lato', sans-serif;
+  --font-lato: "Lato", sans-serif;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -33,4 +36,12 @@ body {
   display: contents;
 }
 
-h1, h2, h3, h4, h5, h6, p { margin: 0; }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+}

@@ -10,28 +10,28 @@
  *   DELETE /api/parts/:id              → 204
  */
 
-import { apiGet, apiGetOrNull, apiDelete, apiPostVoid, apiPutVoid } from './api'
-import type { InsertPartRequest, Part, PartChangelogResponse } from '../types/inventory'
-import type { PartChangelogEntry } from '../types/changelog'
-import { getChapters } from './chapterService'
+import { apiGet, apiGetOrNull, apiDelete, apiPostVoid, apiPutVoid } from "./api";
+import type { InsertPartRequest, Part, PartChangelogResponse } from "../types/inventory";
+import type { PartChangelogEntry } from "../types/changelog";
+import { getChapters } from "./chapterService";
 
 export async function getParts(): Promise<Part[]> {
-  return apiGet<Part[]>('/parts')
+  return apiGet<Part[]>("/parts");
 }
 
 /** Returns null when no part with the given ID exists. */
 export async function getPart(id: number): Promise<Part | null> {
-  return apiGetOrNull<Part>(`/parts/${id}`)
+  return apiGetOrNull<Part>(`/parts/${id}`);
 }
 
 export async function createPart(part: Part): Promise<Part> {
   // return apiPost<Part>('/parts', part)
-  const chapters = await getChapters()
-  const chapter = chapters.find(c => c.id === part.chapterId)
-  if (!chapter) throw new Error(`Unknown chapter: ${part.chapterId}`)
-  const chapterId = chapter.id
-  const assetId = part.id > 0 ? part.id : undefined
-  
+  const chapters = await getChapters();
+  const chapter = chapters.find((c) => c.id === part.chapterId);
+  if (!chapter) throw new Error(`Unknown chapter: ${part.chapterId}`);
+  const chapterId = chapter.id;
+  const assetId = part.id > 0 ? part.id : undefined;
+
   const body: InsertPartRequest = {
     chapterId,
     id: assetId,
@@ -41,36 +41,36 @@ export async function createPart(part: Part): Promise<Part> {
     containedIn: part.containedIn ?? undefined,
     acquisitionDate: part.acquisitionDate ?? undefined,
     value: part.value ?? undefined,
-    donorId: part.donorId || undefined
-  }
-  await apiPostVoid('/parts', body)
+    donorId: part.donorId || undefined,
+  };
+  await apiPostVoid("/parts", body);
 
   if (assetId !== undefined) {
-    return apiGet<Part>(`/parts/${assetId}`)
+    return apiGet<Part>(`/parts/${assetId}`);
   }
   // Auto-generated: re-fetch device list and find the most recently added match
-  const parts = await apiGet<Part[]>('/parts')
+  const parts = await apiGet<Part[]>("/parts");
   const match = parts
-    .filter(p => p.chapterId === part.chapterId && p.description === part.description)
-    .at(-1)
-  if (!match) throw new Error('Created part not found after insert')
-  return match
+    .filter((p) => p.chapterId === part.chapterId && p.description === part.description)
+    .at(-1);
+  if (!match) throw new Error("Created part not found after insert");
+  return match;
 }
 
 export async function updatePart(id: number, updates: Part): Promise<Part> {
-  await apiPutVoid(`/parts/${id}`, updates)
-  return apiGet<Part>(`/parts/${id}`)
+  await apiPutVoid(`/parts/${id}`, updates);
+  return apiGet<Part>(`/parts/${id}`);
 }
 
 export async function deletePart(id: number): Promise<void> {
-  return apiDelete(`/parts/${id}`)
+  return apiDelete(`/parts/${id}`);
 }
 
 export async function getPartsByDevice(deviceId: number): Promise<Part[]> {
-  return apiGet<Part[]>(`/parts/device/${deviceId}`)
+  return apiGet<Part[]>(`/parts/device/${deviceId}`);
 }
 
 export async function getPartChangelog(id: number): Promise<PartChangelogEntry[]> {
-  const raw = await apiGet<PartChangelogResponse[]>(`/parts/${id}/changelog`)
-  return raw.map(e => ({ ...e, assetId: e.partID ?? 0 }))
+  const raw = await apiGet<PartChangelogResponse[]>(`/parts/${id}/changelog`);
+  return raw.map((e) => ({ ...e, assetId: e.partID ?? 0 }));
 }

@@ -17,60 +17,60 @@
  * Chapter lookups are handled by chapterService / ChapterContext.
  */
 
-import { apiGet, apiPostVoid, apiDelete } from './api'
-import type { ChargerStatus, DeviceStatus, WorkingBattery } from '../types/inventory'
+import { apiGet, apiPostVoid, apiDelete } from "./api";
+import type { ChargerStatus, DeviceStatus, WorkingBattery } from "../types/inventory";
 
 interface LookupResponse {
-  deviceStatuses: DeviceStatus[]
-  chargerStatuses: ChargerStatus[]
-  workingBatteryOpts: WorkingBattery[]
-  manufacturers: string[]
-  ramGenerations: string[]
-  storageTypes: string[]
-  partTypes: string[]
-  operatingSystems: string[]
+  deviceStatuses: DeviceStatus[];
+  chargerStatuses: ChargerStatus[];
+  workingBatteryOpts: WorkingBattery[];
+  manufacturers: string[];
+  ramGenerations: string[];
+  storageTypes: string[];
+  partTypes: string[];
+  operatingSystems: string[];
 }
 
 export async function getAllLookups(): Promise<LookupResponse> {
-  return apiGet<LookupResponse>('/lookup')
+  return apiGet<LookupResponse>("/lookup");
 }
 
 export async function addManufacturer(name: string): Promise<void> {
-  return apiPostVoid('/lookup/manufacturers', { name })
+  return apiPostVoid("/lookup/manufacturers", { name });
 }
 
 export async function addRamGeneration(name: string): Promise<void> {
-  return apiPostVoid('/lookup/ram-generations', { name })
+  return apiPostVoid("/lookup/ram-generations", { name });
 }
 
 export async function addStorageType(name: string): Promise<void> {
-  return apiPostVoid('/lookup/storage-types', { name })
+  return apiPostVoid("/lookup/storage-types", { name });
 }
 
 export async function addPartType(name: string): Promise<void> {
-  return apiPostVoid('/lookup/part-types', { name })
+  return apiPostVoid("/lookup/part-types", { name });
 }
 
 export async function deleteManufacturer(name: string): Promise<void> {
-  return apiDelete(`/lookup/manufacturers/${encodeURIComponent(name)}`)
+  return apiDelete(`/lookup/manufacturers/${encodeURIComponent(name)}`);
 }
 
 export async function deleteRamGeneration(name: string): Promise<void> {
-  return apiDelete(`/lookup/ram-generations/${encodeURIComponent(name)}`)
+  return apiDelete(`/lookup/ram-generations/${encodeURIComponent(name)}`);
 }
 
 export async function deleteStorageType(name: string): Promise<void> {
-  return apiDelete(`/lookup/storage-types/${encodeURIComponent(name)}`)
+  return apiDelete(`/lookup/storage-types/${encodeURIComponent(name)}`);
 }
 
 export async function deletePartType(name: string): Promise<void> {
-  return apiDelete(`/lookup/part-types/${encodeURIComponent(name)}`)
+  return apiDelete(`/lookup/part-types/${encodeURIComponent(name)}`);
 }
 
 export async function addOperatingSystem(name: string): Promise<void> {
-  return apiPostVoid('/lookup/operating-systems', { name })
+  return apiPostVoid("/lookup/operating-systems", { name });
 }
 
 export async function deleteOperatingSystem(name: string): Promise<void> {
-  return apiDelete(`/lookup/operating-systems/${encodeURIComponent(name)}`)
+  return apiDelete(`/lookup/operating-systems/${encodeURIComponent(name)}`);
 }

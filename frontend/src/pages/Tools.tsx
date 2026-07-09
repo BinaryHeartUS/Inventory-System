@@ -1,44 +1,47 @@
-import { useState, useMemo, useEffect } from 'react'
-import { getTools } from '../services/toolService'
-import { useVisibleChapters } from '../context/ChapterContext'
-import PageHeading from '../components/PageHeading'
-import { ToolRow } from '../components/ToolRow'
-import AddAssetButton from '../components/AddAssetButton'
+import { useState, useMemo, useEffect } from "react";
+import { getTools } from "../services/toolService";
+import { useVisibleChapters } from "../context/ChapterContext";
+import PageHeading from "../components/PageHeading";
+import { ToolRow } from "../components/ToolRow";
+import AddAssetButton from "../components/AddAssetButton";
 
 export default function Tools() {
-  const [chapterFilter, setChapterFilter] = useState('All')
+  const [chapterFilter, setChapterFilter] = useState("All");
 
-  const [allTools, setAllTools] = useState<import('../types/inventory').Tool[]>([])
-  const allChapters = useVisibleChapters()
-  const chapters = allChapters.map(c => c.name)
+  const [allTools, setAllTools] = useState<import("../types/inventory").Tool[]>([]);
+  const allChapters = useVisibleChapters();
+  const chapters = allChapters.map((c) => c.name);
 
   useEffect(() => {
-    getTools().then(setAllTools)
-  }, [])
+    getTools().then(setAllTools);
+  }, []);
 
   const filtered = useMemo(() => {
-    return allTools.filter(t => {
-      if (chapterFilter !== 'All') {
-        const ch = allChapters.find(c => c.name === chapterFilter)
-        if (!ch || t.chapterId !== ch.id) return false
+    return allTools.filter((t) => {
+      if (chapterFilter !== "All") {
+        const ch = allChapters.find((c) => c.name === chapterFilter);
+        if (!ch || t.chapterId !== ch.id) return false;
       }
-      return true
-    })
-  }, [chapterFilter, allTools, allChapters])
+      return true;
+    });
+  }, [chapterFilter, allTools, allChapters]);
 
-  const hasFilters = chapterFilter !== 'All'
+  const hasFilters = chapterFilter !== "All";
 
   function clearFilters() {
-    setChapterFilter('All')
+    setChapterFilter("All");
   }
 
   return (
     <div className="space-y-6">
-
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading
           title="Tools"
-          subtitle={filtered.length === allTools.length ? `All ${allTools.length} tools` : `${filtered.length} of ${allTools.length} tools`}
+          subtitle={
+            filtered.length === allTools.length
+              ? `All ${allTools.length} tools`
+              : `${filtered.length} of ${allTools.length} tools`
+          }
         />
         <div className="flex justify-end">
           <AddAssetButton />
@@ -50,11 +53,15 @@ export default function Tools() {
         <div className="flex flex-wrap gap-3 items-center">
           <select
             value={chapterFilter}
-            onChange={e => setChapterFilter(e.target.value)}
+            onChange={(e) => setChapterFilter(e.target.value)}
             className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
-            {chapters.map(c => <option key={c} value={c}>{c}</option>)}
+            {chapters.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
           </select>
           {hasFilters && (
             <button
@@ -73,8 +80,11 @@ export default function Tools() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                {['ID', 'Description', 'Chapter', 'Value', 'Acquired'].map(h => (
-                  <th key={h} className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+                {["ID", "Description", "Chapter", "Value", "Acquired"].map((h) => (
+                  <th
+                    key={h}
+                    className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap"
+                  >
                     {h}
                   </th>
                 ))}
@@ -84,7 +94,7 @@ export default function Tools() {
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">
-                    No tools match the current filters.{' '}
+                    No tools match the current filters.{" "}
                     {hasFilters && (
                       <button onClick={clearFilters} className="text-brand-red hover:underline">
                         Clear filters
@@ -92,14 +102,13 @@ export default function Tools() {
                     )}
                   </td>
                 </tr>
-              ) : filtered.map(t => (
-                <ToolRow key={t.id} tool={t} />
-              ))}
+              ) : (
+                filtered.map((t) => <ToolRow key={t.id} tool={t} />)
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
     </div>
-  )
+  );
 }
