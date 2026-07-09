@@ -52,7 +52,7 @@ jobs:
         run: npm run build
 
   backend-format:
-    name: Backend Formatting (google-java-format)
+    name: Backend Formatting (Spotless)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -69,7 +69,7 @@ jobs:
           cache: maven
 
       - name: Check Java formatting
-        run: mvn -B -ntp fmt:check
+        run: mvn -B -ntp spotless:check
 
   frontend-format:
     name: Frontend Formatting (Prettier)
@@ -111,6 +111,14 @@ jobs:
           java-version: "25"
           cache: maven
 
+      - name: Cache dependency-check data
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: dependency-check-data-${{ runner.os }}-12.1.8
+          restore-keys: |
+            dependency-check-data-${{ runner.os }}-
+
       - name: Run OWASP dependency-check (Maven)
         run: mvn -B -ntp org.owasp:dependency-check-maven:12.1.8:check -DfailBuildOnCVSS=7
 
@@ -135,4 +143,4 @@ jobs:
         run: npm ci
 
       - name: Run npm audit
-        run: npm audit --audit-level=high
+        run: npm audit --omit=dev --audit-level=high
