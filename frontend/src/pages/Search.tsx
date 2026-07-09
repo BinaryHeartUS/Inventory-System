@@ -24,7 +24,7 @@ export default function Search() {
     });
   }, []);
 
-  const q = query.trim().toLowerCase();
+  const q = query.trim().toLowerCase().replace(/^0+|0+$/g, "");
 
   const { deviceResults, partResults, toolResults } = useMemo(() => {
     if (!q) return { deviceResults: [], partResults: [], toolResults: [] };

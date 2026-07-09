@@ -41,22 +41,21 @@ export function DevicePickerModal({
   );
 
   const filtered = useMemo(() => {
-    const base = allDevices.filter((d) => {
-      if (d.chapter == null || !writableChapterNames.has(d.chapter)) return false;
-      if (chapterName !== undefined && d.chapter !== chapterName) return false;
-      return true;
-    });
-    if (!search.trim()) return base;
-    const s = search.toLowerCase();
-    return base.filter(
-      (d) =>
-        String(d.id).includes(s) ||
-        (d.manufacturer ?? "").toLowerCase().includes(s) ||
-        (d.model ?? "").toLowerCase().includes(s) ||
-        (d.chapter ?? "").toLowerCase().includes(s) ||
-        String(d.year).includes(s)
-    );
-  }, [allDevices, search, writableChapterNames, chapterName]);
+    const base = allDevices.filter(d => {
+      if (d.chapter == null || !writableChapterNames.has(d.chapter)) return false
+      if (chapterName !== undefined && d.chapter !== chapterName) return false
+      return true
+    })
+    if (!search.trim().replace(/^0+|0+$/g, "")) return base
+    const s = search.toLowerCase().trim().replace(/^0+|0+$/g, "")
+    return base.filter(d =>
+      String(d.id).includes(s) ||
+      (d.manufacturer ?? '').toLowerCase().includes(s) ||
+      (d.model ?? '').toLowerCase().includes(s) ||
+      (d.chapter ?? '').toLowerCase().includes(s) ||
+      String(d.year).includes(s),
+    )
+  }, [allDevices, search, writableChapterNames, chapterName])
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
