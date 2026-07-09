@@ -1,3 +1,11 @@
-{$DOMAIN} {
-    reverse_proxy frontend:80
+# Multi-site reverse proxy. Each block routes a domain to that environment's
+# frontend container (see FRONTEND_ALIAS in deploy/<env>.env). Domains come from
+# deploy/proxy.env. Caddy handles HTTPS certificates automatically.
+
+{$PROD_DOMAIN} {
+	reverse_proxy inventory-prod-frontend:80
+}
+
+{$DEV_DOMAIN} {
+	reverse_proxy inventory-dev-frontend:80
 }

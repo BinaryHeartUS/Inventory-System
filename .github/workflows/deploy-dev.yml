@@ -1,0 +1,20 @@
+name: Deploy Dev
+
+# Manual dev deploy. Use the branch selector in the "Run workflow" dialog to pick
+# which branch to deploy, so in-progress work can be tested on the dev site. The
+# images built and deployed are from the selected ref's commit.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy-env.yml
+    with:
+      environment: dev
+      gh_environment: development
+    secrets: inherit

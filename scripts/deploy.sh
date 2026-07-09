@@ -1,64 +1,57 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./scripts/deploy.sh user@your-server-ip [--reset]
-#   --reset  Wipes the database and re-runs all migrations from scratch.
-#            Use during development/staging only — destroys all data.
+# APPLY-APP stage: (re)start one environment's application containers (db,
+# backend, frontend) from prebuilt GHCR images. Normally invoked by the GitHub
+# Actions deploy workflow AFTER the database migration stage, but can be run
+# manually on the server for rollbacks.
 #
-# Requires: ssh key auth set up on the target server, docker installed on the server
+# This script no longer runs migrations itself — that is the migrate.sh stage.
+# (If migrations were never applied for this tag, Compose still runs the
+# db-migrate dependency once as a safety net before starting the backend.)
 #
-# Required .env variables on the server at /opt/inventory-system/.env:
-#   DOMAIN             — public domain (e.g. inventory.binaryheart.org) — Caddy uses this for TLS
-#   DB_PASSWORD        — postgres superuser (binaryheart) password
-#   API_USER_PASSWORD  — password for the api_user DB role used by the backend
-#   IMPORTER_PASSWORD  — password for the importer DB role
+# Usage (run on the server, from the repo checkout):
+#   ./scripts/deploy.sh <dev|prod> <image_tag>
 #
-# See .env.example in the repo root for a template.
+#   <image_tag> is the git commit SHA whose images were built and pushed to GHCR.
+#   To roll back, re-run with an earlier SHA (after checking out that commit).
 #
-# First-time server setup (run once manually):
-#   curl -fsSL https://get.docker.com | sh
-#   ufw allow 80 && ufw allow 443 && ufw allow OpenSSH && ufw enable
-#   mkdir -p /opt/inventory-system && cp .env.example /opt/inventory-system/.env
-#   # edit /opt/inventory-system/.env with real values
+# Requires:
+#   - docker logged in to ghcr.io (the workflow does this before calling)
+#   - deploy/<env>.env committed in the repo
+#   - secrets/<env>.env present on the server (see deploy/secrets.env.example)
 
-TARGET="${1:?Usage: deploy.sh user@host [--reset]}"
-RESET="${2:-}"
-REMOTE_DIR="/opt/inventory-system"
+ENV="${1:?Usage: deploy.sh <dev|prod> <image_tag>}"
+TAG="${2:?Usage: deploy.sh <dev|prod> <image_tag>}"
 
-echo "Deploying to $TARGET..."
-
-ssh "$TARGET" bash <<EOF
-  set -euo pipefail
-
-  if [ ! -d "$REMOTE_DIR" ]; then
-    git clone git@github.com:BinaryHeartUS/Inventory-System.git "$REMOTE_DIR"
-  fi
-
-  cd "$REMOTE_DIR"
-  git pull
-
-  if [ ! -f .env ]; then
-    echo "ERROR: .env file not found at $REMOTE_DIR/.env"
-    echo "Copy .env.example to .env and fill in the required values."
+case "$ENV" in
+  dev | prod) ;;
+  *)
+    echo "ERROR: environment must be 'dev' or 'prod', got '$ENV'"
     exit 1
-  fi
+    ;;
+esac
 
-  if [ "$RESET" = "--reset" ]; then
-    echo "WARNING: --reset flag set. Wiping database and all containers..."
-    docker compose -f docker-compose.prod.yml down
-    rm -rf "$REMOTE_DIR/pgdata"
-    echo "Database wiped."
-  fi
+REPO_DIR="${REPO_DIR:-/opt/inventory-system}"
+CONFIG_ENV="$REPO_DIR/deploy/$ENV.env"
+SECRETS_ENV="$REPO_DIR/secrets/$ENV.env"
 
-  # Caddy handles TLS automatically via Let's Encrypt on first boot.
-  # db-migrate runs once and exits; force-remove it so it always re-runs on deploy.
-  # On --reset, also run the importer to seed data from the Excel file.
-  docker compose -f docker-compose.prod.yml rm -f db-migrate
+cd "$REPO_DIR"
 
-  if [ "$RESET" = "--reset" ]; then
-    COMPOSE_PROFILES=import docker compose -f docker-compose.prod.yml up --build -d
-  else
-    docker compose -f docker-compose.prod.yml up --build -d
-  fi
-  echo "Deploy complete. Site available at https://\$(grep '^DOMAIN=' .env | cut -d= -f2)"
-EOF
+[ -f "$CONFIG_ENV" ] || { echo "ERROR: missing $CONFIG_ENV"; exit 1; }
+[ -f "$SECRETS_ENV" ] || { echo "ERROR: missing $SECRETS_ENV (copy deploy/secrets.env.example)"; exit 1; }
+
+export IMAGE_TAG="$TAG"
+
+compose() {
+  docker compose -p "inventory-$ENV" \
+    --env-file "$CONFIG_ENV" \
+    --env-file "$SECRETS_ENV" \
+    -f docker-compose.app.yml "$@"
+}
+
+echo "=== Deploying $ENV app at tag $TAG ==="
+compose pull db backend frontend
+compose up -d --remove-orphans db backend frontend
+docker image prune -f
+echo "=== Deploy of $ENV app complete (tag $TAG) ==="
