@@ -14,7 +14,7 @@ import { EditText, EditSelect } from "../components/EditField";
 import { Section } from "../components/Section";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Breadcrumb } from "../components/Breadcrumb";
-import AddAssetButton from '../components/AddAssetButton'
+import AddAssetButton from "../components/AddAssetButton";
 import { DeleteConfirmButton } from "../components/DeleteConfirmButton";
 import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
@@ -165,10 +165,10 @@ export default function ToolDetail() {
       )}
       <div className="space-y-5">
         {/* Breadcrumb + Add Asset */}
-      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <Breadcrumb backHref="/tools" backLabel="Tools" current={tool.description} />
-        <AddAssetButton />
-      </div>
+          <AddAssetButton />
+        </div>
 
         {/* Header */}
         <div className="bg-white border border-slate-200 rounded-xl px-8 py-6">

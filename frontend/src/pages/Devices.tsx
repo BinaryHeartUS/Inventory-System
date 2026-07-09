@@ -50,7 +50,10 @@ export default function Devices() {
       if (statusFilter !== "All" && d.status !== statusFilter) return false;
       if (chapterFilter !== "All" && d.chapter !== chapterFilter) return false;
       if (search.trim().replace(/^0+|0+$/g, "")) {
-        const s = search.trim().toLowerCase().replace(/^0+|0+$/g, "");
+        const s = search
+          .trim()
+          .toLowerCase()
+          .replace(/^0+|0+$/g, "");
         return (
           String(d.id).includes(s) ||
           d.manufacturer?.toLowerCase().includes(s) ||

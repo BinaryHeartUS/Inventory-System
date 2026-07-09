@@ -4,10 +4,10 @@ import type { MonthlyValuePoint } from "../types/inventory";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatMonthLabel(year: number, month: number): string {
-  const d = new Date(year, month - 1)
-  const mon = d.toLocaleDateString('en-US', { month: 'short' })
-  const yr  = d.toLocaleDateString('en-US', { year: '2-digit' })
-  return `${mon} '${yr}`
+  const d = new Date(year, month - 1);
+  const mon = d.toLocaleDateString("en-US", { month: "short" });
+  const yr = d.toLocaleDateString("en-US", { year: "2-digit" });
+  return `${mon} '${yr}`;
 }
 
 function lastNMonths(n: number): { year: number; month: number }[] {
