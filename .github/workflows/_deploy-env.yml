@@ -1,0 +1,167 @@
+name: Deploy (reusable)
+
+# Reusable deploy for one environment, structured into explicit stages that mirror
+# a Terraform-style plan/apply split so adopting Flyway later is a drop-in change:
+#
+#   build      (PLAN-APP)  build backend/frontend/migrate images from the commit
+#                          and push to GHCR tagged with the SHA. Proves the app
+#                          builds; the images are the "planned" artifact.
+#   plan-db    (PLAN-DB)   SSH in and run scripts/migrate.sh <env> <sha> plan.
+#                          Makes NO changes. Today it is a placeholder; when Flyway
+#                          lands it becomes `flyway info` / `flyway validate`.
+#   apply-db   (APPLY-DB)  SSH in and run scripts/migrate.sh <env> <sha> apply.
+#                          GATED by the GitHub Environment (inputs.gh_environment):
+#                          add required reviewers there to require approval before
+#                          the database is changed (used for prod).
+#   deploy-app (APPLY-APP) SSH in and run scripts/deploy.sh to pull images and
+#                          (re)start db/backend/frontend. Runs only after apply-db.
+#
+# The gate lives on apply-db (the hard-to-undo database change), so approval is
+# requested once and covers the app rollout that follows.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Target stack: dev or prod."
+        required: true
+        type: string
+      gh_environment:
+        description: "GitHub Environment name used for gating."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Plan app (build & push images)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compute registry prefix
+        run: echo "REGISTRY=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/backend:${{ github.sha }}
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile.prod
+          push: true
+          tags: ${{ env.REGISTRY }}/frontend:${{ github.sha }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Build and push migrate
+        uses: docker/build-push-action@v6
+        with:
+          context: ./sql
+          file: ./sql/Dockerfile.migrate
+          push: true
+          tags: ${{ env.REGISTRY }}/migrate:${{ github.sha }}
+          cache-from: type=gha,scope=migrate
+          cache-to: type=gha,mode=max,scope=migrate
+
+  plan-db:
+    name: Plan DB (${{ inputs.environment }})
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preview migrations over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+          IMAGE_TAG: ${{ github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: DEPLOY_ENV,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          script: |
+            set -euo pipefail
+            cd /opt/inventory-system
+            git fetch --all --prune
+            git checkout --force "$IMAGE_TAG"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            ./scripts/migrate.sh "$DEPLOY_ENV" "$IMAGE_TAG" plan
+
+  apply-db:
+    name: Apply DB (${{ inputs.environment }})
+    needs: plan-db
+    runs-on: ubuntu-latest
+    # Gate: prod uses the "production" environment (add required reviewers there).
+    environment: ${{ inputs.gh_environment }}
+    steps:
+      - name: Run migrations over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+          IMAGE_TAG: ${{ github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: DEPLOY_ENV,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          script: |
+            set -euo pipefail
+            cd /opt/inventory-system
+            git fetch --all --prune
+            git checkout --force "$IMAGE_TAG"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            ./scripts/migrate.sh "$DEPLOY_ENV" "$IMAGE_TAG" apply
+
+  deploy-app:
+    name: Apply app (${{ inputs.environment }})
+    needs: apply-db
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy app over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+          IMAGE_TAG: ${{ github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: DEPLOY_ENV,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          script: |
+            set -euo pipefail
+            cd /opt/inventory-system
+            git fetch --all --prune
+            git checkout --force "$IMAGE_TAG"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            ./scripts/deploy.sh "$DEPLOY_ENV" "$IMAGE_TAG"
