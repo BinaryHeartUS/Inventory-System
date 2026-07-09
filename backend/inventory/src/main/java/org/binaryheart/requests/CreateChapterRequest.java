@@ -1,4 +1,3 @@
 package org.binaryheart.requests;
 
-public record CreateChapterRequest(String name) {
-}
+public record CreateChapterRequest(String name) {}
