@@ -75,7 +75,14 @@ compose pull db db-migrate
 compose rm -sf db-migrate
 # Starts db (waits for healthy per depends_on), then runs the migration to exit.
 compose up -d db-migrate
-code="$(compose wait db-migrate)"
+# Block until the migration container stops; `docker wait` prints a bare integer
+# exit code (unlike `docker compose wait`, whose output isn't a plain number).
+cid="$(compose ps -q db-migrate)"
+if [ -z "$cid" ]; then
+  echo "[apply-db] ERROR: could not find the db-migrate container."
+  exit 1
+fi
+code="$(docker wait "$cid")"
 echo "[apply-db] migration container exited with code ${code}."
 if [ "$code" != "0" ]; then
   echo "[apply-db] migration FAILED; dumping logs:"
