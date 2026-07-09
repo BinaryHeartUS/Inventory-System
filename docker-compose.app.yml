@@ -1,0 +1,99 @@
+# Per-environment application stack (dev or prod) for the shared VPS.
+#
+# Launched once per environment with a distinct project name and env files, e.g.:
+#   docker compose -p inventory-prod \
+#     --env-file deploy/prod.env \
+#     --env-file secrets/prod.env \
+#     -f docker-compose.app.yml up -d
+#
+# Images are built in CI and pulled from GHCR (see .github/workflows). The commit
+# SHA to run is supplied via IMAGE_TAG. Each environment gets its own Postgres
+# container + named volume (auto-namespaced by the project name), so dev and prod
+# never share data. Only the frontend joins the shared `web` network so the single
+# Caddy reverse proxy can reach it; the backend and db stay private to the stack.
+
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: binaryheart
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      # Bound to localhost only, for admin access via SSH tunnel. Distinct host
+      # port per environment (see deploy/<env>.env) avoids a clash on the box.
+      - "127.0.0.1:${DB_HOST_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U binaryheart -d inventory"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db-migrate:
+    image: ${REGISTRY}/migrate:${IMAGE_TAG}
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: binaryheart
+      DB_PASSWORD: ${DB_PASSWORD}
+      API_USER_PASSWORD: ${API_USER_PASSWORD}
+      IMPORTER_PASSWORD: ${IMPORTER_PASSWORD}
+
+  backend:
+    image: ${REGISTRY}/backend:${IMAGE_TAG}
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/inventory
+      DB_USER: api_user
+      DB_PASSWORD: ${API_USER_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+
+  frontend:
+    image: ${REGISTRY}/frontend:${IMAGE_TAG}
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      # Reachable as ${FRONTEND_ALIAS} (e.g. inventory-prod-frontend) on the
+      # shared network so Caddy can route this environment's domain to it.
+      default: {}
+      web:
+        aliases:
+          - ${FRONTEND_ALIAS}
+
+  # One-shot data importer. Profile-gated so it NEVER runs on a normal deploy;
+  # it is triggered only by the "Import Data" workflow / scripts/import-data.sh.
+  # Loads the Excel file at IMPORT_FILE_PATH, which is baked into the image from
+  # the repo's data/ directory.
+  importer:
+    image: ${REGISTRY}/importer:${IMAGE_TAG}
+    profiles: ["import"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/inventory
+      DB_USER: importer
+      DB_PASSWORD: ${IMPORTER_PASSWORD}
+      IMPORT_FILE_PATH: ${IMPORT_FILE_PATH:-/data/OldInventorySystem.xlsx}
+
+networks:
+  web:
+    external: true
+
+volumes:
+  # Named volume persists across deploys (docker compose up -d recreates
+  # containers but keeps volumes). Auto-namespaced per project, so dev and prod
+  # have completely separate databases. Data is only lost via an explicit -v.
+  pgdata:

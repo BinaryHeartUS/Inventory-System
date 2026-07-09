@@ -1,0 +1,24 @@
+name: Deploy Prod
+
+# Manual prod deploy. The deploy job only runs from the main branch (jobs are
+# skipped otherwise). Belt-and-suspenders: also set the "production" environment's
+# deployment-branch rule to `main` so GitHub blocks it server-side, and add
+# required reviewers there to require manual approval before the DB is changed.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    # Skips (does not run) unless dispatched from main.
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/_deploy-env.yml
+    with:
+      environment: prod
+      gh_environment: production
+    secrets: inherit
+

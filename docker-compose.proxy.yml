@@ -1,0 +1,35 @@
+# Shared reverse proxy for the VPS. A single Caddy instance owns ports 80/443 and
+# routes each environment's domain to that environment's frontend container over
+# the shared `web` network. Caddy obtains and renews Let's Encrypt certificates
+# automatically for both domains.
+#
+# Start (and restart after Caddyfile/domain changes) via scripts/setup-server.sh,
+# or directly:
+#   docker compose -p inventory-proxy --env-file deploy/proxy.env \
+#     -f docker-compose.proxy.yml up -d
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      PROD_DOMAIN: ${PROD_DOMAIN}
+      DEV_DOMAIN: ${DEV_DOMAIN}
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
+
+volumes:
+  caddy_data:
+  caddy_config:

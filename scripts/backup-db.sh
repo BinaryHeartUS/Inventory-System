@@ -1,15 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./scripts/backup-db.sh
-# Intended to be called from a cron job on the production server.
-# Dumps the inventory database to a timestamped gzipped SQL file.
+# Usage: ./scripts/backup-db.sh <dev|prod>
+# Dumps one environment's inventory database to a timestamped gzipped SQL file.
 #
-# Recommended cron entry (daily at 2am, keep 30 days of backups):
-#   0 2 * * * /opt/inventory-system/scripts/backup-db.sh >> /var/log/inventory-backup.log 2>&1
+# Recommended cron entries (daily at 2am, keep 30 days of backups):
+#   0 2 * * * /opt/inventory-system/scripts/backup-db.sh prod >> /var/log/inventory-backup-prod.log 2>&1
+#   30 2 * * * /opt/inventory-system/scripts/backup-db.sh dev  >> /var/log/inventory-backup-dev.log 2>&1
+#
+# NOTE: back these up OFF the VPS (e.g. sync $BACKUP_DIR to a Hetzner Storage Box
+# or S3 bucket) so a lost server does not take the backups with it.
 
-BACKUP_DIR="/opt/backups/inventory"
-CONTAINER="inventory-system-db-1"
+ENV="${1:?Usage: backup-db.sh <dev|prod>}"
+case "$ENV" in
+  dev | prod) ;;
+  *)
+    echo "ERROR: environment must be 'dev' or 'prod', got '$ENV'"
+    exit 1
+    ;;
+esac
+
+BACKUP_DIR="/opt/backups/inventory/${ENV}"
+CONTAINER="inventory-${ENV}-db-1"
 DB_USER="binaryheart"
 DB_NAME="inventory"
 RETAIN_DAYS=30
