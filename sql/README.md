@@ -1,56 +1,158 @@
-# SQL Naming Convention
+# Database Migrations (Flyway)
 
-## Format
+Database migrations are managed with **Flyway**. All scripts live under
+`FlywayMigrations/`, split into folders by kind of object:
 
-SQL scripts should have file name of the format `x.x.x script_name.sql`, detailed in the following sections:
+| Folder                                     | Flyway type       | Applies to    | Contents                                              |
+| ------------------------------------------ | ----------------- | ------------- | ----------------------------------------------------- |
+| `010 - Tracked`                            | Versioned (`V…`)  | all envs      | Types, enums, tables, reference-data seeds, user/role setup, indexes |
+| `020 - Untracked - Procedures & Functions` | Repeatable (`R…`) | all envs      | Stored procedures and functions                       |
+| `030 - Untracked - Triggers`               | Repeatable (`R…`) | all envs      | Triggers (and their inline trigger functions)         |
+| `040 - Untracked - Views`                  | Repeatable (`R…`) | all envs      | Views                                                 |
+| `090 - Dev Only - Tracked`                 | Versioned (`V…`)  | **dev only**  | Non-production seed data (e.g. the `developer`/`viewer` accounts) |
 
-- [First Digit](#first-digit)
-- [Second Digit](#second-digit)
-- [Third Digit](#third-digit)
-- [Script Name Requirements](#script-name-requirements)
-- [Purpose](#purpose)
-- [Adding new folders](#adding-new-folders)
+`010 - Tracked` is further split into sub-folders so the tree stays small:
+`Initialization/` holds the original schema, and later changes go in a folder
+named for the **year** they were authored (`2026/`, `2027/`, …).
 
-### First Digit
+## Environment-specific migrations
 
-The first digit signifies the major category of script, for example:
+Flyway decides which folders to scan from its **`flyway.locations`** setting, and
+that is configured per environment:
 
-- 0.0.0 is user creation
-- 1.0.0 is type creation
-- 2.0.0 is table creation
-- 3.0.0 is stored procedure creation
-- 4.0.0 is other scripts (currently unused)
+- **Every** environment scans `010`–`040` (the shared schema + code objects).
+- **Only dev** additionally scans `090 - Dev Only - Tracked`.
 
-### Second Digit
+So the `090` folder's migrations run when the dev database is (re)created but are
+never seen by production — that is how the `developer` and `viewer` accounts stay
+out of prod. To add another dev-only fixture, drop a `V…` script in `090`; to add
+something prod should also get, it belongs in `010`.
 
-The second digit signifies the tier of dependency, for example:
+## Versioned vs. Repeatable — the two kinds of migration
 
-- 2.0.x has no dependencies on any other table, but may have dependencies on 1.x.x types
-- 2.1.x has a dependency on some 2.0.x table
-- 2.2.x as a dependency on some 2.0.x or 2.1.x table, etc
+Flyway has exactly two script types, and the single-letter prefix on the
+**filename** is what tells them apart:
 
-### Third Digit
+- **`V` = Versioned** ("Tracked"). Runs **once**, ever. Flyway records it in its
+  `flyway_schema_history` table and never runs it again. Use for anything that
+  can't safely be re-executed — creating a table, adding a column, seeding data.
+  Versioned scripts are **immutable**: once one has run in any environment you
+  must not edit it (Flyway stores a checksum and refuses to start if a
+  previously-applied script changed). To change existing schema you add a **new**
+  `V…` script.
+- **`R` = Repeatable** ("Untracked"). Runs **every time its content changes**.
+  Flyway compares a checksum each deploy and re-applies the script if it differs.
+  Use only for objects written with `CREATE OR REPLACE …`, which is why
+  procedures, functions, triggers, and views live here — they can be safely
+  re-defined in place.
 
-The third and final digit simply separates different scripts in the same tier. For example:
+## Why the folders alone aren't enough
 
-- 2.1.0 and 2.1.1 have no dependency on each other and are interchangable
-- 2.3.1, 2.3.2, and 2.3.3 all similarly have no dependency on each other and can be added in any order
+**Flyway ignores folder names for typing and ordering.** It scans every
+configured location (recursively, so sub-folders like `Initialization/` and
+`2026/` are included), flattens the files together, and decides each script's
+type and order purely from the **filename**. That has two consequences:
 
-### Script Name Requirements
+1. Every repeatable file still needs the `R__` prefix — a file in
+   `020 - Untracked …` is *not* treated as repeatable just because of the folder;
+   without `R__` Flyway wouldn't recognize it as a migration at all.
+2. Flyway runs all repeatables in **alphabetical order of their description**,
+   regardless of folder. So to guarantee functions run before views we bake the
+   order into the name (`020` / `030` / `040`), not the folder.
 
-Scripts must be named using the following convention: `number action_target_type.sql`. For example:
+The folders exist to keep files organized for humans (and, for `090`, to be a
+separately-scanned location); the filename is what actually drives Flyway.
 
-- `3.0.0 Insert_Chapter_Procedure.sql` is valid because it follows the format number (3.0.0), action (Insert), target (Chapter), type (Procedure).
-- `1.1.1 Create_PartType_Enum.sql` is valid because it follows the format number (1.1.1), action (Create), target (PartType), type (Enum)
-- `2.3.1 Create_Part_Table.sql` is valid because it follows the format number (2.3.1), action (Create), target (Part), type (Table)
-- `4.0.0 Setup_Users_Script.sql` is valid because it follows the format number (4.0.0), action (Setup), target (Users), type (Script)
+## Naming convention
 
-Ensure Snake case is used rather than camel case because postgres is case-insensitive (i.e. `Create_Manufacturer_Enum` is preferred over `CreateManufacturerEnum` because in postgres it would appear as `createmanufacturerenum`)
+### Versioned — `010 - Tracked` and `090 - Dev Only - Tracked`
 
-### Purpose
+Format: `V<yyyymmdd>.<NN>__<Description>.sql`
 
-The purpose of this naming scheme is that all SQL scripts contained in /sql/DatabaseCreationScripts will be run in alphabetical order upon initialization of the Postgres server. Therefore, this naming scheme enforces an order for the scripts to run.
+- `<yyyymmdd>` — the date the change was authored (e.g. `20260709`). Newer dates
+  sort after older ones, so migrations naturally run in the order they were
+  written. (The initial schema in `Initialization/` shares one authoring date;
+  it always sorts first because it predates every later change.)
+- `.<NN>` — a two-digit sequence. Flyway requires every versioned script to have
+  a **unique** version, and it orders them by comparing the numeric parts. The
+  sequence makes multiple scripts authored on the **same day** both unique and
+  ordered, so dependencies go first (a type before the table that uses it, a
+  table before the seed that fills it). `V20260709.02` runs after
+  `V20260709.01`.
+- `__` — Flyway's **mandatory** separator between the version and the human
+  description. It is always a **double** underscore; single underscores are just
+  normal characters inside the version or description, so the double underscore
+  is what marks where the version ends and the name begins.
+  (`V20260709.21__Create_Part_Table` → version `20260709.21`, description
+  "Create Part Table".)
+- `<Description>` — `Snake_Case`. Postgres folds unquoted identifiers to lower
+  case, so `Create_Part_Table` reads better than `CreatePartTable`.
 
-### Adding New Folders
+Example: `V20260709.21__Create_Part_Table.sql`
 
-In order to add new folders to be automatically executed beyond those already implemented (CreateStoredProcedures, CreateTables, CreateTypes, and EnumScripts) you must add the directory into sql/Dockerfile in the format `COPY path/to/folder/*.sql /docker-entrypoint-initdb.d/`
+### Repeatable — `020 …`, `030 …`, and `040 …`
+
+Format: `R__<NNN>_<Description>.sql`
+
+- `R__` — the repeatable prefix (again, always a double underscore after `R`).
+  Repeatables have **no version number** — Flyway never orders them by version,
+  only by description.
+- `<NNN>` — an ordering prefix baked into the description so the alphabetical sort
+  puts things in dependency order: **`020` (procedures & functions) → `030`
+  (triggers) → `040` (views).**
+- **Why views come last:** Postgres binds the objects a view references at
+  `CREATE VIEW` time, so a view that calls a function needs that function to
+  already exist → views must run after functions. Procedure and function bodies
+  (PL/pgSQL) are resolved lazily, so they have **no** ordering constraint among
+  themselves and all share the `020` prefix.
+- **Triggers (`030`) sit between them.** A `CREATE TRIGGER` needs its trigger
+  function to exist first, but every trigger script in this repo defines its
+  function (`CREATE OR REPLACE FUNCTION …`) immediately above the
+  `CREATE OR REPLACE TRIGGER …` in the same file, so that dependency is satisfied
+  within the script. Triggers otherwise only reference tables (from `010`), so
+  their `030` slot is really just for tidy separation — functionally they only
+  need to run after `010`.
+
+Example: `R__020_Get_Device_Type.sql`, `R__030_Device_Change_Log_Trigger.sql`,
+`R__040_Get_Devices_View.sql`
+
+## Adding a migration
+
+- **New/changed table, type, seed, or index** → add a new `V<today>.<NN>__….sql`
+  under `010 - Tracked/<year>/` (create the year folder if it's the first change
+  of the year). Pick an `NN` after the last one used that day, and make sure
+  anything it depends on has a lower version. Never edit a `V…` script that has
+  already been deployed — add a new one instead.
+- **New dev-only fixture** → add a `V…` script under `090 - Dev Only - Tracked/`.
+- **New/changed stored procedure or function** → add or edit an `R__020_….sql` in
+  `020 - Untracked - Procedures & Functions`.
+- **New/changed trigger** → add or edit an `R__030_….sql` in
+  `030 - Untracked - Triggers`.
+- **New/changed view** → add or edit an `R__040_….sql` in
+  `040 - Untracked - Views`.
+
+## Restoring a database from a backup
+
+`scripts/backup-db.sh` dumps a whole environment's database with `pg_dump | gzip`.
+That dump includes the `flyway_schema_history` table, so a restore needs nothing
+Flyway-specific — Flyway resumes from whatever migration state the backup captured
+and only applies migrations authored after it.
+
+On the server:
+
+```bash
+# 1. Stop writers.
+docker compose -p inventory-<env> -f docker-compose.app.yml stop backend frontend
+
+# 2. Recreate an empty database.
+docker exec -i inventory-<env>-db-1 psql -U binaryheart -d postgres \
+  -c "DROP DATABASE inventory WITH (FORCE);" \
+  -c "CREATE DATABASE inventory OWNER binaryheart;"
+
+# 3. Load the dump (tables, data, and flyway_schema_history).
+gunzip -c /opt/backups/inventory/<env>/inventory_<timestamp>.sql.gz \
+  | docker exec -i inventory-<env>-db-1 psql -U binaryheart -d inventory
+
+# 4. Bring the app back; the next deploy's `flyway migrate` applies anything newer.
+docker compose -p inventory-<env> -f docker-compose.app.yml up -d backend frontend
+```
