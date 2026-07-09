@@ -1,4 +1,3 @@
 package org.binaryheart.responses;
 
-public record MonthlyCountPoint(int year, int month, long count) {
-}
+public record MonthlyCountPoint(int year, int month, long count) {}

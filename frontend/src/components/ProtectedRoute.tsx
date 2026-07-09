@@ -1,9 +1,9 @@
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import type { ReactNode } from 'react'
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import type { ReactNode } from "react";
 
 interface Props {
-  children: ReactNode
+  children: ReactNode;
 }
 
 /**
@@ -12,12 +12,12 @@ interface Props {
  * path stored in location.state.from so they can be sent back after login.
  */
 export default function ProtectedRoute({ children }: Props) {
-  const { auth } = useAuth()
-  const location = useLocation()
+  const { auth } = useAuth();
+  const location = useLocation();
 
   if (!auth) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />
+    return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

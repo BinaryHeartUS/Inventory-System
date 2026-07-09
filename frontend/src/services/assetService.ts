@@ -8,12 +8,12 @@
  *   GET /api/assets/:id/exists  → boolean
  */
 
-import { apiGet } from './api'
+import { apiGet } from "./api";
 
 /**
  * Returns true if any asset (device, part, or tool) already uses the given ID.
  * Used by the Add Asset modal to validate manually-entered IDs before submission.
  */
 export async function checkAssetIdExists(id: number): Promise<boolean> {
-  return apiGet<boolean>(`/assets/${id}/exists`)
+  return apiGet<boolean>(`/assets/${id}/exists`);
 }

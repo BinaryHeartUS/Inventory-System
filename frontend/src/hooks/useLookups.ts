@@ -12,28 +12,28 @@
  *   <EditCombo options={lookups.manufacturers} ... />
  */
 
-import { useEffect, useState } from 'react'
-import type { ChargerStatus, DeviceStatus, WorkingBattery } from '../types/inventory'
-import { getAllLookups } from '../services/lookupService'
-import { useWritableChapters } from '../context/ChapterContext'
+import { useEffect, useState } from "react";
+import type { ChargerStatus, DeviceStatus, WorkingBattery } from "../types/inventory";
+import { getAllLookups } from "../services/lookupService";
+import { useWritableChapters } from "../context/ChapterContext";
 
 export interface LookupData {
-  chapters: string[]
-  manufacturers: string[]
-  ramGenerations: string[]
-  storageTypes: string[]
-  partTypes: string[]
-  operatingSystems: string[]
-  deviceStatuses: DeviceStatus[]
-  chargerStatuses: ChargerStatus[]
-  workingBatteryOpts: WorkingBattery[]
-  wifiOpts: ['Yes', 'No', 'Unknown']
+  chapters: string[];
+  manufacturers: string[];
+  ramGenerations: string[];
+  storageTypes: string[];
+  partTypes: string[];
+  operatingSystems: string[];
+  deviceStatuses: DeviceStatus[];
+  chargerStatuses: ChargerStatus[];
+  workingBatteryOpts: WorkingBattery[];
+  wifiOpts: ["Yes", "No", "Unknown"];
 }
 
-const WIFI_OPTS: LookupData['wifiOpts'] = ['Yes', 'No', 'Unknown']
+const WIFI_OPTS: LookupData["wifiOpts"] = ["Yes", "No", "Unknown"];
 
 export function useLookups(): LookupData {
-  const chapterList = useWritableChapters()
+  const chapterList = useWritableChapters();
   const [rest, setRest] = useState({
     manufacturers: [] as string[],
     ramGenerations: [] as string[],
@@ -43,15 +43,15 @@ export function useLookups(): LookupData {
     deviceStatuses: [] as DeviceStatus[],
     chargerStatuses: [] as ChargerStatus[],
     workingBatteryOpts: [] as WorkingBattery[],
-  })
+  });
 
   useEffect(() => {
     getAllLookups()
-      .then(data => setRest(data))
+      .then((data) => setRest(data))
       .catch(() => {
         // Lookup endpoint not yet available; leave arrays empty so the rest of the UI still renders
-      })
-  }, [])
+      });
+  }, []);
 
-  return { ...rest, chapters: chapterList.map(c => c.name), wifiOpts: WIFI_OPTS }
+  return { ...rest, chapters: chapterList.map((c) => c.name), wifiOpts: WIFI_OPTS };
 }

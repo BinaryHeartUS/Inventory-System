@@ -1,46 +1,46 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useState, type FormEvent } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const { login } = useAuth()
-  const navigate  = useNavigate()
-  const location  = useLocation()
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
+  const from = (location.state as { from?: string } | null)?.from ?? "/dashboard";
 
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error,    setError]    = useState<string | null>(null)
-  const [loading,  setLoading]  = useState(false)
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
     try {
-      await login(username, password)
-      navigate(from, { replace: true })
+      await login(username, password);
+      navigate(from, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   const inputCls =
-    'w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 outline-none ' +
-    'focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white'
+    "w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 outline-none " +
+    "focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white";
 
   return (
     <div className="min-h-dvh bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <img src="/icon.png" alt="BinaryHeart" className="w-14 h-14 object-contain mb-3" />
           <span className="font-lato font-semibold text-xl tracking-tight">
-            <span className="text-brand-red">Binary</span><span className="text-heart-blue">Heart</span>
+            <span className="text-brand-red">Binary</span>
+            <span className="text-heart-blue">Heart</span>
           </span>
           <p className="text-slate-400 text-sm mt-1">Inventory System</p>
         </div>
@@ -59,7 +59,7 @@ export default function Login() {
                 autoComplete="username"
                 autoFocus
                 value={username}
-                onChange={e => setUsername(e.target.value)}
+                onChange={(e) => setUsername(e.target.value)}
                 className={inputCls}
                 required
               />
@@ -73,7 +73,7 @@ export default function Login() {
                 type="password"
                 autoComplete="current-password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 className={inputCls}
                 required
               />
@@ -90,12 +90,11 @@ export default function Login() {
               disabled={loading}
               className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-heart-blue hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity mt-2"
             >
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
         </div>
-
       </div>
     </div>
-  )
+  );
 }

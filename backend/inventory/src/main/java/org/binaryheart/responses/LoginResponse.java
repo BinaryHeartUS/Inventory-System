@@ -1,8 +1,7 @@
 package org.binaryheart.responses;
 
+import java.util.List;
 import org.binaryheart.models.ChapterRole;
 
-import java.util.List;
-
-public record LoginResponse(String token, String username, List<ChapterRole> chapterRoles, String role) {
-}
+public record LoginResponse(
+    String token, String username, List<ChapterRole> chapterRoles, String role) {}

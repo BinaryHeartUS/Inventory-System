@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "format": "npx prettier@3.6.2 --write .",
+    "format:check": "npx prettier@3.6.2 --check .",
     "preview": "vite preview",
     "gen-types": "openapi-typescript ../backend/inventory/target/classes/openapi-plugin/openapi-default.json -o src/types/api.d.ts"
   },
@@ -18,7 +20,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-is": "^19.2.5",
-    "react-router-dom": "^7.14.2",
+    "react-router-dom": "^7.18.1",
     "recharts": "^3.8.1",
     "tailwindcss": "^4.2.4"
   },
@@ -36,5 +38,8 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.9"
+  },
+  "overrides": {
+    "dompurify": "^3.4.11"
   }
 }
