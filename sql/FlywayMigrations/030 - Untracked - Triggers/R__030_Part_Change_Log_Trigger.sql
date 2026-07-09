@@ -1,4 +1,7 @@
-CREATE OR REPLACE FUNCTION Update_Part_Change_Log()
+DROP TRIGGER IF EXISTS Trg_Update_Part_Change_Log ON Part;
+DROP FUNCTION IF EXISTS Update_Part_Change_Log();
+
+CREATE FUNCTION Update_Part_Change_Log()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -42,7 +45,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER Trg_Update_Part_Change_Log
+CREATE TRIGGER Trg_Update_Part_Change_Log
     AFTER INSERT OR UPDATE OR DELETE ON Part
     FOR EACH ROW
     EXECUTE FUNCTION Update_Part_Change_Log();

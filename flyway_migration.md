@@ -52,24 +52,37 @@ Flyway runs each migration with `ON_ERROR_STOP`-equivalent behavior (any failing
 statement aborts the migration), unlike the old `psql -f` runner which silently
 continued. Two things currently rely on that lenient behavior.
 
-### 1a. Remove `DROP FUNCTION IF EXISTS` from the function files
+### 1a. `DROP … IF EXISTS` pattern (DONE) and the two function exceptions
 
-Every file in `020 - Untracked - Procedures & Functions` begins with a line like:
+Every DDL object in the repeatable folders now follows a uniform
+**drop-then-create** pattern so each is safely re-runnable and can be reshaped
+(not just body-edited):
 
-```sql
-DROP FUNCTION IF EXISTS Get_Device_Type;
-```
+- **Procedures & functions (`020`)** — each begins with `DROP PROCEDURE/FUNCTION
+  IF EXISTS …;` then `CREATE OR REPLACE …`.
+- **Triggers (`030`)** — each begins with `DROP TRIGGER IF EXISTS <trig> ON
+  <table>;` + `DROP FUNCTION IF EXISTS <trigfn>();`, then plain `CREATE FUNCTION`
+  / `CREATE TRIGGER`.
+- **Views (`040`)** — each begins with `DROP VIEW IF EXISTS <view>;` then
+  `CREATE VIEW`. (Plain `CREATE OR REPLACE VIEW` can't change a view's column
+  set/names/types; the drop lets a view be reshaped.)
 
-The `Get_Devices` view (in `040`) references `Get_Device_Type()` and
-`Get_Charger_Status()`. Once that view exists, Postgres **refuses** to drop those
-functions ("cannot drop function … because other objects depend on it"). Today
-that error is printed and ignored; under Flyway it fails the migration.
+**The two deliberate exceptions:** `R__020_Get_Device_Type_Function.sql` and
+`R__020_Get_Charger_Status_Function.sql` **must not** have a `DROP FUNCTION` line.
+The `Get_Devices` view (in `040`) calls both, and repeatables run `020` **before**
+`040`, so at the moment those `020` files run, the previous deploy's `Get_Devices`
+view still exists and Postgres **refuses** to drop a function a view depends on
+("cannot drop function … because other objects depend on it") — which aborts the
+migration under Flyway. Adding `DROP VIEW` to the view files does **not** fix this
+(ordering: the view isn't dropped until the later `040` phase). Both files use
+`CREATE OR REPLACE FUNCTION` with an explanatory comment; a signature/return-type
+change to either is handled by a versioned migration (case 3 below).
 
-**Action:** delete the leading `DROP FUNCTION IF EXISTS …` line from each
-`R__020_*.sql` file. Find them all:
+Guard against regressions — this should return only those two files:
 
 ```bash
-grep -rl '^DROP FUNCTION IF EXISTS' "sql/FlywayMigrations/020 - Untracked - Procedures & Functions"
+# functions referenced inside any view (they must stay CREATE OR REPLACE, no DROP):
+grep -rl 'Get_Device_Type\|Get_Charger_Status' "sql/FlywayMigrations/040 - Untracked - Views"
 ```
 
 #### What to do instead when a function's signature changes
@@ -532,7 +545,9 @@ so branch edits to functions/views/triggers deploy to dev cleanly every time.
 
 ## 10. Cutover checklist (order of operations)
 
-1. [ ] §1a Remove `DROP FUNCTION IF EXISTS` lines from `020` files.
+1. [x] §1a Drop-then-create pattern applied to views (`040`) and triggers
+       (`030`); `DROP FUNCTION` removed from the two view-dependent functions
+       (`Get_Device_Type`, `Get_Charger_Status`).
 2. [ ] §1c Audit for `${` placeholder collisions.
 3. [ ] §2 New `Dockerfile.migrate`, `flyway.conf`, and the `afterMigrate`
        password-sync callback. (No entrypoint wrapper.)

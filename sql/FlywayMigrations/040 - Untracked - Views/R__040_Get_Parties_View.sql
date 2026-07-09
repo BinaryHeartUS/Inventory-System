@@ -1,4 +1,6 @@
-CREATE OR REPLACE VIEW Get_Parties
+DROP VIEW IF EXISTS Get_Parties;
+
+CREATE VIEW Get_Parties
 AS
 SELECT p.ID, p.Name, p.Location, per.Email AS IndividualEmail, o.ContactName, o.ContactEmail
 FROM Party p

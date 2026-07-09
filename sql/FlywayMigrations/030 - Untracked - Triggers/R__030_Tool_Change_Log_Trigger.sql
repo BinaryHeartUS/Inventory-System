@@ -1,4 +1,7 @@
-CREATE OR REPLACE FUNCTION Update_Tool_Change_Log()
+DROP TRIGGER IF EXISTS Trg_Update_Tool_Change_Log ON Tool;
+DROP FUNCTION IF EXISTS Update_Tool_Change_Log();
+
+CREATE FUNCTION Update_Tool_Change_Log()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -30,7 +33,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER Trg_Update_Tool_Change_Log
+CREATE TRIGGER Trg_Update_Tool_Change_Log
     AFTER INSERT OR UPDATE OR DELETE ON Tool
     FOR EACH ROW
     EXECUTE FUNCTION Update_Tool_Change_Log();

@@ -1,4 +1,7 @@
-CREATE OR REPLACE FUNCTION Set_Device_Donated_Date()
+DROP TRIGGER IF EXISTS Trg_Set_Device_Donated_Date ON Device;
+DROP FUNCTION IF EXISTS Set_Device_Donated_Date();
+
+CREATE FUNCTION Set_Device_Donated_Date()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -18,7 +21,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER Trg_Set_Device_Donated_Date
+CREATE TRIGGER Trg_Set_Device_Donated_Date
     BEFORE INSERT OR UPDATE ON Device
     FOR EACH ROW
     EXECUTE FUNCTION Set_Device_Donated_Date();
