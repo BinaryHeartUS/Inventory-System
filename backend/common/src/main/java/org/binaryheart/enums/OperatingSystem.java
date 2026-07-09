@@ -1,8 +1,15 @@
 package org.binaryheart.enums;
 
 public enum OperatingSystem {
-    WINDOWS_11("Windows 11"), VANILLA_OS("Vanilla OS"), MACOS("macOS"), IPAD_OS("iPadOS"), IOS("iOS"),
-    UNKNOWN("Unknown"), ARCHLINUX("Arch Linux"), ANDROID("Android"), CHROME_OS("ChromeOS");
+    WINDOWS_11("Windows 11"),
+    VANILLA_OS("Vanilla OS"),
+    MACOS("macOS"),
+    IPAD_OS("iPadOS"),
+    IOS("iOS"),
+    UNKNOWN("Unknown"),
+    ARCHLINUX("Arch Linux"),
+    ANDROID("Android"),
+    CHROME_OS("ChromeOS");
 
     private final String databaseValue;
 

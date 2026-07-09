@@ -1,7 +1,10 @@
 package org.binaryheart.enums;
 
 public enum TypeOfDevice {
-    LAPTOP("Laptop"), DESKTOP("Desktop"), TABLET("Tablet"), UNKNOWN("Unknown");
+    LAPTOP("Laptop"),
+    DESKTOP("Desktop"),
+    TABLET("Tablet"),
+    UNKNOWN("Unknown");
 
     private final String databaseValue;
 

@@ -1,7 +1,9 @@
 package org.binaryheart.enums;
 
 public enum ChargerStatus {
-    INCLUDED("Included"), NOT_INCLUDED("Not Included"), UNKNOWN("Unknown");
+    INCLUDED("Included"),
+    NOT_INCLUDED("Not Included"),
+    UNKNOWN("Unknown");
 
     private final String databaseValue;
 
@@ -14,11 +16,13 @@ public enum ChargerStatus {
     }
 
     public static ChargerStatus fromDatabaseValue(String value) {
-        if (value == null)
+        if (value == null) {
             return null;
+        }
         for (ChargerStatus s : values()) {
-            if (s.databaseValue.equals(value))
+            if (s.databaseValue.equals(value)) {
                 return s;
+            }
         }
         throw new IllegalArgumentException("Unknown ChargerStatus value: " + value);
     }

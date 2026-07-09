@@ -1,7 +1,9 @@
 package org.binaryheart.enums;
 
 public enum WorkingBattery {
-    YES("Yes"), NO("No"), UNKNOWN("Unknown");
+    YES("Yes"),
+    NO("No"),
+    UNKNOWN("Unknown");
 
     private final String databaseValue;
 
@@ -14,11 +16,13 @@ public enum WorkingBattery {
     }
 
     public static WorkingBattery fromDatabaseValue(String value) {
-        if (value == null)
+        if (value == null) {
             return null;
+        }
         for (WorkingBattery w : values()) {
-            if (w.databaseValue.equals(value))
+            if (w.databaseValue.equals(value)) {
                 return w;
+            }
         }
         throw new IllegalArgumentException("Unknown WorkingBattery value: " + value);
     }
