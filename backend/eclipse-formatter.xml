@@ -3,9 +3,9 @@
     <profile kind="CodeFormatterProfile" name="Inventory" version="21">
         <!-- Indentation -->
         <setting id="org.eclipse.jdt.core.formatter.indentation.size" value="4"/>
-        <setting id="org.eclipse.jdt.core.formatter.tabulation.char" value="space"/>
+        <setting id="org.eclipse.jdt.core.formatter.tabulation.char" value="tab"/>
         <setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="4"/>
-        <setting id="org.eclipse.jdt.core.formatter.continuation_indentation" value="2"/>
+        <setting id="org.eclipse.jdt.core.formatter.continuation_indentation" value="1"/>
 
         <!-- Line length -->
         <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="120"/>

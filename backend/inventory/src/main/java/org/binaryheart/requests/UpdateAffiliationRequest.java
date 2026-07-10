@@ -1,3 +1,4 @@
 package org.binaryheart.requests;
 
-public record UpdateAffiliationRequest(String role) {}
+public record UpdateAffiliationRequest(String role) {
+}

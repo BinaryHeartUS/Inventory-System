@@ -495,8 +495,12 @@ function PartySection({
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setListError(null);
+    Promise.resolve().then(() => {
+      if (!cancelled) {
+        setLoading(true);
+        setListError(null);
+      }
+    });
     getParties({ type: isPerson ? "person" : "organization" })
       .then((all) => {
         if (!cancelled) {

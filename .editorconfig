@@ -1,0 +1,25 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Java: tabs, matching the Spotless/Eclipse profile (tabulation.char = tab, size 4)
+[*.java]
+indent_style = tab
+indent_size = 4
+
+# Frontend & config: 2-space, matching Prettier defaults
+[*.{ts,tsx,js,jsx,mjs,cjs,json,css,scss,html,yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Makefiles require real tabs
+[Makefile]
+indent_style = tab
+
+# Markdown: trailing whitespace can be a hard line break
+[*.md]
+trim_trailing_whitespace = false

@@ -39,6 +39,7 @@ jobs:
   build:
     name: Plan app (build & push images)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,6 +91,7 @@ jobs:
     name: Plan DB (${{ inputs.environment }})
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Preview migrations over SSH
         uses: appleboy/ssh-action@v1
@@ -116,6 +118,7 @@ jobs:
     name: Apply DB (${{ inputs.environment }})
     needs: plan-db
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Gate: prod uses the "production" environment (add required reviewers there).
     environment: ${{ inputs.gh_environment }}
     steps:
@@ -144,6 +147,7 @@ jobs:
     name: Apply app (${{ inputs.environment }})
     needs: apply-db
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Deploy app over SSH
         uses: appleboy/ssh-action@v1

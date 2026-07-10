@@ -20,7 +20,6 @@
         <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spotless.maven.plugin.version>3.8.0</spotless.maven.plugin.version>
-        <google.java.format.version>1.35.0</google.java.format.version>
     </properties>
 
     <dependencyManagement>
@@ -90,10 +89,13 @@
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>${spotless.maven.plugin.version}</version>
                 <configuration>
+                    <upToDateChecking>
+                        <enabled>false</enabled>
+                    </upToDateChecking>
                     <java>
-                        <googleJavaFormat>
-                            <version>${google.java.format.version}</version>
-                        </googleJavaFormat>
+                        <eclipse>
+                            <file>${maven.multiModuleProjectDirectory}/eclipse-formatter.xml</file>
+                        </eclipse>
                     </java>
                 </configuration>
                 <executions>
