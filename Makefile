@@ -22,5 +22,5 @@ build: build-java build-web ## Build backend and frontend
 build-java: ## Build the backend (skip tests)
 	cd backend && mvn -q -DskipTests package
 
-build-web: ## Build the frontend
-	cd frontend && npm run build
+build-web: ## Lint and build the frontend
+	cd frontend && npm run lint && npm run build
