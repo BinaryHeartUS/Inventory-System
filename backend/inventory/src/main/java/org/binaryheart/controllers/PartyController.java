@@ -28,275 +28,290 @@ import org.binaryheart.services.PartyService;
 
 public class PartyController {
 
-  private static final PartyService service = new PartyService();
+	private static final PartyService service = new PartyService();
 
-  public static void registerRoutes() {
-    get("", PartyController::getAllParties, AppRole.AUTHENTICATED);
-    get("/{id}", PartyController::getParty, AppRole.AUTHENTICATED);
-    post("/organization", PartyController::insertOrg, AppRole.AUTHENTICATED);
-    post("/person", PartyController::insertPerson, AppRole.AUTHENTICATED);
-    put("/person/{id}", PartyController::updatePerson, AppRole.CHAPTER_ADMIN);
-    put("/organization/{id}", PartyController::updateOrganization, AppRole.CHAPTER_ADMIN);
-  }
+	public static void registerRoutes() {
+		get("", PartyController::getAllParties, AppRole.AUTHENTICATED);
+		get("/{id}", PartyController::getParty, AppRole.AUTHENTICATED);
+		post("/organization", PartyController::insertOrg, AppRole.AUTHENTICATED);
+		post("/person", PartyController::insertPerson, AppRole.AUTHENTICATED);
+		put("/person/{id}", PartyController::updatePerson, AppRole.CHAPTER_ADMIN);
+		put("/organization/{id}", PartyController::updateOrganization, AppRole.CHAPTER_ADMIN);
+	}
 
-  @OpenApi(
-      path = "/api/party",
-      methods = {HttpMethod.GET},
-      tags = {"Party"},
-      security = {@OpenApiSecurity(name = "BearerAuth")},
-      summary = "Retrieve all parties",
-      description = "Returns a list of all parties.",
-      queryParams = {@OpenApiParam(name = "type", type = String.class, required = false)},
-      responses = {
-        @OpenApiResponse(
-            status = "200",
-            description = "Parties retrieved successfully",
-            content = {@OpenApiContent(from = GetPartyResponse[].class)}),
-        @OpenApiResponse(status = "500", description = "Database error")
-      })
-  public static void getAllParties(Context ctx) {
-    try {
-      String type = ctx.queryParam("type");
-      boolean getPerson = true;
-      boolean getOrg = true;
-      if (type != null) {
-        getPerson = type.equals("person");
-        getOrg = type.equals("organization");
-      }
-      List<GetPartyResponse> parties = service.getAllParties(getPerson, getOrg);
-      ctx.status(200).json(parties.toArray(new GetPartyResponse[0]));
-    } catch (SQLException e) {
-      ctx.status(500).result("Database error: " + e.getMessage());
-    }
-  }
+	@OpenApi(
+		path = "/api/party",
+		methods = {HttpMethod.GET},
+		tags = {"Party"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Retrieve all parties",
+		description = "Returns a list of all parties.",
+		queryParams = {@OpenApiParam(
+			name = "type",
+			type = String.class,
+			required = false)},
+		responses = {@OpenApiResponse(
+			status = "200",
+			description = "Parties retrieved successfully",
+			content = {@OpenApiContent(
+				from = GetPartyResponse[].class)}), @OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void getAllParties(Context ctx) {
+		try {
+			String type = ctx.queryParam("type");
+			boolean getPerson = true;
+			boolean getOrg = true;
+			if (type != null) {
+				getPerson = type.equals("person");
+				getOrg = type.equals("organization");
+			}
+			List<GetPartyResponse> parties = service.getAllParties(getPerson, getOrg);
+			ctx.status(200).json(parties.toArray(new GetPartyResponse[0]));
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
 
-  @OpenApi(
-      path = "/api/party/{id}",
-      methods = {HttpMethod.GET},
-      tags = {"Party"},
-      security = {@OpenApiSecurity(name = "BearerAuth")},
-      summary = "Retrieve a party with specific ID",
-      description = "Returns the device with the given ID.",
-      pathParams = {
-        @OpenApiParam(name = "id", description = "Party ID: A unique number assigned to each party")
-      },
-      responses = {
-        @OpenApiResponse(
-            status = "200",
-            description = "Party retrieved successfully",
-            content = {@OpenApiContent(from = GetPartyResponse.class)}),
-        @OpenApiResponse(status = "400", description = "Non-numeric or non-positive party ID"),
-        @OpenApiResponse(status = "404", description = "ID does not match any existing devices"),
-        @OpenApiResponse(status = "500", description = "Database error")
-      })
-  public static void getParty(Context ctx) {
-    String idStr = ctx.pathParam("id");
-    try {
-      int id = Integer.parseInt(idStr);
-      GetPartyResponse result = service.getParty(id);
-      ctx.status(200).json(result);
-    } catch (NumberFormatException e) {
-      ctx.status(400).result("Non-numeric party ID: " + idStr);
-    } catch (BadArgumentException e) {
-      ctx.status(400).result(e.getMessage());
-    } catch (PartyNotFoundException e) {
-      ctx.status(404).result(e.getMessage());
-    } catch (SQLException e) {
-      ctx.status(500).result("Database error: " + e.getMessage());
-    }
-  }
+	@OpenApi(
+		path = "/api/party/{id}",
+		methods = {HttpMethod.GET},
+		tags = {"Party"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Retrieve a party with specific ID",
+		description = "Returns the device with the given ID.",
+		pathParams = {@OpenApiParam(
+			name = "id",
+			description = "Party ID: A unique number assigned to each party")},
+		responses = {@OpenApiResponse(
+			status = "200",
+			description = "Party retrieved successfully",
+			content = {@OpenApiContent(
+				from = GetPartyResponse.class)}), @OpenApiResponse(
+					status = "400",
+					description = "Non-numeric or non-positive party ID"),
+				@OpenApiResponse(
+					status = "404",
+					description = "ID does not match any existing devices"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void getParty(Context ctx) {
+		String idStr = ctx.pathParam("id");
+		try {
+			int id = Integer.parseInt(idStr);
+			GetPartyResponse result = service.getParty(id);
+			ctx.status(200).json(result);
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Non-numeric party ID: " + idStr);
+		} catch (BadArgumentException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (PartyNotFoundException e) {
+			ctx.status(404).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
 
-  @OpenApi(
-      path = "/api/party/organization",
-      methods = {HttpMethod.POST},
-      tags = {"Party"},
-      security = {@OpenApiSecurity(name = "BearerAuth")},
-      summary = "Insert a new organization",
-      description = "Creates a new organization with the provided attributes",
-      requestBody =
-          @OpenApiRequestBody(
-              required = true,
-              content = {
-                @OpenApiContent(
-                    from = InsertOrganizationRequest.class,
-                    example =
-                        """
-                                    {
-                                        "name": "Rose-Hulman Institute of Technology",
-                                        "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
-                                        "contactName": null,
-                                        "contactEmail": null
-                                    }
-                                    """)
-              }),
-      responses = {
-        @OpenApiResponse(status = "201", description = "Organization added successfully"),
-        @OpenApiResponse(
-            status = "400",
-            description = "Missing required parameters or invalid field values"),
-        @OpenApiResponse(status = "409", description = "Party ID already exists"),
-        @OpenApiResponse(status = "500", description = "Database error")
-      })
-  public static void insertOrg(Context ctx) {
-    InsertOrganizationRequest request = ctx.bodyAsClass(InsertOrganizationRequest.class);
+	@OpenApi(
+		path = "/api/party/organization",
+		methods = {HttpMethod.POST},
+		tags = {"Party"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Insert a new organization",
+		description = "Creates a new organization with the provided attributes",
+		requestBody = @OpenApiRequestBody(
+			required = true,
+			content = {@OpenApiContent(
+				from = InsertOrganizationRequest.class,
+				example = """
+					{
+					    "name": "Rose-Hulman Institute of Technology",
+					    "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
+					    "contactName": null,
+					    "contactEmail": null
+					}
+					""")}),
+		responses = {@OpenApiResponse(
+			status = "201",
+			description = "Organization added successfully"),
+				@OpenApiResponse(
+					status = "400",
+					description = "Missing required parameters or invalid field values"),
+				@OpenApiResponse(
+					status = "409",
+					description = "Party ID already exists"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void insertOrg(Context ctx) {
+		InsertOrganizationRequest request = ctx.bodyAsClass(InsertOrganizationRequest.class);
 
-    try {
-      service.addOrganization(request);
-      ctx.status(201).result("Organization added successfully");
-    } catch (BadArgumentException | MissingRequiredParametersException e) {
-      ctx.status(400).result(e.getMessage());
-    } catch (DuplicateKeyException e) {
-      ctx.status(409).result(e.getMessage());
-    } catch (SQLException e) {
-      ctx.status(500).result("Database error: " + e.getMessage());
-    }
-    ctx.status(201);
-  }
+		try {
+			service.addOrganization(request);
+			ctx.status(201).result("Organization added successfully");
+		} catch (BadArgumentException | MissingRequiredParametersException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (DuplicateKeyException e) {
+			ctx.status(409).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+		ctx.status(201);
+	}
 
-  @OpenApi(
-      path = "/api/party/person",
-      methods = {HttpMethod.POST},
-      tags = {"Party"},
-      security = {@OpenApiSecurity(name = "BearerAuth")},
-      summary = "Insert a new person",
-      description = "Creates a new person with the provided attributes",
-      requestBody =
-          @OpenApiRequestBody(
-              required = true,
-              content = {
-                @OpenApiContent(
-                    from = InsertPersonRequest.class,
-                    example =
-                        """
-                                    {
-                                        "name": "John Doe",
-                                        "location": "(123 Main St, Terre Haute, IN, 47803, USA)",
-                                        "email": ""
-                                    }
-                                    """)
-              }),
-      responses = {
-        @OpenApiResponse(status = "201", description = "Person added successfully"),
-        @OpenApiResponse(
-            status = "400",
-            description = "Missing required parameters or invalid field values"),
-        @OpenApiResponse(status = "409", description = "Party ID already exists"),
-        @OpenApiResponse(status = "500", description = "Database error")
-      })
-  public static void insertPerson(Context ctx) {
-    InsertPersonRequest request = ctx.bodyAsClass(InsertPersonRequest.class);
+	@OpenApi(
+		path = "/api/party/person",
+		methods = {HttpMethod.POST},
+		tags = {"Party"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Insert a new person",
+		description = "Creates a new person with the provided attributes",
+		requestBody = @OpenApiRequestBody(
+			required = true,
+			content = {@OpenApiContent(
+				from = InsertPersonRequest.class,
+				example = """
+					{
+					    "name": "John Doe",
+					    "location": "(123 Main St, Terre Haute, IN, 47803, USA)",
+					    "email": ""
+					}
+					""")}),
+		responses = {@OpenApiResponse(
+			status = "201",
+			description = "Person added successfully"),
+				@OpenApiResponse(
+					status = "400",
+					description = "Missing required parameters or invalid field values"),
+				@OpenApiResponse(
+					status = "409",
+					description = "Party ID already exists"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void insertPerson(Context ctx) {
+		InsertPersonRequest request = ctx.bodyAsClass(InsertPersonRequest.class);
 
-    try {
-      service.addPerson(request);
-      ctx.status(201).result("Person added successfully");
-    } catch (BadArgumentException | MissingRequiredParametersException e) {
-      ctx.status(400).result(e.getMessage());
-    } catch (DuplicateKeyException e) {
-      ctx.status(409).result(e.getMessage());
-    } catch (SQLException e) {
-      ctx.status(500).result("Database error: " + e.getMessage());
-    }
-    ctx.status(201);
-  }
+		try {
+			service.addPerson(request);
+			ctx.status(201).result("Person added successfully");
+		} catch (BadArgumentException | MissingRequiredParametersException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (DuplicateKeyException e) {
+			ctx.status(409).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+		ctx.status(201);
+	}
 
-  @OpenApi(
-      path = "/api/party/person/{id}",
-      methods = {HttpMethod.PUT},
-      tags = {"Party"},
-      security = {@OpenApiSecurity(name = "BearerAuth")},
-      summary = "Update an existing person",
-      description = "Updates the person with the given ID",
-      pathParams = {@OpenApiParam(name = "id", description = "Party ID of the person to update")},
-      requestBody =
-          @OpenApiRequestBody(
-              required = true,
-              content = {
-                @OpenApiContent(
-                    from = UpdatePersonRequest.class,
-                    example =
-                        """
-                                    {
-                                        "name": "Jane Doe",
-                                        "location": "(456 Elm St, Terre Haute, IN, 47803, USA)",
-                                        "email": "jane@example.com"
-                                    }
-                                    """)
-              }),
-      responses = {
-        @OpenApiResponse(status = "204", description = "Person updated successfully"),
-        @OpenApiResponse(
-            status = "400",
-            description = "Invalid ID or missing/invalid field values"),
-        @OpenApiResponse(status = "404", description = "No party with the given ID exists"),
-        @OpenApiResponse(status = "500", description = "Database error")
-      })
-  public static void updatePerson(Context ctx) {
-    String idStr = ctx.pathParam("id");
-    try {
-      int id = Integer.parseInt(idStr);
-      UpdatePersonRequest request = ctx.bodyAsClass(UpdatePersonRequest.class);
-      service.updatePerson(id, request);
-      ctx.status(204);
-    } catch (NumberFormatException e) {
-      ctx.status(400).result("Non-numeric party ID: " + idStr);
-    } catch (BadArgumentException | MissingRequiredParametersException e) {
-      ctx.status(400).result(e.getMessage());
-    } catch (PartyNotFoundException e) {
-      ctx.status(404).result(e.getMessage());
-    } catch (SQLException e) {
-      ctx.status(500).result("Database error: " + e.getMessage());
-    }
-  }
+	@OpenApi(
+		path = "/api/party/person/{id}",
+		methods = {HttpMethod.PUT},
+		tags = {"Party"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Update an existing person",
+		description = "Updates the person with the given ID",
+		pathParams = {@OpenApiParam(
+			name = "id",
+			description = "Party ID of the person to update")},
+		requestBody = @OpenApiRequestBody(
+			required = true,
+			content = {@OpenApiContent(
+				from = UpdatePersonRequest.class,
+				example = """
+					{
+					    "name": "Jane Doe",
+					    "location": "(456 Elm St, Terre Haute, IN, 47803, USA)",
+					    "email": "jane@example.com"
+					}
+					""")}),
+		responses = {@OpenApiResponse(
+			status = "204",
+			description = "Person updated successfully"),
+				@OpenApiResponse(
+					status = "400",
+					description = "Invalid ID or missing/invalid field values"),
+				@OpenApiResponse(
+					status = "404",
+					description = "No party with the given ID exists"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void updatePerson(Context ctx) {
+		String idStr = ctx.pathParam("id");
+		try {
+			int id = Integer.parseInt(idStr);
+			UpdatePersonRequest request = ctx.bodyAsClass(UpdatePersonRequest.class);
+			service.updatePerson(id, request);
+			ctx.status(204);
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Non-numeric party ID: " + idStr);
+		} catch (BadArgumentException | MissingRequiredParametersException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (PartyNotFoundException e) {
+			ctx.status(404).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
 
-  @OpenApi(
-      path = "/api/party/organization/{id}",
-      methods = {HttpMethod.PUT},
-      tags = {"Party"},
-      security = {@OpenApiSecurity(name = "BearerAuth")},
-      summary = "Update an existing organization",
-      description = "Updates the organization with the given ID",
-      pathParams = {
-        @OpenApiParam(name = "id", description = "Party ID of the organization to update")
-      },
-      requestBody =
-          @OpenApiRequestBody(
-              required = true,
-              content = {
-                @OpenApiContent(
-                    from = UpdateOrganizationRequest.class,
-                    example =
-                        """
-                                    {
-                                        "name": "Rose-Hulman Institute of Technology",
-                                        "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
-                                        "contactName": "John Smith",
-                                        "contactEmail": "jsmith@rose-hulman.edu"
-                                    }
-                                    """)
-              }),
-      responses = {
-        @OpenApiResponse(status = "204", description = "Organization updated successfully"),
-        @OpenApiResponse(
-            status = "400",
-            description = "Invalid ID or missing/invalid field values"),
-        @OpenApiResponse(status = "404", description = "No party with the given ID exists"),
-        @OpenApiResponse(status = "500", description = "Database error")
-      })
-  public static void updateOrganization(Context ctx) {
-    String idStr = ctx.pathParam("id");
-    try {
-      int id = Integer.parseInt(idStr);
-      UpdateOrganizationRequest request = ctx.bodyAsClass(UpdateOrganizationRequest.class);
-      service.updateOrganization(id, request);
-      ctx.status(204);
-    } catch (NumberFormatException e) {
-      ctx.status(400).result("Non-numeric party ID: " + idStr);
-    } catch (BadArgumentException | MissingRequiredParametersException e) {
-      ctx.status(400).result(e.getMessage());
-    } catch (PartyNotFoundException e) {
-      ctx.status(404).result(e.getMessage());
-    } catch (SQLException e) {
-      ctx.status(500).result("Database error: " + e.getMessage());
-    }
-  }
+	@OpenApi(
+		path = "/api/party/organization/{id}",
+		methods = {HttpMethod.PUT},
+		tags = {"Party"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Update an existing organization",
+		description = "Updates the organization with the given ID",
+		pathParams = {@OpenApiParam(
+			name = "id",
+			description = "Party ID of the organization to update")},
+		requestBody = @OpenApiRequestBody(
+			required = true,
+			content = {@OpenApiContent(
+				from = UpdateOrganizationRequest.class,
+				example = """
+					{
+					    "name": "Rose-Hulman Institute of Technology",
+					    "location": "(5500 Wabash Ave, Terre Haute, IN, 47803, USA)",
+					    "contactName": "John Smith",
+					    "contactEmail": "jsmith@rose-hulman.edu"
+					}
+					""")}),
+		responses = {@OpenApiResponse(
+			status = "204",
+			description = "Organization updated successfully"),
+				@OpenApiResponse(
+					status = "400",
+					description = "Invalid ID or missing/invalid field values"),
+				@OpenApiResponse(
+					status = "404",
+					description = "No party with the given ID exists"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void updateOrganization(Context ctx) {
+		String idStr = ctx.pathParam("id");
+		try {
+			int id = Integer.parseInt(idStr);
+			UpdateOrganizationRequest request = ctx.bodyAsClass(UpdateOrganizationRequest.class);
+			service.updateOrganization(id, request);
+			ctx.status(204);
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Non-numeric party ID: " + idStr);
+		} catch (BadArgumentException | MissingRequiredParametersException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (PartyNotFoundException e) {
+			ctx.status(404).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
 }

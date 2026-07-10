@@ -22,50 +22,36 @@ import org.binaryheart.controllers.PartyController;
 import org.binaryheart.controllers.ToolController;
 
 public class Main {
-  public static void main(String[] args) {
+	public static void main(String[] args) {
 
-    Javalin.create(
-            config -> {
-              config.jsonMapper(
-                  new JavalinJackson()
-                      .updateMapper(
-                          mapper ->
-                              mapper
-                                  .registerModule(new JavaTimeModule())
-                                  .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)));
-              config.registerPlugin(
-                  new OpenApiPlugin(
-                      openapi ->
-                          openapi.withDefinitionConfiguration(
-                              (version, builder) -> {
-                                builder.info(
-                                    info -> {
-                                      info.title("Inventory API");
-                                      info.version("1.0");
-                                    });
-                                builder.withBearerAuth();
-                              })));
-              config.registerPlugin(new SwaggerPlugin());
-              config.routes.beforeMatched(JwtAccessManager::handle);
-              config.routes.apiBuilder(
-                  () -> {
-                    path("/api", HealthController::registerRoutes);
-                    path("/api/devices", DeviceController::registerRoutes);
-                    path("/api/auth", AuthController::registerRoutes);
-                    path("/api/accounts", AccountController::registerRoutes);
-                    path("/api/chapters", ChapterController::registerRoutes);
-                    path("/api/lookup", LookupController::registerRoutes);
-                    path(
-                        "/api/assets",
-                        () -> {
-                          AssetController.registerRoutes();
-                          NoteController.registerRoutes();
-                        });
-                    path("/api/parts", PartController::registerRoutes);
-                    path("/api/tools", ToolController::registerRoutes);
-                    path("/api/party", PartyController::registerRoutes);
-                  });
-            })
-        .start(8080);
-  }
+		Javalin.create(config -> {
+			config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
+				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)));
+			config
+				.registerPlugin(new OpenApiPlugin(openapi -> openapi.withDefinitionConfiguration((version, builder) -> {
+					builder.info(info -> {
+						info.title("Inventory API");
+						info.version("1.0");
+					});
+					builder.withBearerAuth();
+				})));
+			config.registerPlugin(new SwaggerPlugin());
+			config.routes.beforeMatched(JwtAccessManager::handle);
+			config.routes.apiBuilder(() -> {
+				path("/api", HealthController::registerRoutes);
+				path("/api/devices", DeviceController::registerRoutes);
+				path("/api/auth", AuthController::registerRoutes);
+				path("/api/accounts", AccountController::registerRoutes);
+				path("/api/chapters", ChapterController::registerRoutes);
+				path("/api/lookup", LookupController::registerRoutes);
+				path("/api/assets", () -> {
+					AssetController.registerRoutes();
+					NoteController.registerRoutes();
+				});
+				path("/api/parts", PartController::registerRoutes);
+				path("/api/tools", ToolController::registerRoutes);
+				path("/api/party", PartyController::registerRoutes);
+			});
+		}).start(8080);
+	}
 }
