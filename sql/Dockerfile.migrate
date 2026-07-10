@@ -1,5 +1,5 @@
 FROM postgres:16
-COPY DatabaseCreationScripts /migrations
+COPY FlywayMigrations /migrations
 COPY migrate.sh /migrate.sh
 RUN chmod +x /migrate.sh
 CMD ["/migrate.sh"]

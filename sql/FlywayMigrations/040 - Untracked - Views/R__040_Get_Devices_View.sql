@@ -1,4 +1,6 @@
-CREATE OR REPLACE VIEW Get_Devices
+DROP VIEW IF EXISTS Get_Devices;
+
+CREATE VIEW Get_Devices
 AS
 SELECT Get_Device_Type(d.ID) AS type, a.ID, a.acquisition_date, a.value::NUMERIC, m.name AS manufacturer,
         d.model, d.year, d.cpu, d.ram, r.name AS ram_generation, d.storage_amount, s.name AS storage_type,
