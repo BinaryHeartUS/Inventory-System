@@ -2,7 +2,8 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help format format-check format-java format-web format-check-java format-check-web
+.PHONY: help format format-check format-java format-web format-check-java format-check-web \
+	build build-java build-web lint lint-web test test-java ci
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -10,16 +11,16 @@ help: ## List available commands
 
 format: format-java format-web ## Format all code (Java + frontend)
 
-format-check: format-check-java format-check-web ## Check formatting without writing changes
-
 format-java: ## Format Java with Spotless
 	cd backend && mvn -q spotless:apply
 
 format-web: ## Format frontend with Prettier
 	cd frontend && npm run format
 
-format-check-java: ## Check Java formatting with Spotless
-	cd backend && mvn -q spotless:check
+build: build-java build-web ## Build backend and frontend
 
-format-check-web: ## Check frontend formatting with Prettier
-	cd frontend && npm run format:check
+build-java: ## Build the backend (skip tests)
+	cd backend && mvn -q -DskipTests package
+
+build-web: ## Build the frontend
+	cd frontend && npm run build
