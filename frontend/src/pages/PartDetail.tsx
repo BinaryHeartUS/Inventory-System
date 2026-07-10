@@ -79,7 +79,7 @@ export default function PartDetail() {
         .then(setLinkedParty)
         .catch(() => setLinkedParty(null));
     } else {
-      setLinkedParty(null);
+      Promise.resolve().then(() => setLinkedParty(null));
     }
   }, [part?.donorId]);
 

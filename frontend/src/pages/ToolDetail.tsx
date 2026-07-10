@@ -61,7 +61,7 @@ export default function ToolDetail() {
         .then(setLinkedParty)
         .catch(() => setLinkedParty(null));
     } else {
-      setLinkedParty(null);
+      Promise.resolve().then(() => setLinkedParty(null));
     }
   }, [tool?.donorId]);
 
