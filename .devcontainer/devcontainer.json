@@ -16,6 +16,7 @@
         "ms-azuretools.vscode-docker",
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
+        "editorconfig.editorconfig",
         "ckolkman.vscode-postgres"
       ],
       "settings": {
