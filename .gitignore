@@ -29,8 +29,5 @@ hs_err_pid*
 replay_pid*
 
 # Don't commit build artifacts
-backend/inventory/target/
-backend/import/target/
-backend/import/target/*
-backend/common/target/
+backend/**/target/
 dependency-reduced-pom.xml
