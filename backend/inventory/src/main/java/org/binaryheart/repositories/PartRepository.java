@@ -5,44 +5,76 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import org.binaryheart.DatabaseConnectionService;
+import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
 
 public class PartRepository {
-	public PartResponse[] getAllParts() throws SQLException {
+	public PartResponse[] getParts(List<Integer> chapterIds, PartListRequest q) throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
 		Connection conn = DatabaseConnectionService.getConnection();
-		PreparedStatement stmt;
-		stmt = conn.prepareStatement("SELECT * FROM Get_Parts");
-		stmt.execute();
-		ResultSet res = stmt.getResultSet();
-		ArrayList<PartResponse> parts = new ArrayList<>();
-
-		while (res.next()) {
-			int id = res.getInt("id");
-			String type = res.getString("type");
-			String desc = res.getString("description");
-			boolean wasPurchased = res.getBoolean("wasPurchased");
-			Integer containedIn = res.getInt("containedIn");
-			if (res.wasNull())
-				containedIn = null;
-			int chapterId = res.getInt("chapterID");
-			Date acquisitionDate = res.getDate("acquisitionDate");
-			Double value = res.getDouble("value");
-			Integer donorId = res.getObject("donorId", Integer.class);
-			parts.add(new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId, acquisitionDate.toString(),
-				value, donorId));
+		try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Parts_Page(?, ?, ?, ?, ?, ?, ?, ?)")) {
+			stmt.setArray(1, chapterIds == null ? null : conn.createArrayOf("integer", chapterIds.toArray()));
+			if (q.search() == null) {
+				stmt.setNull(2, Types.VARCHAR);
+			} else {
+				stmt.setString(2, q.search());
+			}
+			if (q.type() == null) {
+				stmt.setNull(3, Types.VARCHAR);
+			} else {
+				stmt.setString(3, q.type());
+			}
+			if (q.source() == null) {
+				stmt.setNull(4, Types.VARCHAR);
+			} else {
+				stmt.setString(4, q.source());
+			}
+			stmt.setBoolean(5, q.includeInDevice());
+			if (q.donorId() == null) {
+				stmt.setNull(6, Types.INTEGER);
+			} else {
+				stmt.setInt(6, q.donorId());
+			}
+			if (q.limit() == null) {
+				stmt.setNull(7, Types.INTEGER);
+			} else {
+				stmt.setInt(7, q.limit());
+			}
+			stmt.setInt(8, q.offset() == null ? 0 : q.offset());
+			ResultSet res = stmt.executeQuery();
+			ArrayList<PartResponse> parts = new ArrayList<>();
+			while (res.next()) {
+				parts.add(mapPart(res));
+			}
+			return parts.toArray(new PartResponse[0]);
 		}
+	}
 
-		return parts.toArray(new PartResponse[0]);
+	private static PartResponse mapPart(ResultSet res) throws SQLException {
+		int id = res.getInt("id");
+		String type = res.getString("type");
+		String desc = res.getString("description");
+		boolean wasPurchased = res.getBoolean("wasPurchased");
+		Integer containedIn = res.getInt("containedIn");
+		if (res.wasNull())
+			containedIn = null;
+		int chapterId = res.getInt("chapterID");
+		Date acquisitionDate = res.getDate("acquisitionDate");
+		Double value = res.getDouble("value");
+		Integer donorId = res.getObject("donorId", Integer.class);
+		return new PartResponse(id, type, desc, wasPurchased, containedIn, chapterId,
+			acquisitionDate != null ? acquisitionDate.toString() : null, value, donorId);
 	}
 
 	public PartResponse getPart(Integer partId) throws SQLException {
@@ -131,7 +163,7 @@ public class PartRepository {
 		}
 	}
 
-	public void insertPart(InsertPartRequest request, String username) throws SQLException {
+	public int insertPart(InsertPartRequest request, String username) throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
@@ -142,6 +174,7 @@ public class PartRepository {
 			ps.setString(1, username);
 			ps.execute();
 			CallableStatement stmt = conn.prepareCall("call Insert_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)");
+			stmt.registerOutParameter(6, java.sql.Types.INTEGER);
 			// required parameters
 			stmt.setInt(1, request.chapterId());
 			stmt.setString(2, request.type());
@@ -175,7 +208,9 @@ public class PartRepository {
 				stmt.setInt(9, request.donorId());
 			}
 			stmt.execute();
+			int newId = stmt.getInt(6);
 			conn.commit();
+			return newId;
 		} catch (SQLException e) {
 			conn.rollback();
 			throw e;

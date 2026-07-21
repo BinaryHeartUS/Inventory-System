@@ -6,39 +6,60 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.binaryheart.DatabaseConnectionService;
+import org.binaryheart.requests.ToolListRequest;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
 import org.binaryheart.responses.ToolChangelogResponse;
 
 public class ToolRepository {
 
-	public List<GetToolResponse> getAllTools() throws SQLException {
+	public List<GetToolResponse> getTools(List<Integer> chapterIds, ToolListRequest q) throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
 		Connection conn = DatabaseConnectionService.getConnection();
-		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Tools");
-		ResultSet rs = stmt.executeQuery();
-		List<GetToolResponse> tools = new ArrayList<>();
-		while (rs.next()) {
-			Integer toolID = rs.getInt("ID");
-			Date acquisitionDate = rs.getDate("acquisition_date");
-			LocalDate acquisitionLocalDate = null;
-			if (acquisitionDate != null) {
-				acquisitionLocalDate = acquisitionDate.toLocalDate();
+		try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Tools_Page(?, ?, ?, ?, ?)")) {
+			stmt.setArray(1, chapterIds == null ? null : conn.createArrayOf("integer", chapterIds.toArray()));
+			if (q.search() == null) {
+				stmt.setNull(2, Types.VARCHAR);
+			} else {
+				stmt.setString(2, q.search());
 			}
-			Double value = rs.getDouble("value");
-			String description = rs.getString("description");
-			Integer chapterID = rs.getInt("chapter_id");
-			Integer donorID = rs.getObject("donor_id", Integer.class);
-			tools.add(new GetToolResponse(toolID, acquisitionLocalDate, value, description, chapterID, donorID));
+			if (q.donorId() == null) {
+				stmt.setNull(3, Types.INTEGER);
+			} else {
+				stmt.setInt(3, q.donorId());
+			}
+			if (q.limit() == null) {
+				stmt.setNull(4, Types.INTEGER);
+			} else {
+				stmt.setInt(4, q.limit());
+			}
+			stmt.setInt(5, q.offset() == null ? 0 : q.offset());
+			ResultSet rs = stmt.executeQuery();
+			List<GetToolResponse> tools = new ArrayList<>();
+			while (rs.next()) {
+				tools.add(mapTool(rs));
+			}
+			return tools;
 		}
-		return tools;
+	}
+
+	private static GetToolResponse mapTool(ResultSet rs) throws SQLException {
+		Integer toolID = rs.getInt("ID");
+		Date acquisitionDate = rs.getDate("acquisition_date");
+		LocalDate acquisitionLocalDate = acquisitionDate != null ? acquisitionDate.toLocalDate() : null;
+		Double value = rs.getDouble("value");
+		String description = rs.getString("description");
+		Integer chapterID = rs.getInt("chapter_id");
+		Integer donorID = rs.getObject("donor_id", Integer.class);
+		return new GetToolResponse(toolID, acquisitionLocalDate, value, description, chapterID, donorID);
 	}
 
 	public GetToolResponse getTool(Integer toolID) throws SQLException {
@@ -51,24 +72,14 @@ public class ToolRepository {
 		stmt.setInt(1, toolID);
 		ResultSet rs = stmt.executeQuery();
 		if (rs.next()) {
-			int id = rs.getInt("id");
-			Date acquisitionDate = rs.getDate("acquisition_date");
-			LocalDate localAcquisitionDate = null;
-			if (acquisitionDate != null) {
-				localAcquisitionDate = acquisitionDate.toLocalDate();
-			}
-			Double value = rs.getDouble("value");
-			String description = rs.getString("description");
-			Integer chapterID = rs.getInt("chapter_id");
-			Integer donorID = rs.getObject("donor_id", Integer.class);
-			return new GetToolResponse(id, localAcquisitionDate, value, description, chapterID, donorID);
+			return mapTool(rs);
 		}
 
 		// else nothing was found
 		return null;
 	}
 
-	public void insertTool(InsertToolRequest request, String username) throws SQLException {
+	public int insertTool(InsertToolRequest request, String username) throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
@@ -79,6 +90,7 @@ public class ToolRepository {
 			ps.setString(1, username);
 			ps.execute();
 			CallableStatement stmt = conn.prepareCall("call Insert_Tool(?, ?, ?, ?, ?::Numeric::Money, ?)");
+			stmt.registerOutParameter(2, java.sql.Types.INTEGER);
 			stmt.setInt(1, request.chapterId());
 			if (request.assetId() != null) {
 				stmt.setInt(2, request.assetId());
@@ -102,7 +114,9 @@ public class ToolRepository {
 				stmt.setNull(6, java.sql.Types.INTEGER);
 			}
 			stmt.execute();
+			int newId = stmt.getInt(2);
 			conn.commit();
+			return newId;
 		} catch (SQLException e) {
 			conn.rollback();
 			throw e;

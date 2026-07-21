@@ -14,11 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.exceptions.DeviceNotFoundException;
+import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
 import org.binaryheart.responses.AvgTimeInInventoryResponse;
 import org.binaryheart.responses.ChapterActivityStatsResponse;
+import org.binaryheart.responses.ChapterInventorySummary;
 import org.binaryheart.responses.CompletionRateResponse;
 import org.binaryheart.responses.DashboardCountsResponse;
 import org.binaryheart.responses.DeviceChangelogResponse;
@@ -148,6 +150,24 @@ public class DeviceRepository {
 		}
 	}
 
+	public List<ChapterInventorySummary> getChapterInventorySummary(List<Integer> chapterIds) throws SQLException {
+		ensureConnected();
+		Connection conn = DatabaseConnectionService.getConnection();
+		try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Chapter_Inventory_Summary(?)")) {
+			stmt.setArray(1, toSqlArray(chapterIds, conn));
+			ResultSet rs = stmt.executeQuery();
+			List<ChapterInventorySummary> summaries = new ArrayList<>();
+			while (rs.next()) {
+				summaries.add(new ChapterInventorySummary(rs.getInt("chapter_id"), rs.getString("chapter_name"),
+					rs.getInt("desktop_count"), rs.getInt("laptop_count"), rs.getInt("tablet_count"),
+					rs.getInt("not_started"), rs.getInt("in_progress"), rs.getInt("ready_to_donate"),
+					rs.getInt("donated"), rs.getInt("scrapped"), rs.getInt("total_devices"), rs.getInt("parts_count"),
+					rs.getInt("tools_count")));
+			}
+			return summaries;
+		}
+	}
+
 	private static void setIntegerArray(CallableStatement stmt, int paramIndex, List<Integer> ids, Connection conn)
 		throws SQLException {
 		stmt.setArray(paramIndex, toSqlArray(ids, conn));
@@ -167,23 +187,49 @@ public class DeviceRepository {
 	}
 
 	public GetDeviceResponse getDevice(int id) throws SQLException, DeviceNotFoundException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
-		}
+		ensureConnected();
 		Connection conn = DatabaseConnectionService.getConnection();
-		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Device(?)");
-		stmt.setInt(1, id);
-		ResultSet rs = stmt.executeQuery();
-		if (!rs.next()) {
-			throw new DeviceNotFoundException("Given ID did not match a device in database");
+		try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Device(?)")) {
+			stmt.setInt(1, id);
+			ResultSet rs = stmt.executeQuery();
+			if (!rs.next()) {
+				throw new DeviceNotFoundException("Given ID did not match a device in database");
+			}
+			return mapDevice(rs);
 		}
+	}
+
+	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
+		ensureConnected();
+		Connection conn = DatabaseConnectionService.getConnection();
+		try (PreparedStatement stmt = conn
+			.prepareStatement("SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status), ?, ?, ?, ?, ?, ?, ?, ?)")) {
+			stmt.setArray(1, toSqlArray(chapterIds, conn));
+			setStringOrNull(stmt, 2, q.search());
+			setStringOrNull(stmt, 3, q.type());
+			setStringOrNull(stmt, 4, q.status());
+			stmt.setBoolean(5, q.includeDonated());
+			stmt.setBoolean(6, q.includeScrapped());
+			setIntegerOrNull(stmt, 7, q.donorId());
+			setIntegerOrNull(stmt, 8, q.recipientId());
+			stmt.setString(9, q.sort() == null ? "id" : q.sort());
+			stmt.setString(10, q.dir() == null ? "asc" : q.dir());
+			setIntegerOrNull(stmt, 11, q.limit());
+			stmt.setInt(12, q.offset() == null ? 0 : q.offset());
+			ResultSet rs = stmt.executeQuery();
+			List<GetDeviceResponse> devices = new ArrayList<>();
+			while (rs.next()) {
+				devices.add(mapDevice(rs));
+			}
+			return devices;
+		}
+	}
+
+	private static GetDeviceResponse mapDevice(ResultSet rs) throws SQLException {
 		String deviceType = rs.getString("type");
 		Integer deviceID = rs.getInt("ID");
 		Date acquisitionDate = rs.getDate("acquisition_date");
-		LocalDate acquisitionLocalDate = null;
-		if (acquisitionDate != null) {
-			acquisitionLocalDate = acquisitionDate.toLocalDate();
-		}
+		LocalDate acquisitionLocalDate = acquisitionDate != null ? acquisitionDate.toLocalDate() : null;
 		Double value = rs.getDouble("value");
 		String manufacturer = rs.getString("manufacturer");
 		String model = rs.getString("model");
@@ -205,60 +251,28 @@ public class DeviceRepository {
 		String operatingSystem = rs.getString("operating_system");
 		Integer donorId = rs.getObject("donor_id", Integer.class);
 		Integer recipientId = rs.getObject("recipient_id", Integer.class);
-		GetDeviceResponse response = new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value,
-			manufacturer, model, year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger,
-			designCap, actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId,
-			recipientId);
-		return response;
+		return new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model, year, cpu,
+			ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap, actualCap, batteryHealth,
+			workingBattery, chapter, dateDonated, operatingSystem, donorId, recipientId);
 	}
 
-	public List<GetDeviceResponse> getAllDevices() throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
+	private static void setStringOrNull(PreparedStatement stmt, int index, String value) throws SQLException {
+		if (value == null) {
+			stmt.setNull(index, Types.VARCHAR);
+		} else {
+			stmt.setString(index, value);
 		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Devices");
-		ResultSet rs = stmt.executeQuery();
-		List<GetDeviceResponse> devices = new ArrayList<>();
-		while (rs.next()) {
-			String deviceType = rs.getString("type");
-			Integer deviceID = rs.getInt("ID");
-			Date acquisitionDate = rs.getDate("acquisition_date");
-			LocalDate acquisitionLocalDate = null;
-			if (acquisitionDate != null) {
-				acquisitionLocalDate = acquisitionDate.toLocalDate();
-			}
-			Double value = rs.getDouble("value");
-			String manufacturer = rs.getString("manufacturer");
-			String model = rs.getString("model");
-			Integer year = rs.getInt("year");
-			String cpu = rs.getString("cpu");
-			Integer ram = rs.getInt("ram");
-			String ramGeneration = rs.getString("ram_generation");
-			Integer storage = rs.getInt("storage_amount");
-			String storageType = rs.getString("storage_type");
-			String status = rs.getString("status");
-			Boolean hasWifi = rs.getBoolean("haswifi");
-			String hasCharger = rs.getString("includes_charger");
-			Integer designCap = rs.getInt("design_battery_capacity");
-			Integer actualCap = rs.getInt("actual_battery_capacity");
-			Double batteryHealth = rs.getDouble("battery_health");
-			String workingBattery = rs.getString("working_battery");
-			String chapter = rs.getString("chapter");
-			LocalDate dateDonated = rs.getDate("Donated_Date") != null
-				? rs.getDate("Donated_Date").toLocalDate()
-				: null;
-			String operatingSystem = rs.getString("operating_system");
-			Integer donorId = rs.getObject("donor_id", Integer.class);
-			Integer recipientId = rs.getObject("recipient_id", Integer.class);
-			devices.add(new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model,
-				year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap, actualCap,
-				batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId, recipientId));
-		}
-		return devices;
 	}
 
-	public void insertDesktop(InsertDesktopRequest request, String username) throws SQLException {
+	private static void setIntegerOrNull(PreparedStatement stmt, int index, Integer value) throws SQLException {
+		if (value == null) {
+			stmt.setNull(index, Types.INTEGER);
+		} else {
+			stmt.setInt(index, value);
+		}
+	}
+
+	public int insertDesktop(InsertDesktopRequest request, String username) throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
@@ -270,6 +284,7 @@ public class DeviceRepository {
 			ps.execute();
 			CallableStatement stmt = conn.prepareCall(
 				"call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)");
+			stmt.registerOutParameter(6, java.sql.Types.INTEGER);
 			stmt.setInt(1, request.chapterId());
 			stmt.setString(2, request.manufacturer());
 			stmt.setString(3, request.model());
@@ -336,7 +351,9 @@ public class DeviceRepository {
 				stmt.setNull(17, java.sql.Types.VARCHAR);
 			}
 			stmt.execute();
+			int newId = stmt.getInt(6);
 			conn.commit();
+			return newId;
 		} catch (SQLException e) {
 			conn.rollback();
 			throw e;
@@ -345,7 +362,7 @@ public class DeviceRepository {
 		}
 	}
 
-	public void insertLaptop(InsertLaptopRequest request, String username) throws SQLException {
+	public int insertLaptop(InsertLaptopRequest request, String username) throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
@@ -357,6 +374,7 @@ public class DeviceRepository {
 			ps.execute();
 			CallableStatement stmt = conn.prepareCall(
 				"call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)");
+			stmt.registerOutParameter(7, java.sql.Types.INTEGER);
 			stmt.setInt(1, request.chapterId());
 			stmt.setString(2, request.manufacturer());
 			stmt.setString(3, request.model());
@@ -430,7 +448,9 @@ public class DeviceRepository {
 			}
 
 			stmt.execute();
+			int newId = stmt.getInt(7);
 			conn.commit();
+			return newId;
 		} catch (SQLException e) {
 			conn.rollback();
 			throw e;
@@ -439,7 +459,7 @@ public class DeviceRepository {
 		}
 	}
 
-	public void insertTablet(InsertTabletRequest request, String username) throws SQLException {
+	public int insertTablet(InsertTabletRequest request, String username) throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
@@ -451,6 +471,7 @@ public class DeviceRepository {
 			ps.execute();
 			CallableStatement stmt = conn.prepareCall(
 				"call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)");
+			stmt.registerOutParameter(8, java.sql.Types.INTEGER);
 			stmt.setInt(1, request.chapterId());
 			stmt.setString(2, request.manufacturer());
 			stmt.setString(3, request.model());
@@ -515,7 +536,9 @@ public class DeviceRepository {
 			}
 
 			stmt.execute();
+			int newId = stmt.getInt(8);
 			conn.commit();
+			return newId;
 		} catch (SQLException e) {
 			conn.rollback();
 			throw e;
