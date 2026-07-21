@@ -1,5 +1,11 @@
-FROM postgres:16
-COPY FlywayMigrations /migrations
-COPY migrate.sh /migrate.sh
-RUN chmod +x /migrate.sh
-CMD ["/migrate.sh"]
+FROM flyway/flyway:10-alpine
+# Migrations are scanned recursively; the folder names ("010 - Tracked", etc.)
+# are cosmetic. Which folders are actually scanned is decided per environment via
+# FLYWAY_LOCATIONS (see deploy/<env>.env): every env scans 010-040 + callbacks,
+# and dev additionally scans the dev-only seed (090). The afterMigrate
+# password-sync callback lives under callbacks/ and is picked up when that
+# location is scanned.
+COPY FlywayMigrations /flyway/sql
+COPY flyway.conf /flyway/conf/flyway.conf
+# Uses the image's default `flyway` entrypoint; the command (migrate / info /
+# validate) is supplied by Compose or the CLI.

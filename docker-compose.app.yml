@@ -39,10 +39,16 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_USER: binaryheart
-      DB_PASSWORD: ${DB_PASSWORD}
-      API_USER_PASSWORD: ${API_USER_PASSWORD}
-      IMPORTER_PASSWORD: ${IMPORTER_PASSWORD}
+      # Flyway JDBC connection (Postgres superuser).
+      FLYWAY_URL: jdbc:postgresql://db:5432/inventory
+      FLYWAY_USER: binaryheart
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+      # Folders to scan, per environment (dev adds the dev-only seed).
+      FLYWAY_LOCATIONS: ${FLYWAY_LOCATIONS}
+      # App-user password sync via the afterMigrate callback placeholders.
+      FLYWAY_PLACEHOLDERS_API_USER_PASSWORD: ${API_USER_PASSWORD}
+      FLYWAY_PLACEHOLDERS_IMPORTER_PASSWORD: ${IMPORTER_PASSWORD}
+    command: ["migrate"]
 
   backend:
     image: ${REGISTRY}/backend:${IMAGE_TAG}

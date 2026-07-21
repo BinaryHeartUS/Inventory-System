@@ -10,6 +10,7 @@ Database migrations are managed with **Flyway**. All scripts live under
 | `030 - Untracked - Triggers`               | Repeatable (`R…`) | all envs      | Triggers (and their inline trigger functions)         |
 | `040 - Untracked - Views`                  | Repeatable (`R…`) | all envs      | Views                                                 |
 | `090 - Dev Only - Tracked`                 | Versioned (`V…`)  | **dev only**  | Non-production seed data (e.g. the `developer`/`viewer` accounts) |
+| `callbacks`                                | Callback          | all envs      | Flyway lifecycle hooks (e.g. app-user password sync)  |
 
 `010 - Tracked` is further split into sub-folders so the tree stays small:
 `Initialization/` holds the original schema, and later changes go in a folder
@@ -17,16 +18,37 @@ named for the **year** they were authored (`2026/`, `2027/`, …).
 
 ## Environment-specific migrations
 
-Flyway decides which folders to scan from its **`flyway.locations`** setting, and
-that is configured per environment:
+Flyway decides which folders to scan from its **`flyway.locations`** setting,
+which is *additive* — Flyway has no "scan everything except X" option. Each
+environment therefore lists the folders it wants **explicitly** via
+`FLYWAY_LOCATIONS` in `deploy/<env>.env`:
 
-- **Every** environment scans `010`–`040` (the shared schema + code objects).
-- **Only dev** additionally scans `090 - Dev Only - Tracked`.
+- **prod** scans `010 - Tracked`, `020 …`, `030 …`, `040 …`, and `callbacks`.
+- **dev** scans that **same list plus** `090 - Dev Only - Tracked`.
 
-So the `090` folder's migrations run when the dev database is (re)created but are
-never seen by production — that is how the `developer` and `viewer` accounts stay
-out of prod. To add another dev-only fixture, drop a `V…` script in `090`; to add
-something prod should also get, it belongs in `010`.
+Each listed folder is scanned **recursively**, so a folder picks up its
+sub-folders (e.g. `010 - Tracked/Initialization`, `010 - Tracked/2026`) too.
+Because prod never lists `090`, the `developer`/`viewer` seed never reaches
+production (and prod's history simply never contains that version — a
+never-scanned location produces no record and no "missing" warning). To add
+another dev-only fixture, drop a `V…` script in `090 - Dev Only - Tracked`; to
+add something prod should also get, it belongs in `010 - Tracked`.
+
+> The `FLYWAY_LOCATIONS` value is a single comma-separated line. The folder names
+> contain spaces (and `&`), which is fine — Flyway splits the list only on
+> commas, so keep the line on one row with **no spaces after the commas**.
+
+## Callbacks
+
+`callbacks/afterMigrate__Sync_App_User_Passwords.sql` runs automatically after
+every successful `flyway migrate` and sets the `api_user`/`importer` passwords
+from the `FLYWAY_PLACEHOLDERS_API_USER_PASSWORD` / `_IMPORTER_PASSWORD` env vars
+(configured on the `db-migrate` service). This replaces the old `migrate.sh`
+tail that did the same `ALTER USER … PASSWORD …` step: the versioned
+`Setup_Database_Users_Script` creates `api_user`/`importer` with throwaway
+default passwords, and this callback overwrites them with the real per-environment
+secrets on every migrate (so it also handles password rotation). Callbacks are
+not recorded in `flyway_schema_history`.
 
 ## Versioned vs. Repeatable — the two kinds of migration
 
