@@ -1,8 +1,6 @@
 services:
   db:
-    build:
-      context: ./sql
-      dockerfile: Dockerfile
+    image: postgres:16
     restart: unless-stopped
     environment:
       POSTGRES_DB: inventory
@@ -13,11 +11,34 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "psql -h localhost -U binaryheart -d inventory -c 'SELECT 1 FROM Volunteer LIMIT 1' -q --no-align --tuples-only 2>/dev/null | grep -q 1 || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U binaryheart -d inventory"]
       interval: 5s
       timeout: 5s
       retries: 20
       start_period: 10s
+
+  # Flyway migration runner. Builds the schema (and the dev-only seed) on a fresh
+  # local database, mirroring how dev/prod are migrated on the server.
+  db-migrate:
+    build:
+      context: ./sql
+      dockerfile: Dockerfile.migrate
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/inventory
+      FLYWAY_USER: binaryheart
+      FLYWAY_PASSWORD: changeme
+      # Local dev scans the same folders as the server (010-040 + callbacks) plus
+      # the dev-only seed (090). Quoted because the value contains spaces, commas
+      # and '&'; Flyway splits the list only on commas.
+      FLYWAY_LOCATIONS: "filesystem:/flyway/sql/010 - Tracked,filesystem:/flyway/sql/020 - Untracked - Procedures & Functions,filesystem:/flyway/sql/030 - Untracked - Triggers,filesystem:/flyway/sql/040 - Untracked - Views,filesystem:/flyway/sql/callbacks,filesystem:/flyway/sql/090 - Dev Only - Tracked"
+      # The afterMigrate callback sets these to match the app-user creds below.
+      FLYWAY_PLACEHOLDERS_API_USER_PASSWORD: changeme_api_user
+      FLYWAY_PLACEHOLDERS_IMPORTER_PASSWORD: changeme_importer
+    command: ["migrate"]
 
   importer:
     build:
@@ -27,6 +48,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     environment:
       DB_URL: jdbc:postgresql://db:5432/inventory
       DB_USER: importer
@@ -39,6 +62,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
     environment:
       DB_URL: jdbc:postgresql://db:5432/inventory
       DB_USER: api_user

@@ -545,24 +545,54 @@ so branch edits to functions/views/triggers deploy to dev cleanly every time.
 
 ## 10. Cutover checklist (order of operations)
 
+> **Implementation status (code side complete).** Everything that lives in the
+> repo has been wired up on branch `TG-18-Flyway-Setup`. What remains are the
+> **server-side, one-time** actions (steps 8/9 baseline, and dropping the old
+> table in step 10) that can only be run against the live dev/prod databases.
+>
+> **Two deliberate deviations from the text above, verified against this repo:**
+> 1. **Apply does NOT use `compose run --rm db-migrate migrate` (§8a).** The
+>    `backend` service gates on `db-migrate: service_completed_successfully`, and
+>    `deploy-app` later runs `up -d db backend frontend`. A `--rm` one-off `run`
+>    container leaves no *completed service* container, so that later `up` would
+>    re-run the migration. `scripts/migrate.sh apply` therefore keeps the proven
+>    `up -d db-migrate` + `docker wait` flow — the service's `command: ["migrate"]`
+>    makes it run `flyway migrate`, and it leaves the exited(0) service container
+>    the backend needs. Only the **plan** branch uses `compose run --rm` (for
+>    `info`/`validate`, which leave no state and feed nothing downstream).
+> 2. **`flyway.ignoreMigrationPatterns=*:pending` added to `flyway.conf`.** Plain
+>    `flyway validate` fails on *pending* migrations by default, which would break
+>    every legitimate deploy that adds a new `V…`. With this set, `validate` still
+>    fails on real problems (checksum drift, missing, failed) but treats pending
+>    work as expected. Chosen layout: **Option B** (flat folders `010`–`040` +
+>    `090` + `callbacks`, enumerated explicitly per environment). `FLYWAY_LOCATIONS`
+>    is a single comma-separated line; folder names contain spaces and `&`, which
+>    is fine because Flyway splits only on commas (keep no space after each comma).
+>    The local `docker-compose.yml` was also repointed at Flyway (see step 10).
+
 1. [x] §1a Drop-then-create pattern applied to views (`040`) and triggers
        (`030`); `DROP FUNCTION` removed from the two view-dependent functions
        (`Get_Device_Type`, `Get_Charger_Status`).
-2. [ ] §1c Audit for `${` placeholder collisions.
-3. [ ] §2 New `Dockerfile.migrate`, `flyway.conf`, and the `afterMigrate`
-       password-sync callback. (No entrypoint wrapper.)
-4. [ ] §3 Decide Option A (split `common/` + `dev-only/`) vs Option B (enumerate),
-       then set `FLYWAY_LOCATIONS` in `deploy/dev.env` and `deploy/prod.env`.
-5. [ ] §4 Update the `db-migrate` service in `docker-compose.app.yml`
-       (Flyway env + `FLYWAY_PLACEHOLDERS_*`).
-6. [ ] §8a Wire `scripts/migrate.sh` plan/apply to `flyway info`+`validate` /
-       `flyway migrate`.
-7. [ ] Build + push the new migrate image (CI `build` stage).
-8. [ ] §5 `flyway baseline` **dev**, then deploy to dev; review `flyway info`
-       output and smoke-test.
+2. [x] §1c Audit for `${` placeholder collisions — none found.
+3. [x] §2 New `Dockerfile.migrate`, `flyway.conf`, and the `afterMigrate`
+       password-sync callback (`callbacks/afterMigrate__Sync_App_User_Passwords.sql`).
+       No entrypoint wrapper.
+4. [x] §3 **Option B** chosen: flat `FlywayMigrations/` folders (`010`–`040`,
+       `090`, `callbacks`). `FLYWAY_LOCATIONS` in `deploy/prod.env` lists
+       `010`–`040` + `callbacks`; `deploy/dev.env` lists the same **plus** `090`.
+5. [x] §4 `db-migrate` service in `docker-compose.app.yml` updated (Flyway
+       connection env, `FLYWAY_LOCATIONS`, `FLYWAY_PLACEHOLDERS_*`, `command`).
+6. [x] §8a `scripts/migrate.sh` wired: plan → `flyway info` + `flyway validate`;
+       apply → `flyway migrate` via the unchanged `up -d` + `docker wait` flow.
+7. [ ] Build + push the new migrate image (CI `build` stage — happens on deploy).
+8. [ ] §5 `flyway baseline` **dev** (`-baselineVersion=20260709.39`), then deploy
+       to dev; review `flyway info` output and smoke-test.
 9. [ ] §5 `flyway baseline` **prod** (gated), then deploy to prod.
-10. [ ] §6 Delete `migrate.sh`, fix legacy `sql/Dockerfile`, drop
-        `_schema_migrations`, update docs.
+10. [x/–] §6 `sql/migrate.sh` **deleted**; legacy `sql/Dockerfile` **deleted** and
+        local `docker-compose.yml` repointed at Flyway; docs updated. Dropping
+        `_schema_migrations` in each env is still a **manual** post-cutover step
+        (keep it a while as a safety record).
+
 
 Do not start step 9 (the prod baseline/deploy) until the dev deploy in step 8
 succeeds and its `flyway info`/`validate` output looks right.

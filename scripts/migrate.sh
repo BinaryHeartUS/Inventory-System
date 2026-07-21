@@ -59,12 +59,9 @@ compose() {
 
 if [ "$STAGE" = "plan" ]; then
   echo "=== [plan-db] $ENV (tag $TAG) ==="
-  compose pull db-migrate
-  echo "[plan-db] No dry-run is available yet (pre-Flyway): migrate.sh applies"
-  echo "[plan-db] pending scripts under sql/ idempotently, tracked in"
-  echo "[plan-db] _schema_migrations. Nothing is changed by this plan stage."
-  echo "[plan-db] When Flyway lands, this stage will run 'flyway info' /"
-  echo "[plan-db] 'flyway validate' to show exactly which migrations would apply."
+  compose pull db db-migrate
+  compose run --rm db-migrate info
+  compose run --rm db-migrate validate
   echo "=== [plan-db] complete (no changes) ==="
   exit 0
 fi
@@ -73,7 +70,6 @@ echo "=== [apply-db] $ENV (tag $TAG) ==="
 compose pull db db-migrate
 # Clear any previous run so the migration container is recreated for this tag.
 compose rm -sf db-migrate
-# Starts db (waits for healthy per depends_on), then runs the migration to exit.
 compose up -d db-migrate
 # Block until the migration container stops; `docker wait` prints a bare integer
 # exit code (unlike `docker compose wait`, whose output isn't a plain number).
