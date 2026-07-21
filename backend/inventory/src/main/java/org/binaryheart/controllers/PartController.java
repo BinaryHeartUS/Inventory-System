@@ -21,7 +21,7 @@ import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.IdResponse;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
-import org.binaryheart.responses.PartTypeCount;
+import org.binaryheart.responses.PartTypeCountResponse;
 import org.binaryheart.services.PartService;
 
 public class PartController {
@@ -161,7 +161,7 @@ public class PartController {
 			status = "200",
 			description = "Per-type counts fetched successfully",
 			content = {@OpenApiContent(
-				from = PartTypeCount[].class)}), @OpenApiResponse(
+				from = PartTypeCountResponse[].class)}), @OpenApiResponse(
 					status = "400",
 					description = "Invalid filter parameters"),
 				@OpenApiResponse(

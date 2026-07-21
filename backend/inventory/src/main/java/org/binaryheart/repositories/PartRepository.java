@@ -16,7 +16,7 @@ import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
-import org.binaryheart.responses.PartTypeCount;
+import org.binaryheart.responses.PartTypeCountResponse;
 
 public class PartRepository {
 	public PartResponse[] getParts(List<Integer> chapterIds, PartListRequest q) throws SQLException {
@@ -62,7 +62,8 @@ public class PartRepository {
 		}
 	}
 
-	public List<PartTypeCount> getPartTypeCounts(List<Integer> chapterIds, PartListRequest q) throws SQLException {
+	public List<PartTypeCountResponse> getPartTypeCounts(List<Integer> chapterIds, PartListRequest q)
+		throws SQLException {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
@@ -91,9 +92,9 @@ public class PartRepository {
 				stmt.setInt(6, q.donorId());
 			}
 			ResultSet res = stmt.executeQuery();
-			List<PartTypeCount> counts = new ArrayList<>();
+			List<PartTypeCountResponse> counts = new ArrayList<>();
 			while (res.next()) {
-				counts.add(new PartTypeCount(res.getString("part_type"), res.getInt("part_count")));
+				counts.add(new PartTypeCountResponse(res.getString("part_type"), res.getInt("part_count")));
 			}
 			return counts;
 		}

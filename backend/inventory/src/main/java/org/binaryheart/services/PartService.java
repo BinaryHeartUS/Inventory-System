@@ -13,7 +13,7 @@ import org.binaryheart.repositories.PartRepository;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
-import org.binaryheart.responses.PartTypeCount;
+import org.binaryheart.responses.PartTypeCountResponse;
 
 public class PartService {
 	private final PartRepository repository = new PartRepository();
@@ -32,8 +32,8 @@ public class PartService {
 		return repository.getParts(effectiveChapterIds, q);
 	}
 
-	public List<PartTypeCount> getPartTypeCounts(List<Integer> userChapterIds, Integer chapterId, PartListRequest q)
-		throws SQLException, ForbiddenException {
+	public List<PartTypeCountResponse> getPartTypeCounts(List<Integer> userChapterIds, Integer chapterId,
+		PartListRequest q) throws SQLException, ForbiddenException {
 		if (userChapterIds == null || userChapterIds.isEmpty())
 			return List.of();
 		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(chapterId, userChapterIds);
