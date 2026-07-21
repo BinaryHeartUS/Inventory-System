@@ -3,7 +3,7 @@
 .DEFAULT_GOAL := help
 
 .PHONY: help format format-check format-java format-web format-check-java format-check-web \
-	build build-java build-web lint lint-web test test-java ci generate-types
+	build build-java build-web lint lint-web test test-java ci generate-types check-types
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -27,3 +27,7 @@ build-web: ## Lint and build the frontend
 
 generate-types:
 	cd backend && mvn clean compile && cd ../frontend && npm run gen-types
+
+check-types: generate-types ## Fail if the generated api.d.ts has drifted from the backend contract
+	@git diff --exit-code -- frontend/src/types/api.d.ts \
+		|| { echo "api.d.ts is out of date. Run 'make generate-types' and commit the result."; exit 1; }
