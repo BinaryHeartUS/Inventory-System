@@ -3,7 +3,7 @@
 .DEFAULT_GOAL := help
 
 .PHONY: help format format-check format-java format-web format-check-java format-check-web \
-	build build-java build-web lint lint-web test test-java ci
+	build build-java build-web lint lint-web test test-java ci generate-types
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -24,3 +24,6 @@ build-java: ## Build the backend (skip tests)
 
 build-web: ## Lint and build the frontend
 	cd frontend && npm run lint && npm run build
+
+generate-types:
+	cd backend && mvn clean compile && cd ../frontend && npm run gen-types
