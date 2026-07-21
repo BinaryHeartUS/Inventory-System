@@ -3,11 +3,12 @@ package org.binaryheart.services;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.ToolNotFoundException;
+import org.binaryheart.requests.ToolListRequest;
 import org.binaryheart.repositories.ToolRepository;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
@@ -18,15 +19,17 @@ public class ToolService {
 	private final ToolRepository repository = new ToolRepository();
 	private final ChapterService chapterService = new ChapterService();
 
-	public List<GetToolResponse> getAllTools(List<Integer> userChapterIds) throws SQLException {
+	/**
+	 * Returns a page of tools scoped to the caller's chapters
+	 * ({@code userChapterIds}), optionally narrowed to one {@code chapterId} (the
+	 * UI filter, {@code null} for all).
+	 */
+	public List<GetToolResponse> getTools(List<Integer> userChapterIds, Integer chapterId, ToolListRequest q)
+		throws SQLException, ForbiddenException {
 		if (userChapterIds == null || userChapterIds.isEmpty())
 			return List.of();
-		if (userChapterIds.contains(chapterService.getNationalChapterId()))
-			return repository.getAllTools();
-		return repository.getAllTools().stream().filter(d -> {
-			Integer cid = d.chapterId();
-			return cid != null && userChapterIds.contains(cid);
-		}).collect(Collectors.toList());
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(chapterId, userChapterIds);
+		return repository.getTools(effectiveChapterIds, q);
 	}
 
 	public GetToolResponse getTool(List<Integer> userChapterIds, Integer toolID)
@@ -45,7 +48,7 @@ public class ToolService {
 		return null;
 	}
 
-	public void insertTool(InsertToolRequest request, String username)
+	public int insertTool(InsertToolRequest request, String username)
 		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
 		if (request.chapterId() == 0 || request.description() == null) {
 			throw new MissingRequiredParametersException("Missing required parameters");
@@ -63,7 +66,7 @@ public class ToolService {
 			throw new BadArgumentException("Asset ID must be positive or not specified");
 		}
 		try {
-			repository.insertTool(request, username);
+			return repository.insertTool(request, username);
 		} catch (SQLException e) {
 			if ("23505".equals(e.getSQLState())) {
 				throw new DuplicateKeyException("An asset with identical ID already exists: " + request.assetId());

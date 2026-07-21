@@ -3,20 +3,19 @@ package org.binaryheart.services;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
 import org.binaryheart.responses.AvgTimeInInventoryResponse;
 import org.binaryheart.responses.ChapterActivityStatsResponse;
-import org.binaryheart.responses.ChapterSummary;
+import org.binaryheart.responses.ChapterInventorySummary;
 import org.binaryheart.responses.CompletionRateResponse;
 import org.binaryheart.responses.DashboardCountsResponse;
 import org.binaryheart.responses.DeviceChangelogResponse;
@@ -33,25 +32,6 @@ public class DeviceService {
 	private final DeviceRepository repository = new DeviceRepository();
 	private final ChapterService chapterService = new ChapterService();
 
-	private List<Integer> resolveChapterIds(List<Integer> requestedChapterIds, List<Integer> userChapterIds)
-		throws SQLException, ForbiddenException {
-		int nationalId = chapterService.getNationalChapterId();
-		boolean isNational = userChapterIds != null && userChapterIds.contains(nationalId);
-
-		if (requestedChapterIds == null || requestedChapterIds.isEmpty()) {
-			return isNational ? null : userChapterIds;
-		}
-
-		if (!isNational) {
-			for (int id : requestedChapterIds) {
-				if (userChapterIds == null || !userChapterIds.contains(id)) {
-					throw new ForbiddenException("Access denied for chapter " + id);
-				}
-			}
-		}
-		return requestedChapterIds;
-	}
-
 	public int getDeviceCount(String type, String status, List<Integer> requestedChapterIds,
 		List<Integer> userChapterIds) throws BadArgumentException, ForbiddenException, SQLException {
 		if (!VALID_TYPES.contains(type)) {
@@ -60,32 +40,32 @@ public class DeviceService {
 		if (!VALID_STATUSES.contains(status)) {
 			throw new BadArgumentException("Unknown status: " + status);
 		}
-		List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDeviceCountByChapters(type, status, effectiveChapterIds);
 	}
 
 	public DashboardCountsResponse getDashboardCounts(List<Integer> requestedChapterIds, List<Integer> userChapterIds)
 		throws ForbiddenException, SQLException {
-		List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDashboardCounts(effectiveChapterIds);
 	}
 
 	public AvgTimeInInventoryResponse getAvgTimeInInventory(List<Integer> requestedChapterIds,
 		List<Integer> userChapterIds) throws ForbiddenException, SQLException {
-		List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getAvgTimeInInventory(effectiveChapterIds);
 	}
 
 	public CompletionRateResponse getCompletionRate(List<Integer> requestedChapterIds, List<Integer> userChapterIds)
 		throws ForbiddenException, SQLException {
-		List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getCompletionRate(effectiveChapterIds);
 	}
 
 	public ChapterActivityStatsResponse getChapterActivityStats(List<Integer> userChapterIds)
 		throws ForbiddenException, SQLException {
 		// Chapter activity stats always use all chapters visible to the user
-		List<Integer> effectiveChapterIds = resolveChapterIds(null, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(List.<Integer>of(), userChapterIds);
 		return repository.getChapterActivityStats(effectiveChapterIds);
 	}
 
@@ -94,7 +74,7 @@ public class DeviceService {
 		if (months < 1 || months > 120) {
 			throw new BadArgumentException("months must be between 1 and 120");
 		}
-		List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDevicesReceived(effectiveChapterIds, months);
 	}
 
@@ -103,7 +83,7 @@ public class DeviceService {
 		if (months < 1 || months > 120) {
 			throw new BadArgumentException("months must be between 1 and 120");
 		}
-		List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDevicesDonated(effectiveChapterIds, months);
 	}
 
@@ -112,7 +92,7 @@ public class DeviceService {
 		if (months < 1 || months > 120) {
 			throw new BadArgumentException("months must be between 1 and 120");
 		}
-		List<Integer> effectiveChapterIds = resolveChapterIds(requestedChapterIds, userChapterIds);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDonatedDeviceValue(effectiveChapterIds, months);
 	}
 
@@ -123,20 +103,28 @@ public class DeviceService {
 		return repository.getDevice(id);
 	}
 
-	public List<GetDeviceResponse> getAllDevices(List<Integer> userChapterIds) throws SQLException {
+	/**
+	 * Returns a page of devices scoped to the caller's chapters
+	 * ({@code userChapterIds}), optionally narrowed to one {@code chapterId} (the
+	 * UI filter, {@code null} for all).
+	 */
+	public List<GetDeviceResponse> getDevices(List<Integer> userChapterIds, Integer chapterId, DeviceListRequest q)
+		throws SQLException, ForbiddenException {
 		if (userChapterIds == null || userChapterIds.isEmpty())
 			return List.of();
-		if (userChapterIds.contains(chapterService.getNationalChapterId()))
-			return repository.getAllDevices();
-		Map<String, Integer> chapterNameToId = chapterService.getAllChapters().stream()
-			.collect(Collectors.toMap(ChapterSummary::name, ChapterSummary::id));
-		return repository.getAllDevices().stream().filter(d -> {
-			Integer cid = chapterNameToId.get(d.chapter());
-			return cid != null && userChapterIds.contains(cid);
-		}).collect(Collectors.toList());
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(chapterId, userChapterIds);
+		return repository.getDevices(effectiveChapterIds, q);
 	}
 
-	public void insertDesktop(InsertDesktopRequest request, String username)
+	public List<ChapterInventorySummary> getChapterInventorySummary(List<Integer> userChapterIds)
+		throws SQLException, ForbiddenException {
+		if (userChapterIds == null || userChapterIds.isEmpty())
+			return List.of();
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(List.of(), userChapterIds);
+		return repository.getChapterInventorySummary(effectiveChapterIds);
+	}
+
+	public int insertDesktop(InsertDesktopRequest request, String username)
 		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
 			|| request.model() == null || request.year() == 0 || request.status() == null) {
@@ -158,7 +146,7 @@ public class DeviceService {
 			throw new BadArgumentException("Asset ID must be positive or not specified");
 		}
 		try {
-			repository.insertDesktop(request, username);
+			return repository.insertDesktop(request, username);
 		} catch (SQLException e) {
 			if ("23505".equals(e.getSQLState())) {
 				throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
@@ -168,7 +156,7 @@ public class DeviceService {
 		}
 	}
 
-	public void insertLaptop(InsertLaptopRequest request, String username)
+	public int insertLaptop(InsertLaptopRequest request, String username)
 		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
 			|| request.model() == null || request.year() == 0 || request.status() == null
@@ -197,7 +185,7 @@ public class DeviceService {
 			throw new BadArgumentException("Actual battery capacity must be non-negative or not specified");
 		}
 		try {
-			repository.insertLaptop(request, username);
+			return repository.insertLaptop(request, username);
 		} catch (SQLException e) {
 			if ("23505".equals(e.getSQLState())) {
 				throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
@@ -207,7 +195,7 @@ public class DeviceService {
 		}
 	}
 
-	public void insertTablet(InsertTabletRequest request, String username)
+	public int insertTablet(InsertTabletRequest request, String username)
 		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
 			|| request.model() == null || request.year() == 0 || request.status() == null
@@ -230,7 +218,7 @@ public class DeviceService {
 			throw new BadArgumentException("Asset ID must be positive or not specified");
 		}
 		try {
-			repository.insertTablet(request, username);
+			return repository.insertTablet(request, username);
 		} catch (SQLException e) {
 			if ("23505".equals(e.getSQLState())) {
 				throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.assetId());
