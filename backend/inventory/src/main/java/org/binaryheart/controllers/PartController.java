@@ -21,6 +21,7 @@ import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.IdResponse;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
+import org.binaryheart.responses.PartTypeCount;
 import org.binaryheart.services.PartService;
 
 public class PartController {
@@ -29,6 +30,7 @@ public class PartController {
 
 	public static void registerRoutes() {
 		get("", PartController::getAllParts, AppRole.AUTHENTICATED);
+		get("/type-counts", PartController::getPartTypeCounts, AppRole.AUTHENTICATED);
 		get("/device/{deviceId}", PartController::getPartsByDevice, AppRole.AUTHENTICATED);
 		get("/{id}", PartController::getPart, AppRole.AUTHENTICATED);
 		get("/{id}/changelog", PartController::getPartChangelog, AppRole.AUTHENTICATED);
@@ -115,6 +117,74 @@ public class PartController {
 		} catch (SQLException e) {
 			ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
 			return;
+		}
+	}
+
+	@OpenApi(
+		path = "/api/parts/type-counts",
+		methods = {HttpMethod.GET},
+		tags = {"Parts"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Get the total part count per type",
+		description = "Returns the number of parts of each type matching the given filters (unpaginated). "
+			+ "Accepts the same filter parameters as the parts list, so the grouped UI can show accurate "
+			+ "group totals while rows stream in.",
+		queryParams = {@OpenApiParam(
+			name = "search",
+			required = false,
+			description = "Free-text search matched against every part field."),
+				@OpenApiParam(
+					name = "type",
+					required = false,
+					description = "Filter by part type."),
+				@OpenApiParam(
+					name = "source",
+					required = false,
+					description = "Filter by source: 'donated' or 'purchased'."),
+				@OpenApiParam(
+					name = "includeInDevice",
+					required = false,
+					type = Boolean.class,
+					description = "Whether to include parts already contained in a device. Defaults to true."),
+				@OpenApiParam(
+					name = "chapter",
+					required = false,
+					type = Integer.class,
+					description = "Restrict to a single chapter id (must be within the user's access)."),
+				@OpenApiParam(
+					name = "donorId",
+					required = false,
+					type = Integer.class,
+					description = "Restrict to parts donated by this party id.")},
+		responses = {@OpenApiResponse(
+			status = "200",
+			description = "Per-type counts fetched successfully",
+			content = {@OpenApiContent(
+				from = PartTypeCount[].class)}), @OpenApiResponse(
+					status = "400",
+					description = "Invalid filter parameters"),
+				@OpenApiResponse(
+					status = "403",
+					description = "Access denied for the requested chapter"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void getPartTypeCounts(Context ctx) {
+		try {
+			List<Integer> userChapterIds = ctx.attribute("chapterIds");
+			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
+			PartListRequest q = new PartListRequest(QueryParamUtil.stringParam(ctx, "search"),
+				QueryParamUtil.stringParam(ctx, "type"), QueryParamUtil.stringParam(ctx, "source"),
+				QueryParamUtil.boolParam(ctx, "includeInDevice", true), QueryParamUtil.intParam(ctx, "donorId"), null,
+				null);
+			ctx.status(200).json(service.getPartTypeCounts(userChapterIds, chapterId, q));
+		} catch (BadArgumentException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (ForbiddenException e) {
+			ctx.status(403).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
 		}
 	}
 

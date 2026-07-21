@@ -16,6 +16,7 @@ import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
+import org.binaryheart.responses.PartTypeCount;
 
 public class PartRepository {
 	public PartResponse[] getParts(List<Integer> chapterIds, PartListRequest q) throws SQLException {
@@ -58,6 +59,43 @@ public class PartRepository {
 				parts.add(mapPart(res));
 			}
 			return parts.toArray(new PartResponse[0]);
+		}
+	}
+
+	public List<PartTypeCount> getPartTypeCounts(List<Integer> chapterIds, PartListRequest q) throws SQLException {
+		if (!DatabaseConnectionService.isConnected()) {
+			DatabaseConnectionService.connect();
+		}
+		Connection conn = DatabaseConnectionService.getConnection();
+		try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Part_Type_Counts(?, ?, ?, ?, ?, ?)")) {
+			stmt.setArray(1, chapterIds == null ? null : conn.createArrayOf("integer", chapterIds.toArray()));
+			if (q.search() == null) {
+				stmt.setNull(2, Types.VARCHAR);
+			} else {
+				stmt.setString(2, q.search());
+			}
+			if (q.type() == null) {
+				stmt.setNull(3, Types.VARCHAR);
+			} else {
+				stmt.setString(3, q.type());
+			}
+			if (q.source() == null) {
+				stmt.setNull(4, Types.VARCHAR);
+			} else {
+				stmt.setString(4, q.source());
+			}
+			stmt.setBoolean(5, q.includeInDevice());
+			if (q.donorId() == null) {
+				stmt.setNull(6, Types.INTEGER);
+			} else {
+				stmt.setInt(6, q.donorId());
+			}
+			ResultSet res = stmt.executeQuery();
+			List<PartTypeCount> counts = new ArrayList<>();
+			while (res.next()) {
+				counts.add(new PartTypeCount(res.getString("part_type"), res.getInt("part_count")));
+			}
+			return counts;
 		}
 	}
 
