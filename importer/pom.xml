@@ -4,23 +4,29 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.binaryheart</groupId>
-        <artifactId>inventory-system-backend</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
+    <!--
+      Standalone, legacy one-shot data importer. Reads a spreadsheet (Apache POI)
+      and seeds a database. It is intentionally NOT part of the backend Maven
+      reactor: it shares no code with the API and pulls in heavy, API-irrelevant
+      dependencies (POI, log4j). It carries its own copies of the org.binaryheart
+      enums so it stands entirely on its own.
+    -->
+    <groupId>org.binaryheart</groupId>
+    <artifactId>importer</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-    <artifactId>import</artifactId>
+    <properties>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.binaryheart</groupId>
-            <artifactId>common</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>42.7.10</version>
         </dependency>
 
         <dependency>

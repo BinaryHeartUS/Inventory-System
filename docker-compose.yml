@@ -42,8 +42,8 @@ services:
 
   importer:
     build:
-      context: .
-      dockerfile: backend/import/Dockerfile
+      context: ./importer
+      dockerfile: Dockerfile
     restart: "no"
     depends_on:
       db:

@@ -7,8 +7,8 @@ set -euo pipefail
 # Usage (run on the server, from the repo checkout):
 #   ./scripts/import-data.sh <dev|prod> <image_tag> <data_file>
 #
-#   <data_file> is a filename inside data/ (baked into the importer image at
-#   /data/<data_file>). It must exist in data/ on the checked-out commit.
+#   <data_file> is a filename inside importer/data/ (baked into the importer image
+#   at /data/<data_file>). It must exist in importer/data/ on the checked-out commit.
 #
 # WARNING: importing writes into the TARGET environment's database. Make sure you
 # are pointing at the environment you intend (dev vs prod).
