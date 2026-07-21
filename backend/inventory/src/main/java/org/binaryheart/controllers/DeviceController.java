@@ -25,15 +25,18 @@ import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
 import org.binaryheart.requests.InsertTabletRequest;
 import org.binaryheart.responses.AvgTimeInInventoryResponse;
 import org.binaryheart.responses.ChapterActivityStatsResponse;
+import org.binaryheart.responses.ChapterInventorySummary;
 import org.binaryheart.responses.CompletionRateResponse;
 import org.binaryheart.responses.DashboardCountsResponse;
 import org.binaryheart.responses.DeviceChangelogResponse;
 import org.binaryheart.responses.GetDeviceResponse;
+import org.binaryheart.responses.IdResponse;
 import org.binaryheart.responses.MonthlyCountPoint;
 import org.binaryheart.responses.MonthlyValuePoint;
 import org.binaryheart.services.ChapterService;
@@ -54,6 +57,7 @@ public class DeviceController {
 			get("/devices-received", DeviceController::getDevicesReceived, AppRole.AUTHENTICATED);
 			get("/devices-donated", DeviceController::getDevicesDonated, AppRole.AUTHENTICATED);
 			get("/donated-value", DeviceController::getDonatedDeviceValue, AppRole.AUTHENTICATED);
+			get("/chapter-inventory", DeviceController::getChapterInventorySummary, AppRole.AUTHENTICATED);
 		});
 		get("/{id}", DeviceController::getDevice, AppRole.AUTHENTICATED);
 		get("/{id}/changelog", DeviceController::getDeviceChangelog, AppRole.AUTHENTICATED);
@@ -470,20 +474,126 @@ public class DeviceController {
 		tags = {"Devices"},
 		security = {@OpenApiSecurity(
 			name = "BearerAuth")},
-		summary = "Retrieve all devices",
-		description = "Returns a list of all devices.",
+		summary = "Retrieve a page of devices",
+		description = "Returns a filtered, sorted, paginated page of devices the user can access. "
+			+ "pageSize is required; results are ordered by the requested sort column then id.",
+		queryParams = {@OpenApiParam(
+			name = "pageSize",
+			required = true,
+			type = Integer.class,
+			description = "Number of records per page (1-1000). Required."),
+				@OpenApiParam(
+					name = "pageKey",
+					required = false,
+					type = Integer.class,
+					description = "Zero-based page index. Defaults to 0."),
+				@OpenApiParam(
+					name = "search",
+					required = false,
+					description = "Free-text search matched against every device field "
+						+ "(id, manufacturer, model, cpu, chapter, status, operating system, etc.)."),
+				@OpenApiParam(
+					name = "type",
+					required = false,
+					description = "Filter by device type: Desktop, Laptop or Tablet."),
+				@OpenApiParam(
+					name = "status",
+					required = false,
+					description = "Filter by exact status, e.g. 'Not Started', 'Ready To Donate', 'Donated'."),
+				@OpenApiParam(
+					name = "chapter",
+					required = false,
+					type = Integer.class,
+					description = "Restrict to a single chapter id (must be within the user's access)."),
+				@OpenApiParam(
+					name = "includeDonated",
+					required = false,
+					type = Boolean.class,
+					description = "Whether to include Donated devices. Defaults to true."),
+				@OpenApiParam(
+					name = "includeScrapped",
+					required = false,
+					type = Boolean.class,
+					description = "Whether to include Scrapped devices. Defaults to true."),
+				@OpenApiParam(
+					name = "donorId",
+					required = false,
+					type = Integer.class,
+					description = "Restrict to devices donated by this party id."),
+				@OpenApiParam(
+					name = "recipientId",
+					required = false,
+					type = Integer.class,
+					description = "Restrict to devices received by this party id."),
+				@OpenApiParam(
+					name = "sort",
+					required = false,
+					description = "Sort column: id, type, manufacturer, model, year, cpu, operatingSystem, "
+						+ "ram, storage, status, chapter or acquisitionDate. Defaults to id."),
+				@OpenApiParam(
+					name = "dir",
+					required = false,
+					description = "Sort direction: asc (default) or desc.")},
 		responses = {@OpenApiResponse(
 			status = "200",
 			description = "Devices retrieved successfully",
 			content = {@OpenApiContent(
 				from = GetDeviceResponse[].class)}), @OpenApiResponse(
+					status = "400",
+					description = "Missing/invalid pagination or filter parameters"),
+				@OpenApiResponse(
+					status = "403",
+					description = "Access denied for the requested chapter"),
+				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
 	public static void getAllDevices(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
-			List<GetDeviceResponse> devices = service.getAllDevices(userChapterIds);
+			int pageSize = PaginationUtil.parsePageSize(ctx);
+			int pageKey = PaginationUtil.parsePageKey(ctx);
+			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
+			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
+				QueryParamUtil.stringParam(ctx, "type"), QueryParamUtil.stringParam(ctx, "status"),
+				QueryParamUtil.boolParam(ctx, "includeDonated", true),
+				QueryParamUtil.boolParam(ctx, "includeScrapped", true), QueryParamUtil.intParam(ctx, "donorId"),
+				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
+				QueryParamUtil.stringParam(ctx, "dir"), pageSize, pageKey * pageSize);
+			List<GetDeviceResponse> devices = service.getDevices(userChapterIds, chapterId, q);
 			ctx.status(200).json(devices.toArray(new GetDeviceResponse[0]));
+		} catch (BadArgumentException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (ForbiddenException e) {
+			ctx.status(403).result(e.getMessage());
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
+
+	@OpenApi(
+		path = "/api/devices/stats/chapter-inventory",
+		methods = {HttpMethod.GET},
+		tags = {"Device Stats"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Per-chapter inventory rollup",
+		description = "Returns device (by type and status), part and tool counts for each chapter the user can access.",
+		responses = {@OpenApiResponse(
+			status = "200",
+			description = "Chapter inventory summary retrieved successfully",
+			content = {@OpenApiContent(
+				from = ChapterInventorySummary[].class)}), @OpenApiResponse(
+					status = "403",
+					description = "Access denied for a requested chapter"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public static void getChapterInventorySummary(Context ctx) {
+		try {
+			List<Integer> userChapterIds = ctx.attribute("chapterIds");
+			ctx.status(200).json(service.getChapterInventorySummary(userChapterIds));
+		} catch (ForbiddenException e) {
+			ctx.status(403).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -522,8 +632,9 @@ public class DeviceController {
 					}""")}),
 		responses = {@OpenApiResponse(
 			status = "201",
-			description = "Desktop added successfully"),
-				@OpenApiResponse(
+			description = "Desktop added successfully; returns the new asset id",
+			content = {@OpenApiContent(
+				from = IdResponse.class)}), @OpenApiResponse(
 					status = "400",
 					description = "Missing required parameters or invalid field values"),
 				@OpenApiResponse(
@@ -537,8 +648,8 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.insertDesktop(request, ctx.attribute("username"));
-			ctx.status(201).result("Desktop added successfully");
+			int newId = service.insertDesktop(request, ctx.attribute("username"));
+			ctx.status(201).json(new IdResponse(newId));
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
@@ -583,8 +694,9 @@ public class DeviceController {
 					}""")}),
 		responses = {@OpenApiResponse(
 			status = "201",
-			description = "Laptop added successfully"),
-				@OpenApiResponse(
+			description = "Laptop added successfully; returns the new asset id",
+			content = {@OpenApiContent(
+				from = IdResponse.class)}), @OpenApiResponse(
 					status = "400",
 					description = "Missing required parameters or invalid field values"),
 				@OpenApiResponse(
@@ -598,8 +710,8 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.insertLaptop(request, ctx.attribute("username"));
-			ctx.status(201).result("Laptop added successfully");
+			int newId = service.insertLaptop(request, ctx.attribute("username"));
+			ctx.status(201).json(new IdResponse(newId));
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
@@ -643,8 +755,9 @@ public class DeviceController {
 					}""")}),
 		responses = {@OpenApiResponse(
 			status = "201",
-			description = "Tablet added successfully"),
-				@OpenApiResponse(
+			description = "Tablet added successfully; returns the new asset id",
+			content = {@OpenApiContent(
+				from = IdResponse.class)}), @OpenApiResponse(
 					status = "400",
 					description = "Missing required parameters or invalid field values"),
 				@OpenApiResponse(
@@ -658,8 +771,8 @@ public class DeviceController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.insertTablet(request, ctx.attribute("username"));
-			ctx.status(201).result("Tablet added successfully");
+			int newId = service.insertTablet(request, ctx.attribute("username"));
+			ctx.status(201).json(new IdResponse(newId));
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
