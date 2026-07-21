@@ -7,7 +7,8 @@ public final class PaginationUtil {
 
 	private static final int MAX_PAGE_SIZE = 1000;
 
-	private PaginationUtil() {}
+	private PaginationUtil() {
+	}
 
 	public static int parsePageSize(Context ctx) throws BadArgumentException {
 		Integer pageSize = QueryParamUtil.intParam(ctx, "pageSize");

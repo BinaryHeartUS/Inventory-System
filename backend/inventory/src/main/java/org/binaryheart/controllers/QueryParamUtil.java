@@ -3,10 +3,10 @@ package org.binaryheart.controllers;
 import io.javalin.http.Context;
 import org.binaryheart.exceptions.BadArgumentException;
 
-
 public final class QueryParamUtil {
 
-	private QueryParamUtil() {}
+	private QueryParamUtil() {
+	}
 
 	/**
 	 * Returns a trimmed query parameter value, or {@code null} when absent/blank.
@@ -19,9 +19,9 @@ public final class QueryParamUtil {
 		return raw.trim();
 	}
 
-	/** 
-     * Parses an optional integer query parameter; {@code null} when absent.
-     */
+	/**
+	 * Parses an optional integer query parameter; {@code null} when absent.
+	 */
 	public static Integer intParam(Context ctx, String name) throws BadArgumentException {
 		String raw = ctx.queryParam(name);
 		if (raw == null || raw.isBlank()) {
