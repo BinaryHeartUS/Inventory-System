@@ -33,6 +33,19 @@ export async function getParts(params: PartListParams): Promise<Part[]> {
   return apiGet<Part[]>(`/parts${buildQuery({ ...params })}`);
 }
 
+/** Filters for the per-type count endpoint (same as the list filters, without pagination). */
+export type PartTypeCountParams = Omit<PartListParams, "pageKey" | "pageSize">;
+
+export interface PartTypeCount {
+  type: string;
+  count: number;
+}
+
+/** Total part count per type for the given filters, so grouped views can show accurate totals. */
+export async function getPartTypeCounts(params: PartTypeCountParams): Promise<PartTypeCount[]> {
+  return apiGet<PartTypeCount[]>(`/parts/type-counts${buildQuery({ ...params })}`);
+}
+
 /** Returns null when no part with the given ID exists. */
 export async function getPart(id: number): Promise<Part | null> {
   return apiGetOrNull<Part>(`/parts/${id}`);

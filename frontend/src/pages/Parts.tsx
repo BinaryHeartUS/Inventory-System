@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { getParts } from "../services/partService";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { getParts, getPartTypeCounts } from "../services/partService";
+import type { PartTypeCount } from "../services/partService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useLookups } from "../hooks/useLookups";
 import { useVisibleChapters } from "../context/ChapterContext";
@@ -33,34 +34,45 @@ export default function Parts() {
   const [sourceFilter, setSourceFilter] = useState<"All" | "Donated" | "Purchased">("All");
   const [showInDevice, setShowInDevice] = useState(false);
 
-  const fetchPage = useCallback(
-    (pageKey: number, pageSize: number) =>
-      getParts({
-        pageKey,
-        pageSize,
-        chapter: chapterFilter === "All" ? undefined : chapterFilter,
-        type: typeFilter === "All" ? undefined : typeFilter,
-        source:
-          sourceFilter === "Donated"
-            ? "donated"
-            : sourceFilter === "Purchased"
-              ? "purchased"
-              : undefined,
-        includeInDevice: showInDevice,
-      }),
+  const filters = useMemo(
+    () => ({
+      chapter: chapterFilter === "All" ? undefined : chapterFilter,
+      type: typeFilter === "All" ? undefined : typeFilter,
+      source:
+        sourceFilter === "Donated" ? "donated" : sourceFilter === "Purchased" ? "purchased" : undefined,
+      includeInDevice: showInDevice,
+    }),
     [chapterFilter, typeFilter, sourceFilter, showInDevice]
+  );
+
+  const fetchPage = useCallback(
+    (pageKey: number, pageSize: number) => getParts({ ...filters, pageKey, pageSize }),
+    [filters]
   );
   const {
     items: parts,
     loading,
-    hasMore,
     sentinelRef,
-  } = useInfiniteScroll<import("../types/inventory").Part>(fetchPage, [
-    chapterFilter,
-    typeFilter,
-    sourceFilter,
-    showInDevice,
-  ]);
+  } = useInfiniteScroll<import("../types/inventory").Part>(fetchPage, [filters]);
+
+  // Accurate per-type totals (independent of how many rows have been paged in).
+  const [typeCounts, setTypeCounts] = useState<PartTypeCount[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    getPartTypeCounts(filters).then((c) => {
+      if (!cancelled) setTypeCounts(c);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [filters]);
+  const countsByType = useMemo(
+    () => new Map(typeCounts.map((c) => [c.type, c.count])),
+    [typeCounts]
+  );
+  const totalTypes = typeCounts.length;
+  const totalParts = useMemo(() => typeCounts.reduce((sum, c) => sum + c.count, 0), [typeCounts]);
+
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
   const chapters = useVisibleChapters();
   const { partTypes } = useLookups();
@@ -99,11 +111,7 @@ export default function Parts() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading
           title="Parts"
-          subtitle={
-            hasFilters
-              ? `${parts.length} matching part${parts.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
-              : `${grouped.length} type${grouped.length !== 1 ? "s" : ""}, ${parts.length} part${parts.length !== 1 ? "s" : ""}${hasMore ? " loaded so far…" : ""}`
-          }
+          subtitle={`${totalTypes} type${totalTypes !== 1 ? "s" : ""}, ${totalParts} part${totalParts !== 1 ? "s" : ""}`}
         />
         <div className="flex justify-end">
           <AddAssetButton />
@@ -224,6 +232,11 @@ export default function Parts() {
               ) : (
                 grouped.map(([type, parts]) => {
                   const isExpanded = expandedTypes.has(type);
+                  const total = countsByType.get(type) ?? parts.length;
+                  const badge =
+                    parts.length < total
+                      ? `${parts.length} of ${total}`
+                      : `${total} ${total === 1 ? "part" : "parts"}`;
                   return (
                     <React.Fragment key={type}>
                       <tr
@@ -235,7 +248,7 @@ export default function Parts() {
                             <ChevronIcon expanded={isExpanded} />
                             <span className="font-semibold">{type}</span>
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
-                              {parts.length} {parts.length === 1 ? "part" : "parts"}
+                              {badge}
                             </span>
                           </div>
                         </td>
