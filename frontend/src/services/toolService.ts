@@ -10,7 +10,12 @@
  */
 
 import { apiGet, apiGetOrNull, apiPutVoid, apiDelete, apiPost, buildQuery } from "./api";
-import type { InsertToolRequest, Tool, ToolChangelogResponse, IdResponse } from "../types/inventory";
+import type {
+  InsertToolRequest,
+  Tool,
+  ToolChangelogResponse,
+  IdResponse,
+} from "../types/inventory";
 import type { ToolChangelogEntry } from "../types/changelog";
 import { getChapters } from "./chapterService";
 

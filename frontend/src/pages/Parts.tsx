@@ -39,7 +39,11 @@ export default function Parts() {
       chapter: chapterFilter === "All" ? undefined : chapterFilter,
       type: typeFilter === "All" ? undefined : typeFilter,
       source:
-        sourceFilter === "Donated" ? "donated" : sourceFilter === "Purchased" ? "purchased" : undefined,
+        sourceFilter === "Donated"
+          ? "donated"
+          : sourceFilter === "Purchased"
+            ? "purchased"
+            : undefined,
       includeInDevice: showInDevice,
     }),
     [chapterFilter, typeFilter, sourceFilter, showInDevice]
