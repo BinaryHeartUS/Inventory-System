@@ -1,12 +1,13 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { AnyDevice, DeviceStatus } from "../types/inventory";
 import { getDevices } from "../services/deviceService";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { DeviceList } from "../components/DeviceList";
+import type { SortKey, SortDir } from "../components/DeviceList";
 import AddAssetButton from "../components/AddAssetButton";
-// import AddAssetButton from '../components/AddAssetButton'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,47 +27,70 @@ const STATUS_OPTIONS: Array<DeviceStatus | "All"> = [
 
 export default function Devices() {
   const [searchParams] = useSearchParams();
+  const chapters = useVisibleChapters();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<DeviceTypeFilter>("All");
   const [statusFilter, setStatusFilter] = useState<DeviceStatus | "All">("All");
-  const [chapterFilter, setChapterFilter] = useState<string>(
-    () => searchParams.get("chapter") ?? "All"
-  );
+  const [chapterFilter, setChapterFilter] = useState<number | "All">(() => {
+    const name = searchParams.get("chapter");
+    if (!name) return "All";
+    const match = chapters.find((c) => c.name === name);
+    return match ? match.id : "All";
+  });
   const [showDonated, setShowDonated] = useState(false);
   const [showScrapped, setShowScrapped] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("id");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  const [allDevices, setAllDevices] = useState<AnyDevice[]>([]);
-  const chapters = useVisibleChapters().map((c) => c.name);
-
+  // Debounce the search box so typing doesn't fire a request per keystroke.
   useEffect(() => {
-    getDevices().then(setAllDevices);
-  }, []);
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const filtered = useMemo(() => {
-    return allDevices.filter((d) => {
-      if (!showDonated && d.status === "Donated") return false;
-      if (!showScrapped && d.status === "Scrapped") return false;
-      if (typeFilter !== "All" && d.type !== typeFilter) return false;
-      if (statusFilter !== "All" && d.status !== statusFilter) return false;
-      if (chapterFilter !== "All" && d.chapter !== chapterFilter) return false;
-      if (search.trim().replace(/^0+|0+$/g, "")) {
-        const s = search
-          .trim()
-          .toLowerCase()
-          .replace(/^0+|0+$/g, "");
-        return (
-          String(d.id).includes(s) ||
-          d.manufacturer?.toLowerCase().includes(s) ||
-          d.model?.toLowerCase().includes(s) ||
-          (d.cpu?.toLowerCase().includes(s) ?? false) ||
-          d.chapter?.toLowerCase().includes(s)
-        );
-      }
-      return true;
-    });
-  }, [search, typeFilter, statusFilter, chapterFilter, showDonated, showScrapped, allDevices]);
+  const fetchPage = useCallback(
+    (pageKey: number, pageSize: number) =>
+      getDevices({
+        pageKey,
+        pageSize,
+        search: debouncedSearch || undefined,
+        type: typeFilter === "All" ? undefined : typeFilter,
+        status: statusFilter === "All" ? undefined : statusFilter,
+        chapter: chapterFilter === "All" ? undefined : chapterFilter,
+        includeDonated: showDonated,
+        includeScrapped: showScrapped,
+        sort: sortKey,
+        dir: sortDir,
+      }),
+    [
+      debouncedSearch,
+      typeFilter,
+      statusFilter,
+      chapterFilter,
+      showDonated,
+      showScrapped,
+      sortKey,
+      sortDir,
+    ]
+  );
 
-  const total = allDevices.length;
+  const {
+    items: devices,
+    loading,
+    hasMore,
+    sentinelRef,
+  } = useInfiniteScroll<AnyDevice>(fetchPage, [
+    debouncedSearch,
+    typeFilter,
+    statusFilter,
+    chapterFilter,
+    showDonated,
+    showScrapped,
+    sortKey,
+    sortDir,
+  ]);
+
   const hasFilters =
     search !== "" ||
     typeFilter !== "All" ||
@@ -84,15 +108,20 @@ export default function Devices() {
     setShowScrapped(false);
   }
 
+  function handleSort(key: SortKey, dir: SortDir) {
+    setSortKey(key);
+    setSortDir(dir);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading
           title="Devices"
           subtitle={
-            filtered.length === total
-              ? `All ${total} devices`
-              : `${filtered.length} of ${total} devices`
+            hasFilters
+              ? `${devices.length} matching device${devices.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
+              : `${devices.length} device${devices.length !== 1 ? "s" : ""}${hasMore ? " loaded so far…" : ""}`
           }
         />
         <div className="flex justify-end">
@@ -141,14 +170,16 @@ export default function Devices() {
           </select>
 
           <select
-            value={chapterFilter}
-            onChange={(e) => setChapterFilter(e.target.value)}
+            value={String(chapterFilter)}
+            onChange={(e) =>
+              setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
+            }
             className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map((c) => (
-              <option key={c} value={c}>
-                {c}
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -250,7 +281,10 @@ export default function Devices() {
       {/* Device table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <DeviceList
-          devices={filtered}
+          devices={devices}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          onSort={handleSort}
           emptyMessage={
             <>
               No devices match the current filters.{" "}
@@ -263,6 +297,10 @@ export default function Devices() {
           }
         />
       </div>
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="h-1" aria-hidden="true" />
+      {loading && <p className="text-center text-sm text-slate-400 py-4">Loading more devices…</p>}
     </div>
   );
 }

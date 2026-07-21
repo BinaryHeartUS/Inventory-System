@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import type { DeviceStatus } from "../types/inventory";
 import { getDevices } from "../services/deviceService";
 import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
+import { fetchAllPages } from "../services/api";
 import type { AnyDevice, Part, Tool } from "../types/inventory";
 import StatusBadge from "../components/StatusBadge";
 import PageHeading from "../components/PageHeading";
@@ -11,48 +12,41 @@ import { useChapters } from "../context/ChapterContext";
 
 export default function Search() {
   const [query, setQuery] = useState("");
-  const [devices, setDevices] = useState<AnyDevice[]>([]);
-  const [parts, setParts] = useState<Part[]>([]);
-  const [tools, setTools] = useState<Tool[]>([]);
+  const [deviceResults, setDeviceResults] = useState<AnyDevice[]>([]);
+  const [partResults, setPartResults] = useState<Part[]>([]);
+  const [toolResults, setToolResults] = useState<Tool[]>([]);
   const { chapterName } = useChapters();
 
+  const q = query.trim();
+
+  // Server-side search across devices, parts and tools (debounced). Empty query clears results.
   useEffect(() => {
-    Promise.all([getDevices(), getParts(), getTools()]).then(([d, p, t]) => {
-      setDevices(d);
-      setParts(p);
-      setTools(t);
-    });
-  }, []);
-
-  const q = query
-    .trim()
-    .toLowerCase()
-    .replace(/^0+|0+$/g, "");
-
-  const { deviceResults, partResults, toolResults } = useMemo(() => {
-    if (!q) return { deviceResults: [], partResults: [], toolResults: [] };
-
-    const deviceResults = devices.filter(
-      (d) =>
-        String(d.id).includes(q) ||
-        d.manufacturer?.toLowerCase().includes(q) ||
-        d.model?.toLowerCase().includes(q) ||
-        (d.cpu ?? "").toLowerCase().includes(q) ||
-        d.chapter?.toLowerCase().includes(q) ||
-        d.type?.toLowerCase().includes(q) ||
-        d.status?.toLowerCase().includes(q)
-    );
-    const partResults = parts.filter(
-      (p) =>
-        String(p.id).includes(q) ||
-        p.type.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
-    );
-    const toolResults = tools.filter(
-      (t) => String(t.id).includes(q) || t.description.toLowerCase().includes(q)
-    );
-    return { deviceResults, partResults, toolResults };
-  }, [q, devices, parts, tools]);
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!q) {
+        setDeviceResults([]);
+        setPartResults([]);
+        setToolResults([]);
+        return;
+      }
+      Promise.all([
+        fetchAllPages((pageKey, pageSize) =>
+          getDevices({ pageKey, pageSize, search: q, includeDonated: true, includeScrapped: true })
+        ),
+        fetchAllPages((pageKey, pageSize) => getParts({ pageKey, pageSize, search: q })),
+        fetchAllPages((pageKey, pageSize) => getTools({ pageKey, pageSize, search: q })),
+      ]).then(([d, p, t]) => {
+        if (cancelled) return;
+        setDeviceResults(d);
+        setPartResults(p);
+        setToolResults(t);
+      });
+    }, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [q]);
 
   const total = deviceResults.length + partResults.length + toolResults.length;
 

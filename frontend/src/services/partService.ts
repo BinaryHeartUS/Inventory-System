@@ -10,13 +10,27 @@
  *   DELETE /api/parts/:id              → 204
  */
 
-import { apiGet, apiGetOrNull, apiDelete, apiPostVoid, apiPutVoid } from "./api";
+import { apiGet, apiGetOrNull, apiDelete, apiPost, apiPutVoid, buildQuery } from "./api";
 import type { InsertPartRequest, Part, PartChangelogResponse } from "../types/inventory";
 import type { PartChangelogEntry } from "../types/changelog";
 import { getChapters } from "./chapterService";
 
-export async function getParts(): Promise<Part[]> {
-  return apiGet<Part[]>("/parts");
+export interface PartListParams {
+  pageKey: number;
+  pageSize: number;
+  search?: string;
+  type?: string;
+  /** "donated" | "purchased" */
+  source?: string;
+  /** When false, only parts not contained in a device are returned. */
+  includeInDevice?: boolean;
+  /** Chapter id to restrict to (within the user's access). */
+  chapter?: number;
+  donorId?: number;
+}
+
+export async function getParts(params: PartListParams): Promise<Part[]> {
+  return apiGet<Part[]>(`/parts${buildQuery({ ...params })}`);
 }
 
 /** Returns null when no part with the given ID exists. */
@@ -43,18 +57,10 @@ export async function createPart(part: Part): Promise<Part> {
     value: part.value ?? undefined,
     donorId: part.donorId || undefined,
   };
-  await apiPostVoid("/parts", body);
+  const newId = (await apiPost<{ id: number }>("/parts", body)).id;
 
-  if (assetId !== undefined) {
-    return apiGet<Part>(`/parts/${assetId}`);
-  }
-  // Auto-generated: re-fetch device list and find the most recently added match
-  const parts = await apiGet<Part[]>("/parts");
-  const match = parts
-    .filter((p) => p.chapterId === part.chapterId && p.description === part.description)
-    .at(-1);
-  if (!match) throw new Error("Created part not found after insert");
-  return match;
+  // Backend returns 201 with the new asset id; fetch the full record by id.
+  return apiGet<Part>(`/parts/${newId}`);
 }
 
 export async function updatePart(id: number, updates: Part): Promise<Part> {

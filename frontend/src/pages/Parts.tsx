@@ -1,5 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { getParts } from "../services/partService";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { useLookups } from "../hooks/useLookups";
 import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { PartRow } from "../components/PartRow";
@@ -31,13 +33,37 @@ export default function Parts() {
   const [sourceFilter, setSourceFilter] = useState<"All" | "Donated" | "Purchased">("All");
   const [showInDevice, setShowInDevice] = useState(false);
 
-  const [allParts, setAllParts] = useState<import("../types/inventory").Part[]>([]);
+  const fetchPage = useCallback(
+    (pageKey: number, pageSize: number) =>
+      getParts({
+        pageKey,
+        pageSize,
+        chapter: chapterFilter === "All" ? undefined : chapterFilter,
+        type: typeFilter === "All" ? undefined : typeFilter,
+        source:
+          sourceFilter === "Donated"
+            ? "donated"
+            : sourceFilter === "Purchased"
+              ? "purchased"
+              : undefined,
+        includeInDevice: showInDevice,
+      }),
+    [chapterFilter, typeFilter, sourceFilter, showInDevice]
+  );
+  const {
+    items: parts,
+    loading,
+    hasMore,
+    sentinelRef,
+  } = useInfiniteScroll<import("../types/inventory").Part>(fetchPage, [
+    chapterFilter,
+    typeFilter,
+    sourceFilter,
+    showInDevice,
+  ]);
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
   const chapters = useVisibleChapters();
-
-  useEffect(() => {
-    getParts().then(setAllParts);
-  }, []);
+  const { partTypes } = useLookups();
 
   function toggleGroup(type: string) {
     setExpandedTypes((prev) => {
@@ -48,31 +74,15 @@ export default function Parts() {
     });
   }
 
-  const partTypes = useMemo(
-    () => Array.from(new Set(allParts.map((p) => p.type))).sort(),
-    [allParts]
-  );
-
-  const filtered = useMemo(() => {
-    return allParts.filter((p) => {
-      if (chapterFilter !== "All" && p.chapterId !== chapterFilter) return false;
-      if (typeFilter !== "All" && p.type !== typeFilter) return false;
-      if (sourceFilter === "Donated" && p.wasPurchased) return false;
-      if (sourceFilter === "Purchased" && !p.wasPurchased) return false;
-      if (!showInDevice && p.containedIn != null) return false;
-      return true;
-    });
-  }, [chapterFilter, typeFilter, sourceFilter, showInDevice, allParts]);
-
   const grouped = useMemo(() => {
     const map = new Map<string, import("../types/inventory").Part[]>();
-    for (const part of filtered) {
+    for (const part of parts) {
       const arr = map.get(part.type) ?? [];
       arr.push(part);
       map.set(part.type, arr);
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [filtered]);
+  }, [parts]);
 
   const hasFilters =
     chapterFilter !== "All" || typeFilter !== "All" || sourceFilter !== "All" || showInDevice;
@@ -90,9 +100,9 @@ export default function Parts() {
         <PageHeading
           title="Parts"
           subtitle={
-            filtered.length === allParts.length
-              ? `${grouped.length} type${grouped.length !== 1 ? "s" : ""}, ${allParts.length} part${allParts.length !== 1 ? "s" : ""}`
-              : `${filtered.length} of ${allParts.length} parts`
+            hasFilters
+              ? `${parts.length} matching part${parts.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
+              : `${grouped.length} type${grouped.length !== 1 ? "s" : ""}, ${parts.length} part${parts.length !== 1 ? "s" : ""}${hasMore ? " loaded so far…" : ""}`
           }
         />
         <div className="flex justify-end">
@@ -200,7 +210,7 @@ export default function Parts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {grouped.length === 0 ? (
+              {grouped.length === 0 && !loading ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">
                     No parts match the current filters.{" "}
@@ -239,6 +249,10 @@ export default function Parts() {
           </table>
         </div>
       </div>
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="h-1" aria-hidden="true" />
+      {loading && <p className="text-center text-sm text-slate-400 py-4">Loading more parts…</p>}
     </div>
   );
 }

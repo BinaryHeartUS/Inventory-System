@@ -36,6 +36,42 @@ function handleUnauthorized(): never {
   throw new Error("UNAUTHORIZED");
 }
 
+/**
+ * Builds a query string from a set of parameters, skipping null/undefined/empty values.
+ * e.g. buildQuery({ pageKey: 0, pageSize: 100, search: "dell" }) → "?pageKey=0&pageSize=100&search=dell"
+ */
+export function buildQuery(
+  params: Record<string, string | number | boolean | null | undefined>
+): string {
+  const sp = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined || value === "") continue;
+    sp.set(key, String(value));
+  }
+  const s = sp.toString();
+  return s ? `?${s}` : "";
+}
+
+/**
+ * Repeatedly calls a paginated fetcher until a short/empty page is returned, accumulating all
+ * rows. Used by export and detail views that genuinely need every matching row (the fetch is
+ * still bounded by the server-side filter passed into `fetchPage`).
+ */
+export async function fetchAllPages<T>(
+  fetchPage: (pageKey: number, pageSize: number) => Promise<T[]>,
+  pageSize = 500
+): Promise<T[]> {
+  const all: T[] = [];
+  let pageKey = 0;
+  for (;;) {
+    const batch = await fetchPage(pageKey, pageSize);
+    all.push(...batch);
+    if (batch.length < pageSize) break;
+    pageKey += 1;
+  }
+  return all;
+}
+
 // ─── HTTP helpers ─────────────────────────────────────────────────────────────
 
 export async function apiGet<T>(path: string): Promise<T> {

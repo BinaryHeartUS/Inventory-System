@@ -8,7 +8,7 @@
  *   PUT    /api/devices/:id    → AnyDevice   (body: AnyDevice)
  */
 
-import { apiGet, apiGetOrNull, apiPostVoid, apiPutVoid } from "./api";
+import { apiGet, apiGetOrNull, apiPost, apiPutVoid, buildQuery } from "./api";
 import type {
   AnyDevice,
   InsertDesktopRequest,
@@ -25,8 +25,47 @@ import type { DeviceChangelogEntry } from "../types/changelog";
 import type { DeviceChangelogResponse } from "../types/inventory";
 import { getChapters } from "./chapterService";
 
-export async function getDevices(): Promise<AnyDevice[]> {
-  return apiGet<AnyDevice[]>("/devices");
+export interface DeviceListParams {
+  pageKey: number;
+  pageSize: number;
+  search?: string;
+  /** "Desktop" | "Laptop" | "Tablet" */
+  type?: string;
+  /** Exact device status, e.g. "Not Started". */
+  status?: string;
+  /** Chapter id to restrict to (within the user's access). */
+  chapter?: number;
+  includeDonated?: boolean;
+  includeScrapped?: boolean;
+  donorId?: number;
+  recipientId?: number;
+  /** Sort key matching DeviceList columns, e.g. "manufacturer". */
+  sort?: string;
+  dir?: "asc" | "desc";
+}
+
+export async function getDevices(params: DeviceListParams): Promise<AnyDevice[]> {
+  return apiGet<AnyDevice[]>(`/devices${buildQuery({ ...params })}`);
+}
+
+export interface ChapterInventorySummary {
+  chapterId: number;
+  chapterName: string;
+  desktopCount: number;
+  laptopCount: number;
+  tabletCount: number;
+  notStarted: number;
+  inProgress: number;
+  readyToDonate: number;
+  donated: number;
+  scrapped: number;
+  totalDevices: number;
+  partsCount: number;
+  toolsCount: number;
+}
+
+export async function getChapterInventorySummary(): Promise<ChapterInventorySummary[]> {
+  return apiGet<ChapterInventorySummary[]>("/devices/stats/chapter-inventory");
 }
 
 /** Returns null when no device with the given ID exists. */
@@ -58,12 +97,13 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
     operatingSystem: device.operatingSystem ?? undefined,
   };
 
+  let newId: number;
   if (device.type === "Desktop") {
     const body: InsertDesktopRequest = {
       ...common,
       hasWifi: device.hasWifi ?? undefined,
     };
-    await apiPostVoid("/devices/desktop", body);
+    newId = (await apiPost<{ id: number }>("/devices/desktop", body)).id;
   } else if (device.type === "Laptop") {
     const body: InsertLaptopRequest = {
       ...common,
@@ -71,35 +111,20 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
       designBatteryCapacity: device.designBatteryCapacity ?? undefined,
       actualBatteryCapacity: device.actualBatteryCapacity ?? undefined,
     };
-    await apiPostVoid("/devices/laptop", body);
+    newId = (await apiPost<{ id: number }>("/devices/laptop", body)).id;
   } else if (device.type === "Tablet") {
     const body: InsertTabletRequest = {
       ...common,
       includesCharger: device.includesCharger ?? undefined,
       workingBattery: device.workingBattery ?? undefined,
     };
-    await apiPostVoid("/devices/tablet", body);
+    newId = (await apiPost<{ id: number }>("/devices/tablet", body)).id;
   } else {
     throw new TypeError("Unrecognized device type");
   }
 
-  // Backend returns 201 with no body; fetch the created device by its ID.
-  // If assetId was pre-assigned, use it; otherwise search for the newest matching record.
-  if (assetId !== undefined) {
-    return apiGet<AnyDevice>(`/devices/${assetId}`);
-  }
-  // Auto-generated: re-fetch device list and find the most recently added match
-  const devices = await apiGet<AnyDevice[]>("/devices");
-  const match = devices
-    .filter(
-      (d) =>
-        d.manufacturer === device.manufacturer &&
-        d.model === device.model &&
-        d.chapter === device.chapter
-    )
-    .at(-1);
-  if (!match) throw new Error("Created device not found after insert");
-  return match;
+  // Backend returns 201 with the new asset id; fetch the full record by id.
+  return apiGet<AnyDevice>(`/devices/${newId}`);
 }
 
 export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyDevice> {
