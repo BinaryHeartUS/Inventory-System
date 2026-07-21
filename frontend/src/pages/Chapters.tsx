@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { getChapterInventorySummary } from "../services/deviceService";
-import type { ChapterInventorySummary } from "../services/deviceService";
+import type { ChapterInventorySummary } from "../types/inventory";
 import { useVisibleChapters, useIsNationalAdmin, useChapters } from "../context/ChapterContext";
 import { createChapter, deleteChapter } from "../services/chapterService";
 import PageHeading from "../components/PageHeading";

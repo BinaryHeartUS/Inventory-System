@@ -11,7 +11,13 @@
  */
 
 import { apiGet, apiGetOrNull, apiDelete, apiPost, apiPutVoid, buildQuery } from "./api";
-import type { InsertPartRequest, Part, PartChangelogResponse } from "../types/inventory";
+import type {
+  InsertPartRequest,
+  Part,
+  PartChangelogResponse,
+  PartTypeCountResponse,
+  IdResponse,
+} from "../types/inventory";
 import type { PartChangelogEntry } from "../types/changelog";
 import { getChapters } from "./chapterService";
 
@@ -36,14 +42,11 @@ export async function getParts(params: PartListParams): Promise<Part[]> {
 /** Filters for the per-type count endpoint (same as the list filters, without pagination). */
 export type PartTypeCountParams = Omit<PartListParams, "pageKey" | "pageSize">;
 
-export interface PartTypeCount {
-  type: string;
-  count: number;
-}
-
 /** Total part count per type for the given filters, so grouped views can show accurate totals. */
-export async function getPartTypeCounts(params: PartTypeCountParams): Promise<PartTypeCount[]> {
-  return apiGet<PartTypeCount[]>(`/parts/type-counts${buildQuery({ ...params })}`);
+export async function getPartTypeCounts(
+  params: PartTypeCountParams
+): Promise<PartTypeCountResponse[]> {
+  return apiGet<PartTypeCountResponse[]>(`/parts/type-counts${buildQuery({ ...params })}`);
 }
 
 /** Returns null when no part with the given ID exists. */
@@ -70,7 +73,7 @@ export async function createPart(part: Part): Promise<Part> {
     value: part.value ?? undefined,
     donorId: part.donorId || undefined,
   };
-  const newId = (await apiPost<{ id: number }>("/parts", body)).id;
+  const newId = (await apiPost<IdResponse>("/parts", body)).id;
 
   // Backend returns 201 with the new asset id; fetch the full record by id.
   return apiGet<Part>(`/parts/${newId}`);

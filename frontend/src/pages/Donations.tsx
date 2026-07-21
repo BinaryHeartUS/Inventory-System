@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import type { AnyDevice } from "../types/inventory";
+import type { AnyDevice, ChapterInventorySummary } from "../types/inventory";
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
-import type { ChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from "../utils/deviceUtils";

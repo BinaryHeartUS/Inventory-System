@@ -8,22 +8,7 @@
  */
 
 import { apiGet, apiPost, apiDelete, apiPostVoid, apiPutVoid } from "./api";
-import type { ChapterRole } from "../types/inventory";
-
-export interface AccountSummary {
-  id: number;
-  username: string;
-  name: string;
-  chapterRoles: ChapterRole[];
-}
-
-export interface CreateAccountRequest {
-  name: string;
-  username: string;
-  password: string;
-  chapterId: number;
-  role: string;
-}
+import type { AccountSummary, CreateAccountRequest } from "../types/inventory";
 
 export async function getAccounts(): Promise<AccountSummary[]> {
   return apiGet<AccountSummary[]>("/accounts");

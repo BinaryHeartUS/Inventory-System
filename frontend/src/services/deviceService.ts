@@ -11,12 +11,14 @@
 import { apiGet, apiGetOrNull, apiPost, apiPutVoid, buildQuery } from "./api";
 import type {
   AnyDevice,
+  IdResponse,
   InsertDesktopRequest,
   InsertLaptopRequest,
   InsertTabletRequest,
   AvgTimeInInventoryResponse,
   CompletionRateResponse,
   ChapterActivityStatsResponse,
+  ChapterInventorySummary,
   DashboardCountsResponse,
   MonthlyCountPoint,
   MonthlyValuePoint,
@@ -46,22 +48,6 @@ export interface DeviceListParams {
 
 export async function getDevices(params: DeviceListParams): Promise<AnyDevice[]> {
   return apiGet<AnyDevice[]>(`/devices${buildQuery({ ...params })}`);
-}
-
-export interface ChapterInventorySummary {
-  chapterId: number;
-  chapterName: string;
-  desktopCount: number;
-  laptopCount: number;
-  tabletCount: number;
-  notStarted: number;
-  inProgress: number;
-  readyToDonate: number;
-  donated: number;
-  scrapped: number;
-  totalDevices: number;
-  partsCount: number;
-  toolsCount: number;
 }
 
 export async function getChapterInventorySummary(): Promise<ChapterInventorySummary[]> {
@@ -103,7 +89,7 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
       ...common,
       hasWifi: device.hasWifi ?? undefined,
     };
-    newId = (await apiPost<{ id: number }>("/devices/desktop", body)).id;
+    newId = (await apiPost<IdResponse>("/devices/desktop", body)).id;
   } else if (device.type === "Laptop") {
     const body: InsertLaptopRequest = {
       ...common,
@@ -111,14 +97,14 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
       designBatteryCapacity: device.designBatteryCapacity ?? undefined,
       actualBatteryCapacity: device.actualBatteryCapacity ?? undefined,
     };
-    newId = (await apiPost<{ id: number }>("/devices/laptop", body)).id;
+    newId = (await apiPost<IdResponse>("/devices/laptop", body)).id;
   } else if (device.type === "Tablet") {
     const body: InsertTabletRequest = {
       ...common,
       includesCharger: device.includesCharger ?? undefined,
       workingBattery: device.workingBattery ?? undefined,
     };
-    newId = (await apiPost<{ id: number }>("/devices/tablet", body)).id;
+    newId = (await apiPost<IdResponse>("/devices/tablet", body)).id;
   } else {
     throw new TypeError("Unrecognized device type");
   }

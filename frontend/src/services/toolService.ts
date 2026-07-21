@@ -10,7 +10,7 @@
  */
 
 import { apiGet, apiGetOrNull, apiPutVoid, apiDelete, apiPost, buildQuery } from "./api";
-import type { InsertToolRequest, Tool, ToolChangelogResponse } from "../types/inventory";
+import type { InsertToolRequest, Tool, ToolChangelogResponse, IdResponse } from "../types/inventory";
 import type { ToolChangelogEntry } from "../types/changelog";
 import { getChapters } from "./chapterService";
 
@@ -47,7 +47,7 @@ export async function createTool(tool: Tool): Promise<Tool> {
     value: tool.value ?? undefined,
     donorId: tool.donorId || undefined,
   };
-  const newId = (await apiPost<{ id: number }>("/tools", body)).id;
+  const newId = (await apiPost<IdResponse>("/tools", body)).id;
 
   // Backend returns 201 with the new asset id; fetch the full record by id.
   return apiGet<Tool>(`/tools/${newId}`);

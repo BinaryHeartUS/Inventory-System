@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { getParts, getPartTypeCounts } from "../services/partService";
-import type { PartTypeCount } from "../services/partService";
+import type { PartTypeCountResponse } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useLookups } from "../hooks/useLookups";
 import { useVisibleChapters } from "../context/ChapterContext";
@@ -56,7 +56,7 @@ export default function Parts() {
   } = useInfiniteScroll<import("../types/inventory").Part>(fetchPage, [filters]);
 
   // Accurate per-type totals (independent of how many rows have been paged in).
-  const [typeCounts, setTypeCounts] = useState<PartTypeCount[]>([]);
+  const [typeCounts, setTypeCounts] = useState<PartTypeCountResponse[]>([]);
   useEffect(() => {
     let cancelled = false;
     getPartTypeCounts(filters).then((c) => {
