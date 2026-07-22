@@ -104,7 +104,7 @@ export default function ActivityChart({
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
       <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">
-        Devices Received vs Donated — Last 12 Months
+        Devices Received vs Donated — Last {months} Months
       </p>
       <div className="min-h-[320px]">
         {loading ? (

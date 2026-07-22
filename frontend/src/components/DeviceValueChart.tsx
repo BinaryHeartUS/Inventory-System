@@ -86,7 +86,7 @@ export default function DeviceValueChart({ data, months = 12 }: Props) {
     <div className="bg-white border border-slate-200 rounded-xl p-5">
       <div className="flex items-baseline justify-between mb-4">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-          Value of Donated Devices — Last 12 Months
+          Value of Donated Devices — Last {months} Months
         </p>
         <span className="text-lg font-extrabold text-emerald-600">
           {formatCurrency(totalValue)}

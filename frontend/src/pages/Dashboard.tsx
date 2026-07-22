@@ -16,6 +16,7 @@ import type {
   MonthlyValuePoint,
 } from "../types/inventory";
 import { useVisibleChapters } from "../context/ChapterContext";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 import ActivityChart from "../components/ActivityChart";
 import DeviceValueChart from "../components/DeviceValueChart";
 import PageHeading from "../components/PageHeading";
@@ -56,15 +57,19 @@ export default function Dashboard() {
   const [valueData, setValueData] = useState<MonthlyValuePoint[]>([]);
   const [chartsLoading, setChartsLoading] = useState(true);
 
-  const fetchChapterFiltered = useCallback(async (chapterIds: number[]) => {
+  // On phones the time-series charts get cramped, so show a shorter range.
+  const isMobile = useMediaQuery("(max-width: 639px)");
+  const chartMonths = isMobile ? 6 : 12;
+
+  const fetchChapterFiltered = useCallback(async (chapterIds: number[], months: number) => {
     setChartsLoading(true);
     const [counts, avg, cr, received, donated, val] = await Promise.all([
       getDashboardCounts(chapterIds),
       getAvgTimeInInventory(chapterIds),
       getCompletionRate(chapterIds),
-      getDevicesReceived(chapterIds),
-      getDevicesDonated(chapterIds),
-      getDonatedDeviceValue(chapterIds),
+      getDevicesReceived(chapterIds, months),
+      getDevicesDonated(chapterIds, months),
+      getDonatedDeviceValue(chapterIds, months),
     ]);
     setNotStartedCount(counts.notStarted);
     setInProgressCount(counts.inProgress);
@@ -90,9 +95,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (selectedChapterIds.length === 0) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchChapterFiltered(selectedChapterIds);
+    fetchChapterFiltered(selectedChapterIds, chartMonths);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedChapter, visibleChapters.map((c) => c.id).join(",")]);
+  }, [selectedChapter, visibleChapters.map((c) => c.id).join(","), chartMonths]);
 
   // ── Derived display values ─────────────────────────────────────────────────
   const completionPct =
@@ -297,11 +302,12 @@ export default function Dashboard() {
       <ActivityChart
         receivedData={receivedData}
         donatedData={donatedActivityData}
+        months={chartMonths}
         loading={chartsLoading}
       />
 
       {/* Value of donated devices */}
-      <DeviceValueChart data={valueData} />
+      <DeviceValueChart data={valueData} months={chartMonths} />
     </div>
   );
 }
