@@ -115,7 +115,7 @@ public class PartController {
 		} catch (ForbiddenException e) {
 			ctx.status(403).result(e.getMessage());
 		} catch (SQLException e) {
-			ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
+			ctx.status(500).result("Database error: ".concat(e.getMessage()));
 			return;
 		}
 	}
