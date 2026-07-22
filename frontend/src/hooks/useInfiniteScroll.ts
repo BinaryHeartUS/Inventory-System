@@ -12,7 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * In-flight requests from a previous filter state are discarded via a generation counter so a
  * slow response can never append stale rows after the filters change.
  */
-export function useInfiniteScroll<T>(
+export function useInfiniteScroll<T, E extends HTMLElement = HTMLDivElement>(
   fetchPage: (pageKey: number, pageSize: number) => Promise<T[]>,
   deps: unknown[],
   pageSize = 50
@@ -27,7 +27,7 @@ export function useInfiniteScroll<T>(
   const hasMoreRef = useRef(true);
   const genRef = useRef(0);
   const fetchRef = useRef(fetchPage);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<E | null>(null);
 
   // Keep the latest fetcher without making loadMore change identity on every render.
   useEffect(() => {

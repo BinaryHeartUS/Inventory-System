@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { getParts, getPartTypeCounts } from "../services/partService";
-import type { PartTypeCountResponse } from "../types/inventory";
+import type { PartTypeCountParams } from "../services/partService";
+import type { Part, PartTypeCountResponse } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useLookups } from "../hooks/useLookups";
 import { useVisibleChapters } from "../context/ChapterContext";
@@ -28,6 +29,38 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
+/**
+ * Rows for a single expanded type group. Mounted only while the group is open, so no part
+ * rows are fetched until the user actually expands the group. Parts are paged in via infinite
+ * scroll scoped to this group (the sentinel is a table row at the bottom of the group's rows).
+ */
+function PartTypeRows({ type, filters }: { type: string; filters: PartTypeCountParams }) {
+  const fetchPage = useCallback(
+    (pageKey: number, pageSize: number) => getParts({ ...filters, type, pageKey, pageSize }),
+    [filters, type]
+  );
+  const {
+    items: parts,
+    loading,
+    sentinelRef,
+  } = useInfiniteScroll<Part, HTMLTableRowElement>(fetchPage, [filters, type]);
+
+  return (
+    <>
+      {parts.map((p) => (
+        <PartRow key={p.id} part={p} hideTypeCol />
+      ))}
+      <tr ref={sentinelRef} aria-hidden="true">
+        <td colSpan={6} className="p-0">
+          {loading && (
+            <p className="text-center text-sm text-slate-400 py-3">Loading parts…</p>
+          )}
+        </td>
+      </tr>
+    </>
+  );
+}
+
 export default function Parts() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
   const [typeFilter, setTypeFilter] = useState("All");
@@ -49,33 +82,32 @@ export default function Parts() {
     [chapterFilter, typeFilter, sourceFilter, showInDevice]
   );
 
-  const fetchPage = useCallback(
-    (pageKey: number, pageSize: number) => getParts({ ...filters, pageKey, pageSize }),
-    [filters]
-  );
-  const {
-    items: parts,
-    loading,
-    sentinelRef,
-  } = useInfiniteScroll<import("../types/inventory").Part>(fetchPage, [filters]);
-
-  // Accurate per-type totals (independent of how many rows have been paged in).
+  // Accurate per-type totals. These drive the collapsed group headers, so the page can render
+  // without fetching any individual part rows up front — parts are loaded lazily on expand.
   const [typeCounts, setTypeCounts] = useState<PartTypeCountResponse[]>([]);
+  const [countsLoading, setCountsLoading] = useState(true);
   useEffect(() => {
     let cancelled = false;
-    getPartTypeCounts(filters).then((c) => {
-      if (!cancelled) setTypeCounts(c);
-    });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCountsLoading(true);
+    getPartTypeCounts(filters)
+      .then((c) => {
+        if (!cancelled) setTypeCounts(c);
+      })
+      .finally(() => {
+        if (!cancelled) setCountsLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, [filters]);
-  const countsByType = useMemo(
-    () => new Map(typeCounts.map((c) => [c.type, c.count])),
-    [typeCounts]
-  );
   const totalTypes = typeCounts.length;
   const totalParts = useMemo(() => typeCounts.reduce((sum, c) => sum + c.count, 0), [typeCounts]);
+
+  const sortedTypes = useMemo(
+    () => [...typeCounts].sort((a, b) => a.type.localeCompare(b.type)),
+    [typeCounts]
+  );
 
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
   const chapters = useVisibleChapters();
@@ -89,16 +121,6 @@ export default function Parts() {
       return next;
     });
   }
-
-  const grouped = useMemo(() => {
-    const map = new Map<string, import("../types/inventory").Part[]>();
-    for (const part of parts) {
-      const arr = map.get(part.type) ?? [];
-      arr.push(part);
-      map.set(part.type, arr);
-    }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [parts]);
 
   const hasFilters =
     chapterFilter !== "All" || typeFilter !== "All" || sourceFilter !== "All" || showInDevice;
@@ -222,25 +244,26 @@ export default function Parts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {grouped.length === 0 && !loading ? (
+              {sortedTypes.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">
-                    No parts match the current filters.{" "}
-                    {hasFilters && (
-                      <button onClick={clearFilters} className="text-brand-red hover:underline">
-                        Clear filters
-                      </button>
+                    {countsLoading ? (
+                      "Loading parts…"
+                    ) : (
+                      <>
+                        No parts match the current filters.{" "}
+                        {hasFilters && (
+                          <button onClick={clearFilters} className="text-brand-red hover:underline">
+                            Clear filters
+                          </button>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>
               ) : (
-                grouped.map(([type, parts]) => {
+                sortedTypes.map(({ type, count }) => {
                   const isExpanded = expandedTypes.has(type);
-                  const total = countsByType.get(type) ?? parts.length;
-                  const badge =
-                    parts.length < total
-                      ? `${parts.length} of ${total}`
-                      : `${total} ${total === 1 ? "part" : "parts"}`;
                   return (
                     <React.Fragment key={type}>
                       <tr
@@ -252,12 +275,12 @@ export default function Parts() {
                             <ChevronIcon expanded={isExpanded} />
                             <span className="font-semibold">{type}</span>
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
-                              {badge}
+                              {count} {count === 1 ? "part" : "parts"}
                             </span>
                           </div>
                         </td>
                       </tr>
-                      {isExpanded && parts.map((p) => <PartRow key={p.id} part={p} hideTypeCol />)}
+                      {isExpanded && <PartTypeRows type={type} filters={filters} />}
                     </React.Fragment>
                   );
                 })
@@ -266,10 +289,6 @@ export default function Parts() {
           </table>
         </div>
       </div>
-
-      {/* Infinite scroll sentinel */}
-      <div ref={sentinelRef} className="h-1" aria-hidden="true" />
-      {loading && <p className="text-center text-sm text-slate-400 py-4">Loading more parts…</p>}
     </div>
   );
 }
