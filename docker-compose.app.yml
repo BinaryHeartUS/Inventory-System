@@ -80,7 +80,7 @@ services:
   # One-shot data importer. Profile-gated so it NEVER runs on a normal deploy;
   # it is triggered only by the "Import Data" workflow / scripts/import-data.sh.
   # Loads the Excel file at IMPORT_FILE_PATH, which is baked into the image from
-  # the repo's data/ directory.
+  # the repo's importer/data/ directory.
   importer:
     image: ${REGISTRY}/importer:${IMAGE_TAG}
     profiles: ["import"]
@@ -93,6 +93,7 @@ services:
       DB_USER: importer
       DB_PASSWORD: ${IMPORTER_PASSWORD}
       IMPORT_FILE_PATH: ${IMPORT_FILE_PATH:-/data/OldInventorySystem.xlsx}
+      IMPORT_CHAPTER_NAME: ${IMPORT_CHAPTER_NAME:-Rose-Hulman Institute of Technology}
 
 networks:
   web:

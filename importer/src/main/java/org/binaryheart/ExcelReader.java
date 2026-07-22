@@ -28,7 +28,7 @@ public class ExcelReader {
 				DatabaseConnectionService.connect();
 			}
 
-			int chapterId = DatabaseImporter.addChapter("Rose-Hulman Institute of Technology");
+			int chapterId = DatabaseImporter.addChapter(getChapterName());
 			if (chapterId == -1) {
 				System.err.println("Failed to insert/resolve chapter — aborting import.");
 				return;
@@ -68,6 +68,13 @@ public class ExcelReader {
 		return System.getenv("IMPORT_FILE_PATH") != null
 			? System.getenv("IMPORT_FILE_PATH")
 			: "data/OldInventorySystem.xlsx";
+	}
+
+	private static String getChapterName() {
+		String chapterName = System.getenv("IMPORT_CHAPTER_NAME");
+		return chapterName != null && !chapterName.strip().isEmpty()
+			? chapterName.strip()
+			: "Rose-Hulman Institute of Technology";
 	}
 
 	private static void importDesktops(Workbook workbook, int chapterId) {
