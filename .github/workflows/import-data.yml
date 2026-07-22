@@ -23,6 +23,11 @@ on:
         type: string
         default: OldInventorySystem.xlsx
         required: true
+      chapter:
+        description: "Chapter name to import into (leave blank to use the importer default)."
+        type: string
+        default: ""
+        required: false
 
 permissions:
   contents: read
@@ -72,6 +77,7 @@ jobs:
           DEPLOY_ENV: ${{ inputs.environment }}
           IMAGE_TAG: ${{ github.sha }}
           DATA_FILE: ${{ inputs.data_file }}
+          CHAPTER: ${{ inputs.chapter }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -79,11 +85,11 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: DEPLOY_ENV,IMAGE_TAG,DATA_FILE,GHCR_USER,GHCR_TOKEN
+          envs: DEPLOY_ENV,IMAGE_TAG,DATA_FILE,CHAPTER,GHCR_USER,GHCR_TOKEN
           script: |
             set -euo pipefail
             cd /opt/inventory-system
             git fetch --all --prune
             git checkout --force "$IMAGE_TAG"
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            ./scripts/import-data.sh "$DEPLOY_ENV" "$IMAGE_TAG" "$DATA_FILE"
+            ./scripts/import-data.sh "$DEPLOY_ENV" "$IMAGE_TAG" "$DATA_FILE" "$CHAPTER"

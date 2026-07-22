@@ -5,10 +5,14 @@ set -euo pipefail
 # the "Import Data" GitHub Actions workflow, but can be run manually on the server.
 #
 # Usage (run on the server, from the repo checkout):
-#   ./scripts/import-data.sh <dev|prod> <image_tag> <data_file>
+#   ./scripts/import-data.sh <dev|prod> <image_tag> <data_file> [chapter_name]
 #
 #   <data_file> is a filename inside importer/data/ (baked into the importer image
 #   at /data/<data_file>). It must exist in importer/data/ on the checked-out commit.
+#
+#   [chapter_name] is optional; when given, all items in the workbook are imported
+#   into a chapter with that name (created if it does not exist). Defaults to
+#   "Rose-Hulman Institute of Technology" when omitted.
 #
 # WARNING: importing writes into the TARGET environment's database. Make sure you
 # are pointing at the environment you intend (dev vs prod).
@@ -21,6 +25,7 @@ set -euo pipefail
 ENV="${1:?Usage: import-data.sh <dev|prod> <image_tag> <data_file>}"
 TAG="${2:?Usage: import-data.sh <dev|prod> <image_tag> <data_file>}"
 FILE="${3:?Usage: import-data.sh <dev|prod> <image_tag> <data_file>}"
+CHAPTER="${4:-}"
 
 case "$ENV" in
   dev | prod) ;;
@@ -40,6 +45,9 @@ cd "$REPO_DIR"
 [ -f "$SECRETS_ENV" ] || { echo "ERROR: missing $SECRETS_ENV"; exit 1; }
 
 export IMAGE_TAG="$TAG"
+if [ -n "$CHAPTER" ]; then
+  export IMPORT_CHAPTER_NAME="$CHAPTER"
+fi
 export IMPORT_FILE_PATH="/data/$FILE"
 
 compose() {
@@ -49,7 +57,7 @@ compose() {
     -f docker-compose.app.yml "$@"
 }
 
-echo "=== Importing '$FILE' into $ENV (tag $TAG) ==="
+echo "=== Importing '$FILE' into $ENV (tag $TAG)${CHAPTER:+ as chapter '$CHAPTER'} ==="
 compose pull importer
 compose --profile import run --rm importer
 echo "=== Import into $ENV complete ==="
