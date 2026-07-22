@@ -78,7 +78,7 @@ export default function Chapters() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading
           title="Chapters"
           subtitle={`Inventory summary across all ${visibleChapters.length} chapters`}
@@ -86,7 +86,7 @@ export default function Chapters() {
         {isNationalAdmin && (
           <button
             onClick={openModal}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-red text-white text-sm font-semibold hover:bg-brand-red-dark transition-colors"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-brand-red text-white text-sm font-semibold hover:bg-brand-red-dark transition-colors w-full sm:w-auto"
           >
             <span className="text-lg leading-none">+</span> New Chapter
           </button>
@@ -94,7 +94,7 @@ export default function Chapters() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+        <table className="responsive-cards w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
               <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -157,44 +157,50 @@ export default function Chapters() {
                       {devices.filter((d) => d.type === "Tablet").length}T
                     </p>
                   </td>
-                  <td className="px-4 py-5 text-right">
+                  <td className="px-4 py-5 text-right" data-label="Total">
                     <span className="text-base font-bold text-slate-900">{devices.length}</span>
                   </td>
-                  <td className="px-4 py-5 text-right">
+                  <td className="px-4 py-5 text-right" data-label="Pipeline">
                     <span
                       className={`text-base font-semibold ${pipeline > 0 ? "text-amber-600" : "text-slate-300"}`}
                     >
                       {pipeline}
                     </span>
                   </td>
-                  <td className="px-4 py-5 text-right">
+                  <td className="px-4 py-5 text-right" data-label="Ready">
                     <span
                       className={`text-base font-semibold ${ready > 0 ? "text-green-600" : "text-slate-300"}`}
                     >
                       {ready}
                     </span>
                   </td>
-                  <td className="px-4 py-5 text-right">
+                  <td className="px-4 py-5 text-right" data-label="Donated">
                     <span
                       className={`text-base font-semibold ${donated > 0 ? "text-sky-600" : "text-slate-300"}`}
                     >
                       {donated}
                     </span>
                   </td>
-                  <td className="px-4 py-5 text-right">
+                  <td className="px-4 py-5 text-right" data-label="Scrapped">
                     <span
                       className={`text-base font-semibold ${scrapped > 0 ? "text-red-500" : "text-slate-300"}`}
                     >
                       {scrapped}
                     </span>
                   </td>
-                  <td className="px-4 py-5 text-right text-slate-500 font-medium">
+                  <td
+                    className="px-4 py-5 text-right text-slate-500 font-medium"
+                    data-label="Parts"
+                  >
                     {parts.length}
                   </td>
-                  <td className="px-4 py-5 text-right text-slate-500 font-medium">
+                  <td
+                    className="px-4 py-5 text-right text-slate-500 font-medium"
+                    data-label="Tools"
+                  >
                     {tools.length}
                   </td>
-                  <td className="px-4 py-5 text-right">
+                  <td className="px-4 py-5 text-right" data-label="">
                     <div className="flex items-center justify-end gap-4">
                       <Link
                         to={`/devices?chapter=${encodeURIComponent(ch.name)}`}

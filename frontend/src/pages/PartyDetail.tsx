@@ -265,7 +265,7 @@ function DonatedTable({
   const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="responsive-cards w-full text-sm">
         <thead>
           <tr className="bg-slate-50 border-b border-slate-100">
             {selectMode && (
@@ -295,7 +295,7 @@ function DonatedTable({
               className={`transition-colors ${selectMode && selected.has(row.id) ? "bg-blue-50/40" : "hover:bg-slate-50"}`}
             >
               {selectMode && (
-                <td className="px-5 py-3">
+                <td className="px-5 py-3" data-label="Select">
                   <input
                     type="checkbox"
                     checked={selected.has(row.id)}
@@ -304,15 +304,17 @@ function DonatedTable({
                   />
                 </td>
               )}
-              <td className="px-5 py-3 font-mono text-xs text-slate-400">#{row.id}</td>
-              <td className="px-5 py-3 text-slate-800">
+              <td className="px-5 py-3 font-mono text-xs text-slate-400" data-label="ID">
+                #{row.id}
+              </td>
+              <td className="px-5 py-3 text-slate-800" data-label="Asset">
                 {row.label}
                 {row.detail && <span className="ml-1.5 text-slate-400 text-xs">{row.detail}</span>}
               </td>
-              <td className="px-5 py-3 text-slate-500 whitespace-nowrap">
+              <td className="px-5 py-3 text-slate-500 whitespace-nowrap" data-label="Acquired">
                 {formatDate(row.acquired) ?? "—"}
               </td>
-              <td className="px-5 py-3 text-right">
+              <td className="px-5 py-3 text-right" data-label="">
                 <Link
                   to={`${basePath}/${row.id}`}
                   className="text-xs font-medium text-heart-blue hover:underline whitespace-nowrap"
@@ -351,7 +353,7 @@ function AssetTable({
     return <p className="px-6 py-10 text-center text-sm text-slate-400">{emptyMessage}</p>;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="responsive-cards w-full text-sm">
         <thead>
           <tr className="bg-slate-50 border-b border-slate-100">
             {[
@@ -374,23 +376,27 @@ function AssetTable({
         <tbody className="divide-y divide-slate-100">
           {rows.map((row) => (
             <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-              <td className="px-5 py-3 font-mono text-xs text-slate-400">#{row.id}</td>
-              <td className="px-5 py-3 text-slate-800">
+              <td className="px-5 py-3 font-mono text-xs text-slate-400" data-label="ID">
+                #{row.id}
+              </td>
+              <td className="px-5 py-3 text-slate-800" data-label="Asset">
                 {row.label}
                 {row.detail && <span className="ml-1.5 text-slate-400 text-xs">{row.detail}</span>}
               </td>
               {row.status !== undefined && (
-                <td className="px-5 py-3">
+                <td className="px-5 py-3" data-label="Status">
                   <StatusBadge status={row.status as DeviceStatus} />
                 </td>
               )}
               {row.chapter !== undefined && (
-                <td className="px-5 py-3 text-slate-500 whitespace-nowrap">{row.chapter ?? "—"}</td>
+                <td className="px-5 py-3 text-slate-500 whitespace-nowrap" data-label="Chapter">
+                  {row.chapter ?? "—"}
+                </td>
               )}
-              <td className="px-5 py-3 text-slate-500 whitespace-nowrap">
+              <td className="px-5 py-3 text-slate-500 whitespace-nowrap" data-label="Acquired">
                 {formatDate(row.acquired) ?? "—"}
               </td>
-              <td className="px-5 py-3 text-right">
+              <td className="px-5 py-3 text-right" data-label="">
                 <Link
                   to={`${basePath}/${row.id}`}
                   className="text-xs font-medium text-heart-blue hover:underline whitespace-nowrap"

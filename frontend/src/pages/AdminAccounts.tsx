@@ -174,7 +174,7 @@ function AccountEditPanel({
 
       {/* Affiliations table */}
       <div className="rounded-lg border border-slate-200 bg-white overflow-hidden mb-4">
-        <table className="w-full text-sm">
+        <table className="responsive-cards w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
               <th className="text-left px-4 py-2">Chapter</th>
@@ -188,10 +188,10 @@ function AccountEditPanel({
               const isDirty = roleValues[cr.chapterId] !== cr.role;
               return (
                 <tr key={cr.chapterId} className="border-b border-slate-50 last:border-0">
-                  <td className="px-4 py-2.5 text-slate-700 font-medium">
+                  <td className="px-4 py-2.5 text-slate-700 font-medium" data-label="Chapter">
                     {chapterName(cr.chapterId)}
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-2.5" data-label="Role">
                     {isAdminAccount ? (
                       <RoleBadge role={cr.role} />
                     ) : (
@@ -226,7 +226,7 @@ function AccountEditPanel({
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-2.5 text-right" data-label="">
                     {!isSelf && !isAdminAccount && (
                       <button
                         onClick={() => handleRemove(cr.chapterId)}
@@ -253,13 +253,16 @@ function AccountEditPanel({
         </p>
       )}
       {!isAdminAccount && (
-        <form onSubmit={handleAdd} className="flex items-end gap-3 mb-5">
+        <form
+          onSubmit={handleAdd}
+          className="flex flex-col items-stretch gap-3 mb-5 sm:flex-row sm:items-end"
+        >
           <div>
             <label className={labelCls}>Add Chapter Access</label>
             <select
               value={addChapter}
               onChange={(e) => setAddChapter(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white w-44"
+              className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white w-full sm:w-44"
             >
               <option value="">Chapter…</option>
               {addChapterOptions
@@ -272,11 +275,11 @@ function AccountEditPanel({
             </select>
           </div>
           <div>
-            <label className={labelCls}>&nbsp;</label>
+            <label className={`${labelCls} hidden sm:block`}>&nbsp;</label>
             <select
               value={addRole}
               onChange={(e) => setAddRole(e.target.value)}
-              className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white w-36"
+              className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white w-full sm:w-36"
             >
               <option value="">Role…</option>
               {assignableRoles.map((r) => (
@@ -289,7 +292,7 @@ function AccountEditPanel({
           <button
             type="submit"
             disabled={!addChapter || !addRole || addLoading}
-            className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-heart-blue hover:opacity-90 disabled:opacity-40 transition-opacity"
+            className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-heart-blue hover:opacity-90 disabled:opacity-40 transition-opacity w-full sm:w-auto"
           >
             {addLoading ? "Adding…" : "Add"}
           </button>
@@ -626,7 +629,7 @@ export default function AdminAccounts() {
         {accounts.length === 0 && !listError ? (
           <p className="text-sm text-slate-400 px-6 py-8 text-center">No accounts found</p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="responsive-cards w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 <th className="text-left px-6 py-3">Username</th>
@@ -646,9 +649,13 @@ export default function AdminAccounts() {
                       setExpandedId((id) => (id === account.id ? null : account.id))
                     }
                   >
-                    <td className="px-6 py-3 font-medium text-slate-900">{account.username}</td>
-                    <td className="px-6 py-3 text-slate-600">{account.name}</td>
-                    <td className="px-6 py-3">
+                    <td className="px-6 py-3 font-medium text-slate-900" data-label="Username">
+                      {account.username}
+                    </td>
+                    <td className="px-6 py-3 text-slate-600" data-label="Name">
+                      {account.name}
+                    </td>
+                    <td className="px-6 py-3" data-label="Access">
                       <div className="flex flex-wrap gap-2">
                         {account.chapterRoles.map((cr) => (
                           <span
@@ -662,7 +669,7 @@ export default function AdminAccounts() {
                       </div>
                     </td>
                     {(isAdmin || isChapterAdmin) && (
-                      <td className="px-6 py-3 text-right">
+                      <td className="px-6 py-3 text-right" data-label="">
                         <svg
                           width="14"
                           height="14"
@@ -680,8 +687,8 @@ export default function AdminAccounts() {
                     )}
                   </tr>
                   {expandedId === account.id && (isAdmin || isChapterAdmin) && (
-                    <tr key={`${account.id}-edit`}>
-                      <td colSpan={4} className="p-0">
+                    <tr key={`${account.id}-edit`} className="rc-raw">
+                      <td colSpan={4} className="p-0 rc-raw">
                         <AccountEditPanel
                           account={account}
                           assignableRoles={assignableRoles}

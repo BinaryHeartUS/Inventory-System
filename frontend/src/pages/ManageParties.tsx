@@ -40,7 +40,7 @@ function AddressFields({
 }) {
   return (
     <>
-      <div className="col-span-2">
+      <div className="sm:col-span-2">
         <label className={labelCls}>Street</label>
         <input
           value={street}
@@ -187,8 +187,8 @@ function PersonPanel({
       {loading ? (
         <p className="text-sm text-slate-400">Loading…</p>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
             <label className={labelCls}>
               Name <span className="text-red-400">*</span>
             </label>
@@ -200,7 +200,7 @@ function PersonPanel({
               className={inputCls}
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label className={labelCls}>Email</label>
             <input
               type="email"
@@ -210,7 +210,7 @@ function PersonPanel({
               className={inputCls}
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <button
               type="button"
               onClick={() => setShowAddr((v) => !v)}
@@ -252,8 +252,8 @@ function PersonPanel({
               setCountry={setCountry}
             />
           )}
-          {error && <p className="col-span-2 text-xs text-red-500">{error}</p>}
-          <div className="col-span-2 flex justify-end gap-2 pt-1">
+          {error && <p className="sm:col-span-2 text-xs text-red-500">{error}</p>}
+          <div className="sm:col-span-2 flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
@@ -375,8 +375,8 @@ function OrgPanel({
       {loading ? (
         <p className="text-sm text-slate-400">Loading…</p>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
             <label className={labelCls}>
               Organization Name <span className="text-red-400">*</span>
             </label>
@@ -408,7 +408,7 @@ function OrgPanel({
               className={inputCls}
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <button
               type="button"
               onClick={() => setShowAddr((v) => !v)}
@@ -450,8 +450,8 @@ function OrgPanel({
               setCountry={setCountry}
             />
           )}
-          {error && <p className="col-span-2 text-xs text-red-500">{error}</p>}
-          <div className="col-span-2 flex justify-end gap-2 pt-1">
+          {error && <p className="sm:col-span-2 text-xs text-red-500">{error}</p>}
+          <div className="sm:col-span-2 flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
@@ -531,7 +531,7 @@ function PartySection({
   return (
     <div>
       {/* Section header */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2.5">
           {isPerson ? (
             <svg
@@ -575,9 +575,9 @@ function PartySection({
             </span>
           )}
         </div>
-        <div className="flex-1" />
+        <div className="hidden sm:block sm:flex-1" />
         {/* Search */}
-        <div className="relative max-w-xs w-full">
+        <div className="relative w-full sm:max-w-xs">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
             width="13"
@@ -603,7 +603,7 @@ function PartySection({
         {/* Add button */}
         <button
           onClick={() => setExpandedId("new")}
-          className="flex items-center gap-1.5 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue/90 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+          className="flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue/90 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap w-full sm:w-auto"
         >
           <svg
             width="13"
@@ -650,7 +650,7 @@ function PartySection({
               : "No matches."}
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <table className="responsive-cards w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 <th className="text-left px-6 py-3">Name</th>
@@ -664,8 +664,10 @@ function PartySection({
                     key={p.id}
                     className={`transition-colors ${expandedId === p.id ? "bg-slate-50" : "hover:bg-slate-50"}`}
                   >
-                    <td className="px-6 py-3 font-medium text-slate-800">{p.name}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-6 py-3 font-medium text-slate-800" data-label="Name">
+                      {p.name}
+                    </td>
+                    <td className="px-4 py-3 text-right" data-label="">
                       <div className="flex items-center justify-end gap-3">
                         <Link
                           to={`/admin/parties/${p.id}`}
@@ -683,8 +685,8 @@ function PartySection({
                     </td>
                   </tr>
                   {expandedId === p.id && (
-                    <tr key={`${p.id}-panel`}>
-                      <td colSpan={2} className="p-0">
+                    <tr key={`${p.id}-panel`} className="rc-raw">
+                      <td colSpan={2} className="p-0 rc-raw">
                         {isPerson ? (
                           <PersonPanel
                             partyId={p.id}

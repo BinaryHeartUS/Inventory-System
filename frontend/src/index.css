@@ -116,4 +116,22 @@ p {
     max-width: none !important;
     text-align: right;
   }
+  /* Opt-out: rows/cells marked `rc-raw` skip the card chrome. Used for
+   * full-width expandable panels (e.g. an inline edit form) rendered as a
+   * `colSpan` row inside a responsive-cards table so they render flush
+   * instead of getting boxed like a data card. */
+  table.responsive-cards tr.rc-raw {
+    background: transparent;
+    border: 0 !important;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 0.75rem;
+  }
+  table.responsive-cards tr.rc-raw:last-child {
+    margin-bottom: 0;
+  }
+  table.responsive-cards td.rc-raw {
+    padding: 0 !important;
+  }
 }
