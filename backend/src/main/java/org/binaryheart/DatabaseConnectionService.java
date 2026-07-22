@@ -36,6 +36,12 @@ public final class DatabaseConnectionService {
 		return dataSource;
 	}
 
+	public static void init() {
+		if (DATA_SOURCE.isClosed()) {
+			throw new IllegalStateException("Database connection pool failed to initialize");
+		}
+	}
+
 	/**
 	 * Borrows a connection from the pool. The caller owns the returned connection
 	 * and must close it when finished to release it back to the pool.

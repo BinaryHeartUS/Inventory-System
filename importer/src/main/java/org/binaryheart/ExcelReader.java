@@ -41,12 +41,12 @@ public class ExcelReader {
 			importDonated(workbook, chapterId);
 			importParts(workbook, chapterId);
 			importTools(workbook, chapterId);
-
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
 			if (DatabaseConnectionService.isConnected()) {
 				DatabaseConnectionService.closeConnection();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 

@@ -23,6 +23,7 @@ import org.binaryheart.controllers.ToolController;
 
 public class Main {
 	public static void main(String[] args) {
+		DatabaseConnectionService.init();
 
 		Javalin.create(config -> {
 			config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
