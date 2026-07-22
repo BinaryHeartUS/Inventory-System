@@ -5,6 +5,7 @@ import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { ToolRow } from "../components/ToolRow";
 import AddAssetButton from "../components/AddAssetButton";
+import FilterSelect from "../components/FilterSelect";
 
 export default function Tools() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
@@ -51,12 +52,11 @@ export default function Tools() {
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">
         <div className="flex flex-wrap gap-3 items-center">
-          <select
+          <FilterSelect
             value={String(chapterFilter)}
             onChange={(e) =>
               setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
             }
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map((c) => (
@@ -64,7 +64,7 @@ export default function Tools() {
                 {c.name}
               </option>
             ))}
-          </select>
+          </FilterSelect>
           {hasFilters && (
             <button
               onClick={clearFilters}

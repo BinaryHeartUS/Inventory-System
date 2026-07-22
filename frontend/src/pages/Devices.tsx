@@ -8,6 +8,7 @@ import PageHeading from "../components/PageHeading";
 import { DeviceList } from "../components/DeviceList";
 import type { SortKey, SortDir } from "../components/DeviceList";
 import AddAssetButton from "../components/AddAssetButton";
+import FilterSelect from "../components/FilterSelect";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -170,24 +171,22 @@ export default function Devices() {
             />
           </div>
 
-          <select
+          <FilterSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as DeviceStatus | "All")}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s === "All" ? "All Statuses" : s}
               </option>
             ))}
-          </select>
+          </FilterSelect>
 
-          <select
+          <FilterSelect
             value={String(chapterFilter)}
             onChange={(e) =>
               setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
             }
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map((c) => (
@@ -195,10 +194,10 @@ export default function Devices() {
                 {c.name}
               </option>
             ))}
-          </select>
+          </FilterSelect>
 
           <label
-            className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
               showDonated
                 ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
                 : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
@@ -231,7 +230,7 @@ export default function Devices() {
           </label>
 
           <label
-            className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
               showScrapped
                 ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
                 : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"

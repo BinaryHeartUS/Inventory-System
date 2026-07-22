@@ -8,6 +8,7 @@ import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { PartRow } from "../components/PartRow";
 import AddAssetButton from "../components/AddAssetButton";
+import FilterSelect from "../components/FilterSelect";
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
@@ -145,24 +146,19 @@ export default function Parts() {
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
         <div className="flex flex-wrap gap-3 items-center">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
-          >
+          <FilterSelect value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
             <option value="All">All Types</option>
             {partTypes.map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
             ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={String(chapterFilter)}
             onChange={(e) =>
               setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
             }
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map((c) => (
@@ -170,19 +166,18 @@ export default function Parts() {
                 {c.name}
               </option>
             ))}
-          </select>
-          <select
+          </FilterSelect>
+          <FilterSelect
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value as typeof sourceFilter)}
-            className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Sources</option>
             <option value="Donated">Donated</option>
             <option value="Purchased">Purchased</option>
-          </select>
+          </FilterSelect>
 
           <label
-            className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
               showInDevice
                 ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
                 : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"

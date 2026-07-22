@@ -367,7 +367,10 @@ export default function Reports() {
             { label: "Scrapped", value: scrapped, color: "text-red-500" },
             { label: "Completion", value: `${completion}%`, color: "text-slate-700" },
           ].map(({ label, value, color }) => (
-            <div key={label} className="border-l-2 border-slate-100 pl-3 first:border-0 first:pl-0">
+            <div
+              key={label}
+              className="border-l-2 border-slate-100 pl-3 lg:first:border-0 lg:first:pl-0"
+            >
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
                 {label}
               </p>
