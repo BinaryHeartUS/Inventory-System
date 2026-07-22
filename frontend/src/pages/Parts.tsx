@@ -52,9 +52,7 @@ function PartTypeRows({ type, filters }: { type: string; filters: PartTypeCountP
       ))}
       <tr ref={sentinelRef} aria-hidden="true">
         <td colSpan={6} className="p-0">
-          {loading && (
-            <p className="text-center text-sm text-slate-400 py-3">Loading parts…</p>
-          )}
+          {loading && <p className="text-center text-sm text-slate-400 py-3">Loading parts…</p>}
         </td>
       </tr>
     </>
