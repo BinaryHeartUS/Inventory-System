@@ -30,4 +30,8 @@ replay_pid*
 
 # Don't commit build artifacts
 backend/**/target/
+importer/**/target/
 dependency-reduced-pom.xml
+
+# macOS Finder metadata
+.DS_Store

@@ -1,0 +1,141 @@
+package org.binaryheart;
+
+import java.io.File;
+import java.util.List;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.binaryheart.records.Desktop;
+import org.binaryheart.records.Donated;
+import org.binaryheart.records.Laptop;
+import org.binaryheart.records.Part;
+import org.binaryheart.records.ReadyToDonate;
+import org.binaryheart.records.Tablet;
+import org.binaryheart.records.Tool;
+
+public class ExcelReader {
+	public static void main(String[] args) {
+
+		String filePath = getFilePath();
+
+		try (Workbook workbook = readExcelFile(filePath)) {
+			if (workbook == null) {
+				System.err.println("Failed to open workbook at: " + filePath);
+				return;
+			}
+
+			if (!DatabaseConnectionService.isConnected()) {
+				DatabaseConnectionService.connect();
+			}
+
+			int chapterId = DatabaseImporter.addChapter(getChapterName());
+			if (chapterId == -1) {
+				System.err.println("Failed to insert/resolve chapter — aborting import.");
+				return;
+			}
+
+			importDesktops(workbook, chapterId);
+			importLaptops(workbook, chapterId);
+			importTablets(workbook, chapterId);
+			importReadyToDonate(workbook, chapterId);
+			importDonated(workbook, chapterId);
+			importParts(workbook, chapterId);
+			importTools(workbook, chapterId);
+
+			if (DatabaseConnectionService.isConnected()) {
+				DatabaseConnectionService.closeConnection();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static <T extends Record> List<T> getRecords(String sheetName, Workbook workbook, Class<T> recordClass) {
+		Sheet sheet = workbook.getSheet(sheetName);
+		return SheetReader.readAllRows(sheet, recordClass);
+	}
+
+	private static Workbook readExcelFile(String filePath) {
+		try {
+			return WorkbookFactory.create(new File(filePath), null, true);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private static String getFilePath() {
+		return System.getenv("IMPORT_FILE_PATH") != null
+			? System.getenv("IMPORT_FILE_PATH")
+			: "data/OldInventorySystem.xlsx";
+	}
+
+	private static String getChapterName() {
+		String chapterName = System.getenv("IMPORT_CHAPTER_NAME");
+		return chapterName != null && !chapterName.strip().isEmpty()
+			? chapterName.strip()
+			: "Rose-Hulman Institute of Technology";
+	}
+
+	private static void importDesktops(Workbook workbook, int chapterId) {
+		List<Desktop> desktops = getRecords("Desktops", workbook, Desktop.class);
+		DatabaseImporter.addDesktopsToDatabase(desktops, chapterId);
+	}
+
+	private static void importLaptops(Workbook workbook, int chapterId) {
+		List<Laptop> laptops = getRecords("Laptops", workbook, Laptop.class);
+		DatabaseImporter.addLaptopsToDatabase(laptops, chapterId);
+	}
+
+	private static void importTablets(Workbook workbook, int chapterId) {
+		List<Tablet> tablets = getRecords("Tablets", workbook, Tablet.class);
+		DatabaseImporter.addTabletsToDatabase(tablets, chapterId);
+	}
+
+	private static void importReadyToDonate(Workbook workbook, int chapterId) {
+		List<ReadyToDonate> readyToDonate = getRecords("Ready To Donate", workbook, ReadyToDonate.class);
+		for (ReadyToDonate item : readyToDonate) {
+			switch (item.typeOfDevice()) {
+				case DESKTOP -> {
+					DatabaseImporter.addReadyToDonateDesktop(item, chapterId);
+				}
+				case LAPTOP -> {
+					DatabaseImporter.addReadyToDonateLaptop(item, chapterId);
+				}
+				case TABLET -> {
+					DatabaseImporter.addReadyToDonateTablet(item, chapterId);
+				}
+				default -> System.err.println("Unknown device type for Ready To Donate record: " + item.typeOfDevice());
+			}
+		}
+	}
+
+	private static void importDonated(Workbook workbook, int chapterId) {
+		List<Donated> donated = getRecords("Donated", workbook, Donated.class);
+		for (Donated item : donated) {
+			int recipientId = DatabaseImporter.addOrGetRecipient(item);
+			switch (item.typeOfDevice()) {
+				case DESKTOP -> {
+					DatabaseImporter.addDonatedDesktop(item, chapterId, recipientId);
+				}
+				case LAPTOP -> {
+					DatabaseImporter.addDonatedLaptop(item, chapterId, recipientId);
+				}
+				case TABLET -> {
+					DatabaseImporter.addDonatedTablet(item, chapterId, recipientId);
+				}
+				default -> System.err.println("Unknown device type for Donated record: " + item.typeOfDevice());
+			}
+		}
+	}
+
+	private static void importParts(Workbook workbook, int chapterId) {
+		List<Part> parts = getRecords("Parts", workbook, Part.class);
+		DatabaseImporter.addParts(parts, chapterId);
+	}
+
+	private static void importTools(Workbook workbook, int chapterID) {
+		List<Tool> tools = getRecords("Tools", workbook, Tool.class);
+		DatabaseImporter.addTools(tools, chapterID);
+	}
+}

@@ -5,15 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.binaryheart</groupId>
-    <artifactId>inventory-system-backend</artifactId>
+    <artifactId>inventory</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>common</module>
-        <module>inventory</module>
-        <module>import</module>
-    </modules>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>25</maven.compiler.source>
@@ -87,6 +81,66 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-openapi-plugin</artifactId>
+            <version>7.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-swagger-plugin</artifactId>
+            <version>7.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.javalin.community.openapi</groupId>
+            <artifactId>javalin-redoc-plugin</artifactId>
+            <version>7.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>at.favre.lib</groupId>
+            <artifactId>bcrypt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-models-jakarta</artifactId>
+            <version>2.2.21</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -99,7 +153,7 @@
                     </upToDateChecking>
                     <java>
                         <eclipse>
-                            <file>${maven.multiModuleProjectDirectory}/eclipse-formatter.xml</file>
+                            <file>${project.basedir}/eclipse-formatter.xml</file>
                         </eclipse>
                     </java>
                 </configuration>
@@ -108,6 +162,48 @@
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>io.javalin.community.openapi</groupId>
+                            <artifactId>openapi-annotation-processor</artifactId>
+                            <version>7.2.0</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.binaryheart.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

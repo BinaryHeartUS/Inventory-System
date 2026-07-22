@@ -42,8 +42,8 @@ services:
 
   importer:
     build:
-      context: .
-      dockerfile: backend/import/Dockerfile
+      context: ./importer
+      dockerfile: Dockerfile
     restart: "no"
     depends_on:
       db:
@@ -55,6 +55,7 @@ services:
       DB_USER: importer
       DB_PASSWORD: changeme_importer
       IMPORT_FILE_PATH: /data/OldInventorySystem.xlsx
+      IMPORT_CHAPTER_NAME: ${IMPORT_CHAPTER_NAME:-Rose-Hulman Institute of Technology}
 
   backend:
     build: ./backend
