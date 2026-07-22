@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { AnyDevice, DeviceStatus } from "../types/inventory";
 import { getDevices } from "../services/deviceService";
@@ -32,12 +32,7 @@ export default function Devices() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<DeviceTypeFilter>("All");
   const [statusFilter, setStatusFilter] = useState<DeviceStatus | "All">("All");
-  const [chapterFilter, setChapterFilter] = useState<number | "All">(() => {
-    const name = searchParams.get("chapter");
-    if (!name) return "All";
-    const match = chapters.find((c) => c.name === name);
-    return match ? match.id : "All";
-  });
+  const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
   const [showDonated, setShowDonated] = useState(false);
   const [showScrapped, setShowScrapped] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("id");
@@ -48,6 +43,24 @@ export default function Devices() {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(t);
   }, [search]);
+
+  // Resolve a ?chapter=<name> deep link to a chapter id. Chapters load asynchronously
+  // (the list starts empty), so this can't be done in the state initializer — it must wait
+  // until the chapters arrive. Applied at most once so it never clobbers a later user change.
+  const chapterParamApplied = useRef(false);
+  useEffect(() => {
+    if (chapterParamApplied.current) return;
+    const name = searchParams.get("chapter");
+    if (!name) {
+      chapterParamApplied.current = true;
+      return;
+    }
+    if (chapters.length === 0) return; // wait for chapters to load
+    const match = chapters.find((c) => c.name === name);
+    chapterParamApplied.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (match) setChapterFilter(match.id);
+  }, [chapters, searchParams]);
 
   const fetchPage = useCallback(
     (pageKey: number, pageSize: number) =>

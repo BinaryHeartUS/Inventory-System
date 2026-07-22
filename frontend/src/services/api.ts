@@ -56,20 +56,25 @@ export function buildQuery(
  * Repeatedly calls a paginated fetcher until a short/empty page is returned, accumulating all
  * rows. Used by export and detail views that genuinely need every matching row (the fetch is
  * still bounded by the server-side filter passed into `fetchPage`).
+ *
+ * Pass `maxItems` to cap the number of rows fetched (e.g. for a "top-N" search) so a broad
+ * query can't pull an unbounded number of rows. Fetching stops as soon as the cap is reached
+ * and the result is truncated to exactly `maxItems`.
  */
 export async function fetchAllPages<T>(
   fetchPage: (pageKey: number, pageSize: number) => Promise<T[]>,
-  pageSize = 500
+  pageSize = 500,
+  maxItems = Infinity
 ): Promise<T[]> {
   const all: T[] = [];
   let pageKey = 0;
   for (;;) {
     const batch = await fetchPage(pageKey, pageSize);
     all.push(...batch);
-    if (batch.length < pageSize) break;
+    if (batch.length < pageSize || all.length >= maxItems) break;
     pageKey += 1;
   }
-  return all;
+  return all.length > maxItems ? all.slice(0, maxItems) : all;
 }
 
 // ─── HTTP helpers ─────────────────────────────────────────────────────────────

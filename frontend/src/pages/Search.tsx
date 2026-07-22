@@ -10,6 +10,10 @@ import StatusBadge from "../components/StatusBadge";
 import PageHeading from "../components/PageHeading";
 import { useChapters } from "../context/ChapterContext";
 
+// Cap each category's results so a broad/short query can't pull an unbounded number of rows.
+// The server-side search already filters; this bounds a match-everything query to a top-N.
+const SEARCH_RESULT_CAP = 100;
+
 export default function Search() {
   const [query, setQuery] = useState("");
   const [deviceResults, setDeviceResults] = useState<AnyDevice[]>([]);
@@ -30,11 +34,28 @@ export default function Search() {
         return;
       }
       Promise.all([
-        fetchAllPages((pageKey, pageSize) =>
-          getDevices({ pageKey, pageSize, search: q, includeDonated: true, includeScrapped: true })
+        fetchAllPages(
+          (pageKey, pageSize) =>
+            getDevices({
+              pageKey,
+              pageSize,
+              search: q,
+              includeDonated: true,
+              includeScrapped: true,
+            }),
+          SEARCH_RESULT_CAP,
+          SEARCH_RESULT_CAP
         ),
-        fetchAllPages((pageKey, pageSize) => getParts({ pageKey, pageSize, search: q })),
-        fetchAllPages((pageKey, pageSize) => getTools({ pageKey, pageSize, search: q })),
+        fetchAllPages(
+          (pageKey, pageSize) => getParts({ pageKey, pageSize, search: q }),
+          SEARCH_RESULT_CAP,
+          SEARCH_RESULT_CAP
+        ),
+        fetchAllPages(
+          (pageKey, pageSize) => getTools({ pageKey, pageSize, search: q }),
+          SEARCH_RESULT_CAP,
+          SEARCH_RESULT_CAP
+        ),
       ]).then(([d, p, t]) => {
         if (cancelled) return;
         setDeviceResults(d);
