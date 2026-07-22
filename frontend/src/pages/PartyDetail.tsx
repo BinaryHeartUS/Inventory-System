@@ -608,8 +608,8 @@ export default function PartyDetailPage() {
         </div>
 
         {/* Header */}
-        <div className="bg-white border border-slate-200 rounded-xl px-8 py-6">
-          <div className="flex items-center justify-between gap-4">
+        <div className="bg-white border border-slate-200 rounded-xl px-5 py-5 sm:px-8 sm:py-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2.5 mb-2">
                 <span
@@ -621,7 +621,7 @@ export default function PartyDetailPage() {
               </div>
               <h1 className="text-2xl font-bold text-slate-900">{party.name}</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {!selectMode &&
                 (donatedDevices.length > 0 ||
                   donatedParts.length > 0 ||
@@ -657,7 +657,7 @@ export default function PartyDetailPage() {
         </div>
 
         {/* Info card */}
-        <div className="bg-white border border-slate-200 rounded-xl px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-8">
+        <div className="bg-white border border-slate-200 rounded-xl px-4 py-5 sm:px-6 sm:py-6 grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-4 sm:gap-x-8">
           {isPerson ? (
             <>
               <Field label="Email" value={person?.email ?? null} />

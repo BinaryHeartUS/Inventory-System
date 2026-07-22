@@ -13,17 +13,23 @@ export function ToolRow({ tool }: { tool: Tool }) {
       onClick={() => navigate(`/tools/${tool.id}`)}
       className="hover:bg-slate-50 transition-colors cursor-pointer"
     >
-      <td className="px-5 py-5 font-mono text-xs text-slate-400">{tool.id}</td>
-      <td className="px-5 py-5 text-slate-600 max-w-xs truncate">{tool.description}</td>
-      <td className="px-5 py-5 text-slate-500">{chapterName(tool.chapterId)}</td>
-      <td className="px-5 py-5 text-slate-700">
+      <td className="px-5 py-5 font-mono text-xs text-slate-400" data-label="ID">
+        {tool.id}
+      </td>
+      <td className="px-5 py-5 text-slate-600 max-w-xs truncate" data-label="Description">
+        {tool.description}
+      </td>
+      <td className="px-5 py-5 text-slate-500" data-label="Chapter">
+        {chapterName(tool.chapterId)}
+      </td>
+      <td className="px-5 py-5 text-slate-700" data-label="Value">
         {tool.value != null ? (
           `$${tool.value.toFixed(2)}`
         ) : (
           <span className="text-slate-300">—</span>
         )}
       </td>
-      <td className="px-5 py-5 text-slate-400 whitespace-nowrap">
+      <td className="px-5 py-5 text-slate-400 whitespace-nowrap" data-label="Acquired">
         {formatDate(tool.acquisitionDate) ?? "—"}
       </td>
     </tr>

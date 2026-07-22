@@ -20,31 +20,39 @@ export function PartRow({
       onClick={() => navigate(`/parts/${part.id}`)}
       className="hover:bg-slate-50 transition-colors cursor-pointer"
     >
-      <td className="px-5 py-5 font-mono text-xs text-slate-400">{part.id}</td>
+      <td className="px-5 py-5 font-mono text-xs text-slate-400" data-label="ID">
+        {part.id}
+      </td>
       {!hideTypeCol && (
-        <td className="px-5 py-5">
+        <td className="px-5 py-5" data-label="Type">
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
             {part.type}
           </span>
         </td>
       )}
-      <td className="px-5 py-5 text-slate-700">{part.description}</td>
-      <td className="px-5 py-5 text-slate-500">{chapterName(part.chapterId)}</td>
-      <td className="px-5 py-5">
+      <td className="px-5 py-5 text-slate-700" data-label="Description">
+        {part.description}
+      </td>
+      <td className="px-5 py-5 text-slate-500" data-label="Chapter">
+        {chapterName(part.chapterId)}
+      </td>
+      <td className="px-5 py-5" data-label="Source">
         <span
           className={`text-sm font-medium ${part.wasPurchased ? "text-slate-500" : "text-green-600"}`}
         >
           {part.wasPurchased ? "Purchased" : "Donated"}
         </span>
       </td>
-      <td className="px-5 py-5">
+      <td className="px-5 py-5" data-label="Contained In">
         {part.containedIn != null ? (
           <span className="font-mono text-xs text-heart-blue">#{part.containedIn}</span>
         ) : (
           <span className="text-slate-300 text-xs">Loose</span>
         )}
       </td>
-      <td className="px-5 py-5 text-slate-400 whitespace-nowrap">{part.acquisitionDate ?? "—"}</td>
+      <td className="px-5 py-5 text-slate-400 whitespace-nowrap" data-label="Acquired">
+        {part.acquisitionDate ?? "—"}
+      </td>
       {onUnlink !== undefined && (
         <td className="px-5 py-5" onClick={(e) => e.stopPropagation()}>
           <button

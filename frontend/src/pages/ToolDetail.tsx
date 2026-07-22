@@ -171,8 +171,8 @@ export default function ToolDetail() {
         </div>
 
         {/* Header */}
-        <div className="bg-white border border-slate-200 rounded-xl px-8 py-6">
-          <div className="flex items-stretch justify-between gap-4">
+        <div className="bg-white border border-slate-200 rounded-xl px-5 py-5 sm:px-8 sm:py-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between">
             <div>
               <div className="flex items-center gap-2.5 mb-2">
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-500 uppercase tracking-wide">
@@ -183,7 +183,7 @@ export default function ToolDetail() {
               <h1 className="text-2xl font-bold text-slate-900">{t.description}</h1>
               <p className="text-sm text-slate-400 mt-1">{chapterName(t.chapterId)}</p>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
               {!editing && (
                 <button
                   onClick={() => setPrintId(t.id)}
@@ -256,7 +256,7 @@ export default function ToolDetail() {
         </div>
 
         {/* Two-column body */}
-        <div className="flex gap-5 items-start">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
           <div className="flex-[3] min-w-0 space-y-5">
             <Section title="Details">
               {editing && form ? (
@@ -377,7 +377,7 @@ export default function ToolDetail() {
             />
           </div>
 
-          <div className="flex-[1] min-w-64 sticky top-20">
+          <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
             <NotesPane assetId={tool.id} />
           </div>
         </div>

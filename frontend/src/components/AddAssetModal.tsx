@@ -318,7 +318,7 @@ function CategoryStep({ onSelect }: { onSelect: (cat: AssetCategory) => void }) 
   return (
     <div>
       <p className="text-sm text-slate-500 mb-5">What type of asset is this?</p>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {CATEGORY_CARDS.map(({ cat, color, title, desc, icon }) => (
           <button
             key={cat}
@@ -406,7 +406,7 @@ function SubtypeStep({ onSelect }: { onSelect: (sub: DeviceSubtype) => void }) {
   return (
     <div>
       <p className="text-sm text-slate-500 mb-5">What kind of device is this?</p>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {SUBTYPE_CARDS.map(({ sub, title, desc, icon }) => (
           <button
             key={sub}
@@ -537,7 +537,7 @@ function FieldsForm({
 
   if (category === "Tool") {
     return (
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FSelect
           label="Chapter"
           value={form.chapter}
@@ -581,7 +581,7 @@ function FieldsForm({
 
   if (category === "Part") {
     return (
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FCombo
           label="Part Type"
           value={form.partType}
@@ -723,7 +723,7 @@ function FieldsForm({
   // Device
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FCombo
           label="Manufacturer"
           value={form.manufacturer}
@@ -899,7 +899,7 @@ function FieldsForm({
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 pb-3 border-b border-slate-100 mb-4">
             Desktop Details
           </p>
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <FSelect
               label="Has Wi-Fi"
               value={form.hasWifi}
@@ -915,7 +915,7 @@ function FieldsForm({
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 pb-3 border-b border-slate-100 mb-4">
             Laptop Details
           </p>
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <FSelect
               label="Charger"
               value={form.includesCharger}
@@ -955,7 +955,7 @@ function FieldsForm({
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 pb-3 border-b border-slate-100 mb-4">
             Tablet Details
           </p>
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <FSelect
               label="Charger"
               value={form.includesCharger}
@@ -1326,7 +1326,7 @@ export function AddAssetModal({
           {step === "id" && (
             <div>
               <p className="text-sm text-slate-500 mb-5">How should this asset's ID be assigned?</p>
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 {(
                   [
                     [

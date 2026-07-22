@@ -104,7 +104,7 @@ export default function Devices() {
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
         <div className="flex flex-wrap gap-3 items-center">
           {/* Search — matches ID, manufacturer, model, CPU, chapter */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               width="14"
@@ -124,7 +124,7 @@ export default function Devices() {
               placeholder="ID, manufacturer, model, CPU…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue w-72 transition-all"
+              className="pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue w-full sm:w-72 transition-all"
             />
           </div>
 

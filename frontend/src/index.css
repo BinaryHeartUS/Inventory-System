@@ -45,3 +45,53 @@ h6,
 p {
   margin: 0;
 }
+
+/* ─── Responsive tables → stacked, labelled rows on phones ──────────────────
+ * Add `responsive-cards` to a <table> to have it collapse into a stacked,
+ * card-like list below the `sm` breakpoint (640px). Each <td> that carries a
+ * `data-label` attribute renders as a label/value row; the <thead> is hidden.
+ * On `sm` and up the table renders normally. */
+@media (max-width: 639px) {
+  table.responsive-cards thead {
+    display: none;
+  }
+  table.responsive-cards,
+  table.responsive-cards tbody,
+  table.responsive-cards tr,
+  table.responsive-cards td {
+    display: block;
+    width: 100%;
+  }
+  table.responsive-cards td {
+    padding: 0.375rem 1rem !important;
+    max-width: none !important;
+    white-space: normal !important;
+    text-align: left;
+  }
+  table.responsive-cards tr {
+    padding: 0.375rem 0;
+  }
+  table.responsive-cards td[data-label] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  table.responsive-cards td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+  /* Allow cells that truncate on desktop to wrap fully inside a card. */
+  table.responsive-cards td[data-label] .truncate {
+    overflow: visible !important;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+    text-align: right;
+  }
+}

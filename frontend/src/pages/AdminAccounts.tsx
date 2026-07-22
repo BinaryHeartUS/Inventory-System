@@ -485,7 +485,7 @@ export default function AdminAccounts() {
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">
             New Account
           </p>
-          <form onSubmit={handleCreate} className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelCls}>Full name</label>
               <input
@@ -508,7 +508,7 @@ export default function AdminAccounts() {
                 required
               />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className={labelCls}>Password</label>
               <input
                 type="password"
@@ -519,7 +519,7 @@ export default function AdminAccounts() {
                 required
               />
             </div>
-            <div className="col-span-2 space-y-2">
+            <div className="sm:col-span-2 space-y-2">
               <div className="flex items-center justify-between">
                 <span className={labelCls}>Chapter Access</span>
                 <button
@@ -596,11 +596,11 @@ export default function AdminAccounts() {
               ))}
             </div>
             {formError && (
-              <p className="col-span-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <p className="sm:col-span-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {formError}
               </p>
             )}
-            <div className="col-span-2 flex justify-end gap-2">
+            <div className="sm:col-span-2 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={resetForm}

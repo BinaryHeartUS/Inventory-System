@@ -144,7 +144,7 @@ export function DeviceList({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm responsive-cards">
         <thead>
           <tr className="bg-slate-50 border-b border-slate-100">
             {visibleHeaders.map((h) => {

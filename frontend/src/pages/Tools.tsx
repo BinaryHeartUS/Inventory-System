@@ -77,7 +77,7 @@ export default function Tools() {
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm responsive-cards">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
                 {["ID", "Description", "Chapter", "Value", "Acquired"].map((h) => (
