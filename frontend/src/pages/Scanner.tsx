@@ -67,61 +67,61 @@ export default function Scanner() {
 
       <div className="space-y-3">
         <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-slate-900 shadow-sm">
-        <video ref={videoRef} className="h-full w-full object-cover" muted playsInline autoPlay />
+          <video ref={videoRef} className="h-full w-full object-cover" muted playsInline autoPlay />
 
-        {/* Framing overlay */}
-        {!error && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="h-3/5 w-4/5 rounded-xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
-          </div>
-        )}
+          {/* Framing overlay */}
+          {!error && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="h-3/5 w-4/5 rounded-xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
+            </div>
+          )}
 
-        {/* Camera starting up */}
-        {!error && !ready && (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-white/80">
-            Starting camera…
-          </div>
-        )}
+          {/* Camera starting up */}
+          {!error && !ready && (
+            <div className="absolute inset-0 flex items-center justify-center text-sm text-white/80">
+              Starting camera…
+            </div>
+          )}
 
-        {/* Torch toggle */}
-        {ready && torchSupported && (
-          <button
-            type="button"
-            onClick={toggleTorch}
-            aria-label={torchOn ? "Turn off flashlight" : "Turn on flashlight"}
-            className={`absolute bottom-3 right-3 rounded-full p-3 backdrop-blur transition-colors ${
-              torchOn ? "bg-white text-heart-blue" : "bg-black/40 text-white"
-            }`}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {/* Torch toggle */}
+          {ready && torchSupported && (
+            <button
+              type="button"
+              onClick={toggleTorch}
+              aria-label={torchOn ? "Turn off flashlight" : "Turn on flashlight"}
+              className={`absolute bottom-3 right-3 rounded-full p-3 backdrop-blur transition-colors ${
+                torchOn ? "bg-white text-heart-blue" : "bg-black/40 text-white"
+              }`}
             >
-              <path d="M9 2h6l-1 7h3l-7 13 1-9H7z" />
-            </svg>
-          </button>
-        )}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 2h6l-1 7h3l-7 13 1-9H7z" />
+              </svg>
+            </button>
+          )}
 
-        {/* Error overlay */}
-        {error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900 p-6 text-center">
-            <p className="text-sm font-semibold text-white">{ERROR_COPY[error].title}</p>
-            <p className="text-xs text-slate-300">{ERROR_COPY[error].body}</p>
-          </div>
-        )}
-      </div>
+          {/* Error overlay */}
+          {error && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-900 p-6 text-center">
+              <p className="text-sm font-semibold text-white">{ERROR_COPY[error].title}</p>
+              <p className="text-xs text-slate-300">{ERROR_COPY[error].body}</p>
+            </div>
+          )}
+        </div>
 
-      {!error && (
-        <p className="text-center text-sm text-slate-400">
-          Point your camera at a label barcode or QR code.
-        </p>
-      )}
+        {!error && (
+          <p className="text-center text-sm text-slate-400">
+            Point your camera at a label barcode or QR code.
+          </p>
+        )}
       </div>
 
       {/* Manual fallback */}
