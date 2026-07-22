@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { AnyDevice, DeviceStatus } from "../types/inventory";
-import { getDevices } from "../services/deviceService";
+import type { AnyDevice, DeviceStatus, ChapterInventorySummary } from "../types/inventory";
+import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
@@ -39,12 +39,27 @@ export default function Devices() {
   const [showScrapped, setShowScrapped] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("id");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
+  const [summaryLoaded, setSummaryLoaded] = useState(false);
 
   // Debounce the search box so typing doesn't fire a request per keystroke.
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(t);
   }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getChapterInventorySummary().then((s) => {
+      if (!cancelled) {
+        setSummary(s);
+        setSummaryLoaded(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Resolve a ?chapter=<name> deep link to a chapter id. Chapters load asynchronously
   // (the list starts empty), so this can't be done in the state initializer — it must wait
@@ -114,6 +129,33 @@ export default function Devices() {
     showDonated ||
     showScrapped;
 
+  const exactTotal = useMemo(() => {
+    if (!summaryLoaded) return null;
+    if (debouncedSearch || typeFilter !== "All" || statusFilter !== "All") return null;
+    const rows =
+      chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
+    let total = rows.reduce((sum, r) => sum + r.notStarted + r.inProgress + r.readyToDonate, 0);
+    if (showDonated) total += rows.reduce((sum, r) => sum + r.donated, 0);
+    if (showScrapped) total += rows.reduce((sum, r) => sum + r.scrapped, 0);
+    return total;
+  }, [
+    summaryLoaded,
+    summary,
+    debouncedSearch,
+    typeFilter,
+    statusFilter,
+    chapterFilter,
+    showDonated,
+    showScrapped,
+  ]);
+
+  const deviceSubtitle =
+    exactTotal != null
+      ? `${exactTotal} device${exactTotal !== 1 ? "s" : ""}`
+      : hasFilters
+        ? `${devices.length} matching device${devices.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
+        : `${devices.length} device${devices.length !== 1 ? "s" : ""}`;
+
   function clearFilters() {
     setSearch("");
     setTypeFilter("All");
@@ -131,14 +173,7 @@ export default function Devices() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <PageHeading
-          title="Devices"
-          subtitle={
-            hasFilters
-              ? `${devices.length} matching device${devices.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
-              : `${devices.length} device${devices.length !== 1 ? "s" : ""}${hasMore ? " loaded so far…" : ""}`
-          }
-        />
+        <PageHeading title="Devices" subtitle={deviceSubtitle} />
         <div className="flex justify-end">
           <AddAssetButton className="w-full sm:w-auto" />
         </div>

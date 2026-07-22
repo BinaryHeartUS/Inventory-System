@@ -1,5 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { getTools } from "../services/toolService";
+import { getChapterInventorySummary } from "../services/deviceService";
+import type { ChapterInventorySummary, Tool } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import PageHeading from "../components/PageHeading";
 import { ToolRow } from "../components/ToolRow";
@@ -8,6 +10,21 @@ import ChapterFilter from "../components/ChapterFilter";
 
 export default function Tools() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
+  const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
+  const [summaryLoaded, setSummaryLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getChapterInventorySummary().then((s) => {
+      if (!cancelled) {
+        setSummary(s);
+        setSummaryLoaded(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const fetchPage = useCallback(
     (pageKey: number, pageSize: number) =>
@@ -21,9 +38,14 @@ export default function Tools() {
   const {
     items: tools,
     loading,
-    hasMore,
     sentinelRef,
-  } = useInfiniteScroll<import("../types/inventory").Tool>(fetchPage, [chapterFilter]);
+  } = useInfiniteScroll<Tool>(fetchPage, [chapterFilter]);
+
+  const toolTotal = useMemo(() => {
+    const rows =
+      chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
+    return rows.reduce((sum, r) => sum + r.toolsCount, 0);
+  }, [summary, chapterFilter]);
 
   const hasFilters = chapterFilter !== "All";
 
@@ -37,9 +59,9 @@ export default function Tools() {
         <PageHeading
           title="Tools"
           subtitle={
-            hasFilters
-              ? `${tools.length} matching tool${tools.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
-              : `${tools.length} tool${tools.length !== 1 ? "s" : ""}${hasMore ? " loaded so far…" : ""}`
+            summaryLoaded
+              ? `${toolTotal} tool${toolTotal !== 1 ? "s" : ""}`
+              : `${tools.length} tool${tools.length !== 1 ? "s" : ""}`
           }
         />
         <div className="flex justify-end">
