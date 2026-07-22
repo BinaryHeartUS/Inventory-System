@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { getDevices } from "../services/deviceService";
+import { useState, useEffect, useMemo } from "react";
+import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
 import { fetchAllPages } from "../services/api";
 import { useChapters, useVisibleChapters } from "../context/ChapterContext";
-import type { AnyDevice, Part, Tool } from "../types/inventory";
+import { useToast } from "../context/ToastContext";
+import type { ChapterInventorySummary } from "../types/inventory";
 import PageHeading from "../components/PageHeading";
 import ChapterTabs from "../components/ChapterTabs";
 
@@ -51,6 +52,7 @@ function ExportCard({
   colorText,
   colorBg,
   onExport,
+  busy,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -59,6 +61,7 @@ function ExportCard({
   colorText: string;
   colorBg: string;
   onExport: () => void;
+  busy: boolean;
 }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col h-full">
@@ -71,14 +74,14 @@ function ExportCard({
       <p className="text-xs text-slate-400 mt-2 flex-1 leading-relaxed">{description}</p>
       <button
         onClick={onExport}
-        disabled={count === 0}
+        disabled={count === 0 || busy}
         className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors ${
-          count > 0
+          count > 0 && !busy
             ? `${colorBg} ${colorText} hover:opacity-80`
             : "bg-slate-100 text-slate-400 cursor-not-allowed"
         }`}
       >
-        {count > 0 ? `Download CSV (${count} rows)` : "No data to export"}
+        {busy ? "Preparing…" : count > 0 ? `Download CSV (${count} rows)` : "No data to export"}
       </button>
     </div>
   );
@@ -87,61 +90,105 @@ function ExportCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Reports() {
-  const [devices, setDevices] = useState<AnyDevice[]>([]);
-  const [parts, setParts] = useState<Part[]>([]);
-  const [tools, setTools] = useState<Tool[]>([]);
+  const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [chapter, setChapter] = useState("All");
+  const [busyExport, setBusyExport] = useState<string | null>(null);
   const visibleChapters = useVisibleChapters();
   const { chapterName } = useChapters();
+  const { showToast } = useToast();
   const chapters = visibleChapters.map((c) => c.name);
   const selectedChapterId =
     chapter === "All" ? undefined : visibleChapters.find((c) => c.name === chapter)?.id;
 
-  // Reports is an aggregate/export view: load every row matching the selected chapter via the
-  // paginated endpoints (bounded by the chapter filter). Re-fetches when the chapter changes.
+  // Summary stats and export-row counts come from a single lightweight aggregate
+  // endpoint, so opening the page no longer downloads the whole inventory. The full
+  // rows for each CSV are fetched lazily — only when that export is actually run.
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetchAllPages((pageKey, pageSize) =>
-        getDevices({
-          pageKey,
-          pageSize,
-          chapter: selectedChapterId,
-          includeDonated: true,
-          includeScrapped: true,
-        })
-      ),
-      fetchAllPages((pageKey, pageSize) =>
-        getParts({ pageKey, pageSize, chapter: selectedChapterId })
-      ),
-      fetchAllPages((pageKey, pageSize) =>
-        getTools({ pageKey, pageSize, chapter: selectedChapterId })
-      ),
-    ]).then(([d, p, t]) => {
-      if (cancelled) return;
-      setDevices(d);
-      setParts(p);
-      setTools(t);
+    getChapterInventorySummary().then((s) => {
+      if (!cancelled) setSummary(s);
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedChapterId]);
+  }, []);
 
-  const donated = devices.filter((d) => d.status === "Donated").length;
-  const inProgress = devices.filter(
-    (d) => d.status === "Not Started" || d.status === "In Progress"
-  ).length;
-  const ready = devices.filter((d) => d.status === "Ready To Donate").length;
-  const scrapped = devices.filter((d) => d.status === "Scrapped").length;
-  const nonScrapped = devices.filter(
-    (d) => d.status !== "Scrapped" && d.status !== "Unknown"
-  ).length;
+  // Collapse the per-chapter summary rows to the selected scope (a single chapter,
+  // or every visible chapter when "All" is selected).
+  const stats = useMemo(() => {
+    const rows =
+      selectedChapterId == null
+        ? summary
+        : summary.filter((s) => s.chapterId === selectedChapterId);
+    const acc = {
+      totalDevices: 0,
+      notStarted: 0,
+      inProgress: 0,
+      readyToDonate: 0,
+      donated: 0,
+      scrapped: 0,
+      partsCount: 0,
+      toolsCount: 0,
+    };
+    for (const r of rows) {
+      acc.totalDevices += r.totalDevices;
+      acc.notStarted += r.notStarted;
+      acc.inProgress += r.inProgress;
+      acc.readyToDonate += r.readyToDonate;
+      acc.donated += r.donated;
+      acc.scrapped += r.scrapped;
+      acc.partsCount += r.partsCount;
+      acc.toolsCount += r.toolsCount;
+    }
+    return acc;
+  }, [summary, selectedChapterId]);
+
+  const pipeline = stats.notStarted + stats.inProgress;
+  const ready = stats.readyToDonate;
+  const donated = stats.donated;
+  const scrapped = stats.scrapped;
+  const nonScrapped = stats.notStarted + stats.inProgress + stats.readyToDonate + stats.donated;
   const completion = nonScrapped > 0 ? Math.round((donated / nonScrapped) * 100) : 0;
+
+  const pipelineCount = stats.notStarted + stats.inProgress + stats.readyToDonate;
+  const valuationCount = stats.totalDevices + stats.partsCount + stats.toolsCount;
 
   const chapterSlug = slugify(chapter === "All" ? "all-chapters" : chapter);
 
-  function exportInInventory() {
+  // Lazy row loaders — each export pulls only the data it needs, at click time.
+  const loadDevices = () =>
+    fetchAllPages((pageKey, pageSize) =>
+      getDevices({
+        pageKey,
+        pageSize,
+        chapter: selectedChapterId,
+        includeDonated: true,
+        includeScrapped: true,
+      })
+    );
+  const loadParts = () =>
+    fetchAllPages((pageKey, pageSize) =>
+      getParts({ pageKey, pageSize, chapter: selectedChapterId })
+    );
+  const loadTools = () =>
+    fetchAllPages((pageKey, pageSize) =>
+      getTools({ pageKey, pageSize, chapter: selectedChapterId })
+    );
+
+  // Runs an export, showing a per-card busy state and surfacing any failure.
+  async function runExport(key: string, build: () => Promise<void>) {
+    setBusyExport(key);
+    try {
+      await build();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Export failed", false);
+    } finally {
+      setBusyExport(null);
+    }
+  }
+
+  async function exportInInventory() {
+    const devices = await loadDevices();
     const inInventory = devices.filter(
       (d) =>
         d.status === "Not Started" || d.status === "In Progress" || d.status === "Ready To Donate"
@@ -183,7 +230,8 @@ export default function Reports() {
     );
   }
 
-  function exportParts() {
+  async function exportParts() {
+    const parts = await loadParts();
     downloadCsv(
       `parts-${chapterSlug}-${today()}.csv`,
       [
@@ -209,7 +257,8 @@ export default function Reports() {
     );
   }
 
-  function exportTools() {
+  async function exportTools() {
+    const tools = await loadTools();
     downloadCsv(
       `tools-${chapterSlug}-${today()}.csv`,
       ["ID", "Description", "Chapter ID", "Acquisition Date", "Value ($)"],
@@ -217,7 +266,8 @@ export default function Reports() {
     );
   }
 
-  function exportDonated() {
+  async function exportDonated() {
+    const devices = await loadDevices();
     const donated = devices.filter((d) => d.status === "Donated");
     downloadCsv(
       `donated-devices-${chapterSlug}-${today()}.csv`,
@@ -250,7 +300,8 @@ export default function Reports() {
     );
   }
 
-  function exportValuation() {
+  async function exportValuation() {
+    const [devices, parts, tools] = await Promise.all([loadDevices(), loadParts(), loadTools()]);
     const deviceRows = devices
       .filter((d) => d.value != null)
       .map(
@@ -295,11 +346,6 @@ export default function Reports() {
     );
   }
 
-  const valuationCount =
-    devices.filter((d) => d.value != null).length +
-    parts.filter((p) => p.value != null).length +
-    tools.filter((t) => t.value != null).length;
-
   return (
     <div className="space-y-6">
       <PageHeading title="Reports" subtitle="Export inventory data and view summary statistics" />
@@ -314,8 +360,8 @@ export default function Reports() {
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
-            { label: "Total Devices", value: devices.length, color: "text-heart-blue" },
-            { label: "In Pipeline", value: inProgress, color: "text-amber-600" },
+            { label: "Total Devices", value: stats.totalDevices, color: "text-heart-blue" },
+            { label: "In Pipeline", value: pipeline, color: "text-amber-600" },
             { label: "Ready", value: ready, color: "text-green-600" },
             { label: "Donated", value: donated, color: "text-sky-600" },
             { label: "Scrapped", value: scrapped, color: "text-red-500" },
@@ -340,17 +386,11 @@ export default function Reports() {
           <ExportCard
             title="Pipeline Devices"
             description="Devices currently Not Started, In Progress, or Ready to Donate — the active working inventory."
-            count={
-              devices.filter(
-                (d) =>
-                  d.status === "Not Started" ||
-                  d.status === "In Progress" ||
-                  d.status === "Ready To Donate"
-              ).length
-            }
+            count={pipelineCount}
             colorText="text-amber-600"
             colorBg="bg-amber-50"
-            onExport={exportInInventory}
+            onExport={() => runExport("pipeline", exportInInventory)}
+            busy={busyExport === "pipeline"}
             icon={
               <svg
                 width="15"
@@ -371,10 +411,11 @@ export default function Reports() {
           <ExportCard
             title="Donated Devices"
             description="Devices with Donated status only — useful for grant and impact reporting."
-            count={devices.filter((d) => d.status === "Donated").length}
+            count={donated}
             colorText="text-sky-600"
             colorBg="bg-sky-50"
-            onExport={exportDonated}
+            onExport={() => runExport("donated", exportDonated)}
+            busy={busyExport === "donated"}
             icon={
               <svg
                 width="15"
@@ -398,10 +439,11 @@ export default function Reports() {
           <ExportCard
             title="Parts"
             description="All parts — type, description, source, and which device each belongs to."
-            count={parts.length}
+            count={stats.partsCount}
             colorText="text-emerald-600"
             colorBg="bg-emerald-50"
-            onExport={exportParts}
+            onExport={() => runExport("parts", exportParts)}
+            busy={busyExport === "parts"}
             icon={
               <svg
                 width="15"
@@ -422,10 +464,11 @@ export default function Reports() {
           <ExportCard
             title="Tools"
             description="All tools in inventory with description and acquisition info."
-            count={tools.length}
+            count={stats.toolsCount}
             colorText="text-rose-600"
             colorBg="bg-rose-50"
-            onExport={exportTools}
+            onExport={() => runExport("tools", exportTools)}
+            busy={busyExport === "tools"}
             icon={
               <svg
                 width="15"
@@ -448,7 +491,8 @@ export default function Reports() {
             count={valuationCount}
             colorText="text-violet-600"
             colorBg="bg-violet-50"
-            onExport={exportValuation}
+            onExport={() => runExport("valuation", exportValuation)}
+            busy={busyExport === "valuation"}
             icon={
               <svg
                 width="15"
