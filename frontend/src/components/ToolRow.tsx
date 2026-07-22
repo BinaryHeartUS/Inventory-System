@@ -6,6 +6,7 @@ import { formatDate } from "../utils/dateUtils";
 export function ToolRow({ tool }: { tool: Tool }) {
   const navigate = useNavigate();
   const { chapterName } = useChapters();
+  const chapter = chapterName(tool.chapterId);
 
   return (
     <tr
@@ -16,11 +17,15 @@ export function ToolRow({ tool }: { tool: Tool }) {
       <td className="px-5 py-5 font-mono text-xs text-slate-400" data-label="ID">
         {tool.id}
       </td>
-      <td className="px-5 py-5 text-slate-600 max-w-xs truncate" data-label="Description">
-        {tool.description}
+      <td className="px-5 py-5 text-slate-600 max-w-xs" data-label="Description">
+        <span className="block truncate" title={tool.description}>
+          {tool.description}
+        </span>
       </td>
-      <td className="px-5 py-5 text-slate-500" data-label="Chapter">
-        {chapterName(tool.chapterId)}
+      <td className="px-5 py-5 text-slate-500 max-w-[160px]" data-label="Chapter">
+        <span className="block truncate" title={chapter}>
+          {chapter}
+        </span>
       </td>
       <td className="px-5 py-5 text-slate-700" data-label="Value">
         {tool.value != null ? (
