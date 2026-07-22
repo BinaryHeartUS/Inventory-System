@@ -6,6 +6,7 @@ import { getPart, updatePart, deletePart, getPartChangelog } from "../services/p
 import { getDevice } from "../services/deviceService";
 import { useLookups } from "../hooks/useLookups";
 import { PrintLabelModal } from "../components/PrintLabelModal";
+import { canPrintLabels } from "../utils/canPrintLabels";
 import { useChapters, useWritableChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
 import { DevicePickerModal } from "../components/DevicePickerModal";
@@ -218,7 +219,7 @@ export default function PartDetail() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
-              {!editing && (
+              {!editing && canPrintLabels() && (
                 <button
                   onClick={() => setPrintId(p.id)}
                   className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-lg transition-colors"

@@ -6,6 +6,7 @@ import { getTool, updateTool, deleteTool, getToolChangelog } from "../services/t
 import { useChapters, useVisibleChapters, useWritableChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
 import { PrintLabelModal } from "../components/PrintLabelModal";
+import { canPrintLabels } from "../utils/canPrintLabels";
 import { PartyPickerModal } from "../components/PartyPickerModal";
 import type { PartySummary } from "../types/inventory";
 import { getParty } from "../services/partyService";
@@ -184,7 +185,7 @@ export default function ToolDetail() {
               <p className="text-sm text-slate-400 mt-1">{chapterName(t.chapterId)}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
-              {!editing && (
+              {!editing && canPrintLabels() && (
                 <button
                   onClick={() => setPrintId(t.id)}
                   className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-lg transition-colors"

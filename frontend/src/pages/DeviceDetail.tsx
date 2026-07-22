@@ -13,6 +13,7 @@ import { getDevice, updateDevice, getDeviceChangelog } from "../services/deviceS
 import { getPartsByDevice, updatePart } from "../services/partService";
 import { useLookups } from "../hooks/useLookups";
 import { PrintLabelModal } from "../components/PrintLabelModal";
+import { canPrintLabels } from "../utils/canPrintLabels";
 import { ReadyToDonateFormModal } from "../components/ReadyToDonateFormModal";
 import { useAuth } from "../context/AuthContext";
 import { useWritableChapters } from "../context/ChapterContext";
@@ -290,7 +291,7 @@ export default function DeviceDetail() {
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
               <StatusBadge status={d.status as DeviceStatus} size="lg" />
-              {!editing && (
+              {!editing && canPrintLabels() && (
                 <button
                   onClick={() => setPrintId(d.id)}
                   className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-lg transition-colors"

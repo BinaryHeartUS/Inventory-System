@@ -26,6 +26,7 @@ import { getPart, createPart } from "./services/partService";
 import { getTool, createTool } from "./services/toolService";
 import { AddAssetModal } from "./components/AddAssetModal";
 import { PrintLabelModal } from "./components/PrintLabelModal";
+import { canPrintLabels } from "./utils/canPrintLabels";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ChapterProvider, useIsNationalAdmin } from "./context/ChapterContext";
@@ -798,7 +799,7 @@ function AppInner() {
         )}
 
         {/* Print label modal — shown after a new asset is saved */}
-        {pendingPrintId !== null && (
+        {pendingPrintId !== null && canPrintLabels() && (
           <PrintLabelModal assetId={pendingPrintId} onClose={() => setPendingPrintId(null)} />
         )}
       </div>
