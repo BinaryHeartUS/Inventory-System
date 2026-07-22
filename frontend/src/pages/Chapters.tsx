@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import type { AnyDevice, Part, Tool } from "../types/inventory";
-import { getDevices } from "../services/deviceService";
-import { getParts } from "../services/partService";
-import { getTools } from "../services/toolService";
+import { getChapterInventorySummary } from "../services/deviceService";
+import type { ChapterInventorySummary } from "../types/inventory";
 import { useVisibleChapters, useIsNationalAdmin, useChapters } from "../context/ChapterContext";
 import { createChapter, deleteChapter } from "../services/chapterService";
 import PageHeading from "../components/PageHeading";
@@ -12,9 +10,7 @@ export default function Chapters() {
   const visibleChapters = useVisibleChapters();
   const { refreshChapters } = useChapters();
   const isNationalAdmin = useIsNationalAdmin();
-  const [allDevices, setAllDevices] = useState<AnyDevice[]>([]);
-  const [allParts, setAllParts] = useState<Part[]>([]);
-  const [allTools, setAllTools] = useState<Tool[]>([]);
+  const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
 
   const [showModal, setShowModal] = useState(false);
   const [newName, setNewName] = useState("");
@@ -23,12 +19,10 @@ export default function Chapters() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
-    Promise.all([getDevices(), getParts(), getTools()]).then(([devs, pts, tls]) => {
-      setAllDevices(devs);
-      setAllParts(pts);
-      setAllTools(tls);
-    });
+    getChapterInventorySummary().then(setSummary);
   }, []);
+
+  const summaryByChapter = useMemo(() => new Map(summary.map((s) => [s.chapterId, s])), [summary]);
 
   function openModal() {
     setNewName("");
@@ -126,24 +120,23 @@ export default function Chapters() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {visibleChapters.map((ch) => {
-              const devices = allDevices.filter((d) => d.chapter === ch.name);
-              const parts = allParts.filter((p) => p.chapterId === ch.id);
-              const tools = allTools.filter((t) => t.chapterId === ch.id);
-              const pipeline = devices.filter(
-                (d) => d.status === "Not Started" || d.status === "In Progress"
-              ).length;
-              const ready = devices.filter((d) => d.status === "Ready To Donate").length;
-              const donated = devices.filter((d) => d.status === "Donated").length;
-              const scrapped = devices.filter((d) => d.status === "Scrapped").length;
-              const isEmpty = devices.length === 0 && parts.length === 0 && tools.length === 0;
+              const s = summaryByChapter.get(ch.id);
+              const desktop = s?.desktopCount ?? 0;
+              const laptop = s?.laptopCount ?? 0;
+              const tablet = s?.tabletCount ?? 0;
+              const total = s?.totalDevices ?? 0;
+              const pipeline = (s?.notStarted ?? 0) + (s?.inProgress ?? 0);
+              const ready = s?.readyToDonate ?? 0;
+              const donated = s?.donated ?? 0;
+              const scrapped = s?.scrapped ?? 0;
+              const partsCount = s?.partsCount ?? 0;
+              const toolsCount = s?.toolsCount ?? 0;
+              const isEmpty = total === 0 && partsCount === 0 && toolsCount === 0;
               const isNational = ch.name === "National";
               const blockers: string[] = [];
-              if (devices.length > 0)
-                blockers.push(`${devices.length} device${devices.length !== 1 ? "s" : ""}`);
-              if (parts.length > 0)
-                blockers.push(`${parts.length} part${parts.length !== 1 ? "s" : ""}`);
-              if (tools.length > 0)
-                blockers.push(`${tools.length} tool${tools.length !== 1 ? "s" : ""}`);
+              if (total > 0) blockers.push(`${total} device${total !== 1 ? "s" : ""}`);
+              if (partsCount > 0) blockers.push(`${partsCount} part${partsCount !== 1 ? "s" : ""}`);
+              if (toolsCount > 0) blockers.push(`${toolsCount} tool${toolsCount !== 1 ? "s" : ""}`);
               const deleteTitle = isEmpty
                 ? "Delete chapter"
                 : `Cannot delete — chapter still has ${blockers.join(", ")}`;
@@ -152,13 +145,11 @@ export default function Chapters() {
                   <td className="px-6 py-5">
                     <p className="font-semibold text-slate-900 text-base">{ch.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {devices.filter((d) => d.type === "Desktop").length}D ·{" "}
-                      {devices.filter((d) => d.type === "Laptop").length}L ·{" "}
-                      {devices.filter((d) => d.type === "Tablet").length}T
+                      {desktop}D · {laptop}L · {tablet}T
                     </p>
                   </td>
                   <td className="px-4 py-5 text-right">
-                    <span className="text-base font-bold text-slate-900">{devices.length}</span>
+                    <span className="text-base font-bold text-slate-900">{total}</span>
                   </td>
                   <td className="px-4 py-5 text-right">
                     <span
@@ -188,12 +179,8 @@ export default function Chapters() {
                       {scrapped}
                     </span>
                   </td>
-                  <td className="px-4 py-5 text-right text-slate-500 font-medium">
-                    {parts.length}
-                  </td>
-                  <td className="px-4 py-5 text-right text-slate-500 font-medium">
-                    {tools.length}
-                  </td>
+                  <td className="px-4 py-5 text-right text-slate-500 font-medium">{partsCount}</td>
+                  <td className="px-4 py-5 text-right text-slate-500 font-medium">{toolsCount}</td>
                   <td className="px-4 py-5 text-right">
                     <div className="flex items-center justify-end gap-4">
                       <Link

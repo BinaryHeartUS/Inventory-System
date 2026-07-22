@@ -3,29 +3,41 @@ package org.binaryheart.services;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartNotFoundException;
+import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.repositories.PartRepository;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
+import org.binaryheart.responses.PartTypeCountResponse;
 
 public class PartService {
 	private final PartRepository repository = new PartRepository();
 	private final ChapterService chapterService = new ChapterService();
 
-	public PartResponse[] getAllParts(List<Integer> userChapterIds) throws SQLException {
+	/**
+	 * Returns a page of parts scoped to the caller's chapters
+	 * ({@code userChapterIds}), optionally narrowed to one {@code chapterId} (the
+	 * UI filter, {@code null} for all).
+	 */
+	public PartResponse[] getParts(List<Integer> userChapterIds, Integer chapterId, PartListRequest q)
+		throws SQLException, ForbiddenException {
 		if (userChapterIds == null || userChapterIds.isEmpty())
 			return new PartResponse[0];
-		if (userChapterIds.contains(chapterService.getNationalChapterId()))
-			return repository.getAllParts();
-		return List.of(repository.getAllParts()).stream().filter(d -> {
-			Integer cid = d.chapterId();
-			return cid != null && userChapterIds.contains(cid);
-		}).collect(Collectors.toList()).toArray(new PartResponse[0]);
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(chapterId, userChapterIds);
+		return repository.getParts(effectiveChapterIds, q);
+	}
+
+	public List<PartTypeCountResponse> getPartTypeCounts(List<Integer> userChapterIds, Integer chapterId,
+		PartListRequest q) throws SQLException, ForbiddenException {
+		if (userChapterIds == null || userChapterIds.isEmpty())
+			return List.of();
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(chapterId, userChapterIds);
+		return repository.getPartTypeCounts(effectiveChapterIds, q);
 	}
 
 	public PartResponse getPart(List<Integer> userChapterIds, Integer partId)
@@ -104,7 +116,7 @@ public class PartService {
 		}
 	}
 
-	public void insertPart(InsertPartRequest request, String username)
+	public int insertPart(InsertPartRequest request, String username)
 		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
 		if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
 			|| request.wasPurchased() == null || request.description() == null || request.description().length() == 0) {
@@ -127,7 +139,7 @@ public class PartService {
 		}
 
 		try {
-			repository.insertPart(request, username);
+			return repository.insertPart(request, username);
 		} catch (SQLException e) {
 			if ("23505".equals(e.getSQLState())) {
 				throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.id());

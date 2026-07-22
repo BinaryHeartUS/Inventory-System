@@ -27,7 +27,8 @@ RETURNS TABLE (
     donated_date DATE,
     operating_system VARCHAR(50),
     donor_id INTEGER,
-    recipient_id INTEGER
+    recipient_id INTEGER,
+    chapter_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$

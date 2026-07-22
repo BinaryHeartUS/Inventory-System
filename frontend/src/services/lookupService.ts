@@ -18,18 +18,7 @@
  */
 
 import { apiGet, apiPostVoid, apiDelete } from "./api";
-import type { ChargerStatus, DeviceStatus, WorkingBattery } from "../types/inventory";
-
-interface LookupResponse {
-  deviceStatuses: DeviceStatus[];
-  chargerStatuses: ChargerStatus[];
-  workingBatteryOpts: WorkingBattery[];
-  manufacturers: string[];
-  ramGenerations: string[];
-  storageTypes: string[];
-  partTypes: string[];
-  operatingSystems: string[];
-}
+import type { LookupResponse } from "../types/inventory";
 
 export async function getAllLookups(): Promise<LookupResponse> {
   return apiGet<LookupResponse>("/lookup");

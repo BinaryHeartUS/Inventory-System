@@ -1,2 +1,6 @@
 dist/
 node_modules/
+
+# Generated from the backend OpenAPI spec via `npm run gen-types`; leave it in
+# openapi-typescript's own formatting so the CI types-drift check stays stable.
+src/types/api.d.ts
