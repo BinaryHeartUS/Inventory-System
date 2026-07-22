@@ -17,6 +17,9 @@ export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationR
 export type PartChangelogResponse = components["schemas"]["PartChangelogResponse"];
 export type ToolChangelogResponse = components["schemas"]["ToolChangelogResponse"];
 export type DeviceChangelogResponse = components["schemas"]["DeviceChangelogResponse"];
+export type ChapterInventorySummary = Required<components["schemas"]["ChapterInventorySummary"]>;
+export type PartTypeCountResponse = Required<components["schemas"]["PartTypeCountResponse"]>;
+export type IdResponse = Required<components["schemas"]["IdResponse"]>;
 export type Note = Omit<components["schemas"]["NoteResponse"], "text" | "date"> & {
   text: string;
   date: string;
@@ -32,7 +35,14 @@ export type Part = Omit<
   value: number | null;
   donorId: number | null;
 };
-export type LookupResponse = Required<components["schemas"]["LookupResponse"]>;
+export type LookupResponse = Omit<
+  Required<components["schemas"]["LookupResponse"]>,
+  "deviceStatuses" | "chargerStatuses" | "workingBatteryOpts"
+> & {
+  deviceStatuses: DeviceStatus[];
+  chargerStatuses: ChargerStatus[];
+  workingBatteryOpts: WorkingBattery[];
+};
 
 // These types have all fields always populated by the backend. Required<> strips
 // the optionality introduced by the Java -> OpenAPI -> TypeScript conversion.
@@ -186,19 +196,10 @@ export interface OrgDetail extends PartySummary {
 export type PartyDetail = PersonDetail | OrgDetail;
 
 /** Wire shapes sent to POST /api/party/person and PUT /api/party/person/{id}. */
-export interface CreatePersonRequest {
-  name: string;
-  email?: string;
-  location?: string; // PostgreSQL composite: "(street,city,state,zip,country)"
-}
+export type CreatePersonRequest = components["schemas"]["InsertPersonRequest"];
 
 /** Wire shapes sent to POST /api/party/organization and PUT /api/party/organization/{id}. */
-export interface CreateOrgRequest {
-  name: string;
-  contactName?: string;
-  contactEmail?: string;
-  location?: string;
-}
+export type CreateOrgRequest = components["schemas"]["InsertOrganizationRequest"];
 
-export type UpdatePersonRequest = CreatePersonRequest;
-export type UpdateOrgRequest = CreateOrgRequest;
+export type UpdatePersonRequest = components["schemas"]["UpdatePersonRequest"];
+export type UpdateOrgRequest = components["schemas"]["UpdateOrganizationRequest"];

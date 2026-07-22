@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import type { AnyDevice } from "../types/inventory";
 import { getDevices } from "../services/deviceService";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { DeviceList } from "./DeviceList";
 import { useWritableChapters } from "../context/ChapterContext";
 
@@ -22,44 +23,39 @@ export function DevicePickerModal({
   chapterName?: string;
 }) {
   const writableChapters = useWritableChapters();
-  const [allDevices, setAllDevices] = useState<AnyDevice[]>([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
-    getDevices()
-      .then((d) => {
-        setAllDevices(d);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const chapterId = useMemo(
+    () => (chapterName ? writableChapters.find((c) => c.name === chapterName)?.id : undefined),
+    [chapterName, writableChapters]
+  );
+
+  const fetchPage = useCallback(
+    (pageKey: number, pageSize: number) =>
+      getDevices({ pageKey, pageSize, search: debouncedSearch || undefined, chapter: chapterId }),
+    [debouncedSearch, chapterId]
+  );
+  const { items, loading, sentinelRef } = useInfiniteScroll<AnyDevice>(fetchPage, [
+    debouncedSearch,
+    chapterId,
+  ]);
 
   const writableChapterNames = useMemo(
     () => new Set(writableChapters.map((c) => c.name)),
     [writableChapters]
   );
 
-  const filtered = useMemo(() => {
-    const base = allDevices.filter((d) => {
-      if (d.chapter == null || !writableChapterNames.has(d.chapter)) return false;
-      if (chapterName !== undefined && d.chapter !== chapterName) return false;
-      return true;
-    });
-    if (!search.trim().replace(/^0+|0+$/g, "")) return base;
-    const s = search
-      .toLowerCase()
-      .trim()
-      .replace(/^0+|0+$/g, "");
-    return base.filter(
-      (d) =>
-        String(d.id).includes(s) ||
-        (d.manufacturer ?? "").toLowerCase().includes(s) ||
-        (d.model ?? "").toLowerCase().includes(s) ||
-        (d.chapter ?? "").toLowerCase().includes(s) ||
-        String(d.year).includes(s)
-    );
-  }, [allDevices, search, writableChapterNames, chapterName]);
+  // Backend scopes to readable chapters; the picker only offers writable ones.
+  const filtered = useMemo(
+    () => items.filter((d) => d.chapter != null && writableChapterNames.has(d.chapter)),
+    [items, writableChapterNames]
+  );
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -134,24 +130,28 @@ export function DevicePickerModal({
 
         {/* Table */}
         <div className="flex-1 overflow-y-auto">
-          {loading ? (
+          {loading && items.length === 0 ? (
             <div className="flex items-center justify-center py-16">
               <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
             </div>
           ) : (
-            <DeviceList
-              devices={filtered}
-              exclude={EXCLUDE_COLS}
-              onSelect={(id) => {
-                const device = allDevices.find((d) => d.id === id);
-                if (device) onSelect(device);
-              }}
-              emptyMessage={
-                search
-                  ? "No devices match your search."
-                  : "No devices available in your writable chapters."
-              }
-            />
+            <>
+              <DeviceList
+                devices={filtered}
+                exclude={EXCLUDE_COLS}
+                onSelect={(id) => {
+                  const device = items.find((d) => d.id === id);
+                  if (device) onSelect(device);
+                }}
+                emptyMessage={
+                  search
+                    ? "No devices match your search."
+                    : "No devices available in your writable chapters."
+                }
+              />
+              <div ref={sentinelRef} className="h-1" aria-hidden="true" />
+              {loading && <p className="text-center text-sm text-slate-400 py-3">Loading more…</p>}
+            </>
           )}
         </div>
       </div>

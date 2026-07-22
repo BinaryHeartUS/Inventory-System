@@ -19,6 +19,8 @@ type SortKey =
   | "acquisitionDate";
 type SortDir = "asc" | "desc";
 
+export type { SortKey, SortDir };
+
 const HEADER_SORT: Partial<Record<string, SortKey>> = {
   ID: "id",
   Type: "type",
@@ -110,37 +112,53 @@ function SortIcon({
  * - `exclude`: column header names to hide (e.g. `['CPU', 'RAM', 'Storage', 'Details']`)
  * - `onSelect`: if provided, clicking a row calls this instead of navigating to the detail page
  * - `emptyMessage`: content shown when `devices` is empty
+ * - `sortKey`/`sortDir`/`onSort`: when `onSort` is provided the component is *controlled* — it
+ *   renders `devices` in the given order (assumed already sorted server-side) and reports header
+ *   clicks via `onSort` instead of sorting locally.
  */
 export function DeviceList({
   devices,
   exclude = [],
   onSelect,
   emptyMessage = "No devices found.",
+  sortKey: sortKeyProp,
+  sortDir: sortDirProp,
+  onSort,
 }: {
   devices: AnyDevice[];
   exclude?: string[];
   onSelect?: (id: number) => void;
   emptyMessage?: React.ReactNode;
+  sortKey?: SortKey;
+  sortDir?: SortDir;
+  onSort?: (key: SortKey, dir: SortDir) => void;
 }) {
-  const [sortKey, setSortKey] = useState<SortKey | null>("id");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const controlled = onSort !== undefined;
+  const [internalSortKey, setInternalSortKey] = useState<SortKey | null>("id");
+  const [internalSortDir, setInternalSortDir] = useState<SortDir>("asc");
+  const sortKey = controlled ? (sortKeyProp ?? null) : internalSortKey;
+  const sortDir = controlled ? (sortDirProp ?? "asc") : internalSortDir;
 
   const visibleHeaders = DEVICE_TABLE_HEADERS.filter((h) => !exclude.includes(h));
 
   function handleHeaderClick(col: string) {
     const key = HEADER_SORT[col];
     if (!key) return;
-    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else {
-      setSortKey(key);
-      setSortDir("asc");
+    const nextDir: SortDir = sortKey === key && sortDir === "asc" ? "desc" : "asc";
+    if (controlled) {
+      onSort!(key, nextDir);
+    } else if (sortKey === key) {
+      setInternalSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setInternalSortKey(key);
+      setInternalSortDir("asc");
     }
   }
 
   const sorted = useMemo(() => {
-    if (!sortKey) return devices;
+    if (controlled || !sortKey) return devices;
     return [...devices].sort((a, b) => compare(a, b, sortKey, sortDir));
-  }, [devices, sortKey, sortDir]);
+  }, [devices, sortKey, sortDir, controlled]);
 
   return (
     <div className="overflow-x-auto">

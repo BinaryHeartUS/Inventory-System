@@ -13,10 +13,13 @@ import java.util.List;
 import org.binaryheart.auth.AppRole;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.ToolNotFoundException;
+import org.binaryheart.requests.ToolListRequest;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
+import org.binaryheart.responses.IdResponse;
 import org.binaryheart.responses.ToolChangelogResponse;
 import org.binaryheart.services.ToolService;
 
@@ -39,20 +42,60 @@ public class ToolController {
 		tags = {"Tools"},
 		security = {@OpenApiSecurity(
 			name = "BearerAuth")},
-		summary = "Retrieve all tools",
-		description = "Returns a list of all devices.",
+		summary = "Retrieve a page of tools",
+		description = "Returns a filtered, paginated page of tools the user can access, ordered by id. "
+			+ "pageSize is required.",
+		queryParams = {@OpenApiParam(
+			name = "pageSize",
+			required = true,
+			type = Integer.class,
+			description = "Number of records per page (1-1000). Required."),
+				@OpenApiParam(
+					name = "pageKey",
+					required = false,
+					type = Integer.class,
+					description = "Zero-based page index. Defaults to 0."),
+				@OpenApiParam(
+					name = "search",
+					required = false,
+					description = "Free-text search matched against every tool field (id, description, etc.)."),
+				@OpenApiParam(
+					name = "chapter",
+					required = false,
+					type = Integer.class,
+					description = "Restrict to a single chapter id (must be within the user's access)."),
+				@OpenApiParam(
+					name = "donorId",
+					required = false,
+					type = Integer.class,
+					description = "Restrict to tools donated by this party id.")},
 		responses = {@OpenApiResponse(
 			status = "200",
 			description = "Tools received successfully",
 			content = {@OpenApiContent(
 				from = GetToolResponse[].class)}), @OpenApiResponse(
+					status = "400",
+					description = "Missing/invalid pagination or filter parameters"),
+				@OpenApiResponse(
+					status = "403",
+					description = "Access denied for the requested chapter"),
+				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
 	public static void getAllTools(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
-			List<GetToolResponse> tools = service.getAllTools(userChapterIds);
+			int pageSize = PaginationUtil.parsePageSize(ctx);
+			int pageKey = PaginationUtil.parsePageKey(ctx);
+			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
+			ToolListRequest q = new ToolListRequest(QueryParamUtil.stringParam(ctx, "search"),
+				QueryParamUtil.intParam(ctx, "donorId"), pageSize, pageKey * pageSize);
+			List<GetToolResponse> tools = service.getTools(userChapterIds, chapterId, q);
 			ctx.status(200).json(tools.toArray(new GetToolResponse[0]));
+		} catch (BadArgumentException e) {
+			ctx.status(400).result(e.getMessage());
+		} catch (ForbiddenException e) {
+			ctx.status(403).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -125,8 +168,9 @@ public class ToolController {
 					}""")}),
 		responses = {@OpenApiResponse(
 			status = "201",
-			description = "Tool added successfully"),
-				@OpenApiResponse(
+			description = "Tool added successfully; returns the new asset id",
+			content = {@OpenApiContent(
+				from = IdResponse.class)}), @OpenApiResponse(
 					status = "400",
 					description = "Missing required parameters or invalid field values"),
 				@OpenApiResponse(
@@ -140,8 +184,8 @@ public class ToolController {
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
-			service.insertTool(request, ctx.attribute("username"));
-			ctx.status(201).result("Tool added successfully");
+			int newId = service.insertTool(request, ctx.attribute("username"));
+			ctx.status(201).json(new IdResponse(newId));
 		} catch (MissingRequiredParametersException | BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
