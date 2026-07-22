@@ -65,7 +65,8 @@ export default function Scanner() {
     <div className="mx-auto max-w-md space-y-5">
       <PageHeading title="Scanner" subtitle="Scan an asset barcode or QR code" compact />
 
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-slate-900 shadow-sm">
+      <div className="space-y-3">
+        <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-slate-900 shadow-sm">
         <video ref={videoRef} className="h-full w-full object-cover" muted playsInline autoPlay />
 
         {/* Framing overlay */}
@@ -121,9 +122,10 @@ export default function Scanner() {
           Point your camera at a label barcode or QR code.
         </p>
       )}
+      </div>
 
       {/* Manual fallback */}
-      <form onSubmit={submitManual} className="flex items-center gap-2">
+      <form onSubmit={submitManual} className="flex items-center gap-2 pt-2">
         <input
           type="number"
           inputMode="numeric"
