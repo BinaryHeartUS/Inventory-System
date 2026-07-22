@@ -32,14 +32,14 @@ export default function PartDetail() {
   const numId = Number(id);
   const navigate = useNavigate();
 
-  const lookups = useLookups();
+  const [editing, setEditing] = useState(false);
+  const lookups = useLookups(editing);
   const { chapters, chapterName } = useChapters();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
 
   const [part, setPart] = useState<Part | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Part | null>(null);
   const [saved, setSaved] = useState(false);
   const [printId, setPrintId] = useState<number | null>(null);

@@ -14,67 +14,56 @@ import org.binaryheart.responses.NoteResponse;
 
 public class NoteRepository {
 	public NoteResponse addNote(int assetId, String text) throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?, ?)")) {
+			stmt.setString(1, text);
+			Date date = Date.valueOf(LocalDate.now(ZoneId.of("UTC")));
+			stmt.setDate(2, date);
+			stmt.setInt(3, assetId);
+			stmt.registerOutParameter(4, java.sql.Types.INTEGER);
+			stmt.execute();
+
+			int noteId = stmt.getInt(4);
+
+			return new NoteResponse(noteId, text, date.toString(), assetId);
 		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?, ?)");
-		stmt.setString(1, text);
-		Date date = Date.valueOf(LocalDate.now(ZoneId.of("UTC")));
-		stmt.setDate(2, date);
-		stmt.setInt(3, assetId);
-		stmt.registerOutParameter(4, java.sql.Types.INTEGER);
-		stmt.execute();
-
-		int noteId = stmt.getInt(4);
-
-		return new NoteResponse(noteId, text, date.toString(), assetId);
 	}
 
 	public NoteResponse[] getNotes(int assetId) throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Notes_For_Asset(?)")) {
+			stmt.setInt(1, assetId);
+			try (ResultSet res = stmt.executeQuery()) {
+				ArrayList<NoteResponse> notes = new ArrayList<>();
+				while (res.next()) {
+					Integer id = res.getInt("ID");
+					String text = res.getString("Text");
+					Date date = res.getDate("Date");
+					Integer asset_id = res.getInt("Asset_ID");
+					notes.add(new NoteResponse(id, text, date.toString(), asset_id));
+				}
+				return notes.toArray(new NoteResponse[0]);
+			}
 		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		PreparedStatement stmt;
-		stmt = conn.prepareStatement("SELECT * FROM Get_Notes_For_Asset(?)");
-		stmt.setInt(1, assetId);
-		stmt.execute();
-		ResultSet res = stmt.getResultSet();
-		ArrayList<NoteResponse> notes = new ArrayList<>();
-
-		while (res.next()) {
-			Integer id = res.getInt("ID");
-			String text = res.getString("Text");
-			Date date = res.getDate("Date");
-			Integer asset_id = res.getInt("Asset_ID");
-			notes.add(new NoteResponse(id, text, date.toString(), asset_id));
-		}
-
-		return notes.toArray(new NoteResponse[0]);
 	}
 
 	public int getAssetChapterId(int assetId) throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Asset(?)")) {
+			stmt.setInt(1, assetId);
+			try (ResultSet rs = stmt.executeQuery()) {
+				rs.next();
+				return rs.getInt("Chapter_ID");
+			}
 		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Asset(?)");
-		stmt.setInt(1, assetId);
-		stmt.execute();
-		ResultSet rs = stmt.getResultSet();
-		rs.next();
-		return rs.getInt("Chapter_ID");
 	}
 
 	public void updateNote(int assetId, int noteId, String text) throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Update_Note(?, ?)")) {
+			stmt.setString(1, text);
+			stmt.setInt(2, noteId);
+			stmt.execute();
 		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		CallableStatement stmt = conn.prepareCall("call Update_Note(?, ?)");
-		stmt.setString(1, text);
-		stmt.setInt(2, noteId);
-		stmt.execute();
 	}
 }

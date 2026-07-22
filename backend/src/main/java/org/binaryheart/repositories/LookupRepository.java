@@ -8,11 +8,9 @@ import org.binaryheart.DatabaseConnectionService;
 public class LookupRepository {
 
 	private List<String> queryNames(String sql) throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
-		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery()) {
 			List<String> results = new ArrayList<>();
 			while (rs.next()) {
 				results.add(rs.getString("Name"));
@@ -82,9 +80,8 @@ public class LookupRepository {
 	}
 
 	private void callInsert(String procedure, String name) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("CALL " + procedure)) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("CALL " + procedure)) {
 			stmt.setString(1, name);
 			stmt.registerOutParameter(2, Types.INTEGER);
 			stmt.execute();
@@ -92,17 +89,10 @@ public class LookupRepository {
 	}
 
 	private void callDelete(String procedure, String name) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("CALL " + procedure)) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("CALL " + procedure)) {
 			stmt.setString(1, name);
 			stmt.execute();
-		}
-	}
-
-	private static void ensureConnected() throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
 		}
 	}
 }
