@@ -5,6 +5,7 @@ import { getParty } from "../services/partyService";
 import { getDevices } from "../services/deviceService";
 import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
+import { fetchAllPages } from "../services/api";
 import type {
   PartyDetail,
   PersonDetail,
@@ -422,9 +423,10 @@ export default function PartyDetailPage() {
 
   const [party, setParty] = useState<PartyDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [allDevices, setAllDevices] = useState<AnyDevice[]>([]);
-  const [allParts, setAllParts] = useState<Part[]>([]);
-  const [allTools, setAllTools] = useState<Tool[]>([]);
+  const [donatedDevices, setDonatedDevices] = useState<AnyDevice[]>([]);
+  const [receivedDevices, setReceivedDevices] = useState<AnyDevice[]>([]);
+  const [donatedParts, setDonatedParts] = useState<Part[]>([]);
+  const [donatedTools, setDonatedTools] = useState<Tool[]>([]);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [showReceipt, setShowReceipt] = useState(false);
@@ -433,12 +435,35 @@ export default function PartyDetailPage() {
 
   useEffect(() => {
     if (!numId) return;
-    Promise.all([getParty(numId), getDevices(), getParts(), getTools()])
-      .then(([p, devices, parts, tools]) => {
+    Promise.all([
+      getParty(numId),
+      fetchAllPages((pageKey, pageSize) =>
+        getDevices({
+          pageKey,
+          pageSize,
+          donorId: numId,
+          includeDonated: true,
+          includeScrapped: true,
+        })
+      ),
+      fetchAllPages((pageKey, pageSize) =>
+        getDevices({
+          pageKey,
+          pageSize,
+          recipientId: numId,
+          includeDonated: true,
+          includeScrapped: true,
+        })
+      ),
+      fetchAllPages((pageKey, pageSize) => getParts({ pageKey, pageSize, donorId: numId })),
+      fetchAllPages((pageKey, pageSize) => getTools({ pageKey, pageSize, donorId: numId })),
+    ])
+      .then(([p, byDonor, byRecipient, parts, tools]) => {
         setParty(p);
-        setAllDevices(devices);
-        setAllParts(parts);
-        setAllTools(tools);
+        setDonatedDevices(byDonor);
+        setReceivedDevices(byRecipient);
+        setDonatedParts(parts);
+        setDonatedTools(tools);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -470,11 +495,6 @@ export default function PartyDetailPage() {
   const person = isPerson ? (party as PersonDetail) : null;
   const org = !isPerson ? (party as OrgDetail) : null;
   const loc = isPerson ? person?.location : org?.location;
-
-  const donatedDevices = allDevices.filter((d) => d.donorId === numId);
-  const receivedDevices = allDevices.filter((d) => d.recipientId === numId);
-  const donatedParts = allParts.filter((p) => p.donorId === numId);
-  const donatedTools = allTools.filter((t) => t.donorId === numId);
 
   // Map all donatable ids → ReceiptItem for the modal
   const allDonatedById = new Map<number, ReceiptItem>([

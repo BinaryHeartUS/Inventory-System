@@ -1,30 +1,30 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { getTools } from "../services/toolService";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { ToolRow } from "../components/ToolRow";
 import AddAssetButton from "../components/AddAssetButton";
 
 export default function Tools() {
-  const [chapterFilter, setChapterFilter] = useState("All");
+  const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
+  const chapters = useVisibleChapters();
 
-  const [allTools, setAllTools] = useState<import("../types/inventory").Tool[]>([]);
-  const allChapters = useVisibleChapters();
-  const chapters = allChapters.map((c) => c.name);
-
-  useEffect(() => {
-    getTools().then(setAllTools);
-  }, []);
-
-  const filtered = useMemo(() => {
-    return allTools.filter((t) => {
-      if (chapterFilter !== "All") {
-        const ch = allChapters.find((c) => c.name === chapterFilter);
-        if (!ch || t.chapterId !== ch.id) return false;
-      }
-      return true;
-    });
-  }, [chapterFilter, allTools, allChapters]);
+  const fetchPage = useCallback(
+    (pageKey: number, pageSize: number) =>
+      getTools({
+        pageKey,
+        pageSize,
+        chapter: chapterFilter === "All" ? undefined : chapterFilter,
+      }),
+    [chapterFilter]
+  );
+  const {
+    items: tools,
+    loading,
+    hasMore,
+    sentinelRef,
+  } = useInfiniteScroll<import("../types/inventory").Tool>(fetchPage, [chapterFilter]);
 
   const hasFilters = chapterFilter !== "All";
 
@@ -38,9 +38,9 @@ export default function Tools() {
         <PageHeading
           title="Tools"
           subtitle={
-            filtered.length === allTools.length
-              ? `All ${allTools.length} tools`
-              : `${filtered.length} of ${allTools.length} tools`
+            hasFilters
+              ? `${tools.length} matching tool${tools.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
+              : `${tools.length} tool${tools.length !== 1 ? "s" : ""}${hasMore ? " loaded so far…" : ""}`
           }
         />
         <div className="flex justify-end">
@@ -52,14 +52,16 @@ export default function Tools() {
       <div className="bg-white border border-slate-200 rounded-xl p-5">
         <div className="flex flex-wrap gap-3 items-center">
           <select
-            value={chapterFilter}
-            onChange={(e) => setChapterFilter(e.target.value)}
+            value={String(chapterFilter)}
+            onChange={(e) =>
+              setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
+            }
             className="text-sm text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all cursor-pointer"
           >
             <option value="All">All Chapters</option>
             {chapters.map((c) => (
-              <option key={c} value={c}>
-                {c}
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </select>
@@ -91,7 +93,7 @@ export default function Tools() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.length === 0 ? (
+              {tools.length === 0 && !loading ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">
                     No tools match the current filters.{" "}
@@ -103,12 +105,16 @@ export default function Tools() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((t) => <ToolRow key={t.id} tool={t} />)
+                tools.map((t) => <ToolRow key={t.id} tool={t} />)
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="h-1" aria-hidden="true" />
+      {loading && <p className="text-center text-sm text-slate-400 py-4">Loading more tools…</p>}
     </div>
   );
 }

@@ -1,0 +1,166 @@
+package org.binaryheart.services;
+
+import java.security.InvalidParameterException;
+import java.sql.SQLException;
+import java.util.List;
+import org.binaryheart.exceptions.BadArgumentException;
+import org.binaryheart.exceptions.DuplicateKeyException;
+import org.binaryheart.exceptions.ForbiddenException;
+import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.exceptions.PartNotFoundException;
+import org.binaryheart.requests.PartListRequest;
+import org.binaryheart.repositories.PartRepository;
+import org.binaryheart.requests.InsertPartRequest;
+import org.binaryheart.responses.PartChangelogResponse;
+import org.binaryheart.responses.PartResponse;
+import org.binaryheart.responses.PartTypeCountResponse;
+
+public class PartService {
+	private final PartRepository repository = new PartRepository();
+	private final ChapterService chapterService = new ChapterService();
+
+	/**
+	 * Returns a page of parts scoped to the caller's chapters
+	 * ({@code userChapterIds}), optionally narrowed to one {@code chapterId} (the
+	 * UI filter, {@code null} for all).
+	 */
+	public PartResponse[] getParts(List<Integer> userChapterIds, Integer chapterId, PartListRequest q)
+		throws SQLException, ForbiddenException {
+		if (userChapterIds == null || userChapterIds.isEmpty())
+			return new PartResponse[0];
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(chapterId, userChapterIds);
+		return repository.getParts(effectiveChapterIds, q);
+	}
+
+	public List<PartTypeCountResponse> getPartTypeCounts(List<Integer> userChapterIds, Integer chapterId,
+		PartListRequest q) throws SQLException, ForbiddenException {
+		if (userChapterIds == null || userChapterIds.isEmpty())
+			return List.of();
+		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(chapterId, userChapterIds);
+		return repository.getPartTypeCounts(effectiveChapterIds, q);
+	}
+
+	public PartResponse getPart(List<Integer> userChapterIds, Integer partId)
+		throws SQLException, MissingRequiredParametersException {
+		if (partId == null || partId < 0)
+			throw new MissingRequiredParametersException(
+				"Non-numeric or non-positive part ID provided, must be positive integer");
+		if (userChapterIds == null || userChapterIds.isEmpty())
+			return null;
+
+		PartResponse part = repository.getPart(partId);
+		if ((part != null && userChapterIds.contains(part.chapterId()))
+			|| userChapterIds.contains(chapterService.getNationalChapterId()))
+			return part;
+
+		return null;
+	}
+
+	public PartResponse[] getPartsByDevice(List<Integer> userChapterIds, Integer deviceId)
+		throws SQLException, MissingRequiredParametersException {
+		if (deviceId == null || deviceId <= 0)
+			throw new MissingRequiredParametersException("Device ID must be a positive integer");
+		if (userChapterIds == null || userChapterIds.isEmpty())
+			return new PartResponse[0];
+		PartResponse[] parts = repository.getPartsByDevice(deviceId);
+		if (userChapterIds.contains(chapterService.getNationalChapterId()))
+			return parts;
+		return List.of(parts).stream().filter(p -> userChapterIds.contains(p.chapterId())).toArray(PartResponse[]::new);
+	}
+
+	public void deletePart(List<Integer> userChapterIds, Integer partId, String username)
+		throws SQLException, InvalidParameterException {
+		if (partId == null || partId < 0)
+			throw new InvalidParameterException(
+				"Non-numeric or non-positive part ID provided, must be positive integer");
+
+		PartResponse part = repository.getPart(partId);
+		if ((part != null && userChapterIds.contains(part.chapterId()))
+			|| userChapterIds.contains(chapterService.getNationalChapterId())) {
+			repository.deletePart(partId, username);
+		} else {
+			throw new InvalidParameterException("Part not found");
+		}
+	}
+
+	public void updatePart(InsertPartRequest request, String username)
+		throws MissingRequiredParametersException, BadArgumentException, PartNotFoundException, SQLException {
+		if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
+			|| request.wasPurchased() == null || request.description() == null || request.description().length() == 0) {
+			throw new MissingRequiredParametersException("Missing required parameters");
+		}
+		if (request.containedIn() != null && request.containedIn() <= 0) {
+			throw new BadArgumentException("Contained In ID must be positive or not specified");
+		}
+		if (request.id() != null && request.id() <= 0) {
+			throw new BadArgumentException("Asset ID must be positive or not specified");
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			throw new BadArgumentException("Acquisition date cannot be in the future");
+		}
+		if (request.value() != null && request.value() < 0) {
+			throw new BadArgumentException("Value must be non-negative or not specified");
+		}
+		if (request.donorId() != null && request.donorId() <= 0) {
+			throw new BadArgumentException("Donor ID must be positive or not specified");
+		}
+
+		try {
+			repository.updatePart(request, username);
+		} catch (SQLException e) {
+			if ("02000".equals(e.getSQLState())) {
+				throw new PartNotFoundException("Could not find part with specified ID: " + request.id());
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	public int insertPart(InsertPartRequest request, String username)
+		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
+		if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
+			|| request.wasPurchased() == null || request.description() == null || request.description().length() == 0) {
+			throw new MissingRequiredParametersException("Missing required parameters");
+		}
+		if (request.containedIn() != null && request.containedIn() <= 0) {
+			throw new BadArgumentException("Contained In ID must be positive or not specified");
+		}
+		if (request.id() != null && request.id() <= 0) {
+			throw new BadArgumentException("Asset ID must be positive or not specified");
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			throw new BadArgumentException("Acquisition date cannot be in the future");
+		}
+		if (request.value() != null && request.value() < 0) {
+			throw new BadArgumentException("Value must be non-negative or not specified");
+		}
+		if (request.donorId() != null && request.donorId() <= 0) {
+			throw new BadArgumentException("Donor ID must be positive or not specified");
+		}
+
+		try {
+			return repository.insertPart(request, username);
+		} catch (SQLException e) {
+			if ("23505".equals(e.getSQLState())) {
+				throw new DuplicateKeyException("An asset with the same asset ID already exists: " + request.id());
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	public PartChangelogResponse[] getPartChangelog(List<Integer> userChapterIds, Integer partId)
+		throws SQLException, MissingRequiredParametersException, InvalidParameterException {
+		if (partId == null || partId <= 0)
+			throw new MissingRequiredParametersException(
+				"Non-numeric or non-positive part ID provided, must be positive integer");
+
+		PartResponse part = repository.getPart(partId);
+		if (part == null || (!userChapterIds.contains(part.chapterId())
+			&& !userChapterIds.contains(chapterService.getNationalChapterId()))) {
+			throw new InvalidParameterException("Part not found");
+		}
+
+		return repository.getPartChangelog(partId);
+	}
+}

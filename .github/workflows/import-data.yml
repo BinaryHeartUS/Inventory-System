@@ -1,9 +1,9 @@
 name: Import Data
 
 # Manual, one-shot data import into a chosen environment. Pick the branch to run
-# from in the "Run workflow" dialog (the importer image, including the data/
-# files, is built from that branch's commit). Choose which environment's database
-# to import into and which file in data/ to load.
+# from in the "Run workflow" dialog (the importer image, including the
+# importer/data/ files, is built from that branch's commit). Choose which
+# environment's database to import into and which file to load.
 #
 # Importing into prod is gated by the "production" GitHub Environment (add
 # required reviewers so it pauses for approval).
@@ -19,10 +19,15 @@ on:
           - prod
         required: true
       data_file:
-        description: "File in data/ to import (baked into the importer image)."
+        description: "File in importer/data/ to import (baked into the importer image)."
         type: string
         default: OldInventorySystem.xlsx
         required: true
+      chapter:
+        description: "Chapter name to import into (leave blank to use the importer default)."
+        type: string
+        default: ""
+        required: false
 
 permissions:
   contents: read
@@ -52,8 +57,8 @@ jobs:
       - name: Build and push importer
         uses: docker/build-push-action@v7
         with:
-          context: .
-          file: ./backend/import/Dockerfile
+          context: ./importer
+          file: ./importer/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/importer:${{ github.sha }}
           cache-from: type=gha,scope=importer
@@ -72,6 +77,7 @@ jobs:
           DEPLOY_ENV: ${{ inputs.environment }}
           IMAGE_TAG: ${{ github.sha }}
           DATA_FILE: ${{ inputs.data_file }}
+          CHAPTER: ${{ inputs.chapter }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -79,11 +85,11 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: DEPLOY_ENV,IMAGE_TAG,DATA_FILE,GHCR_USER,GHCR_TOKEN
+          envs: DEPLOY_ENV,IMAGE_TAG,DATA_FILE,CHAPTER,GHCR_USER,GHCR_TOKEN
           script: |
             set -euo pipefail
             cd /opt/inventory-system
             git fetch --all --prune
             git checkout --force "$IMAGE_TAG"
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            ./scripts/import-data.sh "$DEPLOY_ENV" "$IMAGE_TAG" "$DATA_FILE"
+            ./scripts/import-data.sh "$DEPLOY_ENV" "$IMAGE_TAG" "$DATA_FILE" "$CHAPTER"

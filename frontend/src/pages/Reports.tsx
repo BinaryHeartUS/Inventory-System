@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getDevices } from "../services/deviceService";
 import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
+import { fetchAllPages } from "../services/api";
 import { useChapters, useVisibleChapters } from "../context/ChapterContext";
 import type { AnyDevice, Part, Tool } from "../types/inventory";
 import PageHeading from "../components/PageHeading";
@@ -86,33 +87,46 @@ function ExportCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Reports() {
-  const [allDevices, setAllDevices] = useState<AnyDevice[]>([]);
-  const [allParts, setAllParts] = useState<Part[]>([]);
-  const [allTools, setAllTools] = useState<Tool[]>([]);
+  const [devices, setDevices] = useState<AnyDevice[]>([]);
+  const [parts, setParts] = useState<Part[]>([]);
+  const [tools, setTools] = useState<Tool[]>([]);
   const [chapter, setChapter] = useState("All");
   const visibleChapters = useVisibleChapters();
   const { chapterName } = useChapters();
   const chapters = visibleChapters.map((c) => c.name);
-
-  useEffect(() => {
-    Promise.all([getDevices(), getParts(), getTools()]).then(([d, p, t]) => {
-      setAllDevices(d);
-      setAllParts(p);
-      setAllTools(t);
-    });
-  }, []);
-
-  const devices = chapter === "All" ? allDevices : allDevices.filter((d) => d.chapter === chapter);
   const selectedChapterId =
-    chapter === "All" ? null : visibleChapters.find((c) => c.name === chapter)?.id;
-  const parts =
-    selectedChapterId == null
-      ? allParts
-      : allParts.filter((p) => p.chapterId === selectedChapterId);
-  const tools =
-    selectedChapterId == null
-      ? allTools
-      : allTools.filter((t) => t.chapterId === selectedChapterId);
+    chapter === "All" ? undefined : visibleChapters.find((c) => c.name === chapter)?.id;
+
+  // Reports is an aggregate/export view: load every row matching the selected chapter via the
+  // paginated endpoints (bounded by the chapter filter). Re-fetches when the chapter changes.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      fetchAllPages((pageKey, pageSize) =>
+        getDevices({
+          pageKey,
+          pageSize,
+          chapter: selectedChapterId,
+          includeDonated: true,
+          includeScrapped: true,
+        })
+      ),
+      fetchAllPages((pageKey, pageSize) =>
+        getParts({ pageKey, pageSize, chapter: selectedChapterId })
+      ),
+      fetchAllPages((pageKey, pageSize) =>
+        getTools({ pageKey, pageSize, chapter: selectedChapterId })
+      ),
+    ]).then(([d, p, t]) => {
+      if (cancelled) return;
+      setDevices(d);
+      setParts(p);
+      setTools(t);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedChapterId]);
 
   const donated = devices.filter((d) => d.status === "Donated").length;
   const inProgress = devices.filter(

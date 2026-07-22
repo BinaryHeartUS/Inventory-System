@@ -10,7 +10,7 @@
     "format": "npx prettier@3.6.2 --write .",
     "format:check": "npx prettier@3.6.2 --check .",
     "preview": "vite preview",
-    "gen-types": "openapi-typescript ../backend/inventory/target/classes/openapi-plugin/openapi-default.json -o src/types/api.d.ts"
+    "gen-types": "openapi-typescript ../backend/target/classes/openapi-plugin/openapi-default.json -o src/types/api.d.ts"
   },
   "dependencies": {
     "@mmote/niimbluelib": "0.0.1-alpha.38",

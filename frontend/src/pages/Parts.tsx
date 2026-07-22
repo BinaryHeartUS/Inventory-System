@@ -1,5 +1,9 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { getParts } from "../services/partService";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { getParts, getPartTypeCounts } from "../services/partService";
+import type { PartTypeCountParams } from "../services/partService";
+import type { Part, PartTypeCountResponse } from "../types/inventory";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { useLookups } from "../hooks/useLookups";
 import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { PartRow } from "../components/PartRow";
@@ -25,19 +29,87 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
   );
 }
 
+/**
+ * Rows for a single expanded type group. Mounted only while the group is open, so no part
+ * rows are fetched until the user actually expands the group. Parts are paged in via infinite
+ * scroll scoped to this group (the sentinel is a table row at the bottom of the group's rows).
+ */
+function PartTypeRows({ type, filters }: { type: string; filters: PartTypeCountParams }) {
+  const fetchPage = useCallback(
+    (pageKey: number, pageSize: number) => getParts({ ...filters, type, pageKey, pageSize }),
+    [filters, type]
+  );
+  const {
+    items: parts,
+    loading,
+    sentinelRef,
+  } = useInfiniteScroll<Part, HTMLTableRowElement>(fetchPage, [filters, type]);
+
+  return (
+    <>
+      {parts.map((p) => (
+        <PartRow key={p.id} part={p} hideTypeCol />
+      ))}
+      <tr ref={sentinelRef} aria-hidden="true">
+        <td colSpan={6} className="p-0">
+          {loading && <p className="text-center text-sm text-slate-400 py-3">Loading parts…</p>}
+        </td>
+      </tr>
+    </>
+  );
+}
+
 export default function Parts() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [sourceFilter, setSourceFilter] = useState<"All" | "Donated" | "Purchased">("All");
   const [showInDevice, setShowInDevice] = useState(false);
 
-  const [allParts, setAllParts] = useState<import("../types/inventory").Part[]>([]);
+  const filters = useMemo(
+    () => ({
+      chapter: chapterFilter === "All" ? undefined : chapterFilter,
+      type: typeFilter === "All" ? undefined : typeFilter,
+      source:
+        sourceFilter === "Donated"
+          ? "donated"
+          : sourceFilter === "Purchased"
+            ? "purchased"
+            : undefined,
+      includeInDevice: showInDevice,
+    }),
+    [chapterFilter, typeFilter, sourceFilter, showInDevice]
+  );
+
+  // Accurate per-type totals. These drive the collapsed group headers, so the page can render
+  // without fetching any individual part rows up front — parts are loaded lazily on expand.
+  const [typeCounts, setTypeCounts] = useState<PartTypeCountResponse[]>([]);
+  const [countsLoading, setCountsLoading] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCountsLoading(true);
+    getPartTypeCounts(filters)
+      .then((c) => {
+        if (!cancelled) setTypeCounts(c);
+      })
+      .finally(() => {
+        if (!cancelled) setCountsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filters]);
+  const totalTypes = typeCounts.length;
+  const totalParts = useMemo(() => typeCounts.reduce((sum, c) => sum + c.count, 0), [typeCounts]);
+
+  const sortedTypes = useMemo(
+    () => [...typeCounts].sort((a, b) => a.type.localeCompare(b.type)),
+    [typeCounts]
+  );
+
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
   const chapters = useVisibleChapters();
-
-  useEffect(() => {
-    getParts().then(setAllParts);
-  }, []);
+  const { partTypes } = useLookups();
 
   function toggleGroup(type: string) {
     setExpandedTypes((prev) => {
@@ -47,32 +119,6 @@ export default function Parts() {
       return next;
     });
   }
-
-  const partTypes = useMemo(
-    () => Array.from(new Set(allParts.map((p) => p.type))).sort(),
-    [allParts]
-  );
-
-  const filtered = useMemo(() => {
-    return allParts.filter((p) => {
-      if (chapterFilter !== "All" && p.chapterId !== chapterFilter) return false;
-      if (typeFilter !== "All" && p.type !== typeFilter) return false;
-      if (sourceFilter === "Donated" && p.wasPurchased) return false;
-      if (sourceFilter === "Purchased" && !p.wasPurchased) return false;
-      if (!showInDevice && p.containedIn != null) return false;
-      return true;
-    });
-  }, [chapterFilter, typeFilter, sourceFilter, showInDevice, allParts]);
-
-  const grouped = useMemo(() => {
-    const map = new Map<string, import("../types/inventory").Part[]>();
-    for (const part of filtered) {
-      const arr = map.get(part.type) ?? [];
-      arr.push(part);
-      map.set(part.type, arr);
-    }
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [filtered]);
 
   const hasFilters =
     chapterFilter !== "All" || typeFilter !== "All" || sourceFilter !== "All" || showInDevice;
@@ -89,11 +135,7 @@ export default function Parts() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading
           title="Parts"
-          subtitle={
-            filtered.length === allParts.length
-              ? `${grouped.length} type${grouped.length !== 1 ? "s" : ""}, ${allParts.length} part${allParts.length !== 1 ? "s" : ""}`
-              : `${filtered.length} of ${allParts.length} parts`
-          }
+          subtitle={`${totalTypes} type${totalTypes !== 1 ? "s" : ""}, ${totalParts} part${totalParts !== 1 ? "s" : ""}`}
         />
         <div className="flex justify-end">
           <AddAssetButton className="w-full sm:w-auto" />
@@ -200,19 +242,25 @@ export default function Parts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {grouped.length === 0 ? (
+              {sortedTypes.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">
-                    No parts match the current filters.{" "}
-                    {hasFilters && (
-                      <button onClick={clearFilters} className="text-brand-red hover:underline">
-                        Clear filters
-                      </button>
+                    {countsLoading ? (
+                      "Loading parts…"
+                    ) : (
+                      <>
+                        No parts match the current filters.{" "}
+                        {hasFilters && (
+                          <button onClick={clearFilters} className="text-brand-red hover:underline">
+                            Clear filters
+                          </button>
+                        )}
+                      </>
                     )}
                   </td>
                 </tr>
               ) : (
-                grouped.map(([type, parts]) => {
+                sortedTypes.map(({ type, count }) => {
                   const isExpanded = expandedTypes.has(type);
                   return (
                     <React.Fragment key={type}>
@@ -225,12 +273,12 @@ export default function Parts() {
                             <ChevronIcon expanded={isExpanded} />
                             <span className="font-semibold">{type}</span>
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
-                              {parts.length} {parts.length === 1 ? "part" : "parts"}
+                              {count} {count === 1 ? "part" : "parts"}
                             </span>
                           </div>
                         </td>
                       </tr>
-                      {isExpanded && parts.map((p) => <PartRow key={p.id} part={p} hideTypeCol />)}
+                      {isExpanded && <PartTypeRows type={type} filters={filters} />}
                     </React.Fragment>
                   );
                 })

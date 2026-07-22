@@ -143,3 +143,44 @@ jobs:
 
       - name: Run npm audit
         run: npm audit --omit=dev --audit-level=high
+
+  frontend-types-drift:
+    name: Frontend API Types Drift (api.d.ts)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Generate OpenAPI spec (backend compile)
+        run: mvn -B -ntp compile
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Regenerate API types from the OpenAPI spec
+        run: npm run gen-types
+        working-directory: frontend
+
+      - name: Verify api.d.ts is in sync with the backend contract
+        working-directory: frontend
+        run: |
+          if ! git diff --exit-code -- src/types/api.d.ts; then
+            echo "::error file=frontend/src/types/api.d.ts::api.d.ts is out of date with the backend OpenAPI contract. Run 'make generate-types' and commit the result."
+            exit 1
+          fi

@@ -10,13 +10,43 @@
  *   DELETE /api/parts/:id              → 204
  */
 
-import { apiGet, apiGetOrNull, apiDelete, apiPostVoid, apiPutVoid } from "./api";
-import type { InsertPartRequest, Part, PartChangelogResponse } from "../types/inventory";
+import { apiGet, apiGetOrNull, apiDelete, apiPost, apiPutVoid, buildQuery } from "./api";
+import type {
+  InsertPartRequest,
+  Part,
+  PartChangelogResponse,
+  PartTypeCountResponse,
+  IdResponse,
+} from "../types/inventory";
 import type { PartChangelogEntry } from "../types/changelog";
 import { getChapters } from "./chapterService";
 
-export async function getParts(): Promise<Part[]> {
-  return apiGet<Part[]>("/parts");
+export interface PartListParams {
+  pageKey: number;
+  pageSize: number;
+  search?: string;
+  type?: string;
+  /** "donated" | "purchased" */
+  source?: string;
+  /** When false, only parts not contained in a device are returned. */
+  includeInDevice?: boolean;
+  /** Chapter id to restrict to (within the user's access). */
+  chapter?: number;
+  donorId?: number;
+}
+
+export async function getParts(params: PartListParams): Promise<Part[]> {
+  return apiGet<Part[]>(`/parts${buildQuery({ ...params })}`);
+}
+
+/** Filters for the per-type count endpoint (same as the list filters, without pagination). */
+export type PartTypeCountParams = Omit<PartListParams, "pageKey" | "pageSize">;
+
+/** Total part count per type for the given filters, so grouped views can show accurate totals. */
+export async function getPartTypeCounts(
+  params: PartTypeCountParams
+): Promise<PartTypeCountResponse[]> {
+  return apiGet<PartTypeCountResponse[]>(`/parts/type-counts${buildQuery({ ...params })}`);
 }
 
 /** Returns null when no part with the given ID exists. */
@@ -43,18 +73,10 @@ export async function createPart(part: Part): Promise<Part> {
     value: part.value ?? undefined,
     donorId: part.donorId || undefined,
   };
-  await apiPostVoid("/parts", body);
+  const newId = (await apiPost<IdResponse>("/parts", body)).id;
 
-  if (assetId !== undefined) {
-    return apiGet<Part>(`/parts/${assetId}`);
-  }
-  // Auto-generated: re-fetch device list and find the most recently added match
-  const parts = await apiGet<Part[]>("/parts");
-  const match = parts
-    .filter((p) => p.chapterId === part.chapterId && p.description === part.description)
-    .at(-1);
-  if (!match) throw new Error("Created part not found after insert");
-  return match;
+  // Backend returns 201 with the new asset id; fetch the full record by id.
+  return apiGet<Part>(`/parts/${newId}`);
 }
 
 export async function updatePart(id: number, updates: Part): Promise<Part> {

@@ -10,8 +10,8 @@ import {
   addAccountRole,
   updateAccountRole,
   removeAccountRole,
-  type AccountSummary,
 } from "../services/accountService";
+import type { AccountSummary } from "../types/inventory";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
