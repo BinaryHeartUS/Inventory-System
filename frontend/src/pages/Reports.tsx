@@ -7,7 +7,7 @@ import { useChapters, useVisibleChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
 import type { ChapterInventorySummary } from "../types/inventory";
 import PageHeading from "../components/PageHeading";
-import ChapterTabs from "../components/ChapterTabs";
+import ChapterFilter from "../components/ChapterFilter";
 
 // ─── CSV helpers ──────────────────────────────────────────────────────────────
 
@@ -91,14 +91,16 @@ function ExportCard({
 
 export default function Reports() {
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
-  const [chapter, setChapter] = useState("All");
+  const [selectedChapter, setSelectedChapter] = useState<number | "All">("All");
   const [busyExport, setBusyExport] = useState<string | null>(null);
   const visibleChapters = useVisibleChapters();
   const { chapterName } = useChapters();
   const { showToast } = useToast();
-  const chapters = visibleChapters.map((c) => c.name);
-  const selectedChapterId =
-    chapter === "All" ? undefined : visibleChapters.find((c) => c.name === chapter)?.id;
+  const selectedChapterId = selectedChapter === "All" ? undefined : selectedChapter;
+  const selectedChapterName =
+    selectedChapter === "All"
+      ? "All"
+      : (visibleChapters.find((c) => c.id === selectedChapter)?.name ?? "All");
 
   // Summary stats and export-row counts come from a single lightweight aggregate
   // endpoint, so opening the page no longer downloads the whole inventory. The full
@@ -153,7 +155,7 @@ export default function Reports() {
   const pipelineCount = stats.notStarted + stats.inProgress + stats.readyToDonate;
   const valuationCount = stats.totalDevices + stats.partsCount + stats.toolsCount;
 
-  const chapterSlug = slugify(chapter === "All" ? "all-chapters" : chapter);
+  const chapterSlug = slugify(selectedChapter === "All" ? "all-chapters" : selectedChapterName);
 
   // Lazy row loaders — each export pulls only the data it needs, at click time.
   const loadDevices = () =>
@@ -351,12 +353,12 @@ export default function Reports() {
       <PageHeading title="Reports" subtitle="Export inventory data and view summary statistics" />
 
       {/* Chapter filter */}
-      <ChapterTabs chapters={chapters} selected={chapter} onChange={setChapter} />
+      <ChapterFilter selected={selectedChapter} onChange={setSelectedChapter} />
 
       {/* Summary stats */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-4">
-          Summary — {chapter === "All" ? "All Chapters" : chapter}
+          Summary — {selectedChapter === "All" ? "All Chapters" : selectedChapterName}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[

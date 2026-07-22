@@ -9,6 +9,7 @@ import { DeviceList } from "../components/DeviceList";
 import type { SortKey, SortDir } from "../components/DeviceList";
 import AddAssetButton from "../components/AddAssetButton";
 import FilterSelect from "../components/FilterSelect";
+import ChapterFilter from "../components/ChapterFilter";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -143,6 +144,9 @@ export default function Devices() {
         </div>
       </div>
 
+      {/* Chapter filter */}
+      <ChapterFilter selected={chapterFilter} onChange={setChapterFilter} />
+
       {/* Filter bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
         <div className="flex flex-wrap gap-3 items-center">
@@ -178,20 +182,6 @@ export default function Devices() {
             {STATUS_OPTIONS.map((s) => (
               <option key={s} value={s}>
                 {s === "All" ? "All Statuses" : s}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <FilterSelect
-            value={String(chapterFilter)}
-            onChange={(e) =>
-              setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
-            }
-          >
-            <option value="All">All Chapters</option>
-            {chapters.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
               </option>
             ))}
           </FilterSelect>

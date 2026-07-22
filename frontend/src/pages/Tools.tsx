@@ -1,15 +1,13 @@
 import { useState, useCallback } from "react";
 import { getTools } from "../services/toolService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
-import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { ToolRow } from "../components/ToolRow";
 import AddAssetButton from "../components/AddAssetButton";
-import FilterSelect from "../components/FilterSelect";
+import ChapterFilter from "../components/ChapterFilter";
 
 export default function Tools() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
-  const chapters = useVisibleChapters();
 
   const fetchPage = useCallback(
     (pageKey: number, pageSize: number) =>
@@ -49,32 +47,8 @@ export default function Tools() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5">
-        <div className="flex flex-wrap gap-3 items-center">
-          <FilterSelect
-            value={String(chapterFilter)}
-            onChange={(e) =>
-              setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
-            }
-          >
-            <option value="All">All Chapters</option>
-            {chapters.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </FilterSelect>
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs font-medium text-brand-red hover:text-brand-red-dark underline underline-offset-2 transition-colors"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-      </div>
+      {/* Chapter filter */}
+      <ChapterFilter selected={chapterFilter} onChange={setChapterFilter} />
 
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">

@@ -4,11 +4,11 @@ import type { PartTypeCountParams } from "../services/partService";
 import type { Part, PartTypeCountResponse } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useLookups } from "../hooks/useLookups";
-import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
 import { PartRow } from "../components/PartRow";
 import AddAssetButton from "../components/AddAssetButton";
 import FilterSelect from "../components/FilterSelect";
+import ChapterFilter from "../components/ChapterFilter";
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
@@ -109,7 +109,6 @@ export default function Parts() {
   );
 
   const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
-  const chapters = useVisibleChapters();
   const { partTypes } = useLookups();
 
   function toggleGroup(type: string) {
@@ -143,6 +142,9 @@ export default function Parts() {
         </div>
       </div>
 
+      {/* Chapter filter */}
+      <ChapterFilter selected={chapterFilter} onChange={setChapterFilter} />
+
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
         <div className="flex flex-wrap gap-3 items-center">
@@ -151,19 +153,6 @@ export default function Parts() {
             {partTypes.map((t) => (
               <option key={t} value={t}>
                 {t}
-              </option>
-            ))}
-          </FilterSelect>
-          <FilterSelect
-            value={String(chapterFilter)}
-            onChange={(e) =>
-              setChapterFilter(e.target.value === "All" ? "All" : Number(e.target.value))
-            }
-          >
-            <option value="All">All Chapters</option>
-            {chapters.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
               </option>
             ))}
           </FilterSelect>

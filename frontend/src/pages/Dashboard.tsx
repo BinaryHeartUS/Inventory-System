@@ -20,21 +20,18 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import ActivityChart from "../components/ActivityChart";
 import DeviceValueChart from "../components/DeviceValueChart";
 import PageHeading from "../components/PageHeading";
-import ChapterTabs from "../components/ChapterTabs";
+import ChapterFilter from "../components/ChapterFilter";
 import AddAssetButton from "../components/AddAssetButton";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
-  const [selectedChapter, setSelectedChapter] = useState<string>("All");
+  const [selectedChapter, setSelectedChapter] = useState<number | "All">("All");
   const visibleChapters = useVisibleChapters();
-  const chapters = visibleChapters.map((c) => c.name);
 
   // Derive the chapter IDs for the currently selected chapter filter
   const selectedChapterIds: number[] =
-    selectedChapter === "All"
-      ? visibleChapters.map((c) => c.id)
-      : visibleChapters.filter((c) => c.name === selectedChapter).map((c) => c.id);
+    selectedChapter === "All" ? visibleChapters.map((c) => c.id) : [selectedChapter];
 
   // ── Pipeline counts ────────────────────────────────────────────────────────
   const [notStartedCount, setNotStartedCount] = useState<number | null>(null);
@@ -122,7 +119,7 @@ export default function Dashboard() {
       </div>
 
       {/* Chapter tabs */}
-      <ChapterTabs chapters={chapters} selected={selectedChapter} onChange={setSelectedChapter} />
+      <ChapterFilter selected={selectedChapter} onChange={setSelectedChapter} />
 
       {/* Pipeline card */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">
