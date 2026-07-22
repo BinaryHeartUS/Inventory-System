@@ -56,11 +56,11 @@ export default function DeviceDetail() {
   const { auth } = useAuth();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
-  const lookups = useLookups();
+  const [editing, setEditing] = useState(false);
+  const lookups = useLookups(editing);
 
   const [device, setDevice] = useState<AnyDevice | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<AnyDevice | null>(null);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

@@ -9,11 +9,8 @@ import org.binaryheart.DatabaseConnectionService;
 public class AssetRepository {
 
 	public boolean assetExists(int id) throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
-		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Get_Asset_Exists(?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Get_Asset_Exists(?, ?)")) {
 			stmt.setInt(1, id);
 			stmt.registerOutParameter(2, Types.BOOLEAN);
 			stmt.execute();
