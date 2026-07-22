@@ -1,12 +1,12 @@
 import { useAddAsset } from "../context/AddAssetContext";
 
-export default function AddAssetButton() {
+export default function AddAssetButton({ className = "" }: { className?: string }) {
   const { openAddAssetModal } = useAddAsset();
 
   return (
     <button
       onClick={() => openAddAssetModal()}
-      className="flex items-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors"
+      className={`flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors ${className}`}
     >
       <svg
         width="14"

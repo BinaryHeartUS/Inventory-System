@@ -44,7 +44,7 @@ export default function Tools() {
           }
         />
         <div className="flex justify-end">
-          <AddAssetButton />
+          <AddAssetButton className="w-full sm:w-auto" />
         </div>
       </div>
 

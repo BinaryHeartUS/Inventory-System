@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
  * as opposed to a normal browser tab. Reacts to display-mode changes.
  * `isTouch` — true on touch-capable devices (phones/tablets).
  *
- * The camera Scanner tab is shown only when BOTH are true.
+ * The camera Scanner tab is shown on any touch-capable device.
  */
 
 function detectStandalone(): boolean {

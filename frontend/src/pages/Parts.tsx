@@ -96,7 +96,7 @@ export default function Parts() {
           }
         />
         <div className="flex justify-end">
-          <AddAssetButton />
+          <AddAssetButton className="w-full sm:w-auto" />
         </div>
       </div>
 

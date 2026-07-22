@@ -117,7 +117,7 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading title="Dashboard" subtitle="Inventory overview by chapter" />
         <div className="flex justify-end">
-          <AddAssetButton />
+          <AddAssetButton className="w-full sm:w-auto" />
         </div>
       </div>
 

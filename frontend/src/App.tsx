@@ -493,10 +493,10 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-/** Fixed bottom tab bar for small screens. Adds a Scanner tab in the PWA. */
+/** Fixed bottom tab bar for small screens. Shows a Scanner tab on touch devices. */
 function BottomTabBar() {
-  const { isStandalone, isTouch } = usePWA();
-  const showScanner = isStandalone && isTouch;
+  const { isTouch } = usePWA();
+  const showScanner = isTouch;
   const tabCls = (isActive: boolean) =>
     `flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors ${
       isActive ? "text-heart-blue" : "text-slate-400"

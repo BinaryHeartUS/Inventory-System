@@ -6,7 +6,7 @@ interface Props {
 
 export default function ChapterTabs({ chapters, selected, onChange }: Props) {
   return (
-    <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
+    <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-full overflow-x-auto sm:w-fit sm:flex-wrap sm:overflow-visible">
       {(["All", ...chapters] as string[]).map((ch) => (
         <button
           key={ch}

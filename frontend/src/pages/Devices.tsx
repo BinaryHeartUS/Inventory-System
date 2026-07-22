@@ -96,7 +96,7 @@ export default function Devices() {
           }
         />
         <div className="flex justify-end">
-          <AddAssetButton />
+          <AddAssetButton className="w-full sm:w-auto" />
         </div>
       </div>
 
