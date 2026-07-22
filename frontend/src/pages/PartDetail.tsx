@@ -24,6 +24,7 @@ import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
 import { PartModificationModal } from "../components/PartModificationModal";
+import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
 import type { PartChangelogEntry } from "../types/changelog";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -173,8 +174,16 @@ export default function PartDetail() {
 
   const p = editing && form ? form : part;
 
+  const isDirty =
+    editing &&
+    !!form &&
+    (JSON.stringify(form) !== JSON.stringify(part) ||
+      (editDevice?.id ?? null) !== (linkedDevice?.id ?? null) ||
+      (editParty?.id ?? null) !== (linkedParty?.id ?? null));
+
   return (
     <>
+      <UnsavedChangesGuard when={isDirty} />
       {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
       {partyPickerOpen && (
         <PartyPickerModal

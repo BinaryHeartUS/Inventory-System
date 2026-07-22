@@ -1,4 +1,11 @@
-import { BrowserRouter, NavLink, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import {
+  createBrowserRouter,
+  NavLink,
+  Outlet,
+  RouterProvider,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useState, useCallback } from "react";
 import { ToastProvider, useToast } from "./context/ToastContext";
 import Dashboard from "./pages/Dashboard";
@@ -558,21 +565,168 @@ function ToolDetailKeyed() {
   return <ToolDetail key={id} />;
 }
 
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: "login", element: <Login /> },
+      {
+        index: true,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "devices",
+        element: (
+          <ProtectedRoute>
+            <Devices />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "devices/:id",
+        element: (
+          <ProtectedRoute>
+            <DeviceDetailKeyed />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "parts",
+        element: (
+          <ProtectedRoute>
+            <Parts />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "parts/:id",
+        element: (
+          <ProtectedRoute>
+            <PartDetailKeyed />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "tools",
+        element: (
+          <ProtectedRoute>
+            <Tools />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "tools/:id",
+        element: (
+          <ProtectedRoute>
+            <ToolDetailKeyed />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "donations",
+        element: (
+          <ProtectedRoute>
+            <Donations />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "chapters",
+        element: (
+          <ProtectedRoute>
+            <Chapters />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "search",
+        element: (
+          <ProtectedRoute>
+            <Search />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "reports",
+        element: (
+          <ProtectedRoute>
+            <Reports />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "account",
+        element: (
+          <ProtectedRoute>
+            <Account />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/accounts",
+        element: (
+          <ProtectedRoute>
+            <AdminAccounts />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/parties",
+        element: (
+          <ProtectedRoute>
+            <ManageParties />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/parties/:id",
+        element: (
+          <ProtectedRoute>
+            <PartyDetail />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "scanner",
+        element: (
+          <ProtectedRoute>
+            <Scanner />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+]);
+
 function App() {
+  return <RouterProvider router={router} />;
+}
+
+function RootLayout() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ChapterProvider>
-          <ToastProvider>
-            <AppInner />
-          </ToastProvider>
-        </ChapterProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <ChapterProvider>
+        <ToastProvider>
+          <AppShell />
+        </ToastProvider>
+      </ChapterProvider>
+    </AuthProvider>
   );
 }
 
-function AppInner() {
+function AppShell() {
   const navigate = useNavigate();
   const { auth } = useAuth();
   const { showToast } = useToast();
@@ -644,145 +798,7 @@ function AppInner() {
         <div className="flex-1 min-w-0 flex flex-col">
           {auth && <MobileTopBar onMenu={() => setDrawerOpen(true)} />}
           <main className={`flex-1 px-4 py-5 lg:px-10 lg:py-12 ${auth ? "pb-24 lg:pb-12" : ""}`}>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/devices"
-                element={
-                  <ProtectedRoute>
-                    <Devices />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/devices/:id"
-                element={
-                  <ProtectedRoute>
-                    <DeviceDetailKeyed />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/parts"
-                element={
-                  <ProtectedRoute>
-                    <Parts />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/parts/:id"
-                element={
-                  <ProtectedRoute>
-                    <PartDetailKeyed />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tools"
-                element={
-                  <ProtectedRoute>
-                    <Tools />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tools/:id"
-                element={
-                  <ProtectedRoute>
-                    <ToolDetailKeyed />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/donations"
-                element={
-                  <ProtectedRoute>
-                    <Donations />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chapters"
-                element={
-                  <ProtectedRoute>
-                    <Chapters />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/search"
-                element={
-                  <ProtectedRoute>
-                    <Search />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute>
-                    <Reports />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/account"
-                element={
-                  <ProtectedRoute>
-                    <Account />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/accounts"
-                element={
-                  <ProtectedRoute>
-                    <AdminAccounts />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/parties"
-                element={
-                  <ProtectedRoute>
-                    <ManageParties />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/parties/:id"
-                element={
-                  <ProtectedRoute>
-                    <PartyDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/scanner"
-                element={
-                  <ProtectedRoute>
-                    <Scanner />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+            <Outlet />
           </main>
         </div>
 

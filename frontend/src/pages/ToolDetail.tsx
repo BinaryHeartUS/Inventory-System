@@ -21,6 +21,7 @@ import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
 import { ToolModificationModal } from "../components/ToolModificationModal";
+import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
 import type { ToolChangelogEntry } from "../types/changelog";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -151,8 +152,15 @@ export default function ToolDetail() {
 
   const t = editing && form ? form : tool;
 
+  const isDirty =
+    editing &&
+    !!form &&
+    (JSON.stringify(form) !== JSON.stringify(tool) ||
+      (editParty?.id ?? null) !== (linkedParty?.id ?? null));
+
   return (
     <>
+      <UnsavedChangesGuard when={isDirty} />
       {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
       {partyPickerOpen && (
         <PartyPickerModal

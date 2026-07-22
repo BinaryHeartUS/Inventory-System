@@ -33,6 +33,7 @@ import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
 import { DeviceModificationModal } from "../components/DeviceModificationModal";
+import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
 import type { DeviceChangelogEntry } from "../types/changelog";
 
 function BatteryBar({ health }: { health: number | null }) {
@@ -229,8 +230,16 @@ export default function DeviceDetail() {
     canWriteThisChapter && auth?.role?.toLowerCase() === "editor" && device.status === "Donated";
   const editLock = viewerLock || donatedLock;
 
+  const isDirty =
+    editing &&
+    !!form &&
+    (JSON.stringify(form) !== JSON.stringify(device) ||
+      (editParty?.id ?? null) !== (linkedParty?.id ?? null) ||
+      (editRecipient?.id ?? null) !== (linkedRecipient?.id ?? null));
+
   return (
     <>
+      <UnsavedChangesGuard when={isDirty} />
       {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
       {partyPickerOpen && (
         <PartyPickerModal
