@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import type { AnyDevice, Part } from "../types/inventory";
 import NotesPane from "../components/NotesPane";
 import { getPart, updatePart, deletePart, getPartChangelog } from "../services/partService";
@@ -12,18 +12,20 @@ import { useToast } from "../context/ToastContext";
 import { DevicePickerModal } from "../components/DevicePickerModal";
 import { PartyPickerModal } from "../components/PartyPickerModal";
 import type { PartySummary } from "../types/inventory";
-import { getParty } from "../services/partyService";
+import { useLinkedParty } from "../hooks/useLinkedParty";
 import { Field } from "../components/Field";
 import { EditText, EditSelect, EditCombo } from "../components/EditField";
 import { Section } from "../components/Section";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { NotFound } from "../components/NotFound";
 import AddAssetButton from "../components/AddAssetButton";
 import { DeleteConfirmButton } from "../components/DeleteConfirmButton";
 import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
-import { PartModificationModal } from "../components/PartModificationModal";
+import { ModificationModal } from "../components/ModificationModal";
+import { buildPartFields } from "../utils/changelogFields";
 import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
 import type { PartChangelogEntry } from "../types/changelog";
 
@@ -51,7 +53,7 @@ export default function PartDetail() {
   // Device selected while editing
   const [editDevice, setEditDevice] = useState<AnyDevice | null>(null);
   const [devicePickerOpen, setDevicePickerOpen] = useState(false);
-  const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null);
+  const [linkedParty] = useLinkedParty(part?.donorId);
   const [editParty, setEditParty] = useState<PartySummary | null>(null);
   const [partyPickerOpen, setPartyPickerOpen] = useState(false);
   const [changelog, setChangelog] = useState<PartChangelogEntry[]>([]);
@@ -74,17 +76,6 @@ export default function PartDetail() {
     }
   }, [part?.containedIn]);
 
-  // Fetch donor info whenever the saved part's donorId changes
-  useEffect(() => {
-    if (part?.donorId != null) {
-      getParty(part.donorId)
-        .then(setLinkedParty)
-        .catch(() => setLinkedParty(null));
-    } else {
-      Promise.resolve().then(() => setLinkedParty(null));
-    }
-  }, [part?.donorId]);
-
   useEffect(() => {
     getPartChangelog(numId)
       .then(setChangelog)
@@ -94,38 +85,7 @@ export default function PartDetail() {
   if (loading) return <LoadingSpinner />;
 
   if (!part) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-slate-400"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </div>
-        <div className="text-center">
-          <p className="text-sm font-semibold text-slate-900">Part not found</p>
-          <p className="text-xs text-slate-400 mt-1">
-            No part with ID <span className="font-mono">{id}</span> exists in inventory.
-          </p>
-        </div>
-        <Link
-          to="/parts"
-          className="mt-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
-        >
-          ← Back to Parts
-        </Link>
-      </div>
-    );
+    return <NotFound entity="Part" id={id} backTo="/parts" backLabel="Back to Parts" />;
   }
 
   function startEdit() {
@@ -515,7 +475,11 @@ export default function PartDetail() {
             <ModificationLog
               entries={changelog}
               detailRenderer={(entry, onClose) => (
-                <PartModificationModal entry={entry} onClose={onClose} />
+                <ModificationModal
+                  entry={entry}
+                  fields={buildPartFields(entry)}
+                  onClose={onClose}
+                />
               )}
             />
           </div>

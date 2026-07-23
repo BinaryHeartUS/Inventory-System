@@ -1,64 +1,13 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { getParts, getPartTypeCounts } from "../services/partService";
-import type { PartTypeCountParams } from "../services/partService";
-import type { Part, PartTypeCountResponse } from "../types/inventory";
-import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import React, { useState, useMemo, useEffect } from "react";
+import { getPartTypeCounts } from "../services/partService";
+import type { PartTypeCountResponse } from "../types/inventory";
 import { useLookups } from "../hooks/useLookups";
 import PageHeading from "../components/PageHeading";
-import { PartRow } from "../components/PartRow";
 import AddAssetButton from "../components/AddAssetButton";
 import FilterSelect from "../components/FilterSelect";
 import ChapterFilter from "../components/ChapterFilter";
-
-function ChevronIcon({ expanded }: { expanded: boolean }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="none"
-      className={`transition-transform duration-200 flex-shrink-0 ${expanded ? "rotate-90" : ""}`}
-    >
-      <path
-        d="M6 4l4 4-4 4"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-/**
- * Rows for a single expanded type group. Mounted only while the group is open, so no part
- * rows are fetched until the user actually expands the group. Parts are paged in via infinite
- * scroll scoped to this group (the sentinel is a table row at the bottom of the group's rows).
- */
-function PartTypeRows({ type, filters }: { type: string; filters: PartTypeCountParams }) {
-  const fetchPage = useCallback(
-    (pageKey: number, pageSize: number) => getParts({ ...filters, type, pageKey, pageSize }),
-    [filters, type]
-  );
-  const {
-    items: parts,
-    loading,
-    sentinelRef,
-  } = useInfiniteScroll<Part, HTMLTableRowElement>(fetchPage, [filters, type]);
-
-  return (
-    <>
-      {parts.map((p) => (
-        <PartRow key={p.id} part={p} hideTypeCol />
-      ))}
-      <tr ref={sentinelRef} aria-hidden="true">
-        <td colSpan={6} className="p-0">
-          {loading && <p className="text-center text-sm text-slate-400 py-3">Loading parts…</p>}
-        </td>
-      </tr>
-    </>
-  );
-}
+import { Chevron } from "../components/Chevron";
+import { PartTypeRows } from "../components/PartTypeRows";
 
 export default function Parts() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
@@ -254,7 +203,7 @@ export default function Parts() {
                       >
                         <td colSpan={6} className="px-5 py-3">
                           <div className="flex items-center gap-2.5 text-slate-700">
-                            <ChevronIcon expanded={isExpanded} />
+                            <Chevron expanded={isExpanded} />
                             <span className="font-semibold">{type}</span>
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
                               {count} {count === 1 ? "part" : "parts"}

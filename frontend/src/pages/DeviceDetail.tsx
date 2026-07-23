@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import type {
   AnyDevice,
   DeviceStatus,
@@ -21,34 +21,23 @@ import { useToast } from "../context/ToastContext";
 import { PartRow } from "../components/PartRow";
 import { PartyPickerModal } from "../components/PartyPickerModal";
 import type { PartySummary } from "../types/inventory";
-import { getParty } from "../services/partyService";
+import { useLinkedParty } from "../hooks/useLinkedParty";
 import { Field } from "../components/Field";
 import { EditText, EditSelect, EditCombo } from "../components/EditField";
 import { Section } from "../components/Section";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { NotFound } from "../components/NotFound";
 import AddAssetButton from "../components/AddAssetButton";
 
 import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
-import { DeviceModificationModal } from "../components/DeviceModificationModal";
+import { ModificationModal } from "../components/ModificationModal";
+import { buildDeviceFields } from "../utils/changelogFields";
 import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
 import type { DeviceChangelogEntry } from "../types/changelog";
-
-function BatteryBar({ health }: { health: number | null }) {
-  if (health == null) return <span className="text-slate-300 text-sm">—</span>;
-  const pct = Math.round(health * 100);
-  const color = pct >= 80 ? "bg-slate-500" : pct >= 50 ? "bg-slate-400" : "bg-slate-300";
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-        <div className={`h-2.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-sm font-semibold text-slate-700 tabular-nums w-9 shrink-0">{pct}%</span>
-    </div>
-  );
-}
+import { BatteryBar } from "../components/BatteryBar";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -69,10 +58,10 @@ export default function DeviceDetail() {
   const [printId, setPrintId] = useState<number | null>(null);
   const [linkedParts, setLinkedParts] = useState<Part[]>([]);
   const [showDonateModal, setShowDonateModal] = useState(false);
-  const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null);
+  const [linkedParty, setLinkedParty] = useLinkedParty(device?.donorId);
   const [editParty, setEditParty] = useState<PartySummary | null>(null);
   const [partyPickerOpen, setPartyPickerOpen] = useState(false);
-  const [linkedRecipient, setLinkedRecipient] = useState<PartySummary | null>(null);
+  const [linkedRecipient, setLinkedRecipient] = useLinkedParty(device?.recipientId);
   const [editRecipient, setEditRecipient] = useState<PartySummary | null>(null);
   const [recipientPickerOpen, setRecipientPickerOpen] = useState(false);
   const [changelog, setChangelog] = useState<DeviceChangelogEntry[]>([]);
@@ -98,61 +87,10 @@ export default function DeviceDetail() {
       .catch(() => setChangelog([]));
   }, [numId]);
 
-  useEffect(() => {
-    if (device?.donorId != null) {
-      getParty(device.donorId)
-        .then(setLinkedParty)
-        .catch(() => setLinkedParty(null));
-    } else {
-      Promise.resolve().then(() => setLinkedParty(null));
-    }
-  }, [device?.donorId]);
-
-  useEffect(() => {
-    if (device?.recipientId != null) {
-      getParty(device.recipientId)
-        .then(setLinkedRecipient)
-        .catch(() => setLinkedRecipient(null));
-    } else {
-      Promise.resolve().then(() => setLinkedRecipient(null));
-    }
-  }, [device?.recipientId]);
-
   if (loading) return <LoadingSpinner />;
 
   if (!device) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-slate-400"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </div>
-        <div className="text-center">
-          <p className="text-sm font-semibold text-slate-900">Device not found</p>
-          <p className="text-xs text-slate-400 mt-1">
-            No device with ID <span className="font-mono">{id}</span> exists in inventory.
-          </p>
-        </div>
-        <Link
-          to="/devices"
-          className="mt-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
-        >
-          ← Back to Devices
-        </Link>
-      </div>
-    );
+    return <NotFound entity="Device" id={id} backTo="/devices" backLabel="Back to Devices" />;
   }
 
   function startEdit() {
@@ -807,7 +745,11 @@ export default function DeviceDetail() {
             <ModificationLog
               entries={changelog}
               detailRenderer={(entry, onClose) => (
-                <DeviceModificationModal entry={entry} onClose={onClose} />
+                <ModificationModal
+                  entry={entry}
+                  fields={buildDeviceFields(entry)}
+                  onClose={onClose}
+                />
               )}
             />
           </div>

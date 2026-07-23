@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import type { Tool } from "../types/inventory";
 import NotesPane from "../components/NotesPane";
 import { getTool, updateTool, deleteTool, getToolChangelog } from "../services/toolService";
@@ -9,18 +9,20 @@ import { PrintLabelModal } from "../components/PrintLabelModal";
 import { canPrintLabels } from "../utils/canPrintLabels";
 import { PartyPickerModal } from "../components/PartyPickerModal";
 import type { PartySummary } from "../types/inventory";
-import { getParty } from "../services/partyService";
+import { useLinkedParty } from "../hooks/useLinkedParty";
 import { Field } from "../components/Field";
 import { EditText, EditSelect } from "../components/EditField";
 import { Section } from "../components/Section";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { NotFound } from "../components/NotFound";
 import AddAssetButton from "../components/AddAssetButton";
 import { DeleteConfirmButton } from "../components/DeleteConfirmButton";
 import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
-import { ToolModificationModal } from "../components/ToolModificationModal";
+import { ModificationModal } from "../components/ModificationModal";
+import { buildToolFields } from "../utils/changelogFields";
 import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
 import type { ToolChangelogEntry } from "../types/changelog";
 
@@ -43,7 +45,7 @@ export default function ToolDetail() {
   const [printId, setPrintId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { showToast } = useToast();
-  const [linkedParty, setLinkedParty] = useState<PartySummary | null>(null);
+  const [linkedParty] = useLinkedParty(tool?.donorId);
   const [editParty, setEditParty] = useState<PartySummary | null>(null);
   const [partyPickerOpen, setPartyPickerOpen] = useState(false);
   const [changelog, setChangelog] = useState<ToolChangelogEntry[]>([]);
@@ -58,16 +60,6 @@ export default function ToolDetail() {
   }, [numId]);
 
   useEffect(() => {
-    if (tool?.donorId != null) {
-      getParty(tool.donorId)
-        .then(setLinkedParty)
-        .catch(() => setLinkedParty(null));
-    } else {
-      Promise.resolve().then(() => setLinkedParty(null));
-    }
-  }, [tool?.donorId]);
-
-  useEffect(() => {
     getToolChangelog(numId)
       .then(setChangelog)
       .catch(() => setChangelog([]));
@@ -76,38 +68,7 @@ export default function ToolDetail() {
   if (loading) return <LoadingSpinner />;
 
   if (!tool) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-slate-400"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </div>
-        <div className="text-center">
-          <p className="text-sm font-semibold text-slate-900">Tool not found</p>
-          <p className="text-xs text-slate-400 mt-1">
-            No tool with ID <span className="font-mono">{id}</span> exists in inventory.
-          </p>
-        </div>
-        <Link
-          to="/tools"
-          className="mt-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
-        >
-          ← Back to Tools
-        </Link>
-      </div>
-    );
+    return <NotFound entity="Tool" id={id} backTo="/tools" backLabel="Back to Tools" />;
   }
 
   function startEdit() {
@@ -381,7 +342,11 @@ export default function ToolDetail() {
             <ModificationLog
               entries={changelog}
               detailRenderer={(entry, onClose) => (
-                <ToolModificationModal entry={entry} onClose={onClose} />
+                <ModificationModal
+                  entry={entry}
+                  fields={buildToolFields(entry)}
+                  onClose={onClose}
+                />
               )}
             />
           </div>

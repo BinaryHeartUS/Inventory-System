@@ -8,92 +8,9 @@ import { useToast } from "../context/ToastContext";
 import type { ChapterInventorySummary } from "../types/inventory";
 import PageHeading from "../components/PageHeading";
 import ChapterFilter from "../components/ChapterFilter";
-
-// ─── CSV helpers ──────────────────────────────────────────────────────────────
-
-function escapeCsvCell(value: string | number | null | undefined): string {
-  const s = String(value ?? "");
-  return `"${s.replace(/"/g, '""')}"`;
-}
-
-function downloadCsv(
-  filename: string,
-  header: string[],
-  rows: (string | number | null | undefined)[][]
-) {
-  const lines = [
-    header.map(escapeCsvCell).join(","),
-    ...rows.map((r) => r.map(escapeCsvCell).join(",")),
-  ];
-  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function slugify(s: string) {
-  return s.toLowerCase().replace(/\s+/g, "-");
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function ExportCard({
-  title,
-  icon,
-  description,
-  count,
-  colorText,
-  colorBg,
-  onExport,
-  busy,
-  loading,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  description: string;
-  count: number;
-  colorText: string;
-  colorBg: string;
-  onExport: () => void;
-  busy: boolean;
-  loading: boolean;
-}) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col h-full">
-      <div
-        className={`w-9 h-9 ${colorBg} ${colorText} rounded-lg flex items-center justify-center mb-4 shrink-0`}
-      >
-        {icon}
-      </div>
-      <p className="text-sm font-semibold text-slate-800">{title} Export</p>
-      <p className="text-xs text-slate-400 mt-2 flex-1 leading-relaxed">{description}</p>
-      <button
-        onClick={onExport}
-        disabled={loading || count === 0 || busy}
-        className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors ${
-          !loading && count > 0 && !busy
-            ? `${colorBg} ${colorText} hover:opacity-80`
-            : "bg-slate-100 text-slate-400 cursor-not-allowed"
-        }`}
-      >
-        {loading
-          ? "Loading…"
-          : busy
-            ? "Preparing…"
-            : count > 0
-              ? `Download CSV (${count} rows)`
-              : "No data to export"}
-      </button>
-    </div>
-  );
-}
+import { ExportCard } from "../components/ExportCard";
+import { slugify } from "../utils/csv";
+import * as reportExport from "../services/reportExport";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -202,162 +119,24 @@ export default function Reports() {
   }
 
   async function exportInInventory() {
-    const devices = await loadDevices();
-    const inInventory = devices.filter(
-      (d) =>
-        d.status === "Not Started" || d.status === "In Progress" || d.status === "Ready To Donate"
-    );
-    downloadCsv(
-      `in-inventory-devices-${chapterSlug}-${today()}.csv`,
-      [
-        "ID",
-        "Type",
-        "Manufacturer",
-        "Model",
-        "Year",
-        "CPU",
-        "RAM (GB)",
-        "RAM Generation",
-        "Storage (GB)",
-        "Storage Type",
-        "Status",
-        "Chapter",
-        "Acquisition Date",
-        "Value ($)",
-      ],
-      inInventory.map((d) => [
-        d.id,
-        d.type,
-        d.manufacturer,
-        d.model,
-        d.year,
-        d.cpu,
-        d.ram,
-        d.ramGeneration,
-        d.storage,
-        d.storageType,
-        d.status,
-        d.chapter,
-        d.acquisitionDate,
-        d.value,
-      ])
-    );
+    reportExport.exportInInventoryDevices(await loadDevices(), chapterSlug);
   }
 
   async function exportParts() {
-    const parts = await loadParts();
-    downloadCsv(
-      `parts-${chapterSlug}-${today()}.csv`,
-      [
-        "ID",
-        "Type",
-        "Description",
-        "Chapter",
-        "Source",
-        "Contained In Device",
-        "Acquisition Date",
-        "Value ($)",
-      ],
-      parts.map((p) => [
-        p.id,
-        p.type,
-        p.description,
-        chapterName(p.chapterId),
-        p.wasPurchased ? "Purchased" : "Donated",
-        p.containedIn,
-        p.acquisitionDate,
-        p.value,
-      ])
-    );
+    reportExport.exportParts(await loadParts(), chapterSlug, chapterName);
   }
 
   async function exportTools() {
-    const tools = await loadTools();
-    downloadCsv(
-      `tools-${chapterSlug}-${today()}.csv`,
-      ["ID", "Description", "Chapter ID", "Acquisition Date", "Value ($)"],
-      tools.map((t) => [t.id, t.description, t.chapterId, t.acquisitionDate, t.value])
-    );
+    reportExport.exportTools(await loadTools(), chapterSlug);
   }
 
   async function exportDonated() {
-    const devices = await loadDevices();
-    const donated = devices.filter((d) => d.status === "Donated");
-    downloadCsv(
-      `donated-devices-${chapterSlug}-${today()}.csv`,
-      [
-        "ID",
-        "Type",
-        "Manufacturer",
-        "Model",
-        "Year",
-        "CPU",
-        "RAM (GB)",
-        "Storage (GB)",
-        "Storage Type",
-        "Chapter",
-        "Acquisition Date",
-      ],
-      donated.map((d) => [
-        d.id,
-        d.type,
-        d.manufacturer,
-        d.model,
-        d.year,
-        d.cpu,
-        d.ram,
-        d.storage,
-        d.storageType,
-        d.chapter,
-        d.acquisitionDate,
-      ])
-    );
+    reportExport.exportDonatedDevices(await loadDevices(), chapterSlug);
   }
 
   async function exportValuation() {
     const [devices, parts, tools] = await Promise.all([loadDevices(), loadParts(), loadTools()]);
-    const deviceRows = devices
-      .filter((d) => d.value != null)
-      .map(
-        (d) =>
-          [
-            "Device",
-            d.id,
-            `${d.manufacturer ?? ""} ${d.model ?? ""}`.trim(),
-            d.chapter,
-            d.acquisitionDate,
-            d.value,
-          ] as (string | number | null | undefined)[]
-      );
-    const partRows = parts
-      .filter((p) => p.value != null)
-      .map(
-        (p) =>
-          [
-            "Part",
-            p.id,
-            p.description || p.type,
-            chapterName(p.chapterId),
-            p.acquisitionDate,
-            p.value,
-          ] as (string | number | null | undefined)[]
-      );
-    const toolRows = tools
-      .filter((t) => t.value != null)
-      .map(
-        (t) =>
-          ["Tool", t.id, t.description, chapterName(t.chapterId), t.acquisitionDate, t.value] as (
-            | string
-            | number
-            | null
-            | undefined
-          )[]
-      );
-    downloadCsv(
-      `inventory-valuation-${chapterSlug}-${today()}.csv`,
-      ["Category", "ID", "Description", "Chapter", "Acquisition Date", "Value ($)"],
-      [...deviceRows, ...partRows, ...toolRows]
-    );
+    reportExport.exportValuation(devices, parts, tools, chapterSlug, chapterName);
   }
 
   return (

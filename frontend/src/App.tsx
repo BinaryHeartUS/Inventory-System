@@ -34,6 +34,7 @@ import { getTool, createTool } from "./services/toolService";
 import { AddAssetModal } from "./components/AddAssetModal";
 import { PrintLabelModal } from "./components/PrintLabelModal";
 import { canPrintLabels } from "./utils/canPrintLabels";
+import { canManageAccounts } from "./utils/roles";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ChapterProvider, useIsNationalAdmin } from "./context/ChapterContext";
@@ -300,7 +301,7 @@ const adminNavItems = [
 function SidebarContent() {
   const { auth } = useAuth();
   const isNationalAdmin = useIsNationalAdmin();
-  const canManageAccounts = auth?.role === "Admin" || auth?.role === "Chapter Admin";
+  const canManage = canManageAccounts(auth?.role);
   return (
     <>
       <div className="px-6 pt-8 pb-7">
@@ -341,7 +342,7 @@ function SidebarContent() {
             )}
           </NavLink>
         ))}
-        {canManageAccounts && (
+        {canManage && (
           <>
             <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest px-3 mb-2 mt-6 pt-4 border-t border-slate-100">
               Administrator

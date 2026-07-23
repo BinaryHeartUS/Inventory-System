@@ -1,62 +1,16 @@
-import type { PartChangelogEntry } from "../types/changelog";
-import { formatDate } from "../utils/dateUtils";
+import type { BaseChangelogEntry, ChangelogFieldDef } from "../types/changelog";
+import { formatDate } from "../utils/format";
 
-function fmtText(v: string | null | undefined): string | null {
-  return v ?? null;
-}
-function fmtDate(v: string | null | undefined): string | null {
-  return formatDate(v ?? null);
-}
-function fmtMoney(v: number | null | undefined): string | null {
-  return v != null ? `$${v.toFixed(2)}` : null;
-}
-function fmtBool(v: boolean | null | undefined): string | null {
-  return v != null ? (v ? "Yes" : "No") : null;
-}
-function fmtId(v: number | null | undefined): string | null {
-  return v != null ? `#${v}` : null;
-}
+// ─── Internal presentational sub-views ────────────────────────────────────────
 
-interface FieldDef {
-  label: string;
-  old: string | null;
-  new: string | null;
-}
-
-function buildFields(entry: PartChangelogEntry): FieldDef[] {
-  return [
-    { label: "Type", old: fmtText(entry.oldType), new: fmtText(entry.newType) },
-    {
-      label: "Description",
-      old: fmtText(entry.oldDescription),
-      new: fmtText(entry.newDescription),
-    },
-    {
-      label: "Was Purchased",
-      old: fmtBool(entry.oldWasPurchased),
-      new: fmtBool(entry.newWasPurchased),
-    },
-    { label: "Contained In", old: fmtId(entry.oldContainedIn), new: fmtId(entry.newContainedIn) },
-    {
-      label: "Acquisition Date",
-      old: fmtDate(entry.oldAcquisitionDate),
-      new: fmtDate(entry.newAcquisitionDate),
-    },
-    { label: "Value", old: fmtMoney(entry.oldValue), new: fmtMoney(entry.newValue) },
-    {
-      label: "Chapter ID",
-      old: fmtId(entry.oldChapterID ?? undefined),
-      new: fmtId(entry.newChapterID ?? undefined),
-    },
-    {
-      label: "Donor ID",
-      old: fmtId(entry.oldDonorID ?? undefined),
-      new: fmtId(entry.newDonorID ?? undefined),
-    },
-  ];
-}
-
-function SnapshotView({ fields, valueKey }: { fields: FieldDef[]; valueKey: "old" | "new" }) {
+/** Renders a flat snapshot of every populated field (used for Insert/Delete). */
+function SnapshotView({
+  fields,
+  valueKey,
+}: {
+  fields: ChangelogFieldDef[];
+  valueKey: "old" | "new";
+}) {
   const visible = fields.filter((f) => f[valueKey] != null);
   if (visible.length === 0)
     return <p className="text-sm text-slate-400">No field data recorded.</p>;
@@ -74,7 +28,8 @@ function SnapshotView({ fields, valueKey }: { fields: FieldDef[]; valueKey: "old
   );
 }
 
-function DiffView({ fields }: { fields: FieldDef[] }) {
+/** Renders only the fields whose value changed, side by side (used for Update). */
+function DiffView({ fields }: { fields: ChangelogFieldDef[] }) {
   const changed = fields.filter((f) => f.old !== f.new);
   if (changed.length === 0)
     return <p className="text-sm text-slate-400">No tracked field changes recorded.</p>;
@@ -104,14 +59,23 @@ function DiffView({ fields }: { fields: FieldDef[] }) {
   );
 }
 
-export function PartModificationModal({
+// ─── Modal ────────────────────────────────────────────────────────────────────
+
+/**
+ * Generic changelog "Change Details" modal. It is fully presentational: pass any
+ * changelog entry plus the pre-built list of before/after fields for that entity
+ * type (see utils/changelogFields.ts). Insert/Delete render a snapshot; Update
+ * (and anything else) renders a diff.
+ */
+export function ModificationModal({
   entry,
+  fields,
   onClose,
 }: {
-  entry: PartChangelogEntry;
+  entry: BaseChangelogEntry;
+  fields: ChangelogFieldDef[];
   onClose: () => void;
 }) {
-  const fields = buildFields(entry);
   const changeType = entry.changeType ?? "";
 
   return (
@@ -152,10 +116,11 @@ export function PartModificationModal({
         </div>
 
         <div className="px-6 py-5 overflow-y-auto">
-          {changeType === "Insert" && <SnapshotView fields={fields} valueKey="new" />}
-          {changeType === "Delete" && <SnapshotView fields={fields} valueKey="old" />}
-          {changeType === "Update" && <DiffView fields={fields} />}
-          {changeType !== "Insert" && changeType !== "Delete" && changeType !== "Update" && (
+          {changeType === "Insert" ? (
+            <SnapshotView fields={fields} valueKey="new" />
+          ) : changeType === "Delete" ? (
+            <SnapshotView fields={fields} valueKey="old" />
+          ) : (
             <DiffView fields={fields} />
           )}
         </div>

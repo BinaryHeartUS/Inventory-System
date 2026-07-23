@@ -14,404 +14,13 @@ import type {
   Part,
   Tool,
 } from "../types/inventory";
-import StatusBadge from "../components/StatusBadge";
-import type { DeviceStatus } from "../types/inventory";
-import { generateDonationReceipt, buildDescription } from "../utils/generateDonationReceipt";
 import { Field } from "../components/Field";
-import { formatDate } from "../utils/dateUtils";
-import { inputCls, labelCls } from "../utils/formStyles";
-
-// ─── Receipt item type ────────────────────────────────────────────────────────
-interface ReceiptItem {
-  id: number;
-  label: string;
-  year?: number | string | null;
-  value: number | null;
-}
-
-// ─── Donation Receipt Modal ───────────────────────────────────────────────────
-function DonationReceiptModal({
-  donorName,
-  items,
-  onClose,
-}: {
-  donorName: string;
-  items: ReceiptItem[];
-  onClose: () => void;
-}) {
-  const today = new Date().toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  });
-  const autoValue = items.reduce((sum, i) => sum + (i.value ?? 0), 0);
-  const [donationDate, setDonationDate] = useState("");
-  const [value, setValue] = useState(autoValue > 0 ? `$${autoValue}` : "");
-  const [repName, setRepName] = useState("");
-  const [repTitle, setRepTitle] = useState("");
-  const [generating, setGenerating] = useState(false);
-
-  async function handleGenerate() {
-    setGenerating(true);
-    const description = buildDescription(items.map((i) => ({ label: i.label, year: i.year })));
-    await generateDonationReceipt({
-      donorName,
-      donationDate: donationDate || today,
-      value: value || "—",
-      description,
-      repName,
-      repTitle,
-    });
-    setGenerating(false);
-    onClose();
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col">
-        <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-slate-900">Generate Donation Receipt</h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {items.length} item{items.length !== 1 ? "s" : ""} selected · donor: {donorName}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="ml-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-        <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[70vh]">
-          <div>
-            <p className={labelCls}>Donation Description (auto-generated)</p>
-            <p className="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
-              {buildDescription(items.map((i) => ({ label: i.label, year: i.year })))}
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Donation Date</label>
-              <input
-                type="text"
-                value={donationDate}
-                onChange={(e) => setDonationDate(e.target.value)}
-                placeholder={today}
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className={labelCls}>Donation Value</label>
-              <input
-                type="text"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="e.g. $7800"
-                className={inputCls}
-              />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>
-              Representative Name <span className="text-red-400">*</span>
-            </label>
-            <input
-              value={repName}
-              onChange={(e) => setRepName(e.target.value)}
-              placeholder="Full name"
-              maxLength={80}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>
-              Representative Title <span className="text-red-400">*</span>
-            </label>
-            <input
-              value={repTitle}
-              onChange={(e) => setRepTitle(e.target.value)}
-              placeholder="e.g. Director of Technology"
-              maxLength={80}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Date of Receipt</label>
-            <p className="text-sm text-slate-600 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
-              {today} (today)
-            </p>
-          </div>
-        </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="text-sm font-medium text-slate-600 hover:text-slate-800 px-4 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleGenerate}
-            disabled={!repName.trim() || !repTitle.trim() || generating}
-            className="flex items-center gap-2 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue/90 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors"
-          >
-            {generating ? (
-              <svg
-                className="animate-spin"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-              </svg>
-            ) : (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            )}
-            {generating ? "Generating…" : "Download PDF"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Section wrapper ──────────────────────────────────────────────────────────
-function Section({
-  title,
-  icon,
-  count,
-  children,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  count?: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2.5">
-        <span className="text-slate-500">{icon}</span>
-        <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
-        {count !== undefined && (
-          <span className="ml-1 text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-            {count}
-          </span>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// ─── Selectable donated asset table ──────────────────────────────────────────
-type DonatedRow = {
-  id: number;
-  label: string;
-  year?: number | string | null;
-  detail: string;
-  value: number | null;
-  acquired: string | null;
-};
-
-function DonatedTable({
-  rows,
-  basePath,
-  emptyMessage,
-  selectMode,
-  selected,
-  onToggle,
-  onToggleAll,
-}: {
-  rows: DonatedRow[];
-  basePath: string;
-  emptyMessage: string;
-  selectMode: boolean;
-  selected: Set<number>;
-  onToggle: (id: number) => void;
-  onToggleAll: (ids: number[]) => void;
-}) {
-  if (rows.length === 0)
-    return <p className="px-6 py-10 text-center text-sm text-slate-400">{emptyMessage}</p>;
-  const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
-  return (
-    <div className="overflow-x-auto">
-      <table className="responsive-cards w-full text-sm">
-        <thead>
-          <tr className="bg-slate-50 border-b border-slate-100">
-            {selectMode && (
-              <th className="px-5 py-3 w-10">
-                <input
-                  type="checkbox"
-                  checked={allChecked}
-                  onChange={() => onToggleAll(rows.map((r) => r.id))}
-                  className="rounded border-slate-300 text-heart-blue cursor-pointer"
-                />
-              </th>
-            )}
-            {["ID", "Asset", "Acquired", ""].map((h) => (
-              <th
-                key={h}
-                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap"
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.map((row) => (
-            <tr
-              key={row.id}
-              className={`transition-colors ${selectMode && selected.has(row.id) ? "bg-blue-50/40" : "hover:bg-slate-50"}`}
-            >
-              {selectMode && (
-                <td className="px-5 py-3" data-label="Select">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(row.id)}
-                    onChange={() => onToggle(row.id)}
-                    className="rounded border-slate-300 text-heart-blue cursor-pointer"
-                  />
-                </td>
-              )}
-              <td className="px-5 py-3 font-mono text-xs text-slate-400" data-label="ID">
-                #{row.id}
-              </td>
-              <td className="px-5 py-3 text-slate-800" data-label="Asset">
-                {row.label}
-                {row.detail && <span className="ml-1.5 text-slate-400 text-xs">{row.detail}</span>}
-              </td>
-              <td className="px-5 py-3 text-slate-500 whitespace-nowrap" data-label="Acquired">
-                {formatDate(row.acquired) ?? "—"}
-              </td>
-              <td className="px-5 py-3 text-right" data-label="">
-                <Link
-                  to={`${basePath}/${row.id}`}
-                  className="text-xs font-medium text-heart-blue hover:underline whitespace-nowrap"
-                >
-                  View →
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ─── Read-only asset table (received devices) ─────────────────────────────────
-type AssetRow = {
-  id: number;
-  label: string;
-  detail: string;
-  status?: string;
-  chapter?: string;
-  acquired: string | null;
-};
-
-function AssetTable({
-  rows,
-  basePath,
-  emptyMessage,
-}: {
-  rows: AssetRow[];
-  basePath: string;
-  emptyMessage: string;
-}) {
-  if (rows.length === 0)
-    return <p className="px-6 py-10 text-center text-sm text-slate-400">{emptyMessage}</p>;
-  return (
-    <div className="overflow-x-auto">
-      <table className="responsive-cards w-full text-sm">
-        <thead>
-          <tr className="bg-slate-50 border-b border-slate-100">
-            {[
-              "ID",
-              "Asset",
-              ...(rows[0].status !== undefined ? ["Status"] : []),
-              ...(rows[0].chapter !== undefined ? ["Chapter"] : []),
-              "Acquired",
-              "",
-            ].map((h) => (
-              <th
-                key={h}
-                className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap"
-              >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.map((row) => (
-            <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-              <td className="px-5 py-3 font-mono text-xs text-slate-400" data-label="ID">
-                #{row.id}
-              </td>
-              <td className="px-5 py-3 text-slate-800" data-label="Asset">
-                {row.label}
-                {row.detail && <span className="ml-1.5 text-slate-400 text-xs">{row.detail}</span>}
-              </td>
-              {row.status !== undefined && (
-                <td className="px-5 py-3" data-label="Status">
-                  <StatusBadge status={row.status as DeviceStatus} />
-                </td>
-              )}
-              {row.chapter !== undefined && (
-                <td className="px-5 py-3 text-slate-500 whitespace-nowrap" data-label="Chapter">
-                  {row.chapter ?? "—"}
-                </td>
-              )}
-              <td className="px-5 py-3 text-slate-500 whitespace-nowrap" data-label="Acquired">
-                {formatDate(row.acquired) ?? "—"}
-              </td>
-              <td className="px-5 py-3 text-right" data-label="">
-                <Link
-                  to={`${basePath}/${row.id}`}
-                  className="text-xs font-medium text-heart-blue hover:underline whitespace-nowrap"
-                >
-                  View →
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+import { canManageAccounts } from "../utils/roles";
+import { DonationReceiptModal, type ReceiptItem } from "../components/DonationReceiptModal";
+import { SectionCard } from "../components/SectionCard";
+import { DonatedTable } from "../components/DonatedTable";
+import { AssetTable } from "../components/AssetTable";
+import { Chevron } from "../components/Chevron";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function PartyDetailPage() {
@@ -419,7 +28,7 @@ export default function PartyDetailPage() {
   const numId = Number(id);
   const navigate = useNavigate();
   const { auth } = useAuth();
-  const isAdmin = auth?.role === "Admin" || auth?.role === "Chapter Admin";
+  const isAdmin = canManageAccounts(auth?.role);
 
   const [party, setParty] = useState<PartyDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -754,21 +363,7 @@ export default function PartyDetailPage() {
             onClick={() => setDonatedOpen((o) => !o)}
             className="w-full flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              className={`transition-transform duration-200 flex-shrink-0 ${donatedOpen ? "rotate-90" : ""}`}
-            >
-              <path
-                d="M6 4l4 4-4 4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <Chevron expanded={donatedOpen} />
             Donated
             <span className="ml-1 text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
               {donatedDevices.length + donatedParts.length + donatedTools.length}
@@ -778,7 +373,7 @@ export default function PartyDetailPage() {
           {donatedOpen && (
             <div className="space-y-3">
               {/* Donated devices */}
-              <Section title="Donated Devices" count={donatedDevices.length} icon={deviceIcon}>
+              <SectionCard title="Donated Devices" count={donatedDevices.length} icon={deviceIcon}>
                 <DonatedTable
                   rows={donatedDevices.map((d) => ({
                     id: d.id,
@@ -795,10 +390,10 @@ export default function PartyDetailPage() {
                   onToggle={toggle}
                   onToggleAll={toggleAll}
                 />
-              </Section>
+              </SectionCard>
 
               {/* Donated parts */}
-              <Section title="Donated Parts" count={donatedParts.length} icon={partIcon}>
+              <SectionCard title="Donated Parts" count={donatedParts.length} icon={partIcon}>
                 <DonatedTable
                   rows={donatedParts.map((p) => ({
                     id: p.id,
@@ -815,10 +410,10 @@ export default function PartyDetailPage() {
                   onToggle={toggle}
                   onToggleAll={toggleAll}
                 />
-              </Section>
+              </SectionCard>
 
               {/* Donated tools */}
-              <Section title="Donated Tools" count={donatedTools.length} icon={toolIcon}>
+              <SectionCard title="Donated Tools" count={donatedTools.length} icon={toolIcon}>
                 <DonatedTable
                   rows={donatedTools.map((t) => ({
                     id: t.id,
@@ -835,7 +430,7 @@ export default function PartyDetailPage() {
                   onToggle={toggle}
                   onToggleAll={toggleAll}
                 />
-              </Section>
+              </SectionCard>
             </div>
           )}
         </div>
@@ -846,21 +441,7 @@ export default function PartyDetailPage() {
             onClick={() => setReceivedOpen((o) => !o)}
             className="w-full flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              className={`transition-transform duration-200 flex-shrink-0 ${receivedOpen ? "rotate-90" : ""}`}
-            >
-              <path
-                d="M6 4l4 4-4 4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <Chevron expanded={receivedOpen} />
             Received
             <span className="ml-1 text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
               {receivedDevices.length}
@@ -870,7 +451,11 @@ export default function PartyDetailPage() {
           {receivedOpen && (
             <div className="space-y-3">
               {/* Received devices */}
-              <Section title="Received Devices" count={receivedDevices.length} icon={receiveIcon}>
+              <SectionCard
+                title="Received Devices"
+                count={receivedDevices.length}
+                icon={receiveIcon}
+              >
                 <AssetTable
                   rows={receivedDevices.map((d) => ({
                     id: d.id,
@@ -883,7 +468,7 @@ export default function PartyDetailPage() {
                   basePath="/devices"
                   emptyMessage="No received devices."
                 />
-              </Section>
+              </SectionCard>
             </div>
           )}
         </div>
