@@ -323,21 +323,27 @@ export default function Devices() {
           sortDir={sortDir}
           onSort={handleSort}
           emptyMessage={
-            <>
-              No devices match the current filters.{" "}
-              {hasFilters && (
-                <button onClick={clearFilters} className="text-brand-red hover:underline">
-                  Clear filters
-                </button>
-              )}
-            </>
+            loading ? (
+              "Loading devices…"
+            ) : (
+              <>
+                No devices match the current filters.{" "}
+                {hasFilters && (
+                  <button onClick={clearFilters} className="text-brand-red hover:underline">
+                    Clear filters
+                  </button>
+                )}
+              </>
+            )
           }
         />
       </div>
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="h-1" aria-hidden="true" />
-      {loading && <p className="text-center text-sm text-slate-400 py-4">Loading more devices…</p>}
+      {loading && devices.length > 0 && (
+        <p className="text-center text-sm text-slate-400 py-4">Loading more devices…</p>
+      )}
     </div>
   );
 }

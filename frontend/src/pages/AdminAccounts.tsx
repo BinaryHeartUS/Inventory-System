@@ -342,6 +342,7 @@ export default function AdminAccounts() {
 
   // ── Account list ────────────────────────────────────────────────────────────
   const [accounts, setAccounts] = useState<AccountSummary[]>([]);
+  const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -358,6 +359,8 @@ export default function AdminAccounts() {
         }
       } catch (e) {
         if (!cancelled) setListError(e instanceof Error ? e.message : "Failed to load accounts");
+      } finally {
+        if (!cancelled) setAccountsLoaded(true);
       }
     }
     reloadRef.current = fetch;
@@ -626,7 +629,9 @@ export default function AdminAccounts() {
       {/* Account list */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         {listError && <p className="text-sm text-red-600 px-6 py-4">{listError}</p>}
-        {accounts.length === 0 && !listError ? (
+        {!accountsLoaded && !listError ? (
+          <p className="text-sm text-slate-400 px-6 py-8 text-center">Loading accounts…</p>
+        ) : accounts.length === 0 && !listError ? (
           <p className="text-sm text-slate-400 px-6 py-8 text-center">No accounts found</p>
         ) : (
           <table className="responsive-cards w-full text-sm">

@@ -19,6 +19,7 @@ export default function Search() {
   const [deviceResults, setDeviceResults] = useState<AnyDevice[]>([]);
   const [partResults, setPartResults] = useState<Part[]>([]);
   const [toolResults, setToolResults] = useState<Tool[]>([]);
+  const [searching, setSearching] = useState(false);
   const { chapterName } = useChapters();
 
   const q = query.trim();
@@ -26,6 +27,10 @@ export default function Search() {
   // Server-side search across devices, parts and tools (debounced). Empty query clears results.
   useEffect(() => {
     let cancelled = false;
+    // Reflect the pending search immediately so the UI shows "Searching…" while the
+    // debounce timer and the request are in flight (instead of flashing "No results").
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
+    setSearching(!!q);
     const timer = setTimeout(() => {
       if (!q) {
         setDeviceResults([]);
@@ -61,6 +66,7 @@ export default function Search() {
         setDeviceResults(d);
         setPartResults(p);
         setToolResults(t);
+        setSearching(false);
       });
     }, 200);
     return () => {
@@ -127,17 +133,27 @@ export default function Search() {
           Start typing to search across all inventory
         </p>
       )}
-      {q && total === 0 && (
+      {q && searching && <p className="text-slate-400 text-sm text-center py-16">Searching…</p>}
+      {q && !searching && total === 0 && (
         <p className="text-slate-400 text-sm text-center py-16">
           No results for "<span className="text-slate-600">{query}</span>"
         </p>
       )}
 
       {/* Results summary */}
-      {q && total > 0 && (
+      {q && !searching && total > 0 && (
         <p className="text-xs text-slate-400">
           {total} result{total !== 1 ? "s" : ""} for "
           <span className="text-slate-600 font-medium">{query}</span>"
+          {(deviceResults.length === SEARCH_RESULT_CAP ||
+            partResults.length === SEARCH_RESULT_CAP ||
+            toolResults.length === SEARCH_RESULT_CAP) && (
+            <span className="text-slate-300">
+              {" "}
+              — showing the first {SEARCH_RESULT_CAP} of each type; refine your search to narrow
+              results
+            </span>
+          )}
         </p>
       )}
 

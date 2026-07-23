@@ -67,6 +67,7 @@ const LOOKUP_SECTIONS: LookupSection[] = [
 
 function LookupEditor({ section }: { section: LookupSection }) {
   const [values, setValues] = useState<string[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -74,7 +75,8 @@ function LookupEditor({ section }: { section: LookupSection }) {
   useEffect(() => {
     getAllLookups()
       .then((data) => setValues(data[section.key] ?? []))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, [section.key]);
 
   async function add() {
@@ -118,35 +120,41 @@ function LookupEditor({ section }: { section: LookupSection }) {
 
       {/* Current values */}
       <div className="flex flex-wrap gap-2 mb-4 min-h-[2rem]">
-        {values.map((v) => (
-          <span
-            key={v}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium"
-          >
-            {v}
-            <button
-              onClick={() => remove(v)}
-              className="text-slate-400 hover:text-red-500 transition-colors leading-none"
-              aria-label={`Remove ${v}`}
-            >
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+        {!loaded ? (
+          <span className="text-xs text-slate-300 italic">Loading options…</span>
+        ) : (
+          <>
+            {values.map((v) => (
+              <span
+                key={v}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-medium"
               >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </span>
-        ))}
-        {values.length === 0 && (
-          <span className="text-xs text-slate-300 italic">No values — add one below</span>
+                {v}
+                <button
+                  onClick={() => remove(v)}
+                  className="text-slate-400 hover:text-red-500 transition-colors leading-none"
+                  aria-label={`Remove ${v}`}
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+            {values.length === 0 && (
+              <span className="text-xs text-slate-300 italic">No values — add one below</span>
+            )}
+          </>
         )}
       </div>
 

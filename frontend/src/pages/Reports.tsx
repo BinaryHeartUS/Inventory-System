@@ -53,6 +53,7 @@ function ExportCard({
   colorBg,
   onExport,
   busy,
+  loading,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -62,6 +63,7 @@ function ExportCard({
   colorBg: string;
   onExport: () => void;
   busy: boolean;
+  loading: boolean;
 }) {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col h-full">
@@ -74,14 +76,20 @@ function ExportCard({
       <p className="text-xs text-slate-400 mt-2 flex-1 leading-relaxed">{description}</p>
       <button
         onClick={onExport}
-        disabled={count === 0 || busy}
+        disabled={loading || count === 0 || busy}
         className={`mt-4 w-full py-2 rounded-lg text-xs font-semibold transition-colors ${
-          count > 0 && !busy
+          !loading && count > 0 && !busy
             ? `${colorBg} ${colorText} hover:opacity-80`
             : "bg-slate-100 text-slate-400 cursor-not-allowed"
         }`}
       >
-        {busy ? "Preparing…" : count > 0 ? `Download CSV (${count} rows)` : "No data to export"}
+        {loading
+          ? "Loading…"
+          : busy
+            ? "Preparing…"
+            : count > 0
+              ? `Download CSV (${count} rows)`
+              : "No data to export"}
       </button>
     </div>
   );
@@ -91,6 +99,7 @@ function ExportCard({
 
 export default function Reports() {
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
+  const [summaryLoaded, setSummaryLoaded] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<number | "All">("All");
   const [busyExport, setBusyExport] = useState<string | null>(null);
   const visibleChapters = useVisibleChapters();
@@ -108,7 +117,10 @@ export default function Reports() {
   useEffect(() => {
     let cancelled = false;
     getChapterInventorySummary().then((s) => {
-      if (!cancelled) setSummary(s);
+      if (!cancelled) {
+        setSummary(s);
+        setSummaryLoaded(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -376,7 +388,9 @@ export default function Reports() {
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
                 {label}
               </p>
-              <p className={`text-2xl font-extrabold leading-none ${color}`}>{value}</p>
+              <p className={`text-2xl font-extrabold leading-none ${color}`}>
+                {summaryLoaded ? value : <span className="text-slate-300">—</span>}
+              </p>
             </div>
           ))}
         </div>
@@ -396,6 +410,7 @@ export default function Reports() {
             colorBg="bg-amber-50"
             onExport={() => runExport("pipeline", exportInInventory)}
             busy={busyExport === "pipeline"}
+            loading={!summaryLoaded}
             icon={
               <svg
                 width="15"
@@ -421,6 +436,7 @@ export default function Reports() {
             colorBg="bg-sky-50"
             onExport={() => runExport("donated", exportDonated)}
             busy={busyExport === "donated"}
+            loading={!summaryLoaded}
             icon={
               <svg
                 width="15"
@@ -449,6 +465,7 @@ export default function Reports() {
             colorBg="bg-emerald-50"
             onExport={() => runExport("parts", exportParts)}
             busy={busyExport === "parts"}
+            loading={!summaryLoaded}
             icon={
               <svg
                 width="15"
@@ -474,6 +491,7 @@ export default function Reports() {
             colorBg="bg-rose-50"
             onExport={() => runExport("tools", exportTools)}
             busy={busyExport === "tools"}
+            loading={!summaryLoaded}
             icon={
               <svg
                 width="15"
@@ -498,6 +516,7 @@ export default function Reports() {
             colorBg="bg-violet-50"
             onExport={() => runExport("valuation", exportValuation)}
             busy={busyExport === "valuation"}
+            loading={!summaryLoaded}
             icon={
               <svg
                 width="15"

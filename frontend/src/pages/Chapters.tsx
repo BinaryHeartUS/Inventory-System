@@ -11,6 +11,7 @@ export default function Chapters() {
   const { refreshChapters } = useChapters();
   const isNationalAdmin = useIsNationalAdmin();
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
+  const [summaryLoaded, setSummaryLoaded] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [newName, setNewName] = useState("");
@@ -19,7 +20,10 @@ export default function Chapters() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
-    getChapterInventorySummary().then(setSummary);
+    getChapterInventorySummary().then((s) => {
+      setSummary(s);
+      setSummaryLoaded(true);
+    });
   }, []);
 
   const summaryByChapter = useMemo(() => new Map(summary.map((s) => [s.chapterId, s])), [summary]);
@@ -145,51 +149,53 @@ export default function Chapters() {
                   <td className="px-6 py-5">
                     <p className="font-semibold text-slate-900 text-base">{ch.name}</p>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {desktop}D · {laptop}L · {tablet}T
+                      {summaryLoaded ? `${desktop}D · ${laptop}L · ${tablet}T` : "—"}
                     </p>
                   </td>
                   <td className="px-4 py-5 text-right" data-label="Total">
-                    <span className="text-base font-bold text-slate-900">{total}</span>
+                    <span className="text-base font-bold text-slate-900">
+                      {summaryLoaded ? total : <span className="text-slate-300">—</span>}
+                    </span>
                   </td>
                   <td className="px-4 py-5 text-right" data-label="Pipeline">
                     <span
                       className={`text-base font-semibold ${pipeline > 0 ? "text-amber-600" : "text-slate-300"}`}
                     >
-                      {pipeline}
+                      {summaryLoaded ? pipeline : "—"}
                     </span>
                   </td>
                   <td className="px-4 py-5 text-right" data-label="Ready">
                     <span
                       className={`text-base font-semibold ${ready > 0 ? "text-green-600" : "text-slate-300"}`}
                     >
-                      {ready}
+                      {summaryLoaded ? ready : "—"}
                     </span>
                   </td>
                   <td className="px-4 py-5 text-right" data-label="Donated">
                     <span
                       className={`text-base font-semibold ${donated > 0 ? "text-sky-600" : "text-slate-300"}`}
                     >
-                      {donated}
+                      {summaryLoaded ? donated : "—"}
                     </span>
                   </td>
                   <td className="px-4 py-5 text-right" data-label="Scrapped">
                     <span
                       className={`text-base font-semibold ${scrapped > 0 ? "text-red-500" : "text-slate-300"}`}
                     >
-                      {scrapped}
+                      {summaryLoaded ? scrapped : "—"}
                     </span>
                   </td>
                   <td
                     className="px-4 py-5 text-right text-slate-500 font-medium"
                     data-label="Parts"
                   >
-                    {partsCount}
+                    {summaryLoaded ? partsCount : <span className="text-slate-300">—</span>}
                   </td>
                   <td
                     className="px-4 py-5 text-right text-slate-500 font-medium"
                     data-label="Tools"
                   >
-                    {toolsCount}
+                    {summaryLoaded ? toolsCount : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-4 py-5 text-right" data-label="">
                     <div className="flex items-center justify-end gap-4">
@@ -202,7 +208,7 @@ export default function Chapters() {
                       {isNationalAdmin && !isNational && (
                         <button
                           onClick={() => handleDelete(ch.id, ch.name)}
-                          disabled={!isEmpty || deletingId === ch.id}
+                          disabled={!summaryLoaded || !isEmpty || deletingId === ch.id}
                           title={deleteTitle}
                           className="text-slate-300 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
