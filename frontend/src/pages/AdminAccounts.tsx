@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, Fragment } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useChapters } from "../context/ChapterContext";
 import { useVisibleChapters } from "../context/ChapterContext";
@@ -12,6 +12,13 @@ import {
   removeAccountRole,
 } from "../services/accountService";
 import type { AccountSummary } from "../types/inventory";
+
+const ROLE_RANK: Record<string, number> = {
+  Admin: 3,
+  "Chapter Admin": 2,
+  Editor: 1,
+  Viewer: 0,
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -345,6 +352,16 @@ export default function AdminAccounts() {
   const [accountsLoaded, setAccountsLoaded] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedChapters, setExpandedChapters] = useState<Set<number>>(new Set());
+
+  function toggleChapter(id: number) {
+    setExpandedChapters((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const reloadRef = useRef<() => void>(() => {});
 
@@ -395,6 +412,44 @@ export default function AdminAccounts() {
           (cr) => cr.chapterId === c.id && cr.role === "Chapter Admin"
         )
       );
+
+  const groups = useMemo(() => {
+    function primaryChapterId(account: AccountSummary): number | null {
+      const roles = account.chapterRoles;
+      if (roles.length === 0) return null;
+      const maxRank = Math.max(...roles.map((r) => ROLE_RANK[r.role] ?? -1));
+      const tied = roles.filter((r) => (ROLE_RANK[r.role] ?? -1) === maxRank);
+      const national = tied.find((r) => r.chapterId === nationalChapterId);
+      if (national) return national.chapterId;
+      return [...tied].sort((a, b) =>
+        chapterName(a.chapterId).localeCompare(chapterName(b.chapterId))
+      )[0].chapterId;
+    }
+
+    const byChapter = new Map<number, AccountSummary[]>();
+    for (const account of accounts) {
+      const pid = primaryChapterId(account) ?? -1; // -1 = no chapter access
+      const bucket = byChapter.get(pid);
+      if (bucket) bucket.push(account);
+      else byChapter.set(pid, [account]);
+    }
+
+    return Array.from(byChapter.entries())
+      .map(([chapterId, accts]) => ({
+        chapterId,
+        name: chapterId === -1 ? "No chapter access" : chapterName(chapterId),
+        accounts: [...accts].sort((a, b) => a.username.localeCompare(b.username)),
+      }))
+      .sort((a, b) => {
+        if (a.chapterId === nationalChapterId) return -1;
+        if (b.chapterId === nationalChapterId) return 1;
+        if (a.chapterId === -1) return 1;
+        if (b.chapterId === -1) return -1;
+        return a.name.localeCompare(b.name);
+      });
+  }, [accounts, nationalChapterId, chapterName]);
+
+  const colCount = isAdmin || isChapterAdmin ? 4 : 3;
 
   function setAffiliation(index: number, field: "chapter" | "role", value: string) {
     setFormAffiliations((prev) => prev.map((a, i) => (i === index ? { ...a, [field]: value } : a)));
@@ -644,74 +699,113 @@ export default function AdminAccounts() {
               </tr>
             </thead>
             <tbody>
-              {accounts.map((account) => (
-                <>
-                  <tr
-                    key={account.id}
-                    className={`border-b border-slate-50 transition-colors ${expandedId === account.id ? "bg-slate-50" : "hover:bg-slate-50 cursor-pointer"}`}
-                    onClick={() =>
-                      (isAdmin || isChapterAdmin) &&
-                      setExpandedId((id) => (id === account.id ? null : account.id))
-                    }
-                  >
-                    <td className="px-6 py-3 font-medium text-slate-900" data-label="Username">
-                      {account.username}
-                    </td>
-                    <td className="px-6 py-3 text-slate-600" data-label="Name">
-                      {account.name}
-                    </td>
-                    <td className="px-6 py-3" data-label="Access">
-                      <div className="flex flex-wrap gap-2">
-                        {account.chapterRoles.map((cr) => (
-                          <span
-                            key={cr.chapterId}
-                            className="inline-flex items-center gap-1 text-xs text-slate-500"
+              {groups.map((group) => {
+                const groupExpanded = expandedChapters.has(group.chapterId);
+                return (
+                  <Fragment key={group.chapterId}>
+                    <tr
+                      onClick={() => toggleChapter(group.chapterId)}
+                      className="rc-raw cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors select-none border-b border-slate-100"
+                    >
+                      <td colSpan={colCount} className="rc-raw px-6 py-3">
+                        <div className="flex items-center gap-2.5 text-slate-700">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            className={`transition-transform duration-200 flex-shrink-0 ${groupExpanded ? "rotate-90" : ""}`}
                           >
-                            <span>{chapterName(cr.chapterId)}</span>
-                            <RoleBadge role={cr.role} />
+                            <path
+                              d="M6 4l4 4-4 4"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                          <span className="font-semibold">{group.name}</span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
+                            {group.accounts.length}{" "}
+                            {group.accounts.length === 1 ? "account" : "accounts"}
                           </span>
-                        ))}
-                      </div>
-                    </td>
-                    {(isAdmin || isChapterAdmin) && (
-                      <td className="px-6 py-3 text-right" data-label="">
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className={`text-slate-300 inline transition-transform ${expandedId === account.id ? "rotate-180" : ""}`}
-                        >
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </td>
-                    )}
-                  </tr>
-                  {expandedId === account.id && (isAdmin || isChapterAdmin) && (
-                    <tr key={`${account.id}-edit`} className="rc-raw">
-                      <td colSpan={4} className="p-0 rc-raw">
-                        <AccountEditPanel
-                          account={account}
-                          assignableRoles={assignableRoles}
-                          assignableChapters={assignableChapters}
-                          nationalChapterId={nationalChapterId}
-                          currentUserId={(auth as { id?: number })?.id}
-                          chapterName={chapterName}
-                          onClose={() => setExpandedId(null)}
-                          onDeleted={() => {
-                            setExpandedId(null);
-                            loadAccounts();
-                          }}
-                        />
+                        </div>
                       </td>
                     </tr>
-                  )}
-                </>
-              ))}
+                    {groupExpanded &&
+                      group.accounts.map((account) => (
+                        <Fragment key={account.id}>
+                          <tr
+                            className={`border-b border-slate-50 transition-colors ${expandedId === account.id ? "bg-slate-50" : "hover:bg-slate-50 cursor-pointer"}`}
+                            onClick={() =>
+                              (isAdmin || isChapterAdmin) &&
+                              setExpandedId((id) => (id === account.id ? null : account.id))
+                            }
+                          >
+                            <td
+                              className="px-6 py-3 font-medium text-slate-900"
+                              data-label="Username"
+                            >
+                              {account.username}
+                            </td>
+                            <td className="px-6 py-3 text-slate-600" data-label="Name">
+                              {account.name}
+                            </td>
+                            <td className="px-6 py-3" data-label="Access">
+                              <div className="flex flex-wrap gap-2">
+                                {account.chapterRoles.map((cr) => (
+                                  <span
+                                    key={cr.chapterId}
+                                    className="inline-flex items-center gap-1 text-xs text-slate-500"
+                                  >
+                                    <span>{chapterName(cr.chapterId)}</span>
+                                    <RoleBadge role={cr.role} />
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            {(isAdmin || isChapterAdmin) && (
+                              <td className="px-6 py-3 text-right" data-label="">
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className={`text-slate-300 inline transition-transform ${expandedId === account.id ? "rotate-180" : ""}`}
+                                >
+                                  <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                              </td>
+                            )}
+                          </tr>
+                          {expandedId === account.id && (isAdmin || isChapterAdmin) && (
+                            <tr className="rc-raw">
+                              <td colSpan={colCount} className="p-0 rc-raw">
+                                <AccountEditPanel
+                                  account={account}
+                                  assignableRoles={assignableRoles}
+                                  assignableChapters={assignableChapters}
+                                  nationalChapterId={nationalChapterId}
+                                  currentUserId={(auth as { id?: number })?.id}
+                                  chapterName={chapterName}
+                                  onClose={() => setExpandedId(null)}
+                                  onDeleted={() => {
+                                    setExpandedId(null);
+                                    loadAccounts();
+                                  }}
+                                />
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      ))}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         )}
