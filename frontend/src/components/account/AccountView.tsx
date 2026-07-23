@@ -18,15 +18,10 @@ export interface AccountViewProps {
   pwError: string | null;
   pwSuccess: boolean;
   pwLoading: boolean;
-  /** Persist a new password. Resolves true on success so the form can reset. */
   onChangePassword: (current: string, next: string, confirm: string) => Promise<boolean>;
   onLogout: () => void;
 }
 
-/**
- * AccountView — presentational profile + security screen. Owns only the local
- * password-form input drafts; all persistence and navigation come in via props.
- */
 export default function AccountView({
   username,
   roles,

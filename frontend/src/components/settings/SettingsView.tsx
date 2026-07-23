@@ -1,16 +1,11 @@
 import PageHeading from "../PageHeading";
 import { LookupEditorContainer } from "../../containers/LookupEditorContainer";
-import type { LookupSection } from "../LookupEditor";
+import type { LookupSection } from "./LookupEditor";
 
 export interface SettingsViewProps {
   sections: LookupSection[];
 }
 
-/**
- * SettingsView — presentational "Manage Options" screen. Lays out the lookup
- * table sections; each section's data + persistence is owned by its
- * LookupEditorContainer.
- */
 export default function SettingsView({ sections }: SettingsViewProps) {
   return (
     <div className="space-y-8">

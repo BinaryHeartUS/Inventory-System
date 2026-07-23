@@ -8,16 +8,12 @@ import { getTools } from "../services/toolService";
 import { fetchAllPages } from "../services/api";
 import type { PartyDetail, AnyDevice, Part, Tool } from "../types/inventory";
 import { canManageAccounts } from "../utils/roles";
-import PartyDetailView from "../components/partyDetail/PartyDetailView";
+import PartyDetailView from "../components/parties/PartyDetailView";
 
 export interface PartyDetailContainerProps {
   id: string | undefined;
 }
 
-/**
- * PartyDetailContainer — admin guard, and loads a party plus the devices/parts/
- * tools they donated and the devices they received.
- */
 export default function PartyDetailContainer({ id }: PartyDetailContainerProps) {
   const numId = Number(id);
   const navigate = useNavigate();

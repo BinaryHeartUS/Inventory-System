@@ -1,6 +1,6 @@
 import type { DashboardData } from "../../hooks/useDashboardData";
-import ActivityChart from "../ActivityChart";
-import DeviceValueChart from "../DeviceValueChart";
+import ActivityChart from "./ActivityChart";
+import DeviceValueChart from "./DeviceValueChart";
 import PageHeading from "../PageHeading";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
 import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
@@ -12,11 +12,6 @@ export interface DashboardViewProps {
   data: DashboardData;
 }
 
-/**
- * DashboardView — presentational inventory overview: pipeline, device-type
- * breakdown, average time in inventory, network health, and the activity/value
- * charts. All metrics arrive pre-computed via `data`.
- */
 export default function DashboardView({
   selectedChapter,
   onChapterChange,

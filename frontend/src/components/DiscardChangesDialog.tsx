@@ -1,8 +1,3 @@
-/**
- * DiscardChangesDialog — presentational confirmation shown when the user tries
- * to leave a page with unsaved changes. UI only; the navigation decision is
- * handled by UnsavedChangesGuard via the onKeepEditing / onDiscard callbacks.
- */
 export default function DiscardChangesDialog({
   onKeepEditing,
   onDiscard,

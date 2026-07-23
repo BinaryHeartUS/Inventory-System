@@ -11,7 +11,7 @@ import { useToast } from "../context/ToastContext";
 import { useLinkedParty } from "../hooks/useLinkedParty";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { NotFound } from "../components/NotFound";
-import DeviceDetailView from "../components/deviceDetail/DeviceDetailView";
+import DeviceDetailView from "../components/devices/DeviceDetailView";
 
 interface DeviceDetailContainerProps {
   id: string | undefined;

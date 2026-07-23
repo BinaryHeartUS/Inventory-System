@@ -5,10 +5,6 @@ import { useVisibleChapters, useIsNationalAdmin, useChapters } from "../context/
 import { createChapter, deleteChapter } from "../services/chapterService";
 import ChaptersView from "../components/chapters/ChaptersView";
 
-/**
- * ChaptersContainer — owns the per-chapter inventory summary plus chapter
- * create/delete actions (national admins only).
- */
 export default function ChaptersContainer() {
   const visibleChapters = useVisibleChapters();
   const { refreshChapters } = useChapters();

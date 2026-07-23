@@ -1,12 +1,3 @@
-/**
- * PrintLabelModalContainer — Web Serial printing for the label dialog.
- *
- * Owns the print status and drives the NIIMBOT serial client: connect, encode
- * the rendered label canvas, run the print task, and surface friendly errors.
- * The presentational PrintLabelModal renders the preview and reports the canvas
- * to print via onPrint.
- */
-
 import { useState } from "react";
 import { NiimbotSerialClient, ImageEncoder } from "@mmote/niimbluelib";
 import { PrintLabelModal, type PrintStatus } from "../components/PrintLabelModal";

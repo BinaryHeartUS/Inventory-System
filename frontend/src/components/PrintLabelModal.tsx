@@ -72,12 +72,6 @@ async function drawLabel(canvas: HTMLCanvasElement, assetId: number) {
 
 export type PrintStatus = "idle" | "connecting" | "printing" | "done" | "error";
 
-/**
- * Presentational print dialog. Draws the label preview (logo + Code128 barcode)
- * onto a canvas and reflects the print status supplied by PrintLabelModalContainer.
- * The actual Web Serial printing is delegated via onPrint, which receives the
- * rendered canvas.
- */
 export function PrintLabelModal({
   assetId,
   status,

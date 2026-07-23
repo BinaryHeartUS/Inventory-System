@@ -11,13 +11,8 @@ import {
 import AdminAccountsView, {
   type AccountGroup,
   type CreateAccountPayload,
-} from "../components/adminAccounts/AdminAccountsView";
+} from "../components/account/AdminAccountsView";
 
-/**
- * AdminAccountsContainer — loads volunteer accounts, groups them by primary
- * chapter, resolves the assignable roles/chapters for the current user, and
- * performs account creation.
- */
 export default function AdminAccountsContainer() {
   const { auth } = useAuth();
   const { chapterName } = useChapters();

@@ -2,12 +2,8 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { canManageAccounts } from "../utils/roles";
-import ManagePartiesView from "../components/manageParties/ManagePartiesView";
+import ManagePartiesView from "../components/parties/ManagePartiesView";
 
-/**
- * ManagePartiesContainer — admin guard plus the independent refresh keys for the
- * individuals and organizations sections.
- */
 export default function ManagePartiesContainer() {
   const { auth } = useAuth();
   const isAdmin = canManageAccounts(auth?.role);

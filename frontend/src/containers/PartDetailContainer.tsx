@@ -11,17 +11,12 @@ import { useLinkedParty } from "../hooks/useLinkedParty";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { NotFound } from "../components/NotFound";
 import type { PartChangelogEntry } from "../types/changelog";
-import PartDetailView from "../components/partDetail/PartDetailView";
+import PartDetailView from "../components/parts/PartDetailView";
 
 export interface PartDetailContainerProps {
   id: string | undefined;
 }
 
-/**
- * PartDetailContainer — loads a single part, its linked device and changelog,
- * owns the edit form + dirty detection, and wires save/delete/print/device/
- * donor actions.
- */
 export default function PartDetailContainer({ id }: PartDetailContainerProps) {
   const numId = Number(id);
   const navigate = useNavigate();

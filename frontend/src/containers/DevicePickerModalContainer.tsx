@@ -1,18 +1,9 @@
-/**
- * DevicePickerModalContainer — data for the device picker modal.
- *
- * Owns the search box value + debounce, resolves the target chapter, fetches
- * devices via infinite scroll scoped to the user's writable chapters, and feeds
- * the filtered list, loading flags, and sentinel into the presentational
- * DevicePickerModal.
- */
-
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { AnyDevice } from "../types/inventory";
 import { getDevices } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useWritableChapters } from "../context/ChapterContext";
-import { DevicePickerModal } from "../components/DevicePickerModal";
+import { DevicePickerModal } from "../components/devices/DevicePickerModal";
 
 export function DevicePickerModalContainer({
   onSelect,

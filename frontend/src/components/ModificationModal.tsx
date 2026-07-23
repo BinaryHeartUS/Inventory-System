@@ -61,12 +61,6 @@ function DiffView({ fields }: { fields: ChangelogFieldDef[] }) {
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
-/**
- * Generic changelog "Change Details" modal. It is fully presentational: pass any
- * changelog entry plus the pre-built list of before/after fields for that entity
- * type (see utils/changelogFields.ts). Insert/Delete render a snapshot; Update
- * (and anything else) renders a diff.
- */
 export function ModificationModal({
   entry,
   fields,

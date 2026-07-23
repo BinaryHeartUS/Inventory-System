@@ -5,10 +5,6 @@ import type { ChapterInventorySummary, Tool } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import ToolsView from "../components/tools/ToolsView";
 
-/**
- * ToolsContainer — owns the tools pagination, chapter filter state, and the
- * per-chapter tool-count summary used for the true total.
- */
 export default function ToolsContainer() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);

@@ -1,11 +1,3 @@
-/**
- * NotesPane — presentational notes panel for device, part, and tool detail pages.
- *
- * Receives the note list and add/edit callbacks via props. Owns only local
- * view-state for the compose box and inline edit (draft text, which note is being
- * edited). Data loading and optimistic persistence live in NotesPaneContainer.
- */
-
 import { useState } from "react";
 import type { Note } from "../types/inventory";
 

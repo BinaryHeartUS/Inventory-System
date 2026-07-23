@@ -5,11 +5,6 @@ import type { Part } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { PartRowContainer } from "./PartRowContainer";
 
-/**
- * Rows for a single expanded type group. Mounted only while the group is open, so no part
- * rows are fetched until the user actually expands the group. Parts are paged in via infinite
- * scroll scoped to this group (the sentinel is a table row at the bottom of the group's rows).
- */
 export function PartTypeRowsContainer({
   type,
   filters,

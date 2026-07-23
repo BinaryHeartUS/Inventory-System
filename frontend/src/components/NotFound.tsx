@@ -1,9 +1,5 @@
 import { Link } from "react-router-dom";
 
-/**
- * Empty state shown when a detail page's entity can't be found. Presentational:
- * pass the entity noun, the id that was looked up, and where "back" links to.
- */
 export function NotFound({
   entity,
   id,

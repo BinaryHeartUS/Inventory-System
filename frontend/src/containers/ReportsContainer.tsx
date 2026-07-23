@@ -10,10 +10,6 @@ import { slugify } from "../utils/csv";
 import * as reportExport from "../services/reportExport";
 import ReportsView, { type ReportExportKey } from "../components/reports/ReportsView";
 
-/**
- * ReportsContainer — owns the report scope (selected chapter), summary stats,
- * and the lazy CSV export loaders/handlers.
- */
 export default function ReportsContainer() {
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [summaryLoaded, setSummaryLoaded] = useState(false);

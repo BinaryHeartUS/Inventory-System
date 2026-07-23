@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getParties } from "../services/partyService";
 import type { PartySummary } from "../types/inventory";
-import PartySectionView from "../components/manageParties/PartySectionView";
+import PartySectionView from "../components/parties/PartySectionView";
 
 type SectionType = "individuals" | "organizations";
 
@@ -11,10 +11,6 @@ export interface PartySectionContainerProps {
   onRefresh: () => void;
 }
 
-/**
- * PartySectionContainer — loads the party list for one kind (individuals or
- * organizations) and reloads whenever refreshKey changes.
- */
 export default function PartySectionContainer({
   kind,
   refreshKey,

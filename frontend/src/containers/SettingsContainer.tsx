@@ -10,7 +10,7 @@ import {
   addOperatingSystem,
   deleteOperatingSystem,
 } from "../services/lookupService";
-import type { LookupSection } from "../components/LookupEditor";
+import type { LookupSection } from "../components/settings/LookupEditor";
 import SettingsView from "../components/settings/SettingsView";
 
 // ─── Lookup section config ────────────────────────────────────────────────────
@@ -54,10 +54,6 @@ const LOOKUP_SECTIONS: LookupSection[] = [
   },
 ];
 
-/**
- * SettingsContainer — supplies the lookup-table section config (which wires each
- * section to its add/remove service functions) to the presentational view.
- */
 export default function SettingsContainer() {
   return <SettingsView sections={LOOKUP_SECTIONS} />;
 }

@@ -1,15 +1,7 @@
-/**
- * LookupEditorContainer — data + persistence for one lookup list section.
- *
- * Loads the section's current values via lookupService on mount and applies
- * add/remove optimistically against the injected section.add / section.remove
- * mutators, reverting on failure.
- */
-
 import { useState, useEffect } from "react";
 import { getAllLookups } from "../services/lookupService";
-import { LookupEditor } from "../components/LookupEditor";
-import type { LookupSection } from "../components/LookupEditor";
+import { LookupEditor } from "../components/settings/LookupEditor";
+import type { LookupSection } from "../components/settings/LookupEditor";
 
 export function LookupEditorContainer({ section }: { section: LookupSection }) {
   const [values, setValues] = useState<string[]>([]);

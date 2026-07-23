@@ -17,10 +17,6 @@ export interface ToolsViewProps {
   onClearFilters: () => void;
 }
 
-/**
- * ToolsView — presentational tools list: heading, chapter filter, and the
- * paginated tools table.
- */
 export default function ToolsView({
   tools,
   loading,

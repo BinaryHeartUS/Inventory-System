@@ -4,12 +4,8 @@ import type { AnyDevice, ChapterInventorySummary } from "../types/inventory";
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
-import DonationsView from "../components/donations/DonationsView";
+import DonationsView from "../components/DonationsView";
 
-/**
- * DonationsContainer — owns the donated-device pagination, per-chapter donation
- * summary, chapter filter state, and device navigation.
- */
 export default function DonationsContainer() {
   const navigate = useNavigate();
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");

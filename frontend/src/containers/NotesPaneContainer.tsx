@@ -1,11 +1,3 @@
-/**
- * NotesPaneContainer — data + persistence for the notes panel.
- *
- * Loads notes via noteService on mount and applies add/edit optimistically:
- * the local list updates immediately while the service call runs in the
- * background. On failure the optimistic change is reverted and a toast shown.
- */
-
 import { useState, useEffect } from "react";
 import type { Note } from "../types/inventory";
 import { getNotesByAsset, createNote, updateNote } from "../services/noteService";

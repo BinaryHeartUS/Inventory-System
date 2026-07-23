@@ -1,4 +1,3 @@
-/** Small rotating chevron used for expand/collapse group headers. */
 export function Chevron({ expanded }: { expanded: boolean }) {
   return (
     <svg

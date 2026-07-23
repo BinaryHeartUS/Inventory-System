@@ -4,15 +4,10 @@ import type { AnyDevice, DeviceStatus, ChapterInventorySummary } from "../types/
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
-import type { SortKey, SortDir } from "../components/DeviceList";
+import type { SortKey, SortDir } from "../components/devices/DeviceList";
 import DevicesView from "../components/devices/DevicesView";
 import { type DeviceTypeFilter } from "../components/devices/deviceFilters";
 
-/**
- * DevicesContainer — owns the device browser's filter/sort state, the debounced
- * search, the ?chapter deep-link, the summary-derived exact total, and the
- * infinite-scroll data feed.
- */
 export default function DevicesContainer() {
   const [searchParams] = useSearchParams();
   const chapters = useVisibleChapters();

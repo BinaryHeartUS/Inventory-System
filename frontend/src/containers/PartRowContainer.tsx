@@ -1,12 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import type { Part } from "../types/inventory";
 import { useChapters } from "../context/ChapterContext";
-import { PartRow } from "../components/PartRow";
+import { PartRow } from "../components/parts/PartRow";
 
-/**
- * Wraps the presentational {@link PartRow}, resolving the chapter name and
- * supplying row-click navigation to the part detail page.
- */
 export function PartRowContainer({
   part,
   onUnlink,

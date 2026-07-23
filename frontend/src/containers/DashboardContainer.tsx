@@ -4,10 +4,6 @@ import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useDashboardData } from "../hooks/useDashboardData";
 import DashboardView from "../components/dashboard/DashboardView";
 
-/**
- * DashboardContainer — owns the selected chapter scope, responsive chart range,
- * and all derived dashboard metrics (via useDashboardData).
- */
 export default function DashboardContainer() {
   const [selectedChapter, setSelectedChapter] = useState<number | "All">("All");
   const visibleChapters = useVisibleChapters();

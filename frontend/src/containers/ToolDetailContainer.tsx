@@ -9,16 +9,12 @@ import { useLinkedParty } from "../hooks/useLinkedParty";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { NotFound } from "../components/NotFound";
 import type { ToolChangelogEntry } from "../types/changelog";
-import ToolDetailView from "../components/toolDetail/ToolDetailView";
+import ToolDetailView from "../components/tools/ToolDetailView";
 
 export interface ToolDetailContainerProps {
   id: string | undefined;
 }
 
-/**
- * ToolDetailContainer — loads a single tool + its changelog, owns the edit form
- * and dirty detection, and wires save/delete/print/donor actions.
- */
 export default function ToolDetailContainer({ id }: ToolDetailContainerProps) {
   const numId = Number(id);
   const navigate = useNavigate();

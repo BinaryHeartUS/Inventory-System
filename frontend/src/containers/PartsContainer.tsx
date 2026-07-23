@@ -4,11 +4,6 @@ import type { PartTypeCountResponse } from "../types/inventory";
 import { useLookups } from "../hooks/useLookups";
 import PartsView from "../components/parts/PartsView";
 
-/**
- * PartsContainer — owns the parts filter state, the accurate per-type counts
- * (which drive the collapsed group headers so no rows load up front), the
- * expand/collapse set, and the part-type lookup options.
- */
 export default function PartsContainer() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
   const [typeFilter, setTypeFilter] = useState("All");

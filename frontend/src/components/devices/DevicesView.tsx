@@ -2,7 +2,7 @@ import type { RefObject } from "react";
 import type { AnyDevice, DeviceStatus } from "../../types/inventory";
 import PageHeading from "../PageHeading";
 import { DeviceListContainer } from "../../containers/DeviceListContainer";
-import type { SortKey, SortDir } from "../DeviceList";
+import type { SortKey, SortDir } from "./DeviceList";
 import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
 import FilterSelect from "../FilterSelect";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
@@ -32,11 +32,6 @@ export interface DevicesViewProps {
   onClearFilters: () => void;
 }
 
-/**
- * DevicesView — presentational device browser: heading, chapter filter, the
- * search / status / type / include-donated-scrapped filter bar, and the device
- * table (DeviceListContainer) plus the infinite-scroll sentinel.
- */
 export default function DevicesView({
   search,
   onSearchChange,

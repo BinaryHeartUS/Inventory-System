@@ -1,6 +1,6 @@
 import PageHeading from "../PageHeading";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
-import { ExportCard } from "../ExportCard";
+import { ExportCard } from "./ExportCard";
 
 export type ReportExportKey = "pipeline" | "donated" | "parts" | "tools" | "valuation";
 
@@ -23,10 +23,6 @@ export interface ReportsViewProps {
   onExport: (key: ReportExportKey) => void;
 }
 
-/**
- * ReportsView — presentational reports page: chapter filter, summary statistics,
- * and the CSV export cards. All data + export actions come from props.
- */
 export default function ReportsView({
   selectedChapter,
   onChapterChange,

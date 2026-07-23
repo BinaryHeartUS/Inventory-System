@@ -6,10 +6,6 @@ import { getStoredToken } from "../services/authService";
 import { updatePassword } from "../services/accountService";
 import AccountView from "../components/account/AccountView";
 
-/**
- * AccountContainer — owns password-change persistence, session logout, and the
- * resolution of the current user's chapter roles to display names.
- */
 export default function AccountContainer() {
   const { auth, logout } = useAuth();
   const { chapterName } = useChapters();

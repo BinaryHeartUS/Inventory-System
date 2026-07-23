@@ -9,15 +9,10 @@ export interface ChaptersViewProps {
   summaryLoaded: boolean;
   isNationalAdmin: boolean;
   deletingId: number | null;
-  /** Creates a chapter; resolves with an error message, or null on success. */
   onCreate: (name: string) => Promise<string | null>;
   onDelete: (id: number, name: string) => void;
 }
 
-/**
- * ChaptersView — presentational chapter inventory table plus the "New Chapter"
- * modal. Owns the create-modal form drafts; all data + actions come from props.
- */
 export default function ChaptersView({
   chapters,
   summaryByChapter,

@@ -1,16 +1,7 @@
-/**
- * PartyPickerModalContainer — data + persistence for the donor/party picker.
- *
- * Loads the party list on mount and handles creating a new person/organization.
- * After a successful create it refetches the list, finds the new party by name,
- * and auto-selects it (the API returns void on create). Errors are re-thrown so
- * the presentational create form can surface them.
- */
-
 import { useState, useEffect } from "react";
 import type { PartySummary, CreatePersonRequest, CreateOrgRequest } from "../types/inventory";
 import { getParties, createPerson, createOrg } from "../services/partyService";
-import { PartyPickerModal } from "../components/PartyPickerModal";
+import { PartyPickerModal } from "../components/parties/PartyPickerModal";
 
 export function PartyPickerModalContainer({
   onSelect,

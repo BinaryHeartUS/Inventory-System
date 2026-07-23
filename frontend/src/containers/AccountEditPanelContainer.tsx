@@ -1,12 +1,3 @@
-/**
- * AccountEditPanelContainer — persistence for the inline account editor.
- *
- * Wraps AccountEditPanel and performs all accountService mutations (role
- * add/change/remove and account deletion). On success it closes the editor and
- * asks the parent to reload via onDeleted; the delete confirmation prompt lives
- * here too. Errors are re-thrown so the presentational panel can surface them.
- */
-
 import type { AccountSummary } from "../types/inventory";
 import {
   addAccountRole,
@@ -14,7 +5,7 @@ import {
   removeAccountRole,
   updateAccountRole,
 } from "../services/accountService";
-import { AccountEditPanel } from "../components/AccountEditPanel";
+import { AccountEditPanel } from "../components/account/AccountEditPanel";
 
 export function AccountEditPanelContainer({
   account,

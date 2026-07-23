@@ -1,16 +1,7 @@
-/**
- * OrgPanelContainer — data + persistence for the organization editor.
- *
- * Fetches the existing organization on mount (edit mode), assembles the initial
- * form values, and persists via partyService create/update. The presentational
- * OrgPanel is remounted (via key) once data is ready so it can seed its form
- * state from the loaded values without effect-based syncing.
- */
-
 import { useState, useEffect } from "react";
 import { getParty, createOrg, updateOrg } from "../services/partyService";
 import type { OrgDetail } from "../types/inventory";
-import { OrgPanel, type OrgFormData, type OrgSaveRequest } from "../components/OrgPanel";
+import { OrgPanel, type OrgFormData, type OrgSaveRequest } from "../components/parties/OrgPanel";
 
 const BLANK: OrgFormData = {
   name: "",

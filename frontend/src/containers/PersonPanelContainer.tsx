@@ -1,12 +1,3 @@
-/**
- * PersonPanelContainer — data + persistence for the individual (person) editor.
- *
- * Fetches the existing person on mount (edit mode), assembles the initial form
- * values, and persists via partyService create/update. The presentational
- * PersonPanel is remounted (via key) once data is ready so it can seed its
- * form state from the loaded values without effect-based syncing.
- */
-
 import { useState, useEffect } from "react";
 import { getParty, createPerson, updatePerson } from "../services/partyService";
 import type { PersonDetail } from "../types/inventory";
@@ -14,7 +5,7 @@ import {
   PersonPanel,
   type PersonFormData,
   type PersonSaveRequest,
-} from "../components/PersonPanel";
+} from "../components/parties/PersonPanel";
 
 const BLANK: PersonFormData = {
   name: "",

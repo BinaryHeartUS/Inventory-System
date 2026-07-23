@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import LoginView from "../components/login/LoginView";
+import LoginView from "../components/LoginView";
 
-/**
- * LoginContainer — owns authentication, the post-login redirect target, and the
- * error/loading state for the sign-in form.
- */
 export default function LoginContainer() {
   const { login } = useAuth();
   const navigate = useNavigate();

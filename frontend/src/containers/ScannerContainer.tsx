@@ -1,13 +1,8 @@
 import { useCallback, useRef } from "react";
 import { useCameraScanner } from "../hooks/useCameraScanner";
 import { useAssetScan } from "../hooks/useAssetScan";
-import ScannerView from "../components/scanner/ScannerView";
+import ScannerView from "../components/ScannerView";
 
-/**
- * ScannerContainer — owns the camera scanner lifecycle and asset-scan routing.
- * Creates the video ref (forwarded to the view), debounces repeated decodes, and
- * dispatches both scanned and manually-entered IDs through useAssetScan.
- */
 export default function ScannerContainer() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const busyRef = useRef(false);

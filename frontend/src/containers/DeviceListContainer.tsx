@@ -1,12 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import type { AnyDevice } from "../types/inventory";
-import { DeviceList, type SortKey, type SortDir } from "../components/DeviceList";
+import { DeviceList, type SortKey, type SortDir } from "../components/devices/DeviceList";
 
-/**
- * Wraps the presentational {@link DeviceList} and supplies row-click navigation
- * to the device detail page. Pass an explicit `onSelect` to override navigation
- * (e.g. selection in a picker).
- */
 export function DeviceListContainer({
   devices,
   exclude,

@@ -5,16 +5,12 @@ import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
 import { fetchAllPages } from "../services/api";
 import { useChapters } from "../context/ChapterContext";
-import SearchView from "../components/search/SearchView";
+import SearchView from "../components/SearchView";
 
 // Cap each category's results so a broad/short query can't pull an unbounded number of rows.
 // The server-side search already filters; this bounds a match-everything query to a top-N.
 const SEARCH_RESULT_CAP = 100;
 
-/**
- * SearchContainer — owns the debounced global search query and result sets
- * across devices, parts and tools.
- */
 export default function SearchContainer() {
   const [query, setQuery] = useState("");
   const [deviceResults, setDeviceResults] = useState<AnyDevice[]>([]);

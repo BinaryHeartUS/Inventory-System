@@ -29,11 +29,6 @@ export interface PartsViewProps {
   onClearFilters: () => void;
 }
 
-/**
- * PartsView — presentational parts list: heading, chapter filter, filter bar, and
- * the collapsible per-type parts table. Rows are loaded lazily by
- * PartTypeRowsContainer when a group is expanded.
- */
 export default function PartsView({
   partTypes,
   filters,
