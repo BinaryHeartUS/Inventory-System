@@ -8,18 +8,18 @@ import type {
   Part,
 } from "../types/inventory";
 import StatusBadge from "../components/StatusBadge";
-import NotesPane from "../components/NotesPane";
+import NotesPaneContainer from "../containers/NotesPaneContainer";
 import { getDevice, updateDevice, getDeviceChangelog } from "../services/deviceService";
 import { getPartsByDevice, updatePart } from "../services/partService";
 import { useLookups } from "../hooks/useLookups";
-import { PrintLabelModal } from "../components/PrintLabelModal";
+import { PrintLabelModalContainer } from "../containers/PrintLabelModalContainer";
 import { canPrintLabels } from "../utils/canPrintLabels";
 import { ReadyToDonateFormModal } from "../components/ReadyToDonateFormModal";
 import { useAuth } from "../context/AuthContext";
 import { useWritableChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
-import { PartRow } from "../components/PartRow";
-import { PartyPickerModal } from "../components/PartyPickerModal";
+import { PartRowContainer } from "../containers/PartRowContainer";
+import { PartyPickerModalContainer } from "../containers/PartyPickerModalContainer";
 import type { PartySummary } from "../types/inventory";
 import { useLinkedParty } from "../hooks/useLinkedParty";
 import { Field } from "../components/Field";
@@ -28,14 +28,14 @@ import { Section } from "../components/Section";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { NotFound } from "../components/NotFound";
-import AddAssetButton from "../components/AddAssetButton";
+import AddAssetButtonContainer from "../containers/AddAssetButtonContainer";
 
 import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
 import { ModificationModal } from "../components/ModificationModal";
 import { buildDeviceFields } from "../utils/changelogFields";
-import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
+import UnsavedChangesGuard from "../containers/UnsavedChangesGuard";
 import type { DeviceChangelogEntry } from "../types/changelog";
 import { BatteryBar } from "../components/BatteryBar";
 
@@ -178,9 +178,11 @@ export default function DeviceDetail() {
   return (
     <>
       <UnsavedChangesGuard when={isDirty} />
-      {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
+      {printId !== null && (
+        <PrintLabelModalContainer assetId={printId} onClose={() => setPrintId(null)} />
+      )}
       {partyPickerOpen && (
-        <PartyPickerModal
+        <PartyPickerModalContainer
           onSelect={(party) => {
             setEditParty(party);
             setForm((prev) => (prev ? ({ ...prev, donorId: party.id } as AnyDevice) : prev));
@@ -190,7 +192,7 @@ export default function DeviceDetail() {
         />
       )}
       {recipientPickerOpen && (
-        <PartyPickerModal
+        <PartyPickerModalContainer
           onSelect={(party) => {
             setEditRecipient(party);
             setForm((prev) => (prev ? ({ ...prev, recipientId: party.id } as AnyDevice) : prev));
@@ -216,7 +218,7 @@ export default function DeviceDetail() {
             backLabel="Devices"
             current={`${device.manufacturer} ${device.model}`}
           />
-          <AddAssetButton />
+          <AddAssetButtonContainer />
         </div>
 
         {/* Header */}
@@ -726,7 +728,7 @@ export default function DeviceDetail() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {linkedParts.map((p) => (
-                        <PartRow
+                        <PartRowContainer
                           key={p.id}
                           part={p}
                           onUnlink={(e) => {
@@ -756,7 +758,7 @@ export default function DeviceDetail() {
 
           {/* Right: sticky notes pane */}
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
-            <NotesPane
+            <NotesPaneContainer
               assetId={device.id}
               readOnly={editLock}
               readOnlyReason={viewerLock ? "viewer" : "donated"}

@@ -3,11 +3,11 @@ import { getPartTypeCounts } from "../services/partService";
 import type { PartTypeCountResponse } from "../types/inventory";
 import { useLookups } from "../hooks/useLookups";
 import PageHeading from "../components/PageHeading";
-import AddAssetButton from "../components/AddAssetButton";
+import AddAssetButtonContainer from "../containers/AddAssetButtonContainer";
 import FilterSelect from "../components/FilterSelect";
-import ChapterFilter from "../components/ChapterFilter";
+import ChapterFilterContainer from "../containers/ChapterFilterContainer";
 import { Chevron } from "../components/Chevron";
-import { PartTypeRows } from "../components/PartTypeRows";
+import { PartTypeRowsContainer } from "../containers/PartTypeRowsContainer";
 
 export default function Parts() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
@@ -87,12 +87,12 @@ export default function Parts() {
           subtitle={`${totalTypes} type${totalTypes !== 1 ? "s" : ""}, ${totalParts} part${totalParts !== 1 ? "s" : ""}`}
         />
         <div className="flex justify-end">
-          <AddAssetButton className="w-full sm:w-auto" />
+          <AddAssetButtonContainer className="w-full sm:w-auto" />
         </div>
       </div>
 
       {/* Chapter filter */}
-      <ChapterFilter selected={chapterFilter} onChange={setChapterFilter} />
+      <ChapterFilterContainer selected={chapterFilter} onChange={setChapterFilter} />
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
@@ -211,7 +211,7 @@ export default function Parts() {
                           </div>
                         </td>
                       </tr>
-                      {isExpanded && <PartTypeRows type={type} filters={filters} />}
+                      {isExpanded && <PartTypeRowsContainer type={type} filters={filters} />}
                     </React.Fragment>
                   );
                 })

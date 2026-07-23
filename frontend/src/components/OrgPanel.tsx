@@ -1,54 +1,58 @@
-import { useState, useEffect } from "react";
-import { getParty, createOrg, updateOrg } from "../services/partyService";
-import type { OrgDetail } from "../types/inventory";
+import { useState } from "react";
 import { formatLocation } from "../types/inventory";
 import { inputCls, labelCls } from "../utils/formStyles";
 import { AddressFields } from "./AddressFields";
 
+/** Form values fed to OrgPanel; assembled by OrgPanelContainer. */
+export interface OrgFormData {
+  name: string;
+  contactName: string;
+  contactEmail: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  hasLocation: boolean;
+}
+
+/** Persisted shape produced by the form. */
+export interface OrgSaveRequest {
+  name: string;
+  contactName?: string;
+  contactEmail?: string;
+  location?: string;
+}
+
+/**
+ * Presentational editor for a single organization party. Owns only local
+ * form/view-state seeded from the injected `initial` values; loading and
+ * persistence live in OrgPanelContainer.
+ */
 export function OrgPanel({
-  partyId,
+  isNew,
+  loading,
+  initial,
   onClose,
-  onSaved,
+  onSave,
 }: {
-  partyId: number | "new";
+  isNew: boolean;
+  loading: boolean;
+  initial: OrgFormData;
   onClose: () => void;
-  onSaved: () => void;
+  onSave: (req: OrgSaveRequest) => Promise<void>;
 }) {
-  const isNew = partyId === "new";
-  const [loading, setLoading] = useState(!isNew);
-  const [name, setName] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [street, setStreet] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zipCode, setZipCode] = useState("");
-  const [country, setCountry] = useState("");
-  const [showAddr, setShowAddr] = useState(false);
+  const [name, setName] = useState(initial.name);
+  const [contactName, setContactName] = useState(initial.contactName);
+  const [contactEmail, setContactEmail] = useState(initial.contactEmail);
+  const [street, setStreet] = useState(initial.street);
+  const [city, setCity] = useState(initial.city);
+  const [state, setState] = useState(initial.state);
+  const [zipCode, setZipCode] = useState(initial.zipCode);
+  const [country, setCountry] = useState(initial.country);
+  const [showAddr, setShowAddr] = useState(initial.hasLocation);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isNew) return;
-    getParty(partyId as number)
-      .then((detail) => {
-        const o = detail as OrgDetail;
-        setName(o.name);
-        setContactName(o.contactName ?? "");
-        setContactEmail(o.contactEmail ?? "");
-        const loc = o.location;
-        if (loc) {
-          setStreet(loc.street ?? "");
-          setCity(loc.city ?? "");
-          setState(loc.state ?? "");
-          setZipCode(loc.zipCode ?? "");
-          setCountry(loc.country ?? "");
-          setShowAddr(true);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [isNew, partyId]);
 
   async function handleSave() {
     if (!name.trim()) return;
@@ -58,22 +62,16 @@ export function OrgPanel({
       street || city || state || zipCode || country
         ? formatLocation({ street, city, state, zipCode, country })
         : undefined;
-    const req = {
+    const req: OrgSaveRequest = {
       name: name.trim(),
       ...(contactName.trim() ? { contactName: contactName.trim() } : {}),
       ...(contactEmail.trim() ? { contactEmail: contactEmail.trim() } : {}),
       ...(location ? { location } : {}),
     };
     try {
-      if (isNew) {
-        await createOrg(req);
-      } else {
-        await updateOrg(partyId as number, req);
-      }
-      onSaved();
+      await onSave(req);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
-    } finally {
       setSaving(false);
     }
   }

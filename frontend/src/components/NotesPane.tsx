@@ -1,16 +1,13 @@
 /**
- * NotesPane — shared notes panel for device, part, and tool detail pages.
+ * NotesPane — presentational notes panel for device, part, and tool detail pages.
  *
- * Loads notes via noteService on mount and supports add/edit inline.
- * Note creation and edits are applied optimistically in local state;
- * the service call runs in the background. When the real API is wired in,
- * the server-returned note (with its true ID) replaces the optimistic entry.
+ * Receives the note list and add/edit callbacks via props. Owns only local
+ * view-state for the compose box and inline edit (draft text, which note is being
+ * edited). Data loading and optimistic persistence live in NotesPaneContainer.
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Note } from "../types/inventory";
-import { getNotesByAsset, createNote, updateNote } from "../services/noteService";
-import { useToast } from "../context/ToastContext";
 
 function formatNoteDate(iso: string) {
   const d = new Date(iso);
@@ -18,41 +15,27 @@ function formatNoteDate(iso: string) {
 }
 
 export default function NotesPane({
-  assetId,
+  notes,
   readOnly = false,
   readOnlyReason = "donated",
+  onAddNote,
+  onEditNote,
 }: {
-  assetId: number;
+  notes: Note[];
   readOnly?: boolean;
   readOnlyReason?: "donated" | "viewer";
+  onAddNote: (text: string) => void;
+  onEditNote: (id: number, text: string) => void;
 }) {
-  const [notes, setNotes] = useState<Note[]>([]);
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
-  const { showToast } = useToast();
-
-  useEffect(() => {
-    getNotesByAsset(assetId).then(setNotes);
-  }, [assetId]);
 
   function submitNote() {
     const text = draft.trim();
     if (!text) return;
-    // Optimistic update — give the note a temporary client-side ID
-    const optimistic: Note = { id: Date.now(), assetId, date: new Date().toISOString(), text };
-    setNotes((prev) => [optimistic, ...prev]);
+    onAddNote(text);
     setDraft("");
-    createNote(assetId, text)
-      .then((saved) => {
-        // Replace the optimistic entry with the server-returned note (real ID)
-        setNotes((prev) => prev.map((n) => (n.id === optimistic.id ? saved : n)));
-      })
-      .catch((err) => {
-        // Revert optimistic update and show error
-        setNotes((prev) => prev.filter((n) => n.id !== optimistic.id));
-        showToast(err instanceof Error ? err.message : "Failed to add note", false);
-      });
   }
 
   function startEdit(note: Note) {
@@ -63,14 +46,8 @@ export default function NotesPane({
   function saveEdit(id: number) {
     const text = editText.trim();
     if (!text) return;
-    const prev_text = notes.find((n) => n.id === id)?.text ?? "";
-    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, text } : n)));
+    onEditNote(id, text);
     setEditingId(null);
-    updateNote(assetId, id, text).catch((err) => {
-      // Revert optimistic update and show error
-      setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, text: prev_text } : n)));
-      showToast(err instanceof Error ? err.message : "Failed to update note", false);
-    });
   }
 
   function cancelEdit() {

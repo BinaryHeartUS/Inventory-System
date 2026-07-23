@@ -1,23 +1,22 @@
-import { useNavigate } from "react-router-dom";
 import type { Part } from "../types/inventory";
-import { useChapters } from "../context/ChapterContext";
 
 export function PartRow({
   part,
+  chapter,
+  onSelect,
   onUnlink,
   hideTypeCol = false,
 }: {
   part: Part;
+  chapter: string;
+  onSelect: (id: number) => void;
   onUnlink?: (e: React.MouseEvent) => void;
   hideTypeCol?: boolean;
 }) {
-  const navigate = useNavigate();
-  const { chapterName } = useChapters();
-
   return (
     <tr
       key={part.id}
-      onClick={() => navigate(`/parts/${part.id}`)}
+      onClick={() => onSelect(part.id)}
       className="hover:bg-slate-50 transition-colors cursor-pointer"
     >
       <td className="px-5 py-5 font-mono text-xs text-slate-400" data-label="ID">
@@ -34,7 +33,7 @@ export function PartRow({
         {part.description}
       </td>
       <td className="px-5 py-5 text-slate-500" data-label="Chapter">
-        {chapterName(part.chapterId)}
+        {chapter}
       </td>
       <td className="px-5 py-5" data-label="Source">
         <span

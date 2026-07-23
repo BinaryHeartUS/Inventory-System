@@ -5,11 +5,11 @@ import { getDevices, getChapterInventorySummary } from "../services/deviceServic
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
-import { DeviceList } from "../components/DeviceList";
+import { DeviceListContainer } from "../containers/DeviceListContainer";
 import type { SortKey, SortDir } from "../components/DeviceList";
-import AddAssetButton from "../components/AddAssetButton";
+import AddAssetButtonContainer from "../containers/AddAssetButtonContainer";
 import FilterSelect from "../components/FilterSelect";
-import ChapterFilter from "../components/ChapterFilter";
+import ChapterFilterContainer from "../containers/ChapterFilterContainer";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,12 +175,12 @@ export default function Devices() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading title="Devices" subtitle={deviceSubtitle} />
         <div className="flex justify-end">
-          <AddAssetButton className="w-full sm:w-auto" />
+          <AddAssetButtonContainer className="w-full sm:w-auto" />
         </div>
       </div>
 
       {/* Chapter filter */}
-      <ChapterFilter selected={chapterFilter} onChange={setChapterFilter} />
+      <ChapterFilterContainer selected={chapterFilter} onChange={setChapterFilter} />
 
       {/* Filter bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
@@ -317,7 +317,7 @@ export default function Devices() {
 
       {/* Device table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <DeviceList
+        <DeviceListContainer
           devices={devices}
           sortKey={sortKey}
           sortDir={sortDir}

@@ -4,8 +4,8 @@ import { DesktopRow, LaptopRow, TabletRow } from "../components/DeviceRow";
 /** Dispatches to the correct row component based on device.type. */
 export function renderDeviceRow(
   device: AnyDevice,
-  exclude?: string[],
-  onSelect?: (id: number) => void
+  exclude: string[] | undefined,
+  onSelect: (id: number) => void
 ) {
   switch (device.type) {
     case "Desktop":

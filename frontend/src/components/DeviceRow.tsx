@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import type { AnyDevice, DeviceStatus } from "../types/inventory";
 import StatusBadge from "./StatusBadge";
 /**
@@ -18,15 +17,14 @@ export function DeviceRow({
   device: AnyDevice;
   extraCells: React.ReactNode;
   exclude?: string[];
-  onSelect?: (id: number) => void;
+  onSelect: (id: number) => void;
 }) {
-  const navigate = useNavigate();
   const hide = (col: string) => exclude.includes(col);
 
   return (
     <tr
       className="hover:bg-slate-50 transition-colors cursor-pointer"
-      onClick={() => (onSelect ? onSelect(device.id) : navigate(`/devices/${device.id}`))}
+      onClick={() => onSelect(device.id)}
     >
       {!hide("ID") && (
         <td className="px-5 py-5 font-mono text-xs text-slate-400" data-label="ID">
@@ -138,7 +136,7 @@ export function DesktopRow({
 }: {
   device: AnyDevice;
   exclude?: string[];
-  onSelect?: (id: number) => void;
+  onSelect: (id: number) => void;
 }) {
   return (
     <DeviceRow
@@ -166,7 +164,7 @@ export function LaptopRow({
 }: {
   device: AnyDevice;
   exclude?: string[];
-  onSelect?: (id: number) => void;
+  onSelect: (id: number) => void;
 }) {
   const healthPct = device.batteryHealth != null ? Math.round(device.batteryHealth * 100) : null;
 
@@ -201,7 +199,7 @@ export function TabletRow({
 }: {
   device: AnyDevice;
   exclude?: string[];
-  onSelect?: (id: number) => void;
+  onSelect: (id: number) => void;
 }) {
   return (
     <DeviceRow

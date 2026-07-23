@@ -1,5 +1,12 @@
-import { useState, useEffect } from "react";
-import { getAllLookups } from "../services/lookupService";
+/**
+ * LookupEditor — presentational editor for a single lookup list (chips + add box).
+ *
+ * Fully controlled: the current values, loaded flag, and error come from
+ * LookupEditorContainer, which owns fetching and optimistic add/remove. This
+ * component keeps only the add-box input as local view-state.
+ */
+
+import { useState } from "react";
 
 export interface LookupSection {
   title: string;
@@ -9,55 +16,39 @@ export interface LookupSection {
   remove: (name: string) => Promise<void>;
 }
 
-export function LookupEditor({ section }: { section: LookupSection }) {
-  const [values, setValues] = useState<string[]>([]);
-  const [loaded, setLoaded] = useState(false);
+export function LookupEditor({
+  title,
+  description,
+  values,
+  loaded,
+  error,
+  busy = false,
+  onAdd,
+  onRemove,
+}: {
+  title: string;
+  description: string;
+  values: string[];
+  loaded: boolean;
+  error: string | null;
+  busy?: boolean;
+  onAdd: (name: string) => void;
+  onRemove: (name: string) => void;
+}) {
   const [input, setInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    getAllLookups()
-      .then((data) => setValues(data[section.key] ?? []))
-      .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, [section.key]);
-
-  async function add() {
+  function add() {
     const trimmed = input.trim();
     if (!trimmed || values.map((v) => v.toLowerCase()).includes(trimmed.toLowerCase())) return;
     setInput("");
-    setError(null);
-    setLoading(true);
-    const prev = values;
-    setValues((v) => [...v, trimmed]);
-    try {
-      await section.add(trimmed);
-    } catch {
-      setValues(prev);
-      setError(`Failed to add "${trimmed}". Please try again.`);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function remove(value: string) {
-    setError(null);
-    const prev = values;
-    setValues((v) => v.filter((x) => x !== value));
-    try {
-      await section.remove(value);
-    } catch (err) {
-      setValues(prev);
-      setError(err instanceof Error ? err.message : `Failed to remove "${value}".`);
-    }
+    onAdd(trimmed);
   }
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5">
       <div className="mb-4">
-        <p className="text-sm font-semibold text-slate-800">{section.title}</p>
-        <p className="text-xs text-slate-400 mt-0.5">{section.description}</p>
+        <p className="text-sm font-semibold text-slate-800">{title}</p>
+        <p className="text-xs text-slate-400 mt-0.5">{description}</p>
       </div>
 
       {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
@@ -75,7 +66,7 @@ export function LookupEditor({ section }: { section: LookupSection }) {
               >
                 {v}
                 <button
-                  onClick={() => remove(v)}
+                  onClick={() => onRemove(v)}
                   className="text-slate-400 hover:text-red-500 transition-colors leading-none"
                   aria-label={`Remove ${v}`}
                 >
@@ -106,7 +97,7 @@ export function LookupEditor({ section }: { section: LookupSection }) {
       <div className="flex gap-2">
         <input
           type="text"
-          placeholder={`Add a ${section.title.toLowerCase().replace(/s$/, "")}…`}
+          placeholder={`Add a ${title.toLowerCase().replace(/s$/, "")}…`}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
@@ -114,7 +105,7 @@ export function LookupEditor({ section }: { section: LookupSection }) {
         />
         <button
           onClick={add}
-          disabled={!input.trim() || loading}
+          disabled={!input.trim() || busy}
           className="px-4 py-2 rounded-lg text-xs font-semibold bg-heart-blue text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
         >
           Add

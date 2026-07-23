@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { AnyDevice, Part } from "../types/inventory";
-import NotesPane from "../components/NotesPane";
+import NotesPaneContainer from "../containers/NotesPaneContainer";
 import { getPart, updatePart, deletePart, getPartChangelog } from "../services/partService";
 import { getDevice } from "../services/deviceService";
 import { useLookups } from "../hooks/useLookups";
-import { PrintLabelModal } from "../components/PrintLabelModal";
+import { PrintLabelModalContainer } from "../containers/PrintLabelModalContainer";
 import { canPrintLabels } from "../utils/canPrintLabels";
 import { useChapters, useWritableChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
-import { DevicePickerModal } from "../components/DevicePickerModal";
-import { PartyPickerModal } from "../components/PartyPickerModal";
+import { DevicePickerModalContainer } from "../containers/DevicePickerModalContainer";
+import { PartyPickerModalContainer } from "../containers/PartyPickerModalContainer";
 import type { PartySummary } from "../types/inventory";
 import { useLinkedParty } from "../hooks/useLinkedParty";
 import { Field } from "../components/Field";
@@ -19,14 +19,14 @@ import { Section } from "../components/Section";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { NotFound } from "../components/NotFound";
-import AddAssetButton from "../components/AddAssetButton";
+import AddAssetButtonContainer from "../containers/AddAssetButtonContainer";
 import { DeleteConfirmButton } from "../components/DeleteConfirmButton";
 import { formatDate } from "../utils/dateUtils";
 import { labelCls, inputCls } from "../utils/formStyles";
 import { ModificationLog } from "../components/ModificationLog";
 import { ModificationModal } from "../components/ModificationModal";
 import { buildPartFields } from "../utils/changelogFields";
-import UnsavedChangesGuard from "../components/UnsavedChangesGuard";
+import UnsavedChangesGuard from "../containers/UnsavedChangesGuard";
 import type { PartChangelogEntry } from "../types/changelog";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -144,9 +144,11 @@ export default function PartDetail() {
   return (
     <>
       <UnsavedChangesGuard when={isDirty} />
-      {printId !== null && <PrintLabelModal assetId={printId} onClose={() => setPrintId(null)} />}
+      {printId !== null && (
+        <PrintLabelModalContainer assetId={printId} onClose={() => setPrintId(null)} />
+      )}
       {partyPickerOpen && (
-        <PartyPickerModal
+        <PartyPickerModalContainer
           onSelect={(party) => {
             setEditParty(party);
             setForm((prev) => (prev ? { ...prev, donorId: party.id } : prev));
@@ -156,7 +158,7 @@ export default function PartDetail() {
         />
       )}
       {devicePickerOpen && (
-        <DevicePickerModal
+        <DevicePickerModalContainer
           onSelect={(device) => {
             setEditDevice(device);
             setForm((prev) => (prev ? { ...prev, containedIn: device.id } : prev));
@@ -169,7 +171,7 @@ export default function PartDetail() {
         {/* Breadcrumb + Add Asset */}
         <div className="flex items-center justify-between">
           <Breadcrumb backHref="/parts" backLabel="Parts" current={part.type} />
-          <AddAssetButton />
+          <AddAssetButtonContainer />
         </div>
 
         {/* Header */}
@@ -485,7 +487,7 @@ export default function PartDetail() {
           </div>
 
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
-            <NotesPane assetId={part.id} />
+            <NotesPaneContainer assetId={part.id} />
           </div>
         </div>
 

@@ -31,11 +31,11 @@ import { usePWA } from "./hooks/usePWA";
 import { getDevice, createDevice } from "./services/deviceService";
 import { getPart, createPart } from "./services/partService";
 import { getTool, createTool } from "./services/toolService";
-import { AddAssetModal } from "./components/AddAssetModal";
-import { PrintLabelModal } from "./components/PrintLabelModal";
+import { AddAssetModalContainer } from "./containers/AddAssetModalContainer";
+import { PrintLabelModalContainer } from "./containers/PrintLabelModalContainer";
 import { canPrintLabels } from "./utils/canPrintLabels";
 import { canManageAccounts } from "./utils/roles";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./containers/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ChapterProvider, useIsNationalAdmin } from "./context/ChapterContext";
 import { AddAssetProvider } from "./context/AddAssetContext";
@@ -808,7 +808,7 @@ function AppShell() {
 
         {/* Add asset modal (shown when an unknown barcode is scanned) */}
         {pendingScanId !== null && (
-          <AddAssetModal
+          <AddAssetModalContainer
             scanId={pendingScanId >= 0 ? pendingScanId : undefined}
             onAdd={handleAddAsset}
             onCancel={() => setPendingScanId(null)}
@@ -817,7 +817,10 @@ function AppShell() {
 
         {/* Print label modal — shown after a new asset is saved */}
         {pendingPrintId !== null && canPrintLabels() && (
-          <PrintLabelModal assetId={pendingPrintId} onClose={() => setPendingPrintId(null)} />
+          <PrintLabelModalContainer
+            assetId={pendingPrintId}
+            onClose={() => setPendingPrintId(null)}
+          />
         )}
       </div>
     </AddAssetProvider>

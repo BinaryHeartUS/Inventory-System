@@ -1,9 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import type { RefObject } from "react";
 import type { AnyDevice } from "../types/inventory";
-import { getDevices } from "../services/deviceService";
-import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { DeviceList } from "./DeviceList";
-import { useWritableChapters } from "../context/ChapterContext";
 
 const EXCLUDE_COLS = ["Type", "CPU", "OS", "RAM", "Storage", "Status", "Details", "Acquired"];
 
@@ -11,52 +8,31 @@ const EXCLUDE_COLS = ["Type", "CPU", "OS", "RAM", "Storage", "Status", "Details"
  * Modal overlay that lets the user pick a device from their writable chapters.
  * Shows ID, Brand, Model, Year, and Chapter columns only.
  *
- * `onSelect` receives the full device object; `onCancel` closes the modal.
+ * Presentational: the device list, loading flags, search value, and infinite-scroll
+ * sentinel are supplied by DevicePickerModalContainer. `onSelect` receives the full
+ * device object; `onCancel` closes the modal.
  */
 export function DevicePickerModal({
+  devices,
+  loading,
+  initialLoading,
+  search,
+  onSearchChange,
+  sentinelRef,
   onSelect,
   onCancel,
   chapterName,
 }: {
+  devices: AnyDevice[];
+  loading: boolean;
+  initialLoading: boolean;
+  search: string;
+  onSearchChange: (value: string) => void;
+  sentinelRef: RefObject<HTMLDivElement | null>;
   onSelect: (device: AnyDevice) => void;
   onCancel: () => void;
   chapterName?: string;
 }) {
-  const writableChapters = useWritableChapters();
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
-    return () => clearTimeout(t);
-  }, [search]);
-
-  const chapterId = useMemo(
-    () => (chapterName ? writableChapters.find((c) => c.name === chapterName)?.id : undefined),
-    [chapterName, writableChapters]
-  );
-
-  const fetchPage = useCallback(
-    (pageKey: number, pageSize: number) =>
-      getDevices({ pageKey, pageSize, search: debouncedSearch || undefined, chapter: chapterId }),
-    [debouncedSearch, chapterId]
-  );
-  const { items, loading, sentinelRef } = useInfiniteScroll<AnyDevice>(fetchPage, [
-    debouncedSearch,
-    chapterId,
-  ]);
-
-  const writableChapterNames = useMemo(
-    () => new Set(writableChapters.map((c) => c.name)),
-    [writableChapters]
-  );
-
-  // Backend scopes to readable chapters; the picker only offers writable ones.
-  const filtered = useMemo(
-    () => items.filter((d) => d.chapter != null && writableChapterNames.has(d.chapter)),
-    [items, writableChapterNames]
-  );
-
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -122,7 +98,7 @@ export function DevicePickerModal({
               type="text"
               value={search}
               placeholder="Filter by ID, brand, model, chapter…"
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => onSearchChange(e.target.value)}
               className="w-full text-sm border border-slate-200 rounded-lg pl-9 pr-3 py-2 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue transition-all bg-white"
             />
           </div>
@@ -130,17 +106,17 @@ export function DevicePickerModal({
 
         {/* Table */}
         <div className="flex-1 overflow-y-auto">
-          {loading && items.length === 0 ? (
+          {initialLoading ? (
             <div className="flex items-center justify-center py-16">
               <div className="w-6 h-6 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
             </div>
           ) : (
             <>
               <DeviceList
-                devices={filtered}
+                devices={devices}
                 exclude={EXCLUDE_COLS}
                 onSelect={(id) => {
-                  const device = items.find((d) => d.id === id);
+                  const device = devices.find((d) => d.id === id);
                   if (device) onSelect(device);
                 }}
                 emptyMessage={

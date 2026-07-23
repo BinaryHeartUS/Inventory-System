@@ -1,17 +1,16 @@
 import { useState } from "react";
 import type { AccountSummary } from "../types/inventory";
-import {
-  addAccountRole,
-  deleteAccount,
-  removeAccountRole,
-  updateAccountRole,
-} from "../services/accountService";
 import { labelCls } from "../utils/formStyles";
 import { RoleBadge } from "./RoleBadge";
 /**
  * The inline expand-in-place editor for a single account's chapter affiliations
  * (add/change/remove roles) plus account deletion. Rendered inside the accounts
  * table as a full-width row.
+ *
+ * Presentational: keeps only local form/UI state (pending role selections, per-row
+ * loading and error indicators). All persistence runs through the injected
+ * onSaveRole / onRemoveRole / onAddRole / onDeleteAccount callbacks, which live in
+ * AccountEditPanelContainer.
  */
 export function AccountEditPanel({
   account,
@@ -20,8 +19,11 @@ export function AccountEditPanel({
   nationalChapterId,
   currentUserId,
   onClose,
-  onDeleted,
   chapterName,
+  onSaveRole,
+  onRemoveRole,
+  onAddRole,
+  onDeleteAccount,
 }: {
   account: AccountSummary;
   assignableRoles: string[];
@@ -29,8 +31,11 @@ export function AccountEditPanel({
   nationalChapterId: number | undefined;
   currentUserId: number | undefined;
   onClose: () => void;
-  onDeleted: () => void;
   chapterName: (id: number) => string;
+  onSaveRole: (chapterId: number, role: string) => Promise<void>;
+  onRemoveRole: (chapterId: number) => Promise<void>;
+  onAddRole: (chapterId: number, role: string) => Promise<void>;
+  onDeleteAccount: () => Promise<boolean>;
 }) {
   const isAdminAccount = account.chapterRoles.some((cr) => cr.role === "Admin");
 
@@ -67,15 +72,12 @@ export function AccountEditPanel({
     setSavingChapter(chapterId);
     setRowError((prev) => ({ ...prev, [chapterId]: "" }));
     try {
-      await updateAccountRole(account.id, chapterId, roleValues[chapterId]);
-      onClose();
-      onDeleted(); // reload
+      await onSaveRole(chapterId, roleValues[chapterId]);
     } catch (e) {
       setRowError((prev) => ({
         ...prev,
         [chapterId]: e instanceof Error ? e.message : "Failed to save",
       }));
-    } finally {
       setSavingChapter(null);
     }
   }
@@ -84,9 +86,7 @@ export function AccountEditPanel({
     setRemovingChapter(chapterId);
     setRowError((prev) => ({ ...prev, [chapterId]: "" }));
     try {
-      await removeAccountRole(account.id, chapterId);
-      onClose();
-      onDeleted();
+      await onRemoveRole(chapterId);
     } catch (e) {
       setRowError((prev) => ({
         ...prev,
@@ -102,9 +102,7 @@ export function AccountEditPanel({
     setAddLoading(true);
     setAddError(null);
     try {
-      await addAccountRole(account.id, Number(addChapter), addRole);
-      onClose();
-      onDeleted();
+      await onAddRole(Number(addChapter), addRole);
     } catch (e) {
       setAddError(e instanceof Error ? e.message : "Failed to add");
       setAddLoading(false);
@@ -112,11 +110,10 @@ export function AccountEditPanel({
   }
 
   async function handleDelete() {
-    if (!confirm(`Delete account "${account.username}"? This cannot be undone.`)) return;
     setDeleteLoading(true);
     try {
-      await deleteAccount(account.id);
-      onDeleted();
+      const proceeded = await onDeleteAccount();
+      if (!proceeded) setDeleteLoading(false);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to delete account");
       setDeleteLoading(false);

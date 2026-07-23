@@ -1,12 +1,17 @@
+/**
+ * ChapterFilterContainer — feeds the visible-chapter list from context into the
+ * presentational ChapterTabs and translates chapter names to IDs for callers.
+ */
+
 import { useVisibleChapters } from "../context/ChapterContext";
-import ChapterTabs from "./ChapterTabs";
+import ChapterTabs from "../components/ChapterTabs";
 
 interface Props {
   selected: number | "All";
   onChange: (chapterId: number | "All") => void;
 }
 
-export default function ChapterFilter({ selected, onChange }: Props) {
+export default function ChapterFilterContainer({ selected, onChange }: Props) {
   const chapters = useVisibleChapters();
   const names = chapters.map((c) => c.name);
   const selectedName =

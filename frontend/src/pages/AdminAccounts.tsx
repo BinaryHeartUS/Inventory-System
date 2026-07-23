@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, Fragment } from "rea
 import { useAuth } from "../context/AuthContext";
 import { useChapters, useVisibleChapters } from "../context/ChapterContext";
 import PageHeading from "../components/PageHeading";
-import { AccountEditPanel } from "../components/AccountEditPanel";
+import { AccountEditPanelContainer } from "../containers/AccountEditPanelContainer";
 import { RoleBadge } from "../components/RoleBadge";
 import { getAccounts, createAccount, addAccountRole } from "../services/accountService";
 import type { AccountSummary } from "../types/inventory";
@@ -445,7 +445,7 @@ export default function AdminAccounts() {
                           {expandedId === account.id && canManage && (
                             <tr className="rc-raw">
                               <td colSpan={colCount} className="p-0 rc-raw">
-                                <AccountEditPanel
+                                <AccountEditPanelContainer
                                   account={account}
                                   assignableRoles={assignableRoles}
                                   assignableChapters={assignableChapters}

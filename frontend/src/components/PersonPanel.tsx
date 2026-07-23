@@ -1,52 +1,55 @@
-import { useState, useEffect } from "react";
-import { getParty, createPerson, updatePerson } from "../services/partyService";
-import type { PersonDetail } from "../types/inventory";
+import { useState } from "react";
 import { formatLocation } from "../types/inventory";
 import { inputCls, labelCls } from "../utils/formStyles";
 import { AddressFields } from "./AddressFields";
 
+/** Form values fed to PersonPanel; assembled by PersonPanelContainer. */
+export interface PersonFormData {
+  name: string;
+  email: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  hasLocation: boolean;
+}
+
+/** Persisted shape produced by the form. */
+export interface PersonSaveRequest {
+  name: string;
+  email?: string;
+  location?: string;
+}
+
+/**
+ * Presentational editor for a single individual (person) party. Owns only local
+ * form/view-state seeded from the injected `initial` values; loading and
+ * persistence live in PersonPanelContainer.
+ */
 export function PersonPanel({
-  partyId,
+  isNew,
+  loading,
+  initial,
   onClose,
-  onSaved,
+  onSave,
 }: {
-  partyId: number | "new";
+  isNew: boolean;
+  loading: boolean;
+  initial: PersonFormData;
   onClose: () => void;
-  onSaved: () => void;
+  onSave: (req: PersonSaveRequest) => Promise<void>;
 }) {
-  const isNew = partyId === "new";
-  const [loading, setLoading] = useState(!isNew);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [street, setStreet] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zipCode, setZipCode] = useState("");
-  const [country, setCountry] = useState("");
-  const [showAddr, setShowAddr] = useState(false);
+  const [name, setName] = useState(initial.name);
+  const [email, setEmail] = useState(initial.email);
+  const [street, setStreet] = useState(initial.street);
+  const [city, setCity] = useState(initial.city);
+  const [state, setState] = useState(initial.state);
+  const [zipCode, setZipCode] = useState(initial.zipCode);
+  const [country, setCountry] = useState(initial.country);
+  const [showAddr, setShowAddr] = useState(initial.hasLocation);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isNew) return;
-    getParty(partyId as number)
-      .then((detail) => {
-        const p = detail as PersonDetail;
-        setName(p.name);
-        setEmail(p.email ?? "");
-        const loc = p.location;
-        if (loc) {
-          setStreet(loc.street ?? "");
-          setCity(loc.city ?? "");
-          setState(loc.state ?? "");
-          setZipCode(loc.zipCode ?? "");
-          setCountry(loc.country ?? "");
-          setShowAddr(true);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [isNew, partyId]);
 
   async function handleSave() {
     if (!name.trim()) return;
@@ -56,21 +59,15 @@ export function PersonPanel({
       street || city || state || zipCode || country
         ? formatLocation({ street, city, state, zipCode, country })
         : undefined;
-    const req = {
+    const req: PersonSaveRequest = {
       name: name.trim(),
       ...(email.trim() ? { email: email.trim() } : {}),
       ...(location ? { location } : {}),
     };
     try {
-      if (isNew) {
-        await createPerson(req);
-      } else {
-        await updatePerson(partyId as number, req);
-      }
-      onSaved();
+      await onSave(req);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
-    } finally {
       setSaving(false);
     }
   }

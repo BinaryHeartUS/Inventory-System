@@ -1,11 +1,18 @@
-import { useAddAsset } from "../context/AddAssetContext";
-
-export default function AddAssetButton({ className = "" }: { className?: string }) {
-  const { openAddAssetModal } = useAddAsset();
-
+/**
+ * AddAssetButton — presentational "Add Asset" button. UI only; the click
+ * behavior (opening the add-asset modal) is injected via onClick by
+ * AddAssetButtonContainer.
+ */
+export default function AddAssetButton({
+  className = "",
+  onClick,
+}: {
+  className?: string;
+  onClick: () => void;
+}) {
   return (
     <button
-      onClick={() => openAddAssetModal()}
+      onClick={onClick}
       className={`flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark shadow-sm px-5 py-2.5 rounded-lg transition-colors ${className}`}
     >
       <svg

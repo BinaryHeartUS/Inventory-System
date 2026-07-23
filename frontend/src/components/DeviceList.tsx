@@ -127,7 +127,7 @@ export function DeviceList({
 }: {
   devices: AnyDevice[];
   exclude?: string[];
-  onSelect?: (id: number) => void;
+  onSelect: (id: number) => void;
   emptyMessage?: React.ReactNode;
   sortKey?: SortKey;
   sortDir?: SortDir;

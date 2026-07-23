@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import type { AnyDevice, ChapterInventorySummary } from "../types/inventory";
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
@@ -7,6 +8,7 @@ import { renderDeviceRow, DEVICE_TABLE_HEADERS } from "../utils/deviceUtils";
 import PageHeading from "../components/PageHeading";
 
 export default function Donations() {
+  const navigate = useNavigate();
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
   const chapters = useVisibleChapters();
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
@@ -103,7 +105,9 @@ export default function Donations() {
                   </td>
                 </tr>
               ) : (
-                donated.map((d) => renderDeviceRow(d))
+                donated.map((d) =>
+                  renderDeviceRow(d, undefined, (id) => navigate(`/devices/${id}`))
+                )
               )}
             </tbody>
           </table>

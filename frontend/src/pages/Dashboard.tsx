@@ -5,8 +5,8 @@ import { useDashboardData } from "../hooks/useDashboardData";
 import ActivityChart from "../components/ActivityChart";
 import DeviceValueChart from "../components/DeviceValueChart";
 import PageHeading from "../components/PageHeading";
-import ChapterFilter from "../components/ChapterFilter";
-import AddAssetButton from "../components/AddAssetButton";
+import ChapterFilterContainer from "../containers/ChapterFilterContainer";
+import AddAssetButtonContainer from "../containers/AddAssetButtonContainer";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -47,12 +47,12 @@ export default function Dashboard() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading title="Dashboard" subtitle="Inventory overview by chapter" />
         <div className="flex justify-end">
-          <AddAssetButton className="w-full sm:w-auto" />
+          <AddAssetButtonContainer className="w-full sm:w-auto" />
         </div>
       </div>
 
       {/* Chapter tabs */}
-      <ChapterFilter selected={selectedChapter} onChange={setSelectedChapter} />
+      <ChapterFilterContainer selected={selectedChapter} onChange={setSelectedChapter} />
 
       {/* Pipeline card */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

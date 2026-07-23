@@ -7,7 +7,7 @@ import { useChapters, useVisibleChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
 import type { ChapterInventorySummary } from "../types/inventory";
 import PageHeading from "../components/PageHeading";
-import ChapterFilter from "../components/ChapterFilter";
+import ChapterFilterContainer from "../containers/ChapterFilterContainer";
 import { ExportCard } from "../components/ExportCard";
 import { slugify } from "../utils/csv";
 import * as reportExport from "../services/reportExport";
@@ -144,7 +144,7 @@ export default function Reports() {
       <PageHeading title="Reports" subtitle="Export inventory data and view summary statistics" />
 
       {/* Chapter filter */}
-      <ChapterFilter selected={selectedChapter} onChange={setSelectedChapter} />
+      <ChapterFilterContainer selected={selectedChapter} onChange={setSelectedChapter} />
 
       {/* Summary stats */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

@@ -5,8 +5,8 @@ import PageHeading from "../components/PageHeading";
 import { getParties } from "../services/partyService";
 import type { PartySummary } from "../types/inventory";
 import { canManageAccounts } from "../utils/roles";
-import { PersonPanel } from "../components/PersonPanel";
-import { OrgPanel } from "../components/OrgPanel";
+import { PersonPanelContainer } from "../containers/PersonPanelContainer";
+import { OrgPanelContainer } from "../containers/OrgPanelContainer";
 
 // ─── Reusable party table section ─────────────────────────────────────────────
 type SectionType = "individuals" | "organizations";
@@ -160,9 +160,17 @@ function PartySection({
       {expandedId === "new" && (
         <div className="mb-3 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {isPerson ? (
-            <PersonPanel partyId="new" onClose={() => setExpandedId(null)} onSaved={handleSaved} />
+            <PersonPanelContainer
+              partyId="new"
+              onClose={() => setExpandedId(null)}
+              onSaved={handleSaved}
+            />
           ) : (
-            <OrgPanel partyId="new" onClose={() => setExpandedId(null)} onSaved={handleSaved} />
+            <OrgPanelContainer
+              partyId="new"
+              onClose={() => setExpandedId(null)}
+              onSaved={handleSaved}
+            />
           )}
         </div>
       )}
@@ -222,13 +230,13 @@ function PartySection({
                     <tr key={`${p.id}-panel`} className="rc-raw">
                       <td colSpan={2} className="p-0 rc-raw">
                         {isPerson ? (
-                          <PersonPanel
+                          <PersonPanelContainer
                             partyId={p.id}
                             onClose={() => setExpandedId(null)}
                             onSaved={handleSaved}
                           />
                         ) : (
-                          <OrgPanel
+                          <OrgPanelContainer
                             partyId={p.id}
                             onClose={() => setExpandedId(null)}
                             onSaved={handleSaved}

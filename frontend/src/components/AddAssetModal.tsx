@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import type { AnyDevice, DeviceStatus, Part, PartySummary, Tool } from "../types/inventory";
-import { useLookups } from "../hooks/useLookups";
-import { useChapters } from "../context/ChapterContext";
-import { checkAssetIdExists } from "../services/assetService";
+import type { LookupData } from "../hooks/useLookups";
 import { inputCls, labelCls } from "../utils/formStyles";
-import { DevicePickerModal } from "./DevicePickerModal";
-import { PartyPickerModal } from "./PartyPickerModal";
+import { DevicePickerModalContainer } from "../containers/DevicePickerModalContainer";
+import { PartyPickerModalContainer } from "../containers/PartyPickerModalContainer";
 import { CategoryStep } from "./add-asset/CategoryStep";
 import { SubtypeStep } from "./add-asset/SubtypeStep";
 import { FieldsForm } from "./add-asset/FieldsForm";
@@ -17,18 +15,27 @@ import {
 } from "./add-asset/types";
 
 // ─── Main modal ───────────────────────────────────────────────────────────────
+/**
+ * Presentational multi-step "Add Asset" wizard. Owns all form/step/picker
+ * view-state. Lookup and chapter data plus the ID-uniqueness check are supplied
+ * by AddAssetModalContainer via props; the assembled asset is emitted through
+ * onAdd.
+ */
 export function AddAssetModal({
   scanId,
+  lookups,
+  chapterList,
+  checkAssetId,
   onAdd,
   onCancel,
 }: {
   scanId?: number;
+  lookups: LookupData;
+  chapterList: { id: number; name: string }[];
+  checkAssetId: (id: number) => Promise<boolean>;
   onAdd?: (asset: AnyDevice | Part | Tool) => void;
   onCancel: () => void;
 }) {
-  const lookups = useLookups();
-  const { chapters: chapterList } = useChapters();
-
   // Set default chapter once lookup data loads
   const [step, setStep] = useState<"id" | "category" | "subtype" | "fields">(
     scanId !== undefined ? "category" : "id"
@@ -69,13 +76,13 @@ export function AddAssetModal({
         cancelled = true;
       };
     }
-    checkAssetIdExists(n).then((exists) => {
+    checkAssetId(n).then((exists) => {
       if (!cancelled) setIdConflict(exists);
     });
     return () => {
       cancelled = true;
     };
-  }, [idMode, inputId]);
+  }, [idMode, inputId, checkAssetId]);
 
   function isIdStepValid(): boolean {
     if (idMode === "generate") return true;
@@ -327,7 +334,7 @@ export function AddAssetModal({
 
         {/* Device picker (rendered above the modal layer) */}
         {devicePickerOpen && (
-          <DevicePickerModal
+          <DevicePickerModalContainer
             chapterName={form.chapter || undefined}
             onSelect={(device) => {
               setSelectedDevice(device);
@@ -340,7 +347,7 @@ export function AddAssetModal({
 
         {/* Party picker — donor */}
         {partyPickerOpen && (
-          <PartyPickerModal
+          <PartyPickerModalContainer
             onSelect={(party) => {
               setSelectedParty(party);
               setPartyPickerOpen(false);
@@ -351,7 +358,7 @@ export function AddAssetModal({
 
         {/* Party picker — recipient */}
         {recipientPickerOpen && (
-          <PartyPickerModal
+          <PartyPickerModalContainer
             onSelect={(party) => {
               setSelectedRecipient(party);
               setRecipientPickerOpen(false);

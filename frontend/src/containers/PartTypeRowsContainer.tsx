@@ -3,14 +3,20 @@ import { getParts } from "../services/partService";
 import type { PartTypeCountParams } from "../services/partService";
 import type { Part } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
-import { PartRow } from "./PartRow";
+import { PartRowContainer } from "./PartRowContainer";
 
 /**
  * Rows for a single expanded type group. Mounted only while the group is open, so no part
  * rows are fetched until the user actually expands the group. Parts are paged in via infinite
  * scroll scoped to this group (the sentinel is a table row at the bottom of the group's rows).
  */
-export function PartTypeRows({ type, filters }: { type: string; filters: PartTypeCountParams }) {
+export function PartTypeRowsContainer({
+  type,
+  filters,
+}: {
+  type: string;
+  filters: PartTypeCountParams;
+}) {
   const fetchPage = useCallback(
     (pageKey: number, pageSize: number) => getParts({ ...filters, type, pageKey, pageSize }),
     [filters, type]
@@ -24,7 +30,7 @@ export function PartTypeRows({ type, filters }: { type: string; filters: PartTyp
   return (
     <>
       {parts.map((p) => (
-        <PartRow key={p.id} part={p} hideTypeCol />
+        <PartRowContainer key={p.id} part={p} hideTypeCol />
       ))}
       <tr ref={sentinelRef} aria-hidden="true">
         <td colSpan={6} className="p-0">

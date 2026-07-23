@@ -1,17 +1,19 @@
-import { useNavigate } from "react-router-dom";
 import type { Tool } from "../types/inventory";
-import { useChapters } from "../context/ChapterContext";
 import { formatDate } from "../utils/dateUtils";
 
-export function ToolRow({ tool }: { tool: Tool }) {
-  const navigate = useNavigate();
-  const { chapterName } = useChapters();
-  const chapter = chapterName(tool.chapterId);
-
+export function ToolRow({
+  tool,
+  chapter,
+  onSelect,
+}: {
+  tool: Tool;
+  chapter: string;
+  onSelect: (id: number) => void;
+}) {
   return (
     <tr
       key={tool.id}
-      onClick={() => navigate(`/tools/${tool.id}`)}
+      onClick={() => onSelect(tool.id)}
       className="hover:bg-slate-50 transition-colors cursor-pointer"
     >
       <td className="px-5 py-5 font-mono text-xs text-slate-400" data-label="ID">

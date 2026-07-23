@@ -7,7 +7,7 @@ interface Props {
 }
 
 /**
- * Wraps any route that requires authentication.
+ * Route-guard container. Wraps any route that requires authentication.
  * Unauthenticated users are redirected to /login, with the original
  * path stored in location.state.from so they can be sent back after login.
  */

@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import type { PartySummary, CreatePersonRequest, CreateOrgRequest } from "../types/inventory";
 import { formatLocation } from "../types/inventory";
-import { getParties, createPerson, createOrg } from "../services/partyService";
 
 // ─── Shared style constants ───────────────────────────────────────────────────
 const inputCls =
@@ -29,11 +28,11 @@ function hasAddress(a: AddressFields): boolean {
 
 function CreatePartyForm({
   mode,
-  onCreated,
+  onCreate,
   onCancel,
 }: {
   mode: "Person" | "Organization";
-  onCreated: (name: string) => void;
+  onCreate: (req: CreatePersonRequest | CreateOrgRequest) => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState("");
@@ -55,26 +54,22 @@ function CreatePartyForm({
     try {
       const location = hasAddress(address) ? formatLocation(address) : undefined;
 
-      if (mode === "Person") {
-        const req: CreatePersonRequest = {
-          name: name.trim(),
-          ...(email.trim() ? { email: email.trim() } : {}),
-          ...(location ? { location } : {}),
-        };
-        await createPerson(req);
-      } else {
-        const req: CreateOrgRequest = {
-          name: name.trim(),
-          ...(contactName.trim() ? { contactName: contactName.trim() } : {}),
-          ...(contactEmail.trim() ? { contactEmail: contactEmail.trim() } : {}),
-          ...(location ? { location } : {}),
-        };
-        await createOrg(req);
-      }
-      onCreated(name.trim());
+      const req: CreatePersonRequest | CreateOrgRequest =
+        mode === "Person"
+          ? {
+              name: name.trim(),
+              ...(email.trim() ? { email: email.trim() } : {}),
+              ...(location ? { location } : {}),
+            }
+          : {
+              name: name.trim(),
+              ...(contactName.trim() ? { contactName: contactName.trim() } : {}),
+              ...(contactEmail.trim() ? { contactEmail: contactEmail.trim() } : {}),
+              ...(location ? { location } : {}),
+            };
+      await onCreate(req);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
-    } finally {
       setSaving(false);
     }
   }
@@ -272,25 +267,23 @@ function CreatePartyForm({
 // ─── PartyPickerModal ─────────────────────────────────────────────────────────
 
 export function PartyPickerModal({
+  parties,
+  loading,
   onSelect,
   onCancel,
+  onCreate,
 }: {
+  parties: PartySummary[];
+  loading: boolean;
   onSelect: (party: PartySummary) => void;
   onCancel: () => void;
+  onCreate: (
+    mode: "Person" | "Organization",
+    req: CreatePersonRequest | CreateOrgRequest
+  ) => Promise<void>;
 }) {
-  const [parties, setParties] = useState<PartySummary[]>([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
   const [createMode, setCreateMode] = useState<CreateMode>(null);
-
-  useEffect(() => {
-    getParties()
-      .then((p) => {
-        setParties(p);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return parties;
@@ -300,20 +293,10 @@ export function PartyPickerModal({
     );
   }, [parties, search]);
 
-  async function handleCreated(createdName: string) {
+  async function handleCreate(req: CreatePersonRequest | CreateOrgRequest) {
+    if (!createMode) return;
+    await onCreate(createMode, req);
     setCreateMode(null);
-    // Re-fetch the list so the new party (returned as void by the API) appears
-    try {
-      const updated = await getParties();
-      setParties(updated);
-      // Find the newly created entry by name (last match wins in case of duplicates)
-      const match = [...updated]
-        .reverse()
-        .find((p) => p.name.toLowerCase() === createdName.toLowerCase());
-      if (match) onSelect(match);
-    } catch {
-      // List refresh failed — just close the create form; party won't auto-select
-    }
   }
 
   return (
@@ -471,7 +454,7 @@ export function PartyPickerModal({
       {createMode && (
         <CreatePartyForm
           mode={createMode}
-          onCreated={handleCreated}
+          onCreate={handleCreate}
           onCancel={() => setCreateMode(null)}
         />
       )}

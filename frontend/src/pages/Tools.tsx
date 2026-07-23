@@ -4,9 +4,9 @@ import { getChapterInventorySummary } from "../services/deviceService";
 import type { ChapterInventorySummary, Tool } from "../types/inventory";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import PageHeading from "../components/PageHeading";
-import { ToolRow } from "../components/ToolRow";
-import AddAssetButton from "../components/AddAssetButton";
-import ChapterFilter from "../components/ChapterFilter";
+import { ToolRowContainer } from "../containers/ToolRowContainer";
+import AddAssetButtonContainer from "../containers/AddAssetButtonContainer";
+import ChapterFilterContainer from "../containers/ChapterFilterContainer";
 
 export default function Tools() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
@@ -65,12 +65,12 @@ export default function Tools() {
           }
         />
         <div className="flex justify-end">
-          <AddAssetButton className="w-full sm:w-auto" />
+          <AddAssetButtonContainer className="w-full sm:w-auto" />
         </div>
       </div>
 
       {/* Chapter filter */}
-      <ChapterFilter selected={chapterFilter} onChange={setChapterFilter} />
+      <ChapterFilterContainer selected={chapterFilter} onChange={setChapterFilter} />
 
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -101,7 +101,7 @@ export default function Tools() {
                   </td>
                 </tr>
               ) : (
-                tools.map((t) => <ToolRow key={t.id} tool={t} />)
+                tools.map((t) => <ToolRowContainer key={t.id} tool={t} />)
               )}
             </tbody>
           </table>
