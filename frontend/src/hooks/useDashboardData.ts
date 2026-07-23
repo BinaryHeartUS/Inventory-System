@@ -109,3 +109,6 @@ export function useDashboardData(selectedChapterIds: number[], chartMonths: numb
     sampleSize,
   };
 }
+
+/** All Dashboard metrics derived by {@link useDashboardData}. */
+export type DashboardData = ReturnType<typeof useDashboardData>;
