@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import JsBarcode from "jsbarcode";
-import { NiimbotSerialClient, ImageEncoder } from "@mmote/niimbluelib";
 
 // ─── Label dimensions ─────────────────────────────────────────────────────────
 // 50 × 30 mm labels at 203 dpi (NIIMBOT standard thermal head resolution):
@@ -71,12 +70,24 @@ async function drawLabel(canvas: HTMLCanvasElement, assetId: number) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-type PrintStatus = "idle" | "connecting" | "printing" | "done" | "error";
+export type PrintStatus = "idle" | "connecting" | "printing" | "done" | "error";
 
-export function PrintLabelModal({ assetId, onClose }: { assetId: number; onClose: () => void }) {
+export function PrintLabelModal({
+  assetId,
+  status,
+  errorMsg,
+  serialSupported,
+  onPrint,
+  onClose,
+}: {
+  assetId: number;
+  status: PrintStatus;
+  errorMsg: string | null;
+  serialSupported: boolean;
+  onPrint: (canvas: HTMLCanvasElement) => void;
+  onClose: () => void;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [status, setStatus] = useState<PrintStatus>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -84,63 +95,8 @@ export function PrintLabelModal({ assetId, onClose }: { assetId: number; onClose
     }
   }, [assetId]);
 
-  async function handlePrint() {
-    if (!canvasRef.current) return;
-    setStatus("connecting");
-    setErrorMsg(null);
-
-    // NiimbotSerialClient uses Web Serial API (Chromium 89+).
-    // connect() triggers the browser's port-picker dialog on first use.
-    const client = new NiimbotSerialClient();
-    try {
-      await client.connect();
-      setStatus("printing");
-
-      // 'top' = no rotation — canvas width (400 px) maps to the 50 mm print head.
-      // If your labels come out sideways, change 'top' to 'left'.
-      const encoded = ImageEncoder.encodeCanvas(canvasRef.current, "top");
-
-      // getPrintTaskType() auto-detects for some models; falls back to 'B1'.
-      // If your printer model is not auto-detected, change 'B1' to match your model.
-      const taskType = client.getPrintTaskType() ?? "B1";
-      const task = client.abstraction.newPrintTask(taskType, {
-        totalPages: 1,
-        statusPollIntervalMs: 100,
-        statusTimeoutMs: 8_000,
-      });
-
-      await task.printInit();
-      await task.printPage(encoded, 1);
-      await task.waitForPageFinished();
-      await task.waitForFinished();
-      setStatus("done");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      // "Failed to open serial port" on Linux almost always means either:
-      //   1. The user's account is not in the `dialout` group, or
-      //   2. The `brltty` service has claimed the port (common on Debian/Ubuntu).
-      if (msg.toLowerCase().includes("failed to open serial port")) {
-        setErrorMsg(
-          "Could not open the port. If on Linux: run  sudo usermod -aG dialout $USER  " +
-            "and log out/in. " +
-            "On any OS, close the NIIMBOT app if it is running."
-        );
-      } else {
-        setErrorMsg(msg);
-      }
-      setStatus("error");
-    } finally {
-      try {
-        client.disconnect();
-      } catch {
-        /* ignore disconnect errors */
-      }
-    }
-  }
-
   const busy = status === "connecting" || status === "printing";
   const paddedId = String(assetId).padStart(6, "0");
-  const serialSupported = "serial" in navigator;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -244,7 +200,7 @@ export function PrintLabelModal({ assetId, onClose }: { assetId: number; onClose
 
           {status !== "done" && (
             <button
-              onClick={handlePrint}
+              onClick={() => canvasRef.current && onPrint(canvasRef.current)}
               disabled={busy || !serialSupported}
               className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
