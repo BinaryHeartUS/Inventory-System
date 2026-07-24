@@ -3,6 +3,7 @@ import type { AccountSummary, ChapterSummary } from "../../types/inventory";
 import PageHeading from "../PageHeading";
 import { AccountEditPanelContainer } from "../../containers/AccountEditPanelContainer";
 import { RoleBadge } from "./RoleBadge";
+import { Chevron } from "../Chevron";
 import { inputCls, labelCls } from "../../utils/formStyles";
 
 export interface AccountGroup {
@@ -128,7 +129,7 @@ export default function AdminAccountsView({
       <div className="flex items-end justify-between">
         <PageHeading
           title="Manage Accounts"
-          subtitle={isAdmin ? "All volunteer accounts" : "Accounts in your chapter"}
+          subtitle={`${isAdmin ? "All volunteer accounts" : "Accounts in your chapter"}, grouped by chapter`}
         />
         {canManage && (
           <button
@@ -294,59 +295,52 @@ export default function AdminAccountsView({
         </div>
       )}
 
-      {/* Account list */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        {listError && <p className="text-sm text-red-600 px-6 py-4">{listError}</p>}
-        {!accountsLoaded && !listError ? (
-          <p className="text-sm text-slate-400 px-6 py-8 text-center">Loading accounts…</p>
-        ) : groups.length === 0 && !listError ? (
-          <p className="text-sm text-slate-400 px-6 py-8 text-center">No accounts found</p>
-        ) : (
-          <table className="responsive-cards w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                <th className="text-left px-6 py-3">Username</th>
-                <th className="text-left px-6 py-3">Name</th>
-                <th className="text-left px-6 py-3">Chapter Access</th>
-                {canManage && <th className="px-6 py-3 w-16" />}
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((group) => {
-                const groupExpanded = expandedChapters.has(group.chapterId);
-                return (
-                  <Fragment key={group.chapterId}>
-                    <tr
-                      onClick={() => toggleChapter(group.chapterId)}
-                      className="rc-raw cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors select-none border-b border-slate-100"
-                    >
-                      <td colSpan={colCount} className="rc-raw px-6 py-3">
-                        <div className="flex items-center gap-2.5 text-slate-700">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            className={`transition-transform duration-200 flex-shrink-0 ${groupExpanded ? "rotate-90" : ""}`}
-                          >
-                            <path
-                              d="M6 4l4 4-4 4"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <span className="font-semibold">{group.name}</span>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
-                            {group.accounts.length}{" "}
-                            {group.accounts.length === 1 ? "account" : "accounts"}
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                    {groupExpanded &&
-                      group.accounts.map((account) => (
+      {/* Account list — grouped by chapter */}
+      {listError && (
+        <p className="text-sm text-red-600 bg-white border border-slate-200 rounded-xl px-6 py-4">
+          {listError}
+        </p>
+      )}
+      {!accountsLoaded && !listError ? (
+        <p className="text-sm text-slate-400 bg-white border border-slate-200 rounded-xl px-6 py-8 text-center">
+          Loading accounts…
+        </p>
+      ) : groups.length === 0 && !listError ? (
+        <p className="text-sm text-slate-400 bg-white border border-slate-200 rounded-xl px-6 py-8 text-center">
+          No accounts found
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {groups.map((group) => {
+            const groupExpanded = expandedChapters.has(group.chapterId);
+            return (
+              <div
+                key={group.chapterId}
+                className="bg-white border border-slate-200 rounded-xl overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleChapter(group.chapterId)}
+                  className="w-full flex items-center gap-2.5 px-6 py-3 bg-slate-50 hover:bg-slate-100 transition-colors select-none cursor-pointer text-slate-700"
+                >
+                  <Chevron expanded={groupExpanded} />
+                  <span className="font-semibold">{group.name}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
+                    {group.accounts.length} {group.accounts.length === 1 ? "account" : "accounts"}
+                  </span>
+                </button>
+                {groupExpanded && (
+                  <table className="responsive-cards w-full text-sm border-t border-slate-100">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        <th className="text-left px-6 py-3">Username</th>
+                        <th className="text-left px-6 py-3">Name</th>
+                        <th className="text-left px-6 py-3">Chapter Access</th>
+                        {canManage && <th className="px-6 py-3 w-16" />}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.accounts.map((account) => (
                         <Fragment key={account.id}>
                           <tr
                             className={`border-b border-slate-50 transition-colors ${expandedId === account.id ? "bg-slate-50" : "hover:bg-slate-50 cursor-pointer"}`}
@@ -416,13 +410,14 @@ export default function AdminAccountsView({
                           )}
                         </Fragment>
                       ))}
-                  </Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

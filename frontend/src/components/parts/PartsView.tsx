@@ -1,4 +1,3 @@
-import React from "react";
 import type { PartTypeCountResponse } from "../../types/inventory";
 import type { PartTypeCountParams } from "../../services/partService";
 import PageHeading from "../PageHeading";
@@ -128,71 +127,75 @@ export default function PartsView({
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm responsive-cards">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                {["ID", "Description", "Chapter", "Source", "Contained In", "Acquired"].map((h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {sortedTypes.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-sm text-slate-400">
-                    {countsLoading ? (
-                      "Loading parts…"
-                    ) : (
-                      <>
-                        No parts match the current filters.{" "}
-                        {hasFilters && (
-                          <button
-                            onClick={onClearFilters}
-                            className="text-brand-red hover:underline"
-                          >
-                            Clear filters
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ) : (
-                sortedTypes.map(({ type, count }) => {
-                  const isExpanded = expandedTypes.has(type);
-                  return (
-                    <React.Fragment key={type}>
-                      <tr
-                        onClick={() => onToggleGroup(type)}
-                        className="cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors select-none"
-                      >
-                        <td colSpan={6} className="px-5 py-3">
-                          <div className="flex items-center gap-2.5 text-slate-700">
-                            <Chevron expanded={isExpanded} />
-                            <span className="font-semibold">{type}</span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
-                              {count} {count === 1 ? "part" : "parts"}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                      {isExpanded && <PartTypeRowsContainer type={type} filters={filters} />}
-                    </React.Fragment>
-                  );
-                })
+      {/* Grouped by type */}
+      {sortedTypes.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-xl px-5 py-12 text-center text-sm text-slate-400">
+          {countsLoading ? (
+            "Loading parts…"
+          ) : (
+            <>
+              No parts match the current filters.{" "}
+              {hasFilters && (
+                <button onClick={onClearFilters} className="text-brand-red hover:underline">
+                  Clear filters
+                </button>
               )}
-            </tbody>
-          </table>
+            </>
+          )}
         </div>
-      </div>
+      ) : (
+        <div className="space-y-3">
+          {sortedTypes.map(({ type, count }) => {
+            const isExpanded = expandedTypes.has(type);
+            return (
+              <div
+                key={type}
+                className="bg-white border border-slate-200 rounded-xl overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => onToggleGroup(type)}
+                  className="w-full flex items-center gap-2.5 px-5 py-3 bg-slate-50 hover:bg-slate-100 transition-colors select-none cursor-pointer text-slate-700"
+                >
+                  <Chevron expanded={isExpanded} />
+                  <span className="font-semibold">{type}</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-600">
+                    {count} {count === 1 ? "part" : "parts"}
+                  </span>
+                </button>
+                {isExpanded && (
+                  <div className="overflow-x-auto border-t border-slate-100">
+                    <table className="w-full text-sm responsive-cards">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-100">
+                          {[
+                            "ID",
+                            "Description",
+                            "Chapter",
+                            "Source",
+                            "Contained In",
+                            "Acquired",
+                          ].map((h) => (
+                            <th
+                              key={h}
+                              className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap"
+                            >
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <PartTypeRowsContainer type={type} filters={filters} />
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
