@@ -12,6 +12,17 @@ export interface BaseChangelogEntry {
   modifiedBy?: string;
 }
 
+/**
+ * A single before/after field pair rendered by the generic ModificationModal.
+ * Entity-specific builders (see utils/changelogFields.ts) map a raw changelog
+ * entry into an ordered list of these.
+ */
+export interface ChangelogFieldDef {
+  label: string;
+  old: string | null;
+  new: string | null;
+}
+
 /** PartChangelogResponse from the API with `partID` remapped to `assetId`. */
 export type PartChangelogEntry = PartChangelogResponse & { assetId: number };
 

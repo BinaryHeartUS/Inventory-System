@@ -1,4 +1,11 @@
-import { BrowserRouter, NavLink, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import {
+  createBrowserRouter,
+  NavLink,
+  Outlet,
+  RouterProvider,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useState, useCallback } from "react";
 import { ToastProvider, useToast } from "./context/ToastContext";
 import Dashboard from "./pages/Dashboard";
@@ -18,13 +25,17 @@ import Account from "./pages/Account";
 import AdminAccounts from "./pages/AdminAccounts";
 import ManageParties from "./pages/ManageParties";
 import PartyDetail from "./pages/PartyDetail";
+import Scanner from "./pages/Scanner";
 import { useBarcodeScanner } from "./hooks/useBarcodeScanner";
+import { usePWA } from "./hooks/usePWA";
 import { getDevice, createDevice } from "./services/deviceService";
 import { getPart, createPart } from "./services/partService";
 import { getTool, createTool } from "./services/toolService";
-import { AddAssetModal } from "./components/AddAssetModal";
-import { PrintLabelModal } from "./components/PrintLabelModal";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { AddAssetModalContainer } from "./containers/AddAssetModalContainer";
+import { PrintLabelModalContainer } from "./containers/PrintLabelModalContainer";
+import { canPrintLabels } from "./utils/canPrintLabels";
+import { canManageAccounts } from "./utils/roles";
+import ProtectedRoute from "./containers/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ChapterProvider, useIsNationalAdmin } from "./context/ChapterContext";
 import { AddAssetProvider } from "./context/AddAssetContext";
@@ -213,6 +224,15 @@ const navItems = [
   { to: "/reports", label: "Reports", icon: Icons.reports },
 ];
 
+// Primary destinations shown in the mobile bottom tab bar (a compact subset of
+// navItems). The remaining destinations + admin tools live in the drawer.
+const bottomNavItems = [
+  { to: "/", label: "Home", icon: Icons.dashboard },
+  { to: "/devices", label: "Devices", icon: Icons.devices },
+  { to: "/parts", label: "Parts", icon: Icons.parts },
+  { to: "/tools", label: "Tools", icon: Icons.tools },
+];
+
 const adminNavItems = [
   {
     to: "/admin/accounts",
@@ -278,12 +298,12 @@ const adminNavItems = [
   },
 ];
 
-function Sidebar() {
+function SidebarContent() {
   const { auth } = useAuth();
   const isNationalAdmin = useIsNationalAdmin();
-  const canManageAccounts = auth?.role === "Admin" || auth?.role === "Chapter Admin";
+  const canManage = canManageAccounts(auth?.role);
   return (
-    <aside className="w-64 shrink-0 flex flex-col bg-white border-r border-slate-200 h-dvh sticky top-0 overflow-y-auto">
+    <>
       <div className="px-6 pt-8 pb-7">
         <div className="flex items-center gap-3">
           <img src="/icon.png" alt="BinaryHeart" className="w-10 h-10 object-contain" />
@@ -322,7 +342,7 @@ function Sidebar() {
             )}
           </NavLink>
         ))}
-        {canManageAccounts && (
+        {canManage && (
           <>
             <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest px-3 mb-2 mt-6 pt-4 border-t border-slate-100">
               Administrator
@@ -396,7 +416,128 @@ function Sidebar() {
           )}
         </NavLink>
       </div>
+    </>
+  );
+}
+
+/** Fixed sidebar shown on large screens (lg+). Mobile uses the drawer + tab bar. */
+function Sidebar() {
+  return (
+    <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-white border-r border-slate-200 h-dvh sticky top-0 overflow-y-auto">
+      <SidebarContent />
     </aside>
+  );
+}
+
+/** Hamburger icon used in the mobile top bar. */
+const MenuIcon = (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+
+/** Sticky top bar shown on small screens with a hamburger + wordmark. */
+function MobileTopBar({ onMenu }: { onMenu: () => void }) {
+  return (
+    <header
+      className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
+      <div className="flex items-center gap-3 px-4 h-14">
+        <button
+          type="button"
+          onClick={onMenu}
+          aria-label="Open menu"
+          className="-ml-2 p-2 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
+        >
+          {MenuIcon}
+        </button>
+        <div className="flex items-center gap-2">
+          <img src="/icon.png" alt="BinaryHeart" className="w-7 h-7 object-contain" />
+          <span className="font-lato font-semibold text-sm tracking-tight">
+            <span className="text-brand-red">Binary</span>
+            <span className="text-heart-blue">Heart</span>
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/** Slide-in navigation drawer for small screens. Renders the full menu. */
+function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  return (
+    <div
+      className={`lg:hidden fixed inset-0 z-40 ${open ? "" : "pointer-events-none"}`}
+      aria-hidden={!open}
+    >
+      <div
+        onClick={onClose}
+        className={`absolute inset-0 bg-slate-900/40 transition-opacity duration-200 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <aside
+        className={`absolute left-0 top-0 h-dvh w-72 max-w-[85%] bg-white shadow-xl flex flex-col overflow-y-auto transition-transform duration-200 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Any click inside (e.g. a nav link) closes the drawer. */}
+        <div onClick={onClose} className="flex flex-col min-h-full">
+          <SidebarContent />
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+/** Fixed bottom tab bar for small screens. Shows a Scanner tab on touch devices. */
+function BottomTabBar() {
+  const { isTouch } = usePWA();
+  const showScanner = isTouch;
+  const tabCls = (isActive: boolean) =>
+    `flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors ${
+      isActive ? "text-heart-blue" : "text-slate-400"
+    }`;
+  return (
+    <nav
+      className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <div className="flex items-stretch h-16">
+        {bottomNavItems.map(({ to, label, icon }) => (
+          <NavLink key={to} to={to} end className={({ isActive }) => tabCls(isActive)}>
+            {({ isActive }) => (
+              <>
+                <span className={isActive ? "text-brand-red" : ""}>{icon}</span>
+                <span>{label}</span>
+              </>
+            )}
+          </NavLink>
+        ))}
+        {showScanner && (
+          <NavLink to="/scanner" className={({ isActive }) => tabCls(isActive)}>
+            {({ isActive }) => (
+              <>
+                <span className={isActive ? "text-brand-red" : ""}>{Icons.barcode}</span>
+                <span>Scan</span>
+              </>
+            )}
+          </NavLink>
+        )}
+      </div>
+    </nav>
   );
 }
 
@@ -425,26 +566,174 @@ function ToolDetailKeyed() {
   return <ToolDetail key={id} />;
 }
 
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: "login", element: <Login /> },
+      {
+        index: true,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "devices",
+        element: (
+          <ProtectedRoute>
+            <Devices />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "devices/:id",
+        element: (
+          <ProtectedRoute>
+            <DeviceDetailKeyed />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "parts",
+        element: (
+          <ProtectedRoute>
+            <Parts />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "parts/:id",
+        element: (
+          <ProtectedRoute>
+            <PartDetailKeyed />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "tools",
+        element: (
+          <ProtectedRoute>
+            <Tools />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "tools/:id",
+        element: (
+          <ProtectedRoute>
+            <ToolDetailKeyed />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "donations",
+        element: (
+          <ProtectedRoute>
+            <Donations />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "chapters",
+        element: (
+          <ProtectedRoute>
+            <Chapters />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "search",
+        element: (
+          <ProtectedRoute>
+            <Search />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "reports",
+        element: (
+          <ProtectedRoute>
+            <Reports />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "account",
+        element: (
+          <ProtectedRoute>
+            <Account />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/accounts",
+        element: (
+          <ProtectedRoute>
+            <AdminAccounts />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/parties",
+        element: (
+          <ProtectedRoute>
+            <ManageParties />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/parties/:id",
+        element: (
+          <ProtectedRoute>
+            <PartyDetail />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "scanner",
+        element: (
+          <ProtectedRoute>
+            <Scanner />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+]);
+
 function App() {
+  return <RouterProvider router={router} />;
+}
+
+function RootLayout() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ChapterProvider>
-          <ToastProvider>
-            <AppInner />
-          </ToastProvider>
-        </ChapterProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <ChapterProvider>
+        <ToastProvider>
+          <AppShell />
+        </ToastProvider>
+      </ChapterProvider>
+    </AuthProvider>
   );
 }
 
-function AppInner() {
+function AppShell() {
   const navigate = useNavigate();
   const { auth } = useAuth();
   const { showToast } = useToast();
   const [pendingScanId, setPendingScanId] = useState<number | null>(null);
   const [pendingPrintId, setPendingPrintId] = useState<number | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useBarcodeScanner({
     onScan: useCallback(
@@ -507,145 +796,19 @@ function AppInner() {
     <AddAssetProvider onOpen={(scanId?: number) => setPendingScanId(scanId ?? -1)}>
       <div className="flex min-h-dvh bg-slate-50 text-slate-900">
         {auth && <Sidebar />}
-        <div className="flex-1 min-w-0">
-          <main className="px-10 py-12">
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/devices"
-                element={
-                  <ProtectedRoute>
-                    <Devices />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/devices/:id"
-                element={
-                  <ProtectedRoute>
-                    <DeviceDetailKeyed />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/parts"
-                element={
-                  <ProtectedRoute>
-                    <Parts />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/parts/:id"
-                element={
-                  <ProtectedRoute>
-                    <PartDetailKeyed />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tools"
-                element={
-                  <ProtectedRoute>
-                    <Tools />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tools/:id"
-                element={
-                  <ProtectedRoute>
-                    <ToolDetailKeyed />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/donations"
-                element={
-                  <ProtectedRoute>
-                    <Donations />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chapters"
-                element={
-                  <ProtectedRoute>
-                    <Chapters />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/search"
-                element={
-                  <ProtectedRoute>
-                    <Search />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <ProtectedRoute>
-                    <Reports />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/account"
-                element={
-                  <ProtectedRoute>
-                    <Account />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/accounts"
-                element={
-                  <ProtectedRoute>
-                    <AdminAccounts />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/parties"
-                element={
-                  <ProtectedRoute>
-                    <ManageParties />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/parties/:id"
-                element={
-                  <ProtectedRoute>
-                    <PartyDetail />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+        <div className="flex-1 min-w-0 flex flex-col">
+          {auth && <MobileTopBar onMenu={() => setDrawerOpen(true)} />}
+          <main className={`flex-1 px-4 py-5 lg:px-10 lg:py-12 ${auth ? "pb-24 lg:pb-12" : ""}`}>
+            <Outlet />
           </main>
         </div>
 
+        {auth && <BottomTabBar />}
+        {auth && <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
+
         {/* Add asset modal (shown when an unknown barcode is scanned) */}
         {pendingScanId !== null && (
-          <AddAssetModal
+          <AddAssetModalContainer
             scanId={pendingScanId >= 0 ? pendingScanId : undefined}
             onAdd={handleAddAsset}
             onCancel={() => setPendingScanId(null)}
@@ -653,8 +816,11 @@ function AppInner() {
         )}
 
         {/* Print label modal — shown after a new asset is saved */}
-        {pendingPrintId !== null && (
-          <PrintLabelModal assetId={pendingPrintId} onClose={() => setPendingPrintId(null)} />
+        {pendingPrintId !== null && canPrintLabels() && (
+          <PrintLabelModalContainer
+            assetId={pendingPrintId}
+            onClose={() => setPendingPrintId(null)}
+          />
         )}
       </div>
     </AddAssetProvider>
