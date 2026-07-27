@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import type { ChapterSummary } from "../types/inventory";
 import { getChapters } from "../services/chapterService";
+import { WRITE_ROLES } from "../utils/roles";
 import { useAuth } from "./AuthContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -14,8 +15,6 @@ interface ChapterContextValue {
   /** Triggers a re-fetch of the chapter list. */
   refreshChapters: () => void;
 }
-
-const WRITE_ROLES = new Set(["Admin", "Chapter Admin", "Editor"]);
 
 /**
  * Returns only the chapters this user is allowed to see, excluding National
