@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import type { AnyDevice, DeviceStatus, Part, Tool } from "../types/inventory";
 import StatusBadge from "./StatusBadge";
 import PageHeading from "./PageHeading";

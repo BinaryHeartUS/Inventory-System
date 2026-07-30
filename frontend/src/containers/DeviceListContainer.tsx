@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import type { AnyDevice } from "../types/inventory";
 import { DeviceList, type SortKey, type SortDir } from "../components/devices/DeviceList";
 

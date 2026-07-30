@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import type { PartySummary } from "../../types/inventory";
 import { PersonPanelContainer } from "../../containers/PersonPanelContainer";
 import { OrgPanelContainer } from "../../containers/OrgPanelContainer";

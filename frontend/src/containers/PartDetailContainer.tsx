@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import type { AnyDevice, Part, PartySummary } from "../types/inventory";
 import { getPart, updatePart, deletePart, getPartChangelog } from "../services/partService";
 import { getDevice } from "../services/deviceService";

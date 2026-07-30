@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import ToolDetailContainer from "../containers/ToolDetailContainer";
 
 export default function ToolDetail() {

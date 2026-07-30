@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { formatDate } from "../../utils/dateUtils";
 
 export type DonatedRow = {
