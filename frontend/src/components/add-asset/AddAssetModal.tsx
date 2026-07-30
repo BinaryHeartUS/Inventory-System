@@ -294,15 +294,15 @@ export function AddAssetModal({
         {/* Step indicator */}
         <div className="px-6 pt-4 pb-2 flex items-center gap-1.5 shrink-0">
           {steps.map((label, i) => (
-            <div key={label} className="flex items-center gap-1.5">
+            <div key={label} className="flex items-center gap-1.5 min-w-0">
               {i > 0 && (
                 <div
-                  className={`h-px w-8 transition-colors ${i <= stepIdx ? "bg-heart-blue/40" : "bg-slate-200"}`}
+                  className={`h-px w-4 sm:w-8 shrink-0 transition-colors ${i <= stepIdx ? "bg-heart-blue/40" : "bg-slate-200"}`}
                 />
               )}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
                 <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
+                  className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
                     i < stepIdx
                       ? "bg-heart-blue text-white"
                       : i === stepIdx
@@ -313,7 +313,7 @@ export function AddAssetModal({
                   {i < stepIdx ? "✓" : i + 1}
                 </span>
                 <span
-                  className={`text-xs font-medium transition-colors ${i === stepIdx ? "text-brand-red" : "text-slate-400"}`}
+                  className={`text-xs font-medium transition-colors truncate ${i === stepIdx ? "text-brand-red" : "text-slate-400"} ${i === stepIdx ? "inline" : "hidden sm:inline"}`}
                 >
                   {label}
                 </span>
