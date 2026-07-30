@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, Navigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { getParty } from "../services/partyService";
 import { getDevices } from "../services/deviceService";

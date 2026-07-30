@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import type { Tool } from "../types/inventory";
 import { useChapters } from "../context/ChapterContext";
 import { ToolRow } from "../components/tools/ToolRow";

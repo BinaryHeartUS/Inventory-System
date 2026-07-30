@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { useChapters } from "../context/ChapterContext";
 import { getStoredToken } from "../services/authService";
