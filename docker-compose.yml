@@ -79,6 +79,12 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/api/health/ready | grep -q OK"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     ports:
       - "80:80"
 
