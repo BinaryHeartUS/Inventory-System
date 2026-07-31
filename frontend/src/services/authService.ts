@@ -22,11 +22,33 @@ interface StoredAuth {
   role: string;
 }
 
+export function getTokenExpiration(token: string): number | null {
+  try {
+    const payloadSegment = token.split(".")[1];
+    if (!payloadSegment) return null;
+
+    const base64 = payloadSegment.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+    const payload = JSON.parse(atob(padded)) as { exp?: unknown };
+    return typeof payload.exp === "number" && Number.isFinite(payload.exp)
+      ? payload.exp * 1000
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getStoredAuth(): StoredAuth | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as StoredAuth;
+    const auth = JSON.parse(raw) as StoredAuth;
+    const expiresAt = getTokenExpiration(auth.token);
+    if (expiresAt === null || expiresAt <= Date.now()) {
+      clearStoredAuth();
+      return null;
+    }
+    return auth;
   } catch {
     return null;
   }

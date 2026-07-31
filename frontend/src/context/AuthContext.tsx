@@ -1,11 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import type { LoginResponse, ChapterRole } from "../types/inventory";
 import {
   loginRequest,
   clearStoredAuth,
   getStoredAuth,
   getStoredToken,
+  getTokenExpiration,
 } from "../services/authService";
 import { setTokenProvider, setUnauthorizedHandler } from "../services/api";
 
@@ -72,6 +73,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearStoredAuth();
     setAuth(null);
   }, []);
+
+  useEffect(() => {
+    if (!auth) return;
+
+    const expiresAt = getTokenExpiration(auth.token) ?? 0;
+    const timeoutId = window.setTimeout(logout, Math.max(0, expiresAt - Date.now()));
+    const logoutIfExpired = () => {
+      if (document.visibilityState === "visible" && expiresAt <= Date.now()) logout();
+    };
+    document.addEventListener("visibilitychange", logoutIfExpired);
+    window.addEventListener("focus", logoutIfExpired);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      document.removeEventListener("visibilitychange", logoutIfExpired);
+      window.removeEventListener("focus", logoutIfExpired);
+    };
+  }, [auth, logout]);
 
   // Register with the api layer so any 401 (expired token) auto-logs out
   setUnauthorizedHandler(logout);
