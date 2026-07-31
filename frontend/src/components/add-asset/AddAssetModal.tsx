@@ -173,6 +173,7 @@ export function AddAssetModal({
       id: idMode === "input" ? Number(inputId) : 0,
       manufacturer: form.manufacturer?.trim() ?? "",
       model: form.model.trim(),
+      serialNumber: form.serialNumber.trim() || null,
       year: Number(form.year),
       cpu: form.cpu.trim() || null,
       ram: Number(form.ram),

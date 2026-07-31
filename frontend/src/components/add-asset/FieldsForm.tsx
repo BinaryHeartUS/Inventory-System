@@ -250,6 +250,13 @@ export function FieldsForm({
           maxLength={50}
         />
         <FText
+          label="Serial Number"
+          value={form.serialNumber}
+          onChange={set("serialNumber")}
+          placeholder="e.g. PF3ABC123456"
+          maxLength={100}
+        />
+        <FText
           label="Year"
           value={form.year}
           onChange={set("year")}

@@ -2207,6 +2207,7 @@ export interface components {
       donorId?: number;
       hasWifi?: boolean;
       operatingSystem?: string;
+      serialNumber?: string;
     };
     InsertLaptopRequest: {
       /** Format: int32 */
@@ -2239,6 +2240,7 @@ export interface components {
       /** Format: int32 */
       actualBatteryCapacity?: number;
       operatingSystem?: string;
+      serialNumber?: string;
     };
     InsertOrganizationRequest: {
       name?: string;
@@ -2296,6 +2298,7 @@ export interface components {
       donorId?: number;
       workingBattery?: string;
       operatingSystem?: string;
+      serialNumber?: string;
     };
     InsertToolRequest: {
       /** Format: int32 */
@@ -2443,6 +2446,8 @@ export interface components {
       newManufacturer?: string;
       oldModel?: string;
       newModel?: string;
+      oldSerialNumber?: string;
+      newSerialNumber?: string;
       /** Format: int32 */
       oldYear?: number;
       /** Format: int32 */
@@ -2502,6 +2507,7 @@ export interface components {
       value: number;
       manufacturer?: string;
       model?: string;
+      serialNumber?: string;
       /** Format: int32 */
       year: number;
       cpu?: string;
