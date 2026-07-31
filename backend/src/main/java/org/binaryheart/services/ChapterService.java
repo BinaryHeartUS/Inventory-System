@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.sql.SQLException;
 import java.util.List;
 import org.binaryheart.exceptions.ForbiddenException;
@@ -8,7 +9,12 @@ import org.binaryheart.responses.ChapterSummary;
 
 public class ChapterService {
 
-	private final ChapterRepository repository = new ChapterRepository();
+	private final ChapterRepository repository;
+
+	@Inject
+	public ChapterService(ChapterRepository repository) {
+		this.repository = repository;
+	}
 
 	public List<ChapterSummary> getAllChapters() throws SQLException {
 		return repository.getAllChapters();
@@ -76,9 +82,6 @@ public class ChapterService {
 	}
 
 	public ChapterSummary createChapter(String name) throws SQLException {
-		if (name == null || name.isBlank()) {
-			throw new IllegalArgumentException("Chapter name must not be blank");
-		}
 		return repository.createChapter(name.strip());
 	}
 }

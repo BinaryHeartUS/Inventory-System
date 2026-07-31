@@ -1,11 +1,10 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartyNotFoundException;
 import org.binaryheart.repositories.PartyRepository;
 import org.binaryheart.requests.InsertOrganizationRequest;
@@ -16,7 +15,12 @@ import org.binaryheart.responses.GetPartyResponse;
 
 public class PartyService {
 
-	private final PartyRepository repository = new PartyRepository();
+	private final PartyRepository repository;
+
+	@Inject
+	public PartyService(PartyRepository repository) {
+		this.repository = repository;
+	}
 
 	public List<GetPartyResponse> getAllParties(boolean getPerson, boolean getOrg) throws SQLException {
 		if (getPerson && getOrg) {
@@ -33,27 +37,11 @@ public class PartyService {
 		}
 	}
 
-	public GetPartyResponse getParty(int id) throws BadArgumentException, PartyNotFoundException, SQLException {
-		if (id <= 0) {
-			throw new BadArgumentException("Party ID must be positive");
-		}
+	public GetPartyResponse getParty(int id) throws PartyNotFoundException, SQLException {
 		return repository.getParty(id);
 	}
 
-	public void addOrganization(InsertOrganizationRequest request)
-		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
-		if (request.name() == null) {
-			throw new MissingRequiredParametersException("Organization name must be non-null");
-		}
-		if (request.contactName() != null && request.contactName().length() == 0) {
-			throw new BadArgumentException("Contact name must be non-empty, or null");
-		}
-		if (request.contactEmail() != null && request.contactEmail().length() == 0) {
-			throw new BadArgumentException("Contact email must be non-empty, or null");
-		}
-		if (request.location() != null && request.location().length() == 0) {
-			throw new BadArgumentException("Location must be non-empty, or null");
-		}
+	public void addOrganization(InsertOrganizationRequest request) throws DuplicateKeyException, SQLException {
 		try {
 			repository.addOrganization(request);
 		} catch (SQLException e) {
@@ -65,17 +53,7 @@ public class PartyService {
 		}
 	}
 
-	public void addPerson(InsertPersonRequest request)
-		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
-		if (request.name() == null) {
-			throw new MissingRequiredParametersException("Person name must be non-null");
-		}
-		if (request.email() != null && request.email().length() == 0) {
-			throw new BadArgumentException("Email must be non-empty, or null");
-		}
-		if (request.location() != null && request.location().length() == 0) {
-			throw new BadArgumentException("Location must be non-empty, or null");
-		}
+	public void addPerson(InsertPersonRequest request) throws DuplicateKeyException, SQLException {
 		try {
 			repository.addPerson(request);
 		} catch (SQLException e) {
@@ -87,41 +65,13 @@ public class PartyService {
 		}
 	}
 
-	public void updatePerson(int id, UpdatePersonRequest request)
-		throws BadArgumentException, MissingRequiredParametersException, PartyNotFoundException, SQLException {
-		if (id <= 0) {
-			throw new BadArgumentException("Party ID must be positive");
-		}
-		if (request.name() == null) {
-			throw new MissingRequiredParametersException("Person name must be non-null");
-		}
-		if (request.email() != null && request.email().length() == 0) {
-			throw new BadArgumentException("Email must be non-empty, or null");
-		}
-		if (request.location() != null && request.location().length() == 0) {
-			throw new BadArgumentException("Location must be non-empty, or null");
-		}
+	public void updatePerson(int id, UpdatePersonRequest request) throws PartyNotFoundException, SQLException {
 		repository.getParty(id);
 		repository.updatePerson(id, request);
 	}
 
 	public void updateOrganization(int id, UpdateOrganizationRequest request)
-		throws BadArgumentException, MissingRequiredParametersException, PartyNotFoundException, SQLException {
-		if (id <= 0) {
-			throw new BadArgumentException("Party ID must be positive");
-		}
-		if (request.name() == null) {
-			throw new MissingRequiredParametersException("Organization name must be non-null");
-		}
-		if (request.contactName() != null && request.contactName().length() == 0) {
-			throw new BadArgumentException("Contact name must be non-empty, or null");
-		}
-		if (request.contactEmail() != null && request.contactEmail().length() == 0) {
-			throw new BadArgumentException("Contact email must be non-empty, or null");
-		}
-		if (request.location() != null && request.location().length() == 0) {
-			throw new BadArgumentException("Location must be non-empty, or null");
-		}
+		throws PartyNotFoundException, SQLException {
 		repository.getParty(id);
 		repository.updateOrganization(id, request);
 	}

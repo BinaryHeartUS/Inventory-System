@@ -4,6 +4,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.put;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
@@ -15,9 +16,7 @@ import io.javalin.openapi.OpenApiSecurity;
 import java.sql.SQLException;
 import java.util.List;
 import org.binaryheart.auth.AppRole;
-import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartyNotFoundException;
 import org.binaryheart.requests.InsertOrganizationRequest;
 import org.binaryheart.requests.InsertPersonRequest;
@@ -28,15 +27,20 @@ import org.binaryheart.services.PartyService;
 
 public class PartyController {
 
-	private static final PartyService service = new PartyService();
+	private final PartyService service;
 
-	public static void registerRoutes() {
-		get("", PartyController::getAllParties, AppRole.AUTHENTICATED);
-		get("/{id}", PartyController::getParty, AppRole.AUTHENTICATED);
-		post("/organization", PartyController::insertOrg, AppRole.AUTHENTICATED);
-		post("/person", PartyController::insertPerson, AppRole.AUTHENTICATED);
-		put("/person/{id}", PartyController::updatePerson, AppRole.CHAPTER_ADMIN);
-		put("/organization/{id}", PartyController::updateOrganization, AppRole.CHAPTER_ADMIN);
+	@Inject
+	public PartyController(PartyService service) {
+		this.service = service;
+	}
+
+	public void registerRoutes() {
+		get("", this::getAllParties, AppRole.AUTHENTICATED);
+		get("/{id}", this::getParty, AppRole.AUTHENTICATED);
+		post("/organization", this::insertOrg, AppRole.AUTHENTICATED);
+		post("/person", this::insertPerson, AppRole.AUTHENTICATED);
+		put("/person/{id}", this::updatePerson, AppRole.CHAPTER_ADMIN);
+		put("/organization/{id}", this::updateOrganization, AppRole.CHAPTER_ADMIN);
 	}
 
 	@OpenApi(
@@ -58,7 +62,7 @@ public class PartyController {
 				from = GetPartyResponse[].class)}), @OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAllParties(Context ctx) {
+	public void getAllParties(Context ctx) {
 		try {
 			String type = ctx.queryParam("type");
 			boolean getPerson = true;
@@ -72,6 +76,7 @@ public class PartyController {
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
+		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -98,21 +103,24 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getParty(Context ctx) {
+	public void getParty(Context ctx) {
 		String idStr = ctx.pathParam("id");
 		try {
 			int id = Integer.parseInt(idStr);
+			if (id <= 0) {
+				ctx.status(400).result("Party ID must be positive");
+				return;
+			}
 			GetPartyResponse result = service.getParty(id);
 			ctx.status(200).json(result);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric party ID: " + idStr);
-		} catch (BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (PartyNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
+		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -147,20 +155,33 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertOrg(Context ctx) {
+	public void insertOrg(Context ctx) {
 		InsertOrganizationRequest request = ctx.bodyAsClass(InsertOrganizationRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Organization name must be non-null");
+			return;
+		}
+		if (request.contactName() != null && request.contactName().isEmpty()) {
+			ctx.status(400).result("Contact name must be non-empty, or null");
+			return;
+		}
+		if (request.contactEmail() != null && request.contactEmail().isEmpty()) {
+			ctx.status(400).result("Contact email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 
 		try {
 			service.addOrganization(request);
 			ctx.status(201).result("Organization added successfully");
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
-		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -194,20 +215,29 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertPerson(Context ctx) {
+	public void insertPerson(Context ctx) {
 		InsertPersonRequest request = ctx.bodyAsClass(InsertPersonRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Person name must be non-null");
+			return;
+		}
+		if (request.email() != null && request.email().isEmpty()) {
+			ctx.status(400).result("Email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 
 		try {
 			service.addPerson(request);
 			ctx.status(201).result("Person added successfully");
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
-		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -244,17 +274,31 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updatePerson(Context ctx) {
+	public void updatePerson(Context ctx) {
 		String idStr = ctx.pathParam("id");
+		UpdatePersonRequest request = ctx.bodyAsClass(UpdatePersonRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Person name must be non-null");
+			return;
+		}
+		if (request.email() != null && request.email().isEmpty()) {
+			ctx.status(400).result("Email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 		try {
 			int id = Integer.parseInt(idStr);
-			UpdatePersonRequest request = ctx.bodyAsClass(UpdatePersonRequest.class);
+			if (id <= 0) {
+				ctx.status(400).result("Party ID must be positive");
+				return;
+			}
 			service.updatePerson(id, request);
 			ctx.status(204);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric party ID: " + idStr);
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (PartyNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
@@ -297,17 +341,35 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateOrganization(Context ctx) {
+	public void updateOrganization(Context ctx) {
 		String idStr = ctx.pathParam("id");
+		UpdateOrganizationRequest request = ctx.bodyAsClass(UpdateOrganizationRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Organization name must be non-null");
+			return;
+		}
+		if (request.contactName() != null && request.contactName().isEmpty()) {
+			ctx.status(400).result("Contact name must be non-empty, or null");
+			return;
+		}
+		if (request.contactEmail() != null && request.contactEmail().isEmpty()) {
+			ctx.status(400).result("Contact email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 		try {
 			int id = Integer.parseInt(idStr);
-			UpdateOrganizationRequest request = ctx.bodyAsClass(UpdateOrganizationRequest.class);
+			if (id <= 0) {
+				ctx.status(400).result("Party ID must be positive");
+				return;
+			}
 			service.updateOrganization(id, request);
 			ctx.status(204);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric party ID: " + idStr);
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (PartyNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {

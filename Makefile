@@ -52,10 +52,12 @@ lint-web: ## Lint the frontend (ESLint)
 audit-web: ## Scan frontend production dependencies for vulnerabilities (npm audit)
 	cd frontend && npm audit --omit=dev --audit-level=high
 
-test: test-java test-e2e ## Run backend and browser tests
+test-java: ## Run backend unit tests
+	cd backend && mvn -ntp test
 
-test-java: ## Run backend tests
-	cd backend && mvn -B -ntp test
+ci: format-check-java format-check-web lint-web test-java build-java build-web audit-web check-types ## Run every GitHub CI gate locally
+
+test: test-java test-e2e ## Run backend and browser tests
 
 test-e2e: ## Run Playwright against a disposable full application stack
 	cd frontend && npm run test:e2e

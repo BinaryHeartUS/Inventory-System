@@ -4,6 +4,7 @@ import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.*;
@@ -16,12 +17,17 @@ import org.binaryheart.services.ChapterService;
 
 public class ChapterController {
 
-	private static final ChapterService service = new ChapterService();
+	private final ChapterService service;
 
-	public static void registerRoutes() {
-		get("", ChapterController::getChapters, AppRole.AUTHENTICATED);
-		post("", ChapterController::createChapter, AppRole.ADMIN);
-		delete("/{id}", ChapterController::deleteChapter, AppRole.ADMIN);
+	@Inject
+	public ChapterController(ChapterService service) {
+		this.service = service;
+	}
+
+	public void registerRoutes() {
+		get("", this::getChapters, AppRole.AUTHENTICATED);
+		post("", this::createChapter, AppRole.ADMIN);
+		delete("/{id}", this::deleteChapter, AppRole.ADMIN);
 	}
 
 	@OpenApi(
@@ -38,7 +44,7 @@ public class ChapterController {
 				from = ChapterSummary[].class)}), @OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getChapters(Context ctx) {
+	public void getChapters(Context ctx) {
 		try {
 			List<ChapterSummary> chapters = service.getAllChapters();
 			ctx.json(chapters);
@@ -74,7 +80,12 @@ public class ChapterController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void createChapter(Context ctx) {
+	public void createChapter(Context ctx) {
+		CreateChapterRequest req = ctx.bodyAsClass(CreateChapterRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("Chapter name must not be blank");
+			return;
+		}
 		List<Integer> chapterIds = ctx.attribute("chapterIds");
 		try {
 			int nationalId = service.getNationalChapterId();
@@ -89,19 +100,16 @@ public class ChapterController {
 			return;
 		}
 
-		CreateChapterRequest req = ctx.bodyAsClass(CreateChapterRequest.class);
 		try {
 			ChapterSummary created = service.createChapter(req.name());
 			ctx.status(201).json(created);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error");
 			e.printStackTrace();
 		}
 	}
 
-	public static void deleteChapter(Context ctx) {
+	public void deleteChapter(Context ctx) {
 		int id = Integer.parseInt(ctx.pathParam("id"));
 		List<Integer> callerChapterIds = ctx.attribute("chapterIds");
 		try {

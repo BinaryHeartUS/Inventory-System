@@ -1,13 +1,12 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
-import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
@@ -25,21 +24,17 @@ import org.binaryheart.responses.MonthlyValuePoint;
 
 public class DeviceService {
 
-	private static final List<String> VALID_TYPES = List.of("desktop", "laptop", "tablet", "total");
-	private static final List<String> VALID_STATUSES = List.of("active", "not-started", "in-progress",
-		"ready-to-donate", "donated");
+	private final DeviceRepository repository;
+	private final ChapterService chapterService;
 
-	private final DeviceRepository repository = new DeviceRepository();
-	private final ChapterService chapterService = new ChapterService();
+	@Inject
+	public DeviceService(DeviceRepository repository, ChapterService chapterService) {
+		this.repository = repository;
+		this.chapterService = chapterService;
+	}
 
 	public int getDeviceCount(String type, String status, List<Integer> requestedChapterIds,
-		List<Integer> userChapterIds) throws BadArgumentException, ForbiddenException, SQLException {
-		if (!VALID_TYPES.contains(type)) {
-			throw new BadArgumentException("Unknown device type: " + type);
-		}
-		if (!VALID_STATUSES.contains(status)) {
-			throw new BadArgumentException("Unknown status: " + status);
-		}
+		List<Integer> userChapterIds) throws ForbiddenException, SQLException {
 		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDeviceCountByChapters(type, status, effectiveChapterIds);
 	}
@@ -70,36 +65,24 @@ public class DeviceService {
 	}
 
 	public List<MonthlyCountPoint> getDevicesReceived(List<Integer> requestedChapterIds, List<Integer> userChapterIds,
-		int months) throws BadArgumentException, ForbiddenException, SQLException {
-		if (months < 1 || months > 120) {
-			throw new BadArgumentException("months must be between 1 and 120");
-		}
+		int months) throws ForbiddenException, SQLException {
 		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDevicesReceived(effectiveChapterIds, months);
 	}
 
 	public List<MonthlyCountPoint> getDevicesDonated(List<Integer> requestedChapterIds, List<Integer> userChapterIds,
-		int months) throws BadArgumentException, ForbiddenException, SQLException {
-		if (months < 1 || months > 120) {
-			throw new BadArgumentException("months must be between 1 and 120");
-		}
+		int months) throws ForbiddenException, SQLException {
 		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDevicesDonated(effectiveChapterIds, months);
 	}
 
 	public List<MonthlyValuePoint> getDonatedDeviceValue(List<Integer> requestedChapterIds,
-		List<Integer> userChapterIds, int months) throws BadArgumentException, ForbiddenException, SQLException {
-		if (months < 1 || months > 120) {
-			throw new BadArgumentException("months must be between 1 and 120");
-		}
+		List<Integer> userChapterIds, int months) throws ForbiddenException, SQLException {
 		List<Integer> effectiveChapterIds = chapterService.resolveChapterIds(requestedChapterIds, userChapterIds);
 		return repository.getDonatedDeviceValue(effectiveChapterIds, months);
 	}
 
-	public GetDeviceResponse getDevice(int id) throws BadArgumentException, DeviceNotFoundException, SQLException {
-		if (id <= 0) {
-			throw new BadArgumentException("Device ID must be positive");
-		}
+	public GetDeviceResponse getDevice(int id) throws DeviceNotFoundException, SQLException {
 		return repository.getDevice(id);
 	}
 
@@ -124,27 +107,7 @@ public class DeviceService {
 		return repository.getChapterInventorySummary(effectiveChapterIds);
 	}
 
-	public int insertDesktop(InsertDesktopRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
-		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-			|| request.model() == null || request.year() == 0 || request.status() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.ram() != null && request.ram() <= 0) {
-			throw new BadArgumentException("RAM amount must be positive or not specified");
-		}
-		if (request.storageAmount() != null && request.storageAmount() <= 0) {
-			throw new BadArgumentException("Storage amount must be positive or not specified");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() != null && request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive or not specified");
-		}
+	public int insertDesktop(InsertDesktopRequest request, String username) throws DuplicateKeyException, SQLException {
 		try {
 			return repository.insertDesktop(request, username);
 		} catch (SQLException e) {
@@ -156,34 +119,7 @@ public class DeviceService {
 		}
 	}
 
-	public int insertLaptop(InsertLaptopRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
-		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-			|| request.model() == null || request.year() == 0 || request.status() == null
-			|| request.includesCharger() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.ram() != null && request.ram() <= 0) {
-			throw new BadArgumentException("RAM amount must be positive or not specified");
-		}
-		if (request.storageAmount() != null && request.storageAmount() <= 0) {
-			throw new BadArgumentException("Storage amount must be positive or not specified");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() != null && request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive or not specified");
-		}
-		if (request.designBatteryCapacity() != null && request.designBatteryCapacity() <= 0) {
-			throw new BadArgumentException("Design battery capacity must be positive or not specified");
-		}
-		if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
-			throw new BadArgumentException("Actual battery capacity must be non-negative or not specified");
-		}
+	public int insertLaptop(InsertLaptopRequest request, String username) throws DuplicateKeyException, SQLException {
 		try {
 			return repository.insertLaptop(request, username);
 		} catch (SQLException e) {
@@ -195,28 +131,7 @@ public class DeviceService {
 		}
 	}
 
-	public int insertTablet(InsertTabletRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
-		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-			|| request.model() == null || request.year() == 0 || request.status() == null
-			|| request.includesCharger() == null || request.workingBattery() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.ram() != null && request.ram() <= 0) {
-			throw new BadArgumentException("RAM amount must be positive or not specified");
-		}
-		if (request.storageAmount() != null && request.storageAmount() <= 0) {
-			throw new BadArgumentException("Storage amount must be positive or not specified");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() != null && request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive or not specified");
-		}
+	public int insertTablet(InsertTabletRequest request, String username) throws DuplicateKeyException, SQLException {
 		try {
 			return repository.insertTablet(request, username);
 		} catch (SQLException e) {
@@ -229,27 +144,7 @@ public class DeviceService {
 	}
 
 	public void updateDesktop(InsertDesktopRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
-		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-			|| request.model() == null || request.year() == 0 || request.status() == null
-			|| request.assetId() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.ram() != null && request.ram() <= 0) {
-			throw new BadArgumentException("RAM amount must be positive or not specified");
-		}
-		if (request.storageAmount() != null && request.storageAmount() <= 0) {
-			throw new BadArgumentException("Storage amount must be positive or not specified");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive");
-		}
+		throws DeviceNotFoundException, SQLException {
 		try {
 			repository.updateDesktop(request, username);
 		} catch (SQLException e) {
@@ -262,33 +157,7 @@ public class DeviceService {
 	}
 
 	public void updateLaptop(InsertLaptopRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
-		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-			|| request.model() == null || request.year() == 0 || request.status() == null
-			|| request.includesCharger() == null || request.assetId() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.ram() != null && request.ram() <= 0) {
-			throw new BadArgumentException("RAM amount must be positive or not specified");
-		}
-		if (request.storageAmount() != null && request.storageAmount() <= 0) {
-			throw new BadArgumentException("Storage amount must be positive or not specified");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive");
-		}
-		if (request.designBatteryCapacity() != null && request.designBatteryCapacity() < 0) {
-			throw new BadArgumentException("Design battery capacity must be non-negative or not specified");
-		}
-		if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
-			throw new BadArgumentException("Actual battery capacity must be non-negative or not specified");
-		}
+		throws DeviceNotFoundException, SQLException {
 		try {
 			repository.updateLaptop(request, username);
 		} catch (SQLException e) {
@@ -301,27 +170,7 @@ public class DeviceService {
 	}
 
 	public void updateTablet(InsertTabletRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DeviceNotFoundException, SQLException {
-		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().strip().equals("")
-			|| request.model() == null || request.year() == 0 || request.status() == null
-			|| request.includesCharger() == null || request.workingBattery() == null || request.assetId() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.ram() != null && request.ram() <= 0) {
-			throw new BadArgumentException("RAM amount must be positive or not specified");
-		}
-		if (request.storageAmount() != null && request.storageAmount() <= 0) {
-			throw new BadArgumentException("Storage amount must be positive or not specified");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive");
-		}
+		throws DeviceNotFoundException, SQLException {
 		try {
 			repository.updateTablet(request, username);
 		} catch (SQLException e) {
@@ -334,11 +183,7 @@ public class DeviceService {
 	}
 
 	public DeviceChangelogResponse[] getDeviceChangelog(List<Integer> userChapterIds, Integer deviceID)
-		throws SQLException, MissingRequiredParametersException, InvalidParameterException {
-		if (deviceID == null || deviceID <= 0)
-			throw new MissingRequiredParametersException(
-				"Non-numeric or non-positive device ID provided, must be a positive integer");
-
+		throws SQLException, InvalidParameterException {
 		GetDeviceResponse device = repository.getDevice(deviceID);
 		Integer chapterID = chapterService.getChapterIdByName(device.chapter());
 		if (device == null || (!userChapterIds.contains(chapterID)

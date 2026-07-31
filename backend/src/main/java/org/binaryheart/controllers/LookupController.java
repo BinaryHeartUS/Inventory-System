@@ -2,6 +2,7 @@ package org.binaryheart.controllers;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.sql.SQLException;
@@ -12,20 +13,25 @@ import org.binaryheart.services.LookupService;
 
 public class LookupController {
 
-	private static final LookupService service = new LookupService();
+	private final LookupService service;
 
-	public static void registerRoutes() {
-		get("", LookupController::getAll, AppRole.AUTHENTICATED);
-		post("/manufacturers", LookupController::addManufacturer, AppRole.AUTHENTICATED);
-		post("/ram-generations", LookupController::addRamGeneration, AppRole.AUTHENTICATED);
-		post("/storage-types", LookupController::addStorageType, AppRole.AUTHENTICATED);
-		post("/part-types", LookupController::addPartType, AppRole.AUTHENTICATED);
-		post("/operating-systems", LookupController::addOperatingSystem, AppRole.AUTHENTICATED);
-		delete("/manufacturers/{name}", LookupController::deleteManufacturer, AppRole.CHAPTER_ADMIN);
-		delete("/ram-generations/{name}", LookupController::deleteRamGeneration, AppRole.CHAPTER_ADMIN);
-		delete("/storage-types/{name}", LookupController::deleteStorageType, AppRole.CHAPTER_ADMIN);
-		delete("/part-types/{name}", LookupController::deletePartType, AppRole.CHAPTER_ADMIN);
-		delete("/operating-systems/{name}", LookupController::deleteOperatingSystem, AppRole.CHAPTER_ADMIN);
+	@Inject
+	public LookupController(LookupService service) {
+		this.service = service;
+	}
+
+	public void registerRoutes() {
+		get("", this::getAll, AppRole.AUTHENTICATED);
+		post("/manufacturers", this::addManufacturer, AppRole.AUTHENTICATED);
+		post("/ram-generations", this::addRamGeneration, AppRole.AUTHENTICATED);
+		post("/storage-types", this::addStorageType, AppRole.AUTHENTICATED);
+		post("/part-types", this::addPartType, AppRole.AUTHENTICATED);
+		post("/operating-systems", this::addOperatingSystem, AppRole.AUTHENTICATED);
+		delete("/manufacturers/{name}", this::deleteManufacturer, AppRole.CHAPTER_ADMIN);
+		delete("/ram-generations/{name}", this::deleteRamGeneration, AppRole.CHAPTER_ADMIN);
+		delete("/storage-types/{name}", this::deleteStorageType, AppRole.CHAPTER_ADMIN);
+		delete("/part-types/{name}", this::deletePartType, AppRole.CHAPTER_ADMIN);
+		delete("/operating-systems/{name}", this::deleteOperatingSystem, AppRole.CHAPTER_ADMIN);
 	}
 
 	@OpenApi(
@@ -43,7 +49,7 @@ public class LookupController {
 				from = LookupResponse.class)}), @OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAll(Context ctx) {
+	public void getAll(Context ctx) {
 		try {
 			LookupResponse response = service.getAll();
 			ctx.json(response);
@@ -69,13 +75,15 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void addManufacturer(Context ctx) {
+	public void addManufacturer(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addManufacturer(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -98,13 +106,15 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void addRamGeneration(Context ctx) {
+	public void addRamGeneration(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addRamGeneration(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -127,13 +137,15 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void addStorageType(Context ctx) {
+	public void addStorageType(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addStorageType(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -156,13 +168,15 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void addPartType(Context ctx) {
+	public void addPartType(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addPartType(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -183,7 +197,7 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void deleteManufacturer(Context ctx) {
+	public void deleteManufacturer(Context ctx) {
 		String name = ctx.pathParam("name");
 		try {
 			service.removeManufacturer(name);
@@ -211,7 +225,7 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void deleteRamGeneration(Context ctx) {
+	public void deleteRamGeneration(Context ctx) {
 		String name = ctx.pathParam("name");
 		try {
 			service.removeRamGeneration(name);
@@ -239,7 +253,7 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void deleteStorageType(Context ctx) {
+	public void deleteStorageType(Context ctx) {
 		String name = ctx.pathParam("name");
 		try {
 			service.removeStorageType(name);
@@ -267,7 +281,7 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void deletePartType(Context ctx) {
+	public void deletePartType(Context ctx) {
 		String name = ctx.pathParam("name");
 		try {
 			service.removePartType(name);
@@ -297,13 +311,15 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void addOperatingSystem(Context ctx) {
+	public void addOperatingSystem(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addOperatingSystem(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -324,7 +340,7 @@ public class LookupController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void deleteOperatingSystem(Context ctx) {
+	public void deleteOperatingSystem(Context ctx) {
 		String name = ctx.pathParam("name");
 		try {
 			service.removeOperatingSystem(name);

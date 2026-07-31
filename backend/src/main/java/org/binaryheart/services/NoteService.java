@@ -1,17 +1,19 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.sql.SQLException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.repositories.NoteRepository;
 import org.binaryheart.responses.NoteResponse;
 
 public class NoteService {
-	private final NoteRepository repository = new NoteRepository();
+	private final NoteRepository repository;
 
-	public NoteResponse addNote(int assetId, String text) throws MissingRequiredParametersException, SQLException {
-		if (text == null || text.length() == 0)
-			throw new MissingRequiredParametersException("Note must be provided with length > 0");
+	@Inject
+	public NoteService(NoteRepository repository) {
+		this.repository = repository;
+	}
 
+	public NoteResponse addNote(int assetId, String text) throws SQLException {
 		return repository.addNote(assetId, text);
 	}
 
@@ -23,11 +25,7 @@ public class NoteService {
 		return repository.getAssetChapterId(assetId);
 	}
 
-	public void updateNote(int assetId, int noteId, String text)
-		throws MissingRequiredParametersException, SQLException {
-		if (text == null || text.length() == 0)
-			throw new MissingRequiredParametersException("Note must be provided with length > 0");
-
+	public void updateNote(int assetId, int noteId, String text) throws SQLException {
 		repository.updateNote(assetId, noteId, text);
 	}
 }

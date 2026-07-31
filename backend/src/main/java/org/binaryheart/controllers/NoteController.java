@@ -4,23 +4,33 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.put;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.sql.SQLException;
+import java.util.List;
 import org.binaryheart.auth.AppRole;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.PostNoteRequest;
 import org.binaryheart.responses.NoteResponse;
+import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.NoteService;
 
 public class NoteController {
 
-	private static final NoteService service = new NoteService();
+	private final NoteService service;
+	private final AuthorizationService authorizationService;
 
-	public static void registerRoutes() {
-		post("/{id}/notes", NoteController::postNote, AppRole.AUTHENTICATED);
-		get("/{id}/notes", NoteController::getNotes, AppRole.AUTHENTICATED);
-		put("/{id}/notes/{noteId}", NoteController::updateNote, AppRole.AUTHENTICATED);
+	@Inject
+	public NoteController(NoteService service, AuthorizationService authorizationService) {
+		this.service = service;
+		this.authorizationService = authorizationService;
+	}
+
+	public void registerRoutes() {
+		post("/{id}/notes", this::postNote, AppRole.AUTHENTICATED);
+		get("/{id}/notes", this::getNotes, AppRole.AUTHENTICATED);
+		put("/{id}/notes/{noteId}", this::updateNote, AppRole.AUTHENTICATED);
 	}
 
 	@OpenApi(
@@ -52,18 +62,18 @@ public class NoteController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void postNote(Context ctx) {
+	public void postNote(Context ctx) {
+		PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
+		if (body.text() == null || body.text().isEmpty()) {
+			ctx.status(400).result("Missing required parameter(s)");
+			return;
+		}
 		try {
-			PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
 			NoteResponse res = service.addNote(assetId, body.text());
 			ctx.status(200).json(res);
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: ".concat(e.getMessage()));
-			return;
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result("Missing required parameter(s)");
-			return;
 		}
 	}
 
@@ -84,7 +94,7 @@ public class NoteController {
 				from = NoteResponse[].class)}), @OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getNotes(Context ctx) {
+	public void getNotes(Context ctx) {
 		try {
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
 			NoteResponse[] res = service.getNotes(assetId);
@@ -127,21 +137,21 @@ public class NoteController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateNote(Context ctx) {
+	public void updateNote(Context ctx) {
+		PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
+		if (body.text() == null || body.text().isEmpty()) {
+			ctx.status(400).result("Missing required parameter(s)");
+			return;
+		}
 		try {
-			PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
 			int noteId = Integer.parseInt(ctx.pathParam("noteId"));
 			int chapterId = service.getAssetChapterId(assetId);
-			AuthController.requireChapterEditAccess(ctx, chapterId);
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"), chapterId);
 			service.updateNote(assetId, noteId, body.text());
 			ctx.status(201).result("Note updated successfully");
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: ".concat(e.getMessage()));
-			return;
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result("Missing required parameter(s)");
-			return;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +13,12 @@ import org.binaryheart.responses.LookupResponse;
 
 public class LookupService {
 
-	private final LookupRepository repository = new LookupRepository();
+	private final LookupRepository repository;
+
+	@Inject
+	public LookupService(LookupRepository repository) {
+		this.repository = repository;
+	}
 
 	public LookupResponse getAll() throws SQLException {
 		List<String> deviceStatuses = Arrays.stream(Status.values()).map(Status::getDatabaseValue)
@@ -27,22 +33,18 @@ public class LookupService {
 	}
 
 	public void addManufacturer(String name) throws SQLException {
-		validateName(name);
 		repository.insertManufacturer(name.strip());
 	}
 
 	public void addRamGeneration(String name) throws SQLException {
-		validateName(name);
 		repository.insertRamGeneration(name.strip());
 	}
 
 	public void addStorageType(String name) throws SQLException {
-		validateName(name);
 		repository.insertStorageType(name.strip());
 	}
 
 	public void addPartType(String name) throws SQLException {
-		validateName(name);
 		repository.insertPartType(name.strip());
 	}
 
@@ -63,7 +65,6 @@ public class LookupService {
 	}
 
 	public void addOperatingSystem(String name) throws SQLException {
-		validateName(name);
 		repository.insertOperatingSystem(name.strip());
 	}
 
@@ -71,9 +72,4 @@ public class LookupService {
 		repository.deleteOperatingSystem(name);
 	}
 
-	private static void validateName(String name) {
-		if (name == null || name.isBlank()) {
-			throw new IllegalArgumentException("name is required");
-		}
-	}
 }

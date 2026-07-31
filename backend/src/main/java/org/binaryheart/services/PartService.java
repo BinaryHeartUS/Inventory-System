@@ -1,12 +1,11 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
-import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartNotFoundException;
 import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.repositories.PartRepository;
@@ -16,8 +15,14 @@ import org.binaryheart.responses.PartResponse;
 import org.binaryheart.responses.PartTypeCountResponse;
 
 public class PartService {
-	private final PartRepository repository = new PartRepository();
-	private final ChapterService chapterService = new ChapterService();
+	private final PartRepository repository;
+	private final ChapterService chapterService;
+
+	@Inject
+	public PartService(PartRepository repository, ChapterService chapterService) {
+		this.repository = repository;
+		this.chapterService = chapterService;
+	}
 
 	/**
 	 * Returns a page of parts scoped to the caller's chapters
@@ -40,11 +45,7 @@ public class PartService {
 		return repository.getPartTypeCounts(effectiveChapterIds, q);
 	}
 
-	public PartResponse getPart(List<Integer> userChapterIds, Integer partId)
-		throws SQLException, MissingRequiredParametersException {
-		if (partId == null || partId < 0)
-			throw new MissingRequiredParametersException(
-				"Non-numeric or non-positive part ID provided, must be positive integer");
+	public PartResponse getPart(List<Integer> userChapterIds, Integer partId) throws SQLException {
 		if (userChapterIds == null || userChapterIds.isEmpty())
 			return null;
 
@@ -56,10 +57,7 @@ public class PartService {
 		return null;
 	}
 
-	public PartResponse[] getPartsByDevice(List<Integer> userChapterIds, Integer deviceId)
-		throws SQLException, MissingRequiredParametersException {
-		if (deviceId == null || deviceId <= 0)
-			throw new MissingRequiredParametersException("Device ID must be a positive integer");
+	public PartResponse[] getPartsByDevice(List<Integer> userChapterIds, Integer deviceId) throws SQLException {
 		if (userChapterIds == null || userChapterIds.isEmpty())
 			return new PartResponse[0];
 		PartResponse[] parts = repository.getPartsByDevice(deviceId);
@@ -83,28 +81,7 @@ public class PartService {
 		}
 	}
 
-	public void updatePart(InsertPartRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, PartNotFoundException, SQLException {
-		if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
-			|| request.wasPurchased() == null || request.description() == null || request.description().length() == 0) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.containedIn() != null && request.containedIn() <= 0) {
-			throw new BadArgumentException("Contained In ID must be positive or not specified");
-		}
-		if (request.id() != null && request.id() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.donorId() != null && request.donorId() <= 0) {
-			throw new BadArgumentException("Donor ID must be positive or not specified");
-		}
-
+	public void updatePart(InsertPartRequest request, String username) throws PartNotFoundException, SQLException {
 		try {
 			repository.updatePart(request, username);
 		} catch (SQLException e) {
@@ -116,28 +93,7 @@ public class PartService {
 		}
 	}
 
-	public int insertPart(InsertPartRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
-		if (request.chapterId() == 0 || request.type() == null || request.type().length() == 0
-			|| request.wasPurchased() == null || request.description() == null || request.description().length() == 0) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.containedIn() != null && request.containedIn() <= 0) {
-			throw new BadArgumentException("Contained In ID must be positive or not specified");
-		}
-		if (request.id() != null && request.id() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.donorId() != null && request.donorId() <= 0) {
-			throw new BadArgumentException("Donor ID must be positive or not specified");
-		}
-
+	public int insertPart(InsertPartRequest request, String username) throws DuplicateKeyException, SQLException {
 		try {
 			return repository.insertPart(request, username);
 		} catch (SQLException e) {
@@ -150,11 +106,7 @@ public class PartService {
 	}
 
 	public PartChangelogResponse[] getPartChangelog(List<Integer> userChapterIds, Integer partId)
-		throws SQLException, MissingRequiredParametersException, InvalidParameterException {
-		if (partId == null || partId <= 0)
-			throw new MissingRequiredParametersException(
-				"Non-numeric or non-positive part ID provided, must be positive integer");
-
+		throws SQLException, InvalidParameterException {
 		PartResponse part = repository.getPart(partId);
 		if (part == null || (!userChapterIds.contains(part.chapterId())
 			&& !userChapterIds.contains(chapterService.getNationalChapterId()))) {
