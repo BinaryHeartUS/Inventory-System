@@ -22,8 +22,8 @@ class NoteControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		replay(service, authorization);
 
-		assertDoesNotThrow(() -> Javalin.create(config -> config.routes
-			.apiBuilder(new NoteController(service, authorization)::registerRoutes)));
+		assertDoesNotThrow(() -> Javalin
+			.create(config -> config.routes.apiBuilder(new NoteController(service, authorization)::registerRoutes)));
 
 		verify(service, authorization);
 	}

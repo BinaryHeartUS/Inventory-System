@@ -34,7 +34,8 @@ class JwtAccessManagerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = {"/swagger", "/webjars/library.js", "/openapi"})
+	@ValueSource(
+		strings = {"/swagger", "/webjars/library.js", "/openapi"})
 	void documentedPublicPathsBypassAuthentication(String path) {
 		JwtService jwtService = mock(JwtService.class);
 		Context context = mock(Context.class);
@@ -135,8 +136,8 @@ class JwtAccessManagerTest {
 		expect(jwtService.verify("token")).andReturn(jwt);
 	}
 
-	private void expectClaims(Context context, DecodedJWT jwt, Claim chapterIds, Claim chapterRoleNames,
-		Claim username, Claim role, String effectiveRole) {
+	private void expectClaims(Context context, DecodedJWT jwt, Claim chapterIds, Claim chapterRoleNames, Claim username,
+		Claim role, String effectiveRole) {
 		List<Integer> ids = List.of(2, 3);
 		List<String> names = List.of("Editor", "Viewer");
 		expect(jwt.getClaim("chapterIds")).andReturn(chapterIds);

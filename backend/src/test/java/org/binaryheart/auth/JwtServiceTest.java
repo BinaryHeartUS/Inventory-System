@@ -15,8 +15,8 @@ class JwtServiceTest {
 	@Test
 	void createAndVerifyRoundTripAllClaims() {
 		JwtService service = new JwtService();
-		String token = service.create(7, "user",
-			List.of(new ChapterRole(2, "Editor"), new ChapterRole(3, "Viewer")), "Editor");
+		String token = service.create(7, "user", List.of(new ChapterRole(2, "Editor"), new ChapterRole(3, "Viewer")),
+			"Editor");
 
 		DecodedJWT jwt = service.verify(token);
 

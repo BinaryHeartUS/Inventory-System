@@ -15,8 +15,7 @@ public class EncryptionHelper {
 	public static final Base64.Decoder DECODER = Base64.getDecoder();
 
 	// Cryptographic helper functions from Connectivity lab
-	public String hashPassword(byte[] salt, String password)
-		throws NoSuchAlgorithmException, InvalidKeySpecException {
+	public String hashPassword(byte[] salt, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
 		SecretKeyFactory f;
 		byte[] hash = null;

@@ -34,8 +34,8 @@ class ToolControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		replay(service, authorization);
 
-		assertDoesNotThrow(() -> Javalin.create(config -> config.routes
-			.apiBuilder(new ToolController(service, authorization)::registerRoutes)));
+		assertDoesNotThrow(() -> Javalin
+			.create(config -> config.routes.apiBuilder(new ToolController(service, authorization)::registerRoutes)));
 
 		verify(service, authorization);
 	}

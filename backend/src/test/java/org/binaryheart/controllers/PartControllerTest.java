@@ -35,8 +35,8 @@ class PartControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		replay(service, authorization);
 
-		assertDoesNotThrow(() -> Javalin.create(config -> config.routes
-			.apiBuilder(new PartController(service, authorization)::registerRoutes)));
+		assertDoesNotThrow(() -> Javalin
+			.create(config -> config.routes.apiBuilder(new PartController(service, authorization)::registerRoutes)));
 
 		verify(service, authorization);
 	}

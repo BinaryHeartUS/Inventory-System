@@ -16,8 +16,7 @@ public class JwtService {
 	private static final Algorithm ALGORITHM = Algorithm.HMAC256(SECRET);
 	private static final long EXPIRY_HOURS = 8;
 
-	public String create(int volunteerId, String username, List<ChapterRole> chapterRoles,
-		String effectiveRole) {
+	public String create(int volunteerId, String username, List<ChapterRole> chapterRoles, String effectiveRole) {
 		List<Integer> chapterIds = chapterRoles.stream().map(ChapterRole::chapterId).collect(Collectors.toList());
 		List<String> roles = chapterRoles.stream().map(ChapterRole::role).collect(Collectors.toList());
 		return JWT.create().withSubject(String.valueOf(volunteerId)).withClaim("username", username)
