@@ -13,14 +13,14 @@ import java.sql.SQLException;
 import org.binaryheart.auth.AppRole;
 import org.binaryheart.requests.LoginRequest;
 import org.binaryheart.responses.LoginResponse;
-import org.binaryheart.services.AuthService;
+import org.binaryheart.services.AuthenticationService;
 
 public class AuthController {
 
-	private final AuthService service;
+	private final AuthenticationService service;
 
 	@Inject
-	public AuthController(AuthService service) {
+	public AuthController(AuthenticationService service) {
 		this.service = service;
 	}
 

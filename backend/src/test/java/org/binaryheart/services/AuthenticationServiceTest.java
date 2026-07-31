@@ -17,7 +17,7 @@ import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.responses.LoginResponse;
 import org.junit.jupiter.api.Test;
 
-class AuthServiceTest {
+class AuthenticationServiceTest {
 
 	@Test
 	void loginReturnsNullForUnknownUser() throws Exception {
@@ -26,7 +26,7 @@ class AuthServiceTest {
 		TokenService tokens = mock(TokenService.class);
 		expect(repository.findByUsername("missing")).andReturn(null);
 		replay(repository, passwords, tokens);
-		AuthService service = new AuthService(repository, passwords, tokens);
+		AuthenticationService service = new AuthenticationService(repository, passwords, tokens);
 
 		assertNull(service.login("missing", "password"));
 
@@ -41,7 +41,7 @@ class AuthServiceTest {
 		expect(repository.findByUsername("user")).andReturn(credentials());
 		expect(passwords.matches("wrong", "hash", "salt")).andReturn(false);
 		replay(repository, passwords, tokens);
-		AuthService service = new AuthService(repository, passwords, tokens);
+		AuthenticationService service = new AuthenticationService(repository, passwords, tokens);
 
 		assertNull(service.login("user", "wrong"));
 
@@ -58,7 +58,7 @@ class AuthServiceTest {
 		expect(passwords.matches("correct", "hash", "salt")).andReturn(true);
 		expect(tokens.create(7, "user", credentials.chapterRoles(), "Editor")).andReturn("token");
 		replay(repository, passwords, tokens);
-		AuthService service = new AuthService(repository, passwords, tokens);
+		AuthenticationService service = new AuthenticationService(repository, passwords, tokens);
 
 		LoginResponse response = service.login("user", "correct");
 		assertEquals("token", response.token());
@@ -77,7 +77,7 @@ class AuthServiceTest {
 		expect(passwords.matches("password", "hash", "salt")).andThrow(new NoSuchAlgorithmException());
 		replay(repository, passwords, tokens);
 
-		assertNull(new AuthService(repository, passwords, tokens).login("user", "password"));
+		assertNull(new AuthenticationService(repository, passwords, tokens).login("user", "password"));
 
 		verify(repository, passwords, tokens);
 	}

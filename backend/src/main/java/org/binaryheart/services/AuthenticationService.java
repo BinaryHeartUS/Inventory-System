@@ -10,14 +10,15 @@ import org.binaryheart.models.VolunteerCredentials;
 import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.responses.LoginResponse;
 
-public class AuthService {
+public class AuthenticationService {
 
 	private final AuthRepository repository;
 	private final PasswordService passwordService;
 	private final TokenService tokenService;
 
 	@Inject
-	public AuthService(AuthRepository repository, PasswordService passwordService, TokenService tokenService) {
+	public AuthenticationService(AuthRepository repository, PasswordService passwordService,
+		TokenService tokenService) {
 		this.repository = repository;
 		this.passwordService = passwordService;
 		this.tokenService = tokenService;

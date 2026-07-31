@@ -33,7 +33,7 @@ import org.binaryheart.repositories.PartyRepository;
 import org.binaryheart.repositories.ToolRepository;
 import org.binaryheart.services.AccountService;
 import org.binaryheart.services.AssetService;
-import org.binaryheart.services.AuthService;
+import org.binaryheart.services.AuthenticationService;
 import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
@@ -53,7 +53,7 @@ class DependencyInjectionTest {
 		Class<?>[] types = {AccountController.class, AssetController.class, AuthController.class,
 				ChapterController.class, DeviceController.class, HealthController.class, LookupController.class,
 				NoteController.class, PartController.class, PartyController.class, ToolController.class,
-				AccountService.class, AssetService.class, AuthService.class, AuthorizationService.class,
+				AccountService.class, AssetService.class, AuthenticationService.class, AuthorizationService.class,
 				ChapterService.class, DeviceService.class, HealthService.class, LookupService.class, NoteService.class,
 				PartService.class, PartyService.class, ToolService.class, AccountRepository.class,
 				AssetRepository.class, AuthRepository.class, ChapterRepository.class, DeviceRepository.class,

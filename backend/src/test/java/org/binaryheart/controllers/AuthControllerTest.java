@@ -12,14 +12,14 @@ import java.util.List;
 import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.LoginRequest;
 import org.binaryheart.responses.LoginResponse;
-import org.binaryheart.services.AuthService;
+import org.binaryheart.services.AuthenticationService;
 import org.junit.jupiter.api.Test;
 
 class AuthControllerTest {
 
 	@Test
 	void registerRoutesDefinesEndpoints() {
-		AuthService service = mock(AuthService.class);
+		AuthenticationService service = mock(AuthenticationService.class);
 		replay(service);
 
 		assertDoesNotThrow(
@@ -30,7 +30,7 @@ class AuthControllerTest {
 
 	@Test
 	void rejectsMissingCredentialsWithoutCallingService() {
-		AuthService service = mock(AuthService.class);
+		AuthenticationService service = mock(AuthenticationService.class);
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(LoginRequest.class)).andReturn(new LoginRequest("", "password", null));
 		expectResult(context, 400, "Username and password are required");
@@ -43,7 +43,7 @@ class AuthControllerTest {
 
 	@Test
 	void mapsInvalidCredentials() throws Exception {
-		AuthService service = mock(AuthService.class);
+		AuthenticationService service = mock(AuthenticationService.class);
 		Context context = mock(Context.class);
 		LoginRequest request = new LoginRequest("user", "password", null);
 		expect(context.bodyAsClass(LoginRequest.class)).andReturn(request);
@@ -58,7 +58,7 @@ class AuthControllerTest {
 
 	@Test
 	void mapsValidCredentials() throws Exception {
-		AuthService service = mock(AuthService.class);
+		AuthenticationService service = mock(AuthenticationService.class);
 		Context context = mock(Context.class);
 		LoginRequest request = new LoginRequest("user", "password", null);
 		LoginResponse response = new LoginResponse("token", "user", List.of(new ChapterRole(2, "Editor")), "Editor");

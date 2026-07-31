@@ -30,7 +30,7 @@ import org.binaryheart.repositories.PartyRepository;
 import org.binaryheart.repositories.ToolRepository;
 import org.binaryheart.services.AccountService;
 import org.binaryheart.services.AssetService;
-import org.binaryheart.services.AuthService;
+import org.binaryheart.services.AuthenticationService;
 import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
@@ -61,7 +61,7 @@ public class ApplicationModule extends AbstractModule {
 
 		bindSingleton(AccountService.class);
 		bindSingleton(AssetService.class);
-		bindSingleton(AuthService.class);
+		bindSingleton(AuthenticationService.class);
 		bindSingleton(AuthorizationService.class);
 		bindSingleton(ChapterService.class);
 		bindSingleton(DeviceService.class);
