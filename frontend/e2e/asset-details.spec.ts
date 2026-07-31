@@ -1,11 +1,11 @@
 import { test, expect } from "./fixtures/test";
-import { authenticate } from "./fixtures/mock-api";
+import { authenticate } from "./fixtures/real-api";
 
 test.beforeEach(async ({ page }) => {
   await authenticate(page);
 });
 
-test("edits and saves a device", async ({ page, mockApi }) => {
+test("edits and saves a device", async ({ page }) => {
   await page.goto("/devices/1001");
   await expect(page.getByRole("heading", { name: "Framework Laptop 13" })).toBeVisible();
 
@@ -14,12 +14,11 @@ test("edits and saves a device", async ({ page, mockApi }) => {
   await page.getByRole("button", { name: "Save changes" }).click();
 
   await expect(page.getByRole("heading", { name: "Framework Laptop 13 E2E" })).toBeVisible();
-  expect(mockApi.request("PUT", "/devices/laptop/1001")?.body).toMatchObject({
-    model: "Laptop 13 E2E",
-  });
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Framework Laptop 13 E2E" })).toBeVisible();
 });
 
-test("edits and saves a part", async ({ page, mockApi }) => {
+test("edits and saves a part", async ({ page }) => {
   await page.goto("/parts/1101");
   await expect(page.getByRole("heading", { name: "RAM" })).toBeVisible();
 
@@ -28,12 +27,11 @@ test("edits and saves a part", async ({ page, mockApi }) => {
   await page.getByRole("button", { name: "Save changes" }).click();
 
   await expect(page.getByText("32GB DDR5 SODIMM", { exact: true })).toBeVisible();
-  expect(mockApi.request("PUT", "/parts/1101")?.body).toMatchObject({
-    description: "32GB DDR5 SODIMM",
-  });
+  await page.reload();
+  await expect(page.getByText("32GB DDR5 SODIMM", { exact: true })).toBeVisible();
 });
 
-test("edits and saves a tool", async ({ page, mockApi }) => {
+test("edits and saves a tool", async ({ page }) => {
   await page.goto("/tools/1201");
   await expect(page.getByRole("heading", { name: "Precision screwdriver kit" })).toBeVisible();
 
@@ -42,9 +40,8 @@ test("edits and saves a tool", async ({ page, mockApi }) => {
   await page.getByRole("button", { name: "Save changes" }).click();
 
   await expect(page.getByRole("heading", { name: "Precision screwdriver set" })).toBeVisible();
-  expect(mockApi.request("PUT", "/tools/1201")?.body).toMatchObject({
-    description: "Precision screwdriver set",
-  });
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Precision screwdriver set" })).toBeVisible();
 });
 
 test("guards navigation while edits are unsaved", async ({ page }) => {
@@ -64,4 +61,22 @@ test("guards navigation while edits are unsaved", async ({ page }) => {
   await partsLink.click();
   await dialog.getByRole("button", { name: "Discard changes" }).click();
   await expect(page).toHaveURL(/\/parts$/);
+});
+
+test("prevents viewers from editing device details", async ({ page }) => {
+  await authenticate(page, "Viewer");
+  await page.goto("/devices/1001");
+
+  const editButton = page.getByRole("button", { name: "Edit" });
+  await expect(editButton).toBeDisabled();
+  await expect(editButton).toHaveAttribute("title", "Viewers cannot edit devices");
+});
+
+test("prevents editors from modifying donated devices", async ({ page }) => {
+  await authenticate(page, "Editor");
+  await page.goto("/devices/1002");
+
+  const editButton = page.getByRole("button", { name: "Edit" });
+  await expect(editButton).toBeDisabled();
+  await expect(editButton).toHaveAttribute("title", "Donated devices cannot be edited");
 });

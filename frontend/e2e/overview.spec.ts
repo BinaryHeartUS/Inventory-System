@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures/test";
-import { authenticate, TEST_CHAPTER } from "./fixtures/mock-api";
+import { authenticate, TEST_CHAPTER } from "./fixtures/real-api";
 
 test.beforeEach(async ({ page }) => {
   await authenticate(page);
@@ -56,7 +56,7 @@ test("donations shows donated devices and chapter totals", async ({ page }) => {
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true }).first()).toBeVisible();
 });
 
-test("national admin can create a chapter in isolated state", async ({ page, mockApi }) => {
+test("national admin can create a chapter in isolated state", async ({ page }) => {
   await page.goto("/chapters");
 
   await page.getByRole("button", { name: "New Chapter" }).click();
@@ -64,17 +64,29 @@ test("national admin can create a chapter in isolated state", async ({ page, moc
   await page.getByRole("button", { name: "Create Chapter" }).click();
 
   await expect(page.getByText("Another Test Chapter", { exact: true })).toBeVisible();
-  expect(mockApi.request("POST", "/chapters")?.body).toEqual({ name: "Another Test Chapter" });
 });
 
 test("global search returns devices, parts, and tools", async ({ page }) => {
   await page.goto("/search");
 
   const search = page.getByPlaceholder("Search by ID, model, manufacturer, chapter, status…");
-  await search.fill("Test");
+  await search.fill("1");
 
-  await expect(page.getByText(/result.*for "Test"/)).toBeVisible();
+  await expect(page.getByText(/result.*for "1"/)).toBeVisible();
   await expect(page.getByText("Framework Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("16GB DDR5 SODIMM", { exact: true })).toBeVisible();
   await expect(page.getByText("Precision screwdriver kit", { exact: true })).toBeVisible();
+});
+
+test("shows useful empty states for unmatched inventory and global search", async ({ page }) => {
+  await page.goto("/devices");
+  await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("no-such-device");
+  await expect(page.getByText(/No devices match the current filters/)).toBeVisible();
+
+  await page.goto("/search");
+  await page
+    .getByPlaceholder("Search by ID, model, manufacturer, chapter, status…")
+    .fill("no-such-asset");
+  await expect(page.getByText(/No results for/)).toBeVisible();
+  await expect(page.getByText("no-such-asset", { exact: true })).toBeVisible();
 });

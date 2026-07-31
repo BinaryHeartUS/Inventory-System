@@ -1,71 +1,77 @@
 import { test, expect } from "./fixtures/test";
-import { authenticate, TEST_CHAPTER } from "./fixtures/mock-api";
+import { authenticate, TEST_CHAPTER } from "./fixtures/real-api";
 
 async function openAddAsset(page: import("@playwright/test").Page) {
   await authenticate(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Add Asset" }).click();
-  await expect(page.getByRole("dialog", { name: "Add New Asset" })).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click();
+  const dialog = page.getByRole("dialog", { name: "Add New Asset" });
+  await expect(dialog).toBeVisible();
+  return dialog;
 }
 
-test("creates a desktop with generated ID", async ({ page, mockApi }) => {
-  await openAddAsset(page);
-  await page.getByRole("button", { name: /^Device/ }).click();
-  await page.getByRole("button", { name: /^Desktop/ }).click();
+async function openDesktopFields(page: import("@playwright/test").Page) {
+  const dialog = await openAddAsset(page);
+  await dialog.getByRole("button", { name: "Continue" }).click();
+  await dialog.getByRole("button", { name: /^Device/ }).click();
+  await dialog.getByRole("button", { name: /^Desktop/ }).click();
+  return dialog;
+}
+
+test("creates a desktop with generated ID", async ({ page }) => {
+  const dialog = await openDesktopFields(page);
 
   await page.getByTestId("field-manufacturer").selectOption("Framework");
   await page.getByTestId("field-model").fill("E2E Desktop");
   await page.getByTestId("field-chapter").selectOption(TEST_CHAPTER.name);
-  await page
-    .getByRole("dialog", { name: "Add New Asset" })
-    .getByRole("button", { name: "Add Asset", exact: true })
-    .click();
+  await dialog.getByRole("button", { name: "Add Asset", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/devices\/2000$/);
-  expect(mockApi.request("POST", "/devices/desktop")?.body).toMatchObject({
-    chapterId: TEST_CHAPTER.id,
-    manufacturer: "Framework",
-    model: "E2E Desktop",
-    status: "Not Started",
-  });
+  await expect(page).toHaveURL(/\/devices\/\d+$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Framework E2E Desktop" })).toBeVisible();
+  await expect(page.getByText(TEST_CHAPTER.name, { exact: true }).first()).toBeVisible();
 });
 
-test("creates a donated part", async ({ page, mockApi }) => {
-  await openAddAsset(page);
-  await page.getByRole("button", { name: /^Part/ }).click();
+test("creates a donated part", async ({ page }) => {
+  const dialog = await openAddAsset(page);
+  await dialog.getByRole("button", { name: "Continue" }).click();
+  await dialog.getByRole("button", { name: /^Part/ }).click();
 
   await page.getByTestId("field-part-type").selectOption("RAM");
   await page.getByTestId("field-description").fill("E2E memory module");
   await page.getByTestId("field-chapter").selectOption(TEST_CHAPTER.name);
-  await page
-    .getByRole("dialog", { name: "Add New Asset" })
-    .getByRole("button", { name: "Add Asset", exact: true })
-    .click();
+  await dialog.getByRole("button", { name: "Add Asset", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/parts\/2000$/);
-  expect(mockApi.request("POST", "/parts")?.body).toMatchObject({
-    chapterId: TEST_CHAPTER.id,
-    type: "RAM",
-    description: "E2E memory module",
-    wasPurchased: false,
-  });
+  await expect(page).toHaveURL(/\/parts\/\d+$/);
+  await page.reload();
+  await expect(page.getByText("E2E memory module", { exact: true })).toBeVisible();
 });
 
-test("creates a tool", async ({ page, mockApi }) => {
-  await openAddAsset(page);
-  await page.getByRole("button", { name: /^Tool/ }).click();
+test("creates a tool", async ({ page }) => {
+  const dialog = await openAddAsset(page);
+  await dialog.getByRole("button", { name: "Continue" }).click();
+  await dialog.getByRole("button", { name: /^Tool/ }).click();
 
   await page.getByTestId("field-description").fill("E2E anti-static mat");
   await page.getByTestId("field-chapter").selectOption(TEST_CHAPTER.name);
-  await page
-    .getByRole("dialog", { name: "Add New Asset" })
-    .getByRole("button", { name: "Add Asset", exact: true })
-    .click();
+  await dialog.getByRole("button", { name: "Add Asset", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/tools\/2000$/);
-  expect(mockApi.request("POST", "/tools")?.body).toMatchObject({
-    chapterId: TEST_CHAPTER.id,
-    description: "E2E anti-static mat",
-  });
+  await expect(page).toHaveURL(/\/tools\/\d+$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "E2E anti-static mat" })).toBeVisible();
+});
+
+test("rejects an asset ID that is already in use", async ({ page }) => {
+  const dialog = await openAddAsset(page);
+  await dialog.getByRole("button", { name: "Input an ID" }).click();
+  await dialog.getByTestId("asset-id").fill("1001");
+
+  await expect(dialog.getByText("ID 1001 is already in use.")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Continue" })).toBeDisabled();
+});
+
+test("requires the core asset details before submission", async ({ page }) => {
+  const dialog = await openDesktopFields(page);
+
+  await expect(dialog.getByRole("button", { name: "Add Asset", exact: true })).toBeDisabled();
 });
