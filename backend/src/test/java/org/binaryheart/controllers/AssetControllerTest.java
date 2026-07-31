@@ -4,13 +4,26 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.sql.SQLException;
 import org.binaryheart.services.AssetService;
 import org.junit.jupiter.api.Test;
 
 class AssetControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		AssetService service = mock(AssetService.class);
+		replay(service);
+
+		assertDoesNotThrow(
+			() -> Javalin.create(config -> config.routes.apiBuilder(new AssetController(service)::registerRoutes)));
+
+		verify(service);
+	}
 
 	@Test
 	void rejectsMalformedIdWithoutCallingService() {

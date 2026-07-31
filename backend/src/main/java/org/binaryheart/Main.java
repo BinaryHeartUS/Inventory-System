@@ -37,6 +37,7 @@ public class Main {
 		PartController partController = injector.getInstance(PartController.class);
 		PartyController partyController = injector.getInstance(PartyController.class);
 		ToolController toolController = injector.getInstance(ToolController.class);
+		JwtAccessManager accessManager = injector.getInstance(JwtAccessManager.class);
 
 		Javalin.create(config -> {
 			config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
@@ -50,7 +51,7 @@ public class Main {
 					builder.withBearerAuth();
 				})));
 			config.registerPlugin(new SwaggerPlugin());
-			config.routes.beforeMatched(JwtAccessManager::handle);
+			config.routes.beforeMatched(accessManager::handle);
 			config.routes.apiBuilder(() -> {
 				path("/api", healthController::registerRoutes);
 				path("/api/devices", deviceController::registerRoutes);

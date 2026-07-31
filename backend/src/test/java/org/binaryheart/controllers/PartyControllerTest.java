@@ -4,7 +4,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -26,6 +28,17 @@ class PartyControllerTest {
 	private static final BiConsumer<PartyController, Context> UPDATE_ORG = PartyController::updateOrganization;
 	private static final BiConsumer<PartyController, Context> INSERT_PERSON = PartyController::insertPerson;
 	private static final BiConsumer<PartyController, Context> UPDATE_PERSON = PartyController::updatePerson;
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		PartyService service = mock(PartyService.class);
+		replay(service);
+
+		assertDoesNotThrow(
+			() -> Javalin.create(config -> config.routes.apiBuilder(new PartyController(service)::registerRoutes)));
+
+		verify(service);
+	}
 
 	@ParameterizedTest
 	@MethodSource("invalidOrganizations")

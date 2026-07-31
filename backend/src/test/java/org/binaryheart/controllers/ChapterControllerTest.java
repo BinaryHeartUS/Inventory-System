@@ -4,8 +4,10 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import java.util.List;
@@ -15,6 +17,17 @@ import org.binaryheart.services.ChapterService;
 import org.junit.jupiter.api.Test;
 
 class ChapterControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		ChapterService service = mock(ChapterService.class);
+		replay(service);
+
+		assertDoesNotThrow(
+			() -> Javalin.create(config -> config.routes.apiBuilder(new ChapterController(service)::registerRoutes)));
+
+		verify(service);
+	}
 
 	@Test
 	void rejectsBlankNameAndUnauthorizedCaller() throws Exception {

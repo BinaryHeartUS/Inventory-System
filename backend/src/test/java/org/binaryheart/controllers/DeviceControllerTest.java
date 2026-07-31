@@ -8,7 +8,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +38,19 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class DeviceControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		replay(service, chapters, authorization);
+
+		assertDoesNotThrow(() -> Javalin.create(config -> config.routes
+			.apiBuilder(new DeviceController(service, chapters, authorization)::registerRoutes)));
+
+		verify(service, chapters, authorization);
+	}
 
 	@Test
 	void deviceCountRejectsUnknownTypeAndStatusBeforeService() {

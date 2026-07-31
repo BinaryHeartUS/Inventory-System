@@ -1,6 +1,7 @@
 package org.binaryheart.auth;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
@@ -11,8 +12,14 @@ import org.binaryheart.models.ChapterRole;
 public class JwtAccessManager {
 
 	private static final String[] PUBLIC_PATHS = {"/swagger", "/webjars/", "/openapi"};
+	private final JwtService jwtService;
 
-	public static void handle(Context ctx) {
+	@Inject
+	public JwtAccessManager(JwtService jwtService) {
+		this.jwtService = jwtService;
+	}
+
+	public void handle(Context ctx) {
 		if (ctx.routeRoles().contains(AppRole.PUBLIC)) {
 			return;
 		}
@@ -28,7 +35,7 @@ public class JwtAccessManager {
 			throw new UnauthorizedResponse();
 		}
 
-		DecodedJWT jwt = JwtService.verify(token);
+		DecodedJWT jwt = jwtService.verify(token);
 		if (jwt == null) {
 			throw new UnauthorizedResponse();
 		}

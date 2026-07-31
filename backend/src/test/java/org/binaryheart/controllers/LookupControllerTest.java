@@ -5,7 +5,9 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -19,6 +21,17 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class LookupControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		LookupService service = mock(LookupService.class);
+		replay(service);
+
+		assertDoesNotThrow(
+			() -> Javalin.create(config -> config.routes.apiBuilder(new LookupController(service)::registerRoutes)));
+
+		verify(service);
+	}
 
 	@ParameterizedTest
 	@MethodSource("invalidLookupNames")

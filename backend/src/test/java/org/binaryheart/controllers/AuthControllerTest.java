@@ -4,7 +4,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.List;
 import org.binaryheart.models.ChapterRole;
@@ -14,6 +16,17 @@ import org.binaryheart.services.AuthService;
 import org.junit.jupiter.api.Test;
 
 class AuthControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		AuthService service = mock(AuthService.class);
+		replay(service);
+
+		assertDoesNotThrow(
+			() -> Javalin.create(config -> config.routes.apiBuilder(new AuthController(service)::registerRoutes)));
+
+		verify(service);
+	}
 
 	@Test
 	void rejectsMissingCredentialsWithoutCallingService() {

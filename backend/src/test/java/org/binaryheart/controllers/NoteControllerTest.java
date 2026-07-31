@@ -4,7 +4,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import org.binaryheart.requests.PostNoteRequest;
 import org.binaryheart.responses.NoteResponse;
@@ -13,6 +15,18 @@ import org.binaryheart.services.NoteService;
 import org.junit.jupiter.api.Test;
 
 class NoteControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		NoteService service = mock(NoteService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		replay(service, authorization);
+
+		assertDoesNotThrow(() -> Javalin.create(config -> config.routes
+			.apiBuilder(new NoteController(service, authorization)::registerRoutes)));
+
+		verify(service, authorization);
+	}
 
 	@Test
 	void rejectsEmptyPostAndUpdateWithoutCallingLowerLayers() {

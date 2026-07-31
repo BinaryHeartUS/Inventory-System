@@ -4,7 +4,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.List;
 import org.binaryheart.models.ChapterRole;
@@ -17,6 +19,17 @@ import org.binaryheart.services.AccountService;
 import org.junit.jupiter.api.Test;
 
 class AccountControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		AccountService service = mock(AccountService.class);
+		replay(service);
+
+		assertDoesNotThrow(
+			() -> Javalin.create(config -> config.routes.apiBuilder(new AccountController(service)::registerRoutes)));
+
+		verify(service);
+	}
 
 	@Test
 	void rejectsMissingCreateFieldsAndOtherUsersPassword() {

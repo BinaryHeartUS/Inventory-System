@@ -6,7 +6,9 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +27,18 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class ToolControllerTest {
+
+	@Test
+	void registerRoutesDefinesEndpoints() {
+		ToolService service = mock(ToolService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		replay(service, authorization);
+
+		assertDoesNotThrow(() -> Javalin.create(config -> config.routes
+			.apiBuilder(new ToolController(service, authorization)::registerRoutes)));
+
+		verify(service, authorization);
+	}
 
 	@ParameterizedTest
 	@MethodSource("invalidTools")
