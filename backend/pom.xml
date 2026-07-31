@@ -24,6 +24,11 @@
                 <version>42.7.10</version>
             </dependency>
             <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>6.2.1</version>
+            </dependency>
+            <dependency>
                 <groupId>io.javalin</groupId>
                 <artifactId>javalin</artifactId>
                 <version>7.2.0</version>
@@ -80,6 +85,10 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
         </dependency>
         <dependency>
             <groupId>io.javalin</groupId>

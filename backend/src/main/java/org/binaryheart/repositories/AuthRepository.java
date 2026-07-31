@@ -10,11 +10,8 @@ import org.binaryheart.models.VolunteerCredentials;
 public class AuthRepository {
 
 	public VolunteerCredentials findByUsername(String username) throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
-		}
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Get_Volunteer_By_Username(?, ?, ?, ?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Get_Volunteer_By_Username(?, ?, ?, ?, ?)")) {
 			stmt.setString(1, username);
 			stmt.registerOutParameter(2, Types.INTEGER);
 			stmt.registerOutParameter(3, Types.VARCHAR);
