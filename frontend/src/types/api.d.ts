@@ -1168,12 +1168,27 @@ export interface paths {
       };
     };
   };
-  "/api/health": {
-    /** Health check */
+  "/api/health/live": {
+    /** Liveness check */
     get: {
       responses: {
-        /** @description Service is up */
+        /** @description Service is running */
         200: {
+          content: never;
+        };
+      };
+    };
+  };
+  "/api/health/ready": {
+    /** Readiness check */
+    get: {
+      responses: {
+        /** @description Service and database are ready */
+        200: {
+          content: never;
+        };
+        /** @description Database is unavailable */
+        503: {
           content: never;
         };
       };
@@ -1916,17 +1931,6 @@ export interface paths {
         };
         /** @description Database error */
         500: {
-          content: never;
-        };
-      };
-    };
-  };
-  "/api/ping": {
-    /** Ping */
-    get: {
-      responses: {
-        /** @description Returns pong */
-        200: {
           content: never;
         };
       };

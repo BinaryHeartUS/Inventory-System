@@ -23,6 +23,7 @@ import org.binaryheart.repositories.AssetRepository;
 import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.repositories.ChapterRepository;
 import org.binaryheart.repositories.DeviceRepository;
+import org.binaryheart.repositories.HealthRepository;
 import org.binaryheart.repositories.LookupRepository;
 import org.binaryheart.repositories.NoteRepository;
 import org.binaryheart.repositories.PartRepository;
@@ -77,6 +78,7 @@ public class ApplicationModule extends AbstractModule {
 		bindSingleton(AuthRepository.class);
 		bindSingleton(ChapterRepository.class);
 		bindSingleton(DeviceRepository.class);
+		bindSingleton(HealthRepository.class);
 		bindSingleton(LookupRepository.class);
 		bindSingleton(NoteRepository.class);
 		bindSingleton(PartRepository.class);

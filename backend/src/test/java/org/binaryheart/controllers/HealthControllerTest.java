@@ -25,27 +25,41 @@ class HealthControllerTest {
 	}
 
 	@Test
-	void healthDelegates() {
+	void liveDelegates() {
 		HealthService service = mock(HealthService.class);
 		Context context = mock(Context.class);
-		expect(service.health()).andReturn("OK");
+		expect(service.live()).andReturn("OK");
 		expect(context.result("OK")).andReturn(context);
 		replay(service, context);
 
-		new HealthController(service).health(context);
+		new HealthController(service).live(context);
 
 		verify(service, context);
 	}
 
 	@Test
-	void pingDelegates() {
+	void readyDelegates() throws Exception {
 		HealthService service = mock(HealthService.class);
 		Context context = mock(Context.class);
-		expect(service.ping()).andReturn("pong");
-		expect(context.result("pong")).andReturn(context);
+		expect(service.ready()).andReturn("OK");
+		expect(context.result("OK")).andReturn(context);
 		replay(service, context);
 
-		new HealthController(service).ping(context);
+		new HealthController(service).ready(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void readyReturnsServiceUnavailableWhenDatabaseCheckFails() throws Exception {
+		HealthService service = mock(HealthService.class);
+		Context context = mock(Context.class);
+		expect(service.ready()).andThrow(new java.sql.SQLException("unavailable"));
+		expect(context.status(503)).andReturn(context);
+		expect(context.result("Database unavailable")).andReturn(context);
+		replay(service, context);
+
+		new HealthController(service).ready(context);
 
 		verify(service, context);
 	}

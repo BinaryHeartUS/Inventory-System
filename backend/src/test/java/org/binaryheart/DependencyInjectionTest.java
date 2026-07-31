@@ -26,6 +26,7 @@ import org.binaryheart.repositories.AssetRepository;
 import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.repositories.ChapterRepository;
 import org.binaryheart.repositories.DeviceRepository;
+import org.binaryheart.repositories.HealthRepository;
 import org.binaryheart.repositories.LookupRepository;
 import org.binaryheart.repositories.NoteRepository;
 import org.binaryheart.repositories.PartRepository;
@@ -57,9 +58,9 @@ class DependencyInjectionTest {
 				ChapterService.class, DeviceService.class, HealthService.class, LookupService.class, NoteService.class,
 				PartService.class, PartyService.class, ToolService.class, AccountRepository.class,
 				AssetRepository.class, AuthRepository.class, ChapterRepository.class, DeviceRepository.class,
-				LookupRepository.class, NoteRepository.class, PartRepository.class, PartyRepository.class,
-				ToolRepository.class, EncryptionHelper.class, JwtAccessManager.class, JwtService.class,
-				PasswordService.class, TokenService.class};
+				HealthRepository.class, LookupRepository.class, NoteRepository.class, PartRepository.class,
+				PartyRepository.class, ToolRepository.class, EncryptionHelper.class, JwtAccessManager.class,
+				JwtService.class, PasswordService.class, TokenService.class};
 
 		for (Class<?> type : types) {
 			Object instance = injector.getInstance(type);
