@@ -11,14 +11,29 @@ test("edits and saves a device", async ({ page }) => {
 
   await page.getByRole("button", { name: "Edit" }).click();
   await page.getByTestId("edit-field-model").fill("Laptop 13 E2E");
-  await page.getByTestId("edit-field-serial-number").fill("E2E-LAPTOP-SERIAL");
   await page.getByRole("button", { name: "Save changes" }).click();
 
   await expect(page.getByRole("heading", { name: "Framework Laptop 13 E2E" })).toBeVisible();
-  await expect(page.getByText("E2E-LAPTOP-SERIAL", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("heading", { name: "Framework Laptop 13 E2E" })).toBeVisible();
-  await expect(page.getByText("E2E-LAPTOP-SERIAL", { exact: true })).toBeVisible();
+});
+
+test("persists a serial number after leaving and returning to a device", async ({ page }) => {
+  const serialNumber = "E2E-SERIAL-PERSIST-1001";
+
+  await page.goto("/devices/1001");
+  await page.getByRole("button", { name: "Edit" }).click();
+  await page.getByTestId("edit-field-serial-number").fill(serialNumber);
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText(serialNumber, { exact: true })).toBeVisible();
+
+  await page.goto("/parts");
+  await expect(page).toHaveURL(/\/parts$/);
+  await page.reload();
+  await expect(page).toHaveURL(/\/parts$/);
+
+  await page.goto("/devices/1001");
+  await expect(page.getByText(serialNumber, { exact: true })).toBeVisible();
 });
 
 test("edits and saves a part", async ({ page }) => {
