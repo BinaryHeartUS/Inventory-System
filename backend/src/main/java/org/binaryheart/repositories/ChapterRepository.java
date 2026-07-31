@@ -9,9 +9,8 @@ import org.binaryheart.responses.ChapterSummary;
 public class ChapterRepository {
 
 	public List<ChapterSummary> getAllChapters() throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_All_Chapters()");
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_All_Chapters()");
 			ResultSet rs = ps.executeQuery()) {
 			List<ChapterSummary> results = new ArrayList<>();
 			while (rs.next()) {
@@ -32,9 +31,8 @@ public class ChapterRepository {
 	}
 
 	public ChapterSummary createChapter(String name) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("CALL Insert_Chapter(?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("CALL Insert_Chapter(?, ?)")) {
 			stmt.setString(1, name);
 			stmt.registerOutParameter(2, Types.INTEGER);
 			stmt.execute();
@@ -44,17 +42,10 @@ public class ChapterRepository {
 	}
 
 	public void deleteChapter(int id) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("CALL Delete_Chapter(?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("CALL Delete_Chapter(?)")) {
 			stmt.setInt(1, id);
 			stmt.execute();
-		}
-	}
-
-	private static void ensureConnected() throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
 		}
 	}
 }

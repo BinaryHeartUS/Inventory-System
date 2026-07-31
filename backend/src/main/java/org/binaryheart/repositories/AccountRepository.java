@@ -10,9 +10,8 @@ public class AccountRepository {
 
 	public int createVolunteer(String name, String username, String passwordHash, String passwordSalt, int chapterId,
 		String roleName) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Insert_Volunteer_For_Chapter(?, ?, ?, ?, ?, ?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Insert_Volunteer_For_Chapter(?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setString(1, name);
 			stmt.setString(2, username);
 			stmt.setString(3, passwordHash);
@@ -26,18 +25,16 @@ public class AccountRepository {
 	}
 
 	public List<AccountSummary> getAllVolunteers() throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_All_Volunteers()");
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_All_Volunteers()");
 			ResultSet rs = ps.executeQuery()) {
 			return mapRows(rs);
 		}
 	}
 
 	public List<AccountSummary> getVolunteersForChapters(List<Integer> chapterIds) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_Volunteers_For_Chapters(?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement ps = conn.prepareStatement("SELECT * FROM Get_Volunteers_For_Chapters(?)")) {
 			Array arr = conn.createArrayOf("INTEGER", chapterIds.toArray());
 			ps.setArray(1, arr);
 			try (ResultSet rs = ps.executeQuery()) {
@@ -47,18 +44,16 @@ public class AccountRepository {
 	}
 
 	public void deleteVolunteer(int volunteerId) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Delete_Volunteer(?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Delete_Volunteer(?)")) {
 			stmt.setInt(1, volunteerId);
 			stmt.execute();
 		}
 	}
 
 	public void addAffiliation(int volunteerId, int chapterId, String roleName) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Insert_Affiliation(?, ?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Insert_Affiliation(?, ?, ?)")) {
 			stmt.setInt(1, volunteerId);
 			stmt.setInt(2, chapterId);
 			stmt.setString(3, roleName);
@@ -67,9 +62,8 @@ public class AccountRepository {
 	}
 
 	public void updateAffiliation(int volunteerId, int chapterId, String roleName) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Update_Affiliation(?, ?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Update_Affiliation(?, ?, ?)")) {
 			stmt.setInt(1, volunteerId);
 			stmt.setInt(2, chapterId);
 			stmt.setString(3, roleName);
@@ -78,9 +72,8 @@ public class AccountRepository {
 	}
 
 	public void deleteAffiliation(int volunteerId, int chapterId) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Delete_Affiliation(?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Delete_Affiliation(?, ?)")) {
 			stmt.setInt(1, volunteerId);
 			stmt.setInt(2, chapterId);
 			stmt.execute();
@@ -88,19 +81,12 @@ public class AccountRepository {
 	}
 
 	public void updatePassword(int volunteerId, String passwordHash, String passwordSalt) throws SQLException {
-		ensureConnected();
-		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Update_Volunteer_Password(?, ?, ?)")) {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			CallableStatement stmt = conn.prepareCall("call Update_Volunteer_Password(?, ?, ?)")) {
 			stmt.setInt(1, volunteerId);
 			stmt.setString(2, passwordHash);
 			stmt.setString(3, passwordSalt);
 			stmt.execute();
-		}
-	}
-
-	private static void ensureConnected() throws SQLException {
-		if (!DatabaseConnectionService.isConnected()) {
-			DatabaseConnectionService.connect();
 		}
 	}
 
