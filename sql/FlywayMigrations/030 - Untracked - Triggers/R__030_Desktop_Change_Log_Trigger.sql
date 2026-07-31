@@ -24,7 +24,7 @@ BEGIN
         END IF;
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO Desktop_Change_Log(Desktop_ID, Modified_By, Change_Type, Old_HasWifi)
-        VALUES (OLD.ID, COALESCE(current_setting('app.current_username', true), current),
+        VALUES (OLD.ID, COALESCE(current_setting('app.current_username', true), current_user),
             'Delete', OLD.HasWifi);
     END IF;
     RETURN NULL;
