@@ -51,4 +51,9 @@ lint-web: ## Lint the frontend (ESLint)
 audit-web: ## Scan frontend production dependencies for vulnerabilities (npm audit)
 	cd frontend && npm audit --omit=dev --audit-level=high
 
-ci: format-check-java format-check-web lint-web build-java build-web audit-web check-types ## Run every GitHub CI gate locally
+test: test-java ## Run all tests
+
+test-java: ## Run backend unit tests
+	cd backend && mvn -ntp test
+
+ci: format-check-java format-check-web lint-web test-java build-java build-web audit-web check-types ## Run every GitHub CI gate locally
