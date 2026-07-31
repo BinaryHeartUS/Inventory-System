@@ -31,17 +31,27 @@ class PasswordServiceTest {
 	}
 
 	@Test
-	void matchesHashesDecodedSaltAndComparesExpectedHash() throws Exception {
+	void matchesReturnsTrueForExpectedHash() throws Exception {
 		EncryptionHelper helper = mock(EncryptionHelper.class);
 		byte[] salt = {1, 2, 3};
 		String encodedSalt = Base64.getEncoder().encodeToString(salt);
 		expect(helper.hashPassword(aryEq(salt), eq("correct"))).andReturn("hash");
+		replay(helper);
+
+		assertTrue(new PasswordService(helper).matches("correct", "hash", encodedSalt));
+
+		verify(helper);
+	}
+
+	@Test
+	void matchesReturnsFalseForUnexpectedHash() throws Exception {
+		EncryptionHelper helper = mock(EncryptionHelper.class);
+		byte[] salt = {1, 2, 3};
+		String encodedSalt = Base64.getEncoder().encodeToString(salt);
 		expect(helper.hashPassword(aryEq(salt), eq("wrong"))).andReturn("other");
 		replay(helper);
-		PasswordService service = new PasswordService(helper);
 
-		assertTrue(service.matches("correct", "hash", encodedSalt));
-		assertFalse(service.matches("wrong", "hash", encodedSalt));
+		assertFalse(new PasswordService(helper).matches("wrong", "hash", encodedSalt));
 
 		verify(helper);
 	}

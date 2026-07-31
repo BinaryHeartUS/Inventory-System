@@ -10,15 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 import org.binaryheart.requests.AddLookupRequest;
 import org.binaryheart.responses.LookupResponse;
 import org.binaryheart.services.LookupService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 class LookupControllerTest {
 
@@ -33,75 +28,192 @@ class LookupControllerTest {
 		verify(service);
 	}
 
-	@ParameterizedTest
-	@MethodSource("invalidLookupNames")
-	void everyInsertRejectsMissingName(BiConsumer<LookupController, Context> handler) {
+	@Test
+	void addManufacturerRejectsMissingName() {
 		LookupService service = mock(LookupService.class);
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(AddLookupRequest.class)).andReturn(new AddLookupRequest(" "));
 		expectResult(context, 400, "name is required");
 		replay(service, context);
 
-		handler.accept(new LookupController(service), context);
+		new LookupController(service).addManufacturer(context);
 
 		verify(service, context);
 	}
 
 	@Test
-	void insertAndDeleteDelegateAndMapForeignKeyConflict() throws Exception {
+	void addRamGenerationRejectsMissingName() {
 		LookupService service = mock(LookupService.class);
-		Context add = mock(Context.class);
-		Context delete = mock(Context.class);
-		expect(add.bodyAsClass(AddLookupRequest.class)).andReturn(new AddLookupRequest("Dell"));
-		service.addManufacturer("Dell");
-		expectStatus(add, 201);
-		expect(delete.pathParam("name")).andReturn("Dell");
-		service.removeManufacturer("Dell");
-		expectLastCall().andThrow(new java.sql.SQLException("in use", "23503"));
-		expectResult(delete, 409, "Cannot delete \"Dell\" because it is still in use.");
-		replay(service, add, delete);
-		LookupController controller = new LookupController(service);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(AddLookupRequest.class)).andReturn(new AddLookupRequest(" "));
+		expectResult(context, 400, "name is required");
+		replay(service, context);
 
-		controller.addManufacturer(add);
-		controller.deleteManufacturer(delete);
+		new LookupController(service).addRamGeneration(context);
 
-		verify(service, add, delete);
+		verify(service, context);
 	}
 
 	@Test
-	void everyOtherInsertAndDeleteDelegates() throws Exception {
+	void addStorageTypeRejectsMissingName() {
 		LookupService service = mock(LookupService.class);
-		Context addRam = addContext("DDR4");
-		Context addStorage = addContext("SSD");
-		Context addPart = addContext("RAM");
-		Context addOperatingSystem = addContext("Linux");
-		Context deleteRam = deleteContext("DDR4");
-		Context deleteStorage = deleteContext("SSD");
-		Context deletePart = deleteContext("RAM");
-		Context deleteOperatingSystem = deleteContext("Linux");
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(AddLookupRequest.class)).andReturn(new AddLookupRequest(" "));
+		expectResult(context, 400, "name is required");
+		replay(service, context);
+
+		new LookupController(service).addStorageType(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addPartTypeRejectsMissingName() {
+		LookupService service = mock(LookupService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(AddLookupRequest.class)).andReturn(new AddLookupRequest(" "));
+		expectResult(context, 400, "name is required");
+		replay(service, context);
+
+		new LookupController(service).addPartType(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addOperatingSystemRejectsMissingName() {
+		LookupService service = mock(LookupService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(AddLookupRequest.class)).andReturn(new AddLookupRequest(" "));
+		expectResult(context, 400, "name is required");
+		replay(service, context);
+
+		new LookupController(service).addOperatingSystem(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addManufacturerDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = addContext("Dell");
+		service.addManufacturer("Dell");
+		replay(service, context);
+
+		new LookupController(service).addManufacturer(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void deleteManufacturerMapsForeignKeyConflict() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("name")).andReturn("Dell");
+		service.removeManufacturer("Dell");
+		expectLastCall().andThrow(new java.sql.SQLException("in use", "23503"));
+		expectResult(context, 409, "Cannot delete \"Dell\" because it is still in use.");
+		replay(service, context);
+
+		new LookupController(service).deleteManufacturer(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addRamGenerationDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = addContext("DDR4");
 		service.addRamGeneration("DDR4");
+		replay(service, context);
+
+		new LookupController(service).addRamGeneration(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addStorageTypeDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = addContext("SSD");
 		service.addStorageType("SSD");
+		replay(service, context);
+
+		new LookupController(service).addStorageType(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addPartTypeDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = addContext("RAM");
 		service.addPartType("RAM");
+		replay(service, context);
+
+		new LookupController(service).addPartType(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addOperatingSystemDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = addContext("Linux");
 		service.addOperatingSystem("Linux");
+		replay(service, context);
+
+		new LookupController(service).addOperatingSystem(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void deleteRamGenerationDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = deleteContext("DDR4");
 		service.removeRamGeneration("DDR4");
+		replay(service, context);
+
+		new LookupController(service).deleteRamGeneration(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void deleteStorageTypeDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = deleteContext("SSD");
 		service.removeStorageType("SSD");
+		replay(service, context);
+
+		new LookupController(service).deleteStorageType(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void deletePartTypeDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = deleteContext("RAM");
 		service.removePartType("RAM");
+		replay(service, context);
+
+		new LookupController(service).deletePartType(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void deleteOperatingSystemDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context context = deleteContext("Linux");
 		service.removeOperatingSystem("Linux");
-		replay(service, addRam, addStorage, addPart, addOperatingSystem, deleteRam, deleteStorage, deletePart,
-			deleteOperatingSystem);
-		LookupController controller = new LookupController(service);
+		replay(service, context);
 
-		controller.addRamGeneration(addRam);
-		controller.addStorageType(addStorage);
-		controller.addPartType(addPart);
-		controller.addOperatingSystem(addOperatingSystem);
-		controller.deleteRamGeneration(deleteRam);
-		controller.deleteStorageType(deleteStorage);
-		controller.deletePartType(deletePart);
-		controller.deleteOperatingSystem(deleteOperatingSystem);
+		new LookupController(service).deleteOperatingSystem(context);
 
-		verify(service, addRam, addStorage, addPart, addOperatingSystem, deleteRam, deleteStorage, deletePart,
-			deleteOperatingSystem);
+		verify(service, context);
 	}
 
 	@Test
@@ -117,14 +229,6 @@ class LookupControllerTest {
 		new LookupController(service).getAll(context);
 
 		verify(service, context);
-	}
-
-	private static Stream<Arguments> invalidLookupNames() {
-		return Stream.of(Arguments.of((BiConsumer<LookupController, Context>) LookupController::addManufacturer),
-			Arguments.of((BiConsumer<LookupController, Context>) LookupController::addRamGeneration),
-			Arguments.of((BiConsumer<LookupController, Context>) LookupController::addStorageType),
-			Arguments.of((BiConsumer<LookupController, Context>) LookupController::addPartType),
-			Arguments.of((BiConsumer<LookupController, Context>) LookupController::addOperatingSystem));
 	}
 
 	private Context addContext(String name) {

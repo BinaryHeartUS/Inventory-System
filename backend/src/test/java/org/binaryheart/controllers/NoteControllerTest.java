@@ -29,55 +29,83 @@ class NoteControllerTest {
 	}
 
 	@Test
-	void rejectsEmptyPostAndUpdateWithoutCallingLowerLayers() {
+	void postNoteRejectsEmptyTextWithoutCallingLowerLayers() {
 		NoteService service = mock(NoteService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context postContext = mock(Context.class);
-		Context updateContext = mock(Context.class);
-		expect(postContext.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest(""));
-		expectResult(postContext, 400, "Missing required parameter(s)");
-		expect(updateContext.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest(null));
-		expectResult(updateContext, 400, "Missing required parameter(s)");
-		replay(service, authorization, postContext, updateContext);
-		NoteController controller = new NoteController(service, authorization);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest(""));
+		expectResult(context, 400, "Missing required parameter(s)");
+		replay(service, authorization, context);
 
-		controller.postNote(postContext);
-		controller.updateNote(updateContext);
+		new NoteController(service, authorization).postNote(context);
 
-		verify(service, authorization, postContext, updateContext);
+		verify(service, authorization, context);
 	}
 
 	@Test
-	void delegatesPostGetAndAuthorizedUpdate() throws Exception {
+	void updateNoteRejectsEmptyTextWithoutCallingLowerLayers() {
 		NoteService service = mock(NoteService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context postContext = mock(Context.class);
-		Context getContext = mock(Context.class);
-		Context updateContext = mock(Context.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest(null));
+		expectResult(context, 400, "Missing required parameter(s)");
+		replay(service, authorization, context);
+
+		new NoteController(service, authorization).updateNote(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void postNoteDelegates() throws Exception {
+		NoteService service = mock(NoteService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
 		NoteResponse note = new NoteResponse(3, "text", "today", 42);
-		NoteResponse[] notes = {note};
-		expect(postContext.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("text"));
-		expect(postContext.pathParam("id")).andReturn("42");
+		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("text"));
+		expect(context.pathParam("id")).andReturn("42");
 		expect(service.addNote(42, "text")).andReturn(note);
-		expectJson(postContext, 200, note);
-		expect(getContext.pathParam("id")).andReturn("42");
+		expectJson(context, 200, note);
+		replay(service, authorization, context);
+
+		new NoteController(service, authorization).postNote(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void getNotesDelegates() throws Exception {
+		NoteService service = mock(NoteService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		NoteResponse[] notes = {new NoteResponse(3, "text", "today", 42)};
+		expect(context.pathParam("id")).andReturn("42");
 		expect(service.getNotes(42)).andReturn(notes);
-		expectJson(getContext, 200, notes);
-		expect(updateContext.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("updated"));
-		expect(updateContext.pathParam("id")).andReturn("42");
-		expect(updateContext.pathParam("noteId")).andReturn("3");
+		expectJson(context, 200, notes);
+		replay(service, authorization, context);
+
+		new NoteController(service, authorization).getNotes(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void updateNoteAuthorizesThenDelegates() throws Exception {
+		NoteService service = mock(NoteService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("updated"));
+		expect(context.pathParam("id")).andReturn("42");
+		expect(context.pathParam("noteId")).andReturn("3");
 		expect(service.getAssetChapterId(42)).andReturn(2);
-		authorization.requireChapterEditAccess(updateContext, 2);
+		authorization.requireChapterEditAccess(context, 2);
 		service.updateNote(42, 3, "updated");
-		expectResult(updateContext, 201, "Note updated successfully");
-		replay(service, authorization, postContext, getContext, updateContext);
-		NoteController controller = new NoteController(service, authorization);
+		expectResult(context, 201, "Note updated successfully");
+		replay(service, authorization, context);
 
-		controller.postNote(postContext);
-		controller.getNotes(getContext);
-		controller.updateNote(updateContext);
+		new NoteController(service, authorization).updateNote(context);
 
-		verify(service, authorization, postContext, getContext, updateContext);
+		verify(service, authorization, context);
 	}
 
 	private void expectResult(Context context, int status, String result) {

@@ -53,24 +53,35 @@ class DeviceControllerTest {
 	}
 
 	@Test
-	void deviceCountRejectsUnknownTypeAndStatusBeforeService() {
+	void deviceCountRejectsUnknownTypeBeforeService() {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context typeContext = mock(Context.class);
-		Context statusContext = mock(Context.class);
-		expect(typeContext.pathParam("type")).andReturn("phone");
-		expect(typeContext.queryParam("status")).andReturn(null);
-		expectResult(typeContext, 400, "Unknown device type: phone");
-		expect(statusContext.pathParam("type")).andReturn("desktop");
-		expect(statusContext.queryParam("status")).andReturn("unknown").times(2);
-		expectResult(statusContext, 400, "Unknown status: unknown");
-		replay(service, chapters, authorization, typeContext, statusContext);
-		DeviceController controller = new DeviceController(service, chapters, authorization);
+		Context context = mock(Context.class);
+		expect(context.pathParam("type")).andReturn("phone");
+		expect(context.queryParam("status")).andReturn(null);
+		expectResult(context, 400, "Unknown device type: phone");
+		replay(service, chapters, authorization, context);
 
-		controller.getDeviceCount(typeContext);
-		controller.getDeviceCount(statusContext);
-		verify(service, chapters, authorization, typeContext, statusContext);
+		new DeviceController(service, chapters, authorization).getDeviceCount(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deviceCountRejectsUnknownStatusBeforeService() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("type")).andReturn("desktop");
+		expect(context.queryParam("status")).andReturn("unknown").times(2);
+		expectResult(context, 400, "Unknown status: unknown");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getDeviceCount(context);
+
+		verify(service, chapters, authorization, context);
 	}
 
 	@Test
@@ -155,54 +166,117 @@ class DeviceControllerTest {
 	}
 
 	@Test
-	void everyRemainingStatisticDelegates() throws Exception {
+	void dashboardCountsDelegate() throws Exception {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context dashboardContext = chapterStatsContext();
-		Context averageContext = chapterStatsContext();
-		Context completionContext = chapterStatsContext();
-		Context activityContext = mock(Context.class);
-		Context donatedContext = monthlyStatsContext();
-		Context valueContext = monthlyStatsContext();
-		Context summaryContext = mock(Context.class);
+		Context context = chapterStatsContext();
 		DashboardCountsResponse dashboard = new DashboardCountsResponse(1, 2, 3, 4, 5, 6, 7, 8);
-		AvgTimeInInventoryResponse average = new AvgTimeInInventoryResponse(4.0, 2);
-		CompletionRateResponse completion = new CompletionRateResponse(3, 4);
-		ChapterActivityStatsResponse activity = new ChapterActivityStatsResponse(4, 3, 2, 1);
-		List<MonthlyCountPoint> donated = List.of(new MonthlyCountPoint(2026, 1, 2));
-		List<MonthlyValuePoint> values = List.of(new MonthlyValuePoint(2026, 1, 20.0));
-		List<ChapterInventorySummary> summary = List.of();
 		expect(service.getDashboardCounts(List.of(2), List.of(2))).andReturn(dashboard);
-		expectJson(dashboardContext, 200, dashboard);
+		expectJson(context, 200, dashboard);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getDashboardCounts(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void averageTimeInInventoryDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = chapterStatsContext();
+		AvgTimeInInventoryResponse average = new AvgTimeInInventoryResponse(4.0, 2);
 		expect(service.getAvgTimeInInventory(List.of(2), List.of(2))).andReturn(average);
-		expectJson(averageContext, 200, average);
+		expectJson(context, 200, average);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getAvgTimeInInventory(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void completionRateDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = chapterStatsContext();
+		CompletionRateResponse completion = new CompletionRateResponse(3, 4);
 		expect(service.getCompletionRate(List.of(2), List.of(2))).andReturn(completion);
-		expectJson(completionContext, 200, completion);
-		expect(activityContext.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expectJson(context, 200, completion);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getCompletionRate(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void chapterActivityStatsDelegate() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		ChapterActivityStatsResponse activity = new ChapterActivityStatsResponse(4, 3, 2, 1);
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
 		expect(service.getChapterActivityStats(List.of(2))).andReturn(activity);
-		expectJson(activityContext, 200, activity);
+		expectJson(context, 200, activity);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getChapterActivityStats(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void devicesDonatedDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = monthlyStatsContext();
+		List<MonthlyCountPoint> donated = List.of(new MonthlyCountPoint(2026, 1, 2));
 		expect(service.getDevicesDonated(List.of(2), List.of(2), 6)).andReturn(donated);
-		expectJson(donatedContext, 200, donated);
+		expectJson(context, 200, donated);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getDevicesDonated(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void donatedDeviceValueDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = monthlyStatsContext();
+		List<MonthlyValuePoint> values = List.of(new MonthlyValuePoint(2026, 1, 20.0));
 		expect(service.getDonatedDeviceValue(List.of(2), List.of(2), 6)).andReturn(values);
-		expectJson(valueContext, 200, values);
-		expect(summaryContext.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expectJson(context, 200, values);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getDonatedDeviceValue(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void chapterInventorySummaryDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		List<ChapterInventorySummary> summary = List.of();
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
 		expect(service.getChapterInventorySummary(List.of(2))).andReturn(summary);
-		expectJson(summaryContext, 200, summary);
-		replay(service, chapters, authorization, dashboardContext, averageContext, completionContext, activityContext,
-			donatedContext, valueContext, summaryContext);
-		DeviceController controller = new DeviceController(service, chapters, authorization);
+		expectJson(context, 200, summary);
+		replay(service, chapters, authorization, context);
 
-		controller.getDashboardCounts(dashboardContext);
-		controller.getAvgTimeInInventory(averageContext);
-		controller.getCompletionRate(completionContext);
-		controller.getChapterActivityStats(activityContext);
-		controller.getDevicesDonated(donatedContext);
-		controller.getDonatedDeviceValue(valueContext);
-		controller.getChapterInventorySummary(summaryContext);
+		new DeviceController(service, chapters, authorization).getChapterInventorySummary(context);
 
-		verify(service, chapters, authorization, dashboardContext, averageContext, completionContext, activityContext,
-			donatedContext, valueContext, summaryContext);
+		verify(service, chapters, authorization, context);
 	}
 
 	@Test
@@ -220,22 +294,33 @@ class DeviceControllerTest {
 	}
 
 	@Test
-	void getDeviceRejectsMalformedAndNonPositiveIds() {
+	void getDeviceRejectsMalformedId() {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context malformed = mock(Context.class);
-		Context negative = mock(Context.class);
-		expect(malformed.pathParam("id")).andReturn("bad");
-		expectResult(malformed, 400, "Non-numeric device ID: bad");
-		expect(negative.pathParam("id")).andReturn("0");
-		expectResult(negative, 400, "Device ID must be positive");
-		replay(service, chapters, authorization, malformed, negative);
-		DeviceController controller = new DeviceController(service, chapters, authorization);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("bad");
+		expectResult(context, 400, "Non-numeric device ID: bad");
+		replay(service, chapters, authorization, context);
 
-		controller.getDevice(malformed);
-		controller.getDevice(negative);
-		verify(service, chapters, authorization, malformed, negative);
+		new DeviceController(service, chapters, authorization).getDevice(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void getDeviceRejectsNonPositiveId() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("0");
+		expectResult(context, 400, "Device ID must be positive");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getDevice(context);
+
+		verify(service, chapters, authorization, context);
 	}
 
 	@Test
@@ -272,8 +357,8 @@ class DeviceControllerTest {
 	}
 
 	@ParameterizedTest
-	@MethodSource("invalidLaptops")
-	void laptopValidationCoversRequiredAndBatteryRules(InsertLaptopRequest request, String message, boolean update) {
+	@MethodSource("invalidLaptopInserts")
+	void laptopInsertValidationCoversRequiredAndBatteryRules(InsertLaptopRequest request, String message) {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
@@ -281,18 +366,48 @@ class DeviceControllerTest {
 		expect(context.bodyAsClass(InsertLaptopRequest.class)).andReturn(request);
 		expectResult(context, 400, message);
 		replay(service, chapters, authorization, context);
-		DeviceController controller = new DeviceController(service, chapters, authorization);
 
-		if (update)
-			controller.updateLaptop(context);
-		else
-			controller.insertLaptop(context);
+		new DeviceController(service, chapters, authorization).insertLaptop(context);
+
 		verify(service, chapters, authorization, context);
 	}
 
 	@ParameterizedTest
-	@MethodSource("invalidTablets")
-	void tabletValidationCoversSubtypeRequirements(InsertTabletRequest request, String message, boolean update) {
+	@MethodSource("invalidLaptopUpdates")
+	void laptopUpdateValidationCoversBatteryAndIdRules(InsertLaptopRequest request, String message) {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(InsertLaptopRequest.class)).andReturn(request);
+		expectResult(context, 400, message);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).updateLaptop(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void tabletInsertRejectsMissingSubtypeRequirements() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		InsertTabletRequest request = new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", null, 103,
+			"M1", 8, "LPDDR4", 256, "Flash", 400.0, LocalDate.now(), null, null, "Working", "iPad OS");
+		expect(context.bodyAsClass(InsertTabletRequest.class)).andReturn(request);
+		expectResult(context, 400, "Missing required parameters");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).insertTablet(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@ParameterizedTest
+	@MethodSource("invalidTabletUpdates")
+	void tabletUpdateValidationCoversSubtypeAndIdRequirements(InsertTabletRequest request, String message) {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
@@ -300,79 +415,140 @@ class DeviceControllerTest {
 		expect(context.bodyAsClass(InsertTabletRequest.class)).andReturn(request);
 		expectResult(context, 400, message);
 		replay(service, chapters, authorization, context);
-		DeviceController controller = new DeviceController(service, chapters, authorization);
 
-		if (update)
-			controller.updateTablet(context);
-		else
-			controller.insertTablet(context);
+		new DeviceController(service, chapters, authorization).updateTablet(context);
+
 		verify(service, chapters, authorization, context);
 	}
 
 	@Test
-	void everyValidDeviceMutationAuthorizesThenDelegates() throws Exception {
+	void insertDesktopAuthorizesThenDelegates() throws Exception {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context desktopInsert = mutationContext(InsertDesktopRequest.class, desktop(), "user");
-		Context laptopInsert = mutationContext(InsertLaptopRequest.class, laptop(), "user");
-		Context tabletInsert = mutationContext(InsertTabletRequest.class, tablet(), "user");
-		Context desktopUpdate = mutationContext(InsertDesktopRequest.class, desktop(), "user");
-		Context laptopUpdate = mutationContext(InsertLaptopRequest.class, laptop(), "user");
-		Context tabletUpdate = mutationContext(InsertTabletRequest.class, tablet(), "user");
-		authorization.requireChapterEditAccess(desktopInsert, 2);
+		Context context = mutationContext(InsertDesktopRequest.class, desktop(), "user");
+		authorization.requireChapterEditAccess(context, 2);
 		expect(service.insertDesktop(desktop(), "user")).andReturn(101);
-		expectJson(desktopInsert, 201, new IdResponse(101));
-		authorization.requireChapterEditAccess(laptopInsert, 2);
-		expect(service.insertLaptop(laptop(), "user")).andReturn(102);
-		expectJson(laptopInsert, 201, new IdResponse(102));
-		authorization.requireChapterEditAccess(tabletInsert, 2);
-		expect(service.insertTablet(tablet(), "user")).andReturn(103);
-		expectJson(tabletInsert, 201, new IdResponse(103));
-		authorization.requireChapterEditAccess(desktopUpdate, 2);
-		service.updateDesktop(desktop(), "user");
-		expectResult(desktopUpdate, 201, "Desktop updated successfully");
-		authorization.requireChapterEditAccess(laptopUpdate, 2);
-		service.updateLaptop(laptop(), "user");
-		expectResult(laptopUpdate, 200, "Laptop updated successfully");
-		authorization.requireChapterEditAccess(tabletUpdate, 2);
-		service.updateTablet(tablet(), "user");
-		expectResult(tabletUpdate, 200, "Tablet updated successfully");
-		replay(service, chapters, authorization, desktopInsert, laptopInsert, tabletInsert, desktopUpdate, laptopUpdate,
-			tabletUpdate);
-		DeviceController controller = new DeviceController(service, chapters, authorization);
+		expectJson(context, 201, new IdResponse(101));
+		replay(service, chapters, authorization, context);
 
-		controller.insertDesktop(desktopInsert);
-		controller.insertLaptop(laptopInsert);
-		controller.insertTablet(tabletInsert);
-		controller.updateDesktop(desktopUpdate);
-		controller.updateLaptop(laptopUpdate);
-		controller.updateTablet(tabletUpdate);
-		verify(service, chapters, authorization, desktopInsert, laptopInsert, tabletInsert, desktopUpdate, laptopUpdate,
-			tabletUpdate);
+		new DeviceController(service, chapters, authorization).insertDesktop(context);
+
+		verify(service, chapters, authorization, context);
 	}
 
 	@Test
-	void changelogRejectsBadIdAndDelegatesValidId() throws Exception {
+	void insertLaptopAuthorizesThenDelegates() throws Exception {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context invalid = mock(Context.class);
-		Context valid = mock(Context.class);
-		expect(invalid.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
-		expect(invalid.pathParam("id")).andReturn("0");
-		expectResult(invalid, 400, "Device ID must be a positive integer");
-		DeviceChangelogResponse[] changelog = new DeviceChangelogResponse[0];
-		expect(valid.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
-		expect(valid.pathParam("id")).andReturn("101");
-		expect(service.getDeviceChangelog(List.of(2), 101)).andReturn(changelog);
-		expectJson(valid, 200, changelog);
-		replay(service, chapters, authorization, invalid, valid);
-		DeviceController controller = new DeviceController(service, chapters, authorization);
+		Context context = mutationContext(InsertLaptopRequest.class, laptop(), "user");
+		authorization.requireChapterEditAccess(context, 2);
+		expect(service.insertLaptop(laptop(), "user")).andReturn(102);
+		expectJson(context, 201, new IdResponse(102));
+		replay(service, chapters, authorization, context);
 
-		controller.getDeviceChangelog(invalid);
-		controller.getDeviceChangelog(valid);
-		verify(service, chapters, authorization, invalid, valid);
+		new DeviceController(service, chapters, authorization).insertLaptop(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void insertTabletAuthorizesThenDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mutationContext(InsertTabletRequest.class, tablet(), "user");
+		authorization.requireChapterEditAccess(context, 2);
+		expect(service.insertTablet(tablet(), "user")).andReturn(103);
+		expectJson(context, 201, new IdResponse(103));
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).insertTablet(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void updateDesktopAuthorizesThenDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mutationContext(InsertDesktopRequest.class, desktop(), "user");
+		authorization.requireChapterEditAccess(context, 2);
+		service.updateDesktop(desktop(), "user");
+		expectResult(context, 201, "Desktop updated successfully");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).updateDesktop(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void updateLaptopAuthorizesThenDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mutationContext(InsertLaptopRequest.class, laptop(), "user");
+		authorization.requireChapterEditAccess(context, 2);
+		service.updateLaptop(laptop(), "user");
+		expectResult(context, 200, "Laptop updated successfully");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).updateLaptop(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void updateTabletAuthorizesThenDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mutationContext(InsertTabletRequest.class, tablet(), "user");
+		authorization.requireChapterEditAccess(context, 2);
+		service.updateTablet(tablet(), "user");
+		expectResult(context, 200, "Tablet updated successfully");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).updateTablet(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void changelogRejectsBadId() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.pathParam("id")).andReturn("0");
+		expectResult(context, 400, "Device ID must be a positive integer");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getDeviceChangelog(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void changelogDelegatesValidId() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		DeviceChangelogResponse[] changelog = new DeviceChangelogResponse[0];
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.pathParam("id")).andReturn("101");
+		expect(service.getDeviceChangelog(List.of(2), 101)).andReturn(changelog);
+		expectJson(context, 200, changelog);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getDeviceChangelog(context);
+
+		verify(service, chapters, authorization, context);
 	}
 
 	private static Stream<Arguments> invalidMonths() {
@@ -400,37 +576,32 @@ class DeviceControllerTest {
 				"Asset ID must be positive or not specified"));
 	}
 
-	private static Stream<Arguments> invalidLaptops() {
-		InsertLaptopRequest valid = laptop();
+	private static Stream<Arguments> invalidLaptopInserts() {
 		return Stream.of(
 			Arguments.of(
 				new InsertLaptopRequest(2, "Lenovo", "ThinkPad", 2021, "In Progress", null, 102, "i7", 16, "DDR4", 512,
 					"SSD", 350.0, LocalDate.now(), null, null, 5000, 4500, "Windows 11"),
-				"Missing required parameters", false),
-			Arguments.of(laptopWith(0, 4500, 102), "Design battery capacity must be positive or not specified", false),
-			Arguments.of(laptopWith(5000, -1, 102), "Actual battery capacity must be non-negative or not specified",
-				false),
-			Arguments.of(laptopWith(-1, 4500, 102), "Design battery capacity must be non-negative or not specified",
-				true),
-			Arguments.of(laptopWith(5000, -1, 102), "Actual battery capacity must be non-negative or not specified",
-				true),
-			Arguments.of(laptopWith(5000, 4500, 0), "Asset ID must be positive", true));
+				"Missing required parameters"),
+			Arguments.of(laptopWith(0, 4500, 102), "Design battery capacity must be positive or not specified"),
+			Arguments.of(laptopWith(5000, -1, 102), "Actual battery capacity must be non-negative or not specified"));
 	}
 
-	private static Stream<Arguments> invalidTablets() {
+	private static Stream<Arguments> invalidLaptopUpdates() {
 		return Stream.of(
-			Arguments.of(
-				new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", null, 103, "M1", 8, "LPDDR4", 256,
-					"Flash", 400.0, LocalDate.now(), null, null, "Working", "iPad OS"),
-				"Missing required parameters", false),
-			Arguments.of(
-				new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", "Included", 103, "M1", 8, "LPDDR4",
-					256, "Flash", 400.0, LocalDate.now(), null, null, null, "iPad OS"),
-				"Missing required parameters", true),
+			Arguments.of(laptopWith(-1, 4500, 102), "Design battery capacity must be non-negative or not specified"),
+			Arguments.of(laptopWith(5000, -1, 102), "Actual battery capacity must be non-negative or not specified"),
+			Arguments.of(laptopWith(5000, 4500, 0), "Asset ID must be positive"));
+	}
+
+	private static Stream<Arguments> invalidTabletUpdates() {
+		return Stream.of(
+			Arguments.of(new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", "Included", 103, "M1", 8,
+				"LPDDR4", 256, "Flash", 400.0, LocalDate.now(), null, null, null, "iPad OS"),
+				"Missing required parameters"),
 			Arguments.of(
 				new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", "Included", 0, "M1", 8, "LPDDR4",
 					256, "Flash", 400.0, LocalDate.now(), null, null, "Working", "iPad OS"),
-				"Asset ID must be positive", true));
+				"Asset ID must be positive"));
 	}
 
 	private static InsertDesktopRequest desktopWith(Integer ram, Integer storage, Double value, LocalDate date,

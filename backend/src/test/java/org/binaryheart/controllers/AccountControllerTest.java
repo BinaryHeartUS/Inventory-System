@@ -32,45 +32,61 @@ class AccountControllerTest {
 	}
 
 	@Test
-	void rejectsMissingCreateFieldsAndOtherUsersPassword() {
+	void createAccountRejectsMissingFields() {
 		AccountService service = mock(AccountService.class);
-		Context create = mock(Context.class);
-		Context password = mock(Context.class);
-		expect(create.bodyAsClass(CreateAccountRequest.class))
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(CreateAccountRequest.class))
 			.andReturn(new CreateAccountRequest("", "user", "password", 2, "Editor"));
-		expectResult(create, 400, "Name, username, and password are required");
-		expect(password.pathParam("id")).andReturn("8");
-		expect(password.<Integer>attribute("volunteerId")).andReturn(7);
-		expectResult(password, 403, "You may only change your own password");
-		replay(service, create, password);
-		AccountController controller = new AccountController(service);
+		expectResult(context, 400, "Name, username, and password are required");
+		replay(service, context);
 
-		controller.createAccount(create);
-		controller.updatePassword(password);
+		new AccountController(service).createAccount(context);
 
-		verify(service, create, password);
+		verify(service, context);
 	}
 
 	@Test
-	void rejectsBlankNewPasswordAndDelegatesValidPassword() throws Exception {
+	void updatePasswordRejectsOtherUsersPassword() {
 		AccountService service = mock(AccountService.class);
-		Context blank = mock(Context.class);
-		Context valid = mock(Context.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("8");
+		expect(context.<Integer>attribute("volunteerId")).andReturn(7);
+		expectResult(context, 403, "You may only change your own password");
+		replay(service, context);
+
+		new AccountController(service).updatePassword(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void updatePasswordRejectsBlankNewPassword() {
+		AccountService service = mock(AccountService.class);
+		Context context = mock(Context.class);
 		UpdatePasswordRequest blankRequest = new UpdatePasswordRequest("current", " ");
-		UpdatePasswordRequest validRequest = new UpdatePasswordRequest("current", "new");
-		expectOwnPasswordContext(blank, blankRequest);
-		expectResult(blank, 400, "New password is required");
-		expectOwnPasswordContext(valid, validRequest);
-		expect(valid.<String>attribute("username")).andReturn("user");
-		service.updatePassword(7, "user", validRequest);
-		expectStatus(valid, 204);
-		replay(service, blank, valid);
-		AccountController controller = new AccountController(service);
+		expectOwnPasswordContext(context, blankRequest);
+		expectResult(context, 400, "New password is required");
+		replay(service, context);
 
-		controller.updatePassword(blank);
-		controller.updatePassword(valid);
+		new AccountController(service).updatePassword(context);
 
-		verify(service, blank, valid);
+		verify(service, context);
+	}
+
+	@Test
+	void updatePasswordDelegatesValidPassword() throws Exception {
+		AccountService service = mock(AccountService.class);
+		Context context = mock(Context.class);
+		UpdatePasswordRequest request = new UpdatePasswordRequest("current", "new");
+		expectOwnPasswordContext(context, request);
+		expect(context.<String>attribute("username")).andReturn("user");
+		service.updatePassword(7, "user", request);
+		expectStatus(context, 204);
+		replay(service, context);
+
+		new AccountController(service).updatePassword(context);
+
+		verify(service, context);
 	}
 
 	@Test
@@ -92,41 +108,70 @@ class AccountControllerTest {
 	}
 
 	@Test
-	void handlersForwardAuthenticatedContext() throws Exception {
+	void getAccountsForwardsAuthenticatedContext() throws Exception {
 		AccountService service = mock(AccountService.class);
-		Context list = mock(Context.class);
-		Context add = mock(Context.class);
-		Context update = mock(Context.class);
-		Context remove = mock(Context.class);
+		Context context = mock(Context.class);
 		List<ChapterRole> roles = List.of(new ChapterRole(2, "Chapter Admin"));
 		List<AccountSummary> accounts = List.of(new AccountSummary(8, "target", "Target", roles));
-		expect(list.<String>attribute("role")).andReturn("Chapter Admin");
-		expect(list.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.<String>attribute("role")).andReturn("Chapter Admin");
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
 		expect(service.getAccounts("Chapter Admin", List.of(2))).andReturn(accounts);
-		expectJson(list, 200, accounts);
+		expectJson(context, 200, accounts);
+		replay(service, context);
+
+		new AccountController(service).getAccounts(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void addAffiliationForwardsAuthenticatedContext() throws Exception {
+		AccountService service = mock(AccountService.class);
+		Context context = mock(Context.class);
+		List<ChapterRole> roles = List.of(new ChapterRole(2, "Chapter Admin"));
 		AddAffiliationRequest addRequest = new AddAffiliationRequest(2, "Viewer");
-		expect(add.pathParam("id")).andReturn("8");
-		expect(add.bodyAsClass(AddAffiliationRequest.class)).andReturn(addRequest);
-		expect(add.<String>attribute("role")).andReturn("Chapter Admin");
-		expect(add.<List<ChapterRole>>attribute("chapterRoles")).andReturn(roles);
+		expect(context.pathParam("id")).andReturn("8");
+		expect(context.bodyAsClass(AddAffiliationRequest.class)).andReturn(addRequest);
+		expect(context.<String>attribute("role")).andReturn("Chapter Admin");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(roles);
 		service.addAffiliation(8, addRequest, "Chapter Admin", roles);
-		expectStatus(add, 204);
+		expectStatus(context, 204);
+		replay(service, context);
+
+		new AccountController(service).addAffiliation(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void updateAffiliationForwardsAuthenticatedContext() throws Exception {
+		AccountService service = mock(AccountService.class);
+		Context context = mock(Context.class);
+		List<ChapterRole> roles = List.of(new ChapterRole(2, "Chapter Admin"));
 		UpdateAffiliationRequest updateRequest = new UpdateAffiliationRequest("Editor");
-		expectAffiliationContext(update, updateRequest, roles);
+		expectAffiliationContext(context, updateRequest, roles);
 		service.updateAffiliation(8, 2, updateRequest, 7, "Chapter Admin", roles);
-		expectStatus(update, 204);
-		expectRemoveAffiliationContext(remove, roles);
+		expectStatus(context, 204);
+		replay(service, context);
+
+		new AccountController(service).updateAffiliation(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void removeAffiliationForwardsAuthenticatedContext() throws Exception {
+		AccountService service = mock(AccountService.class);
+		Context context = mock(Context.class);
+		List<ChapterRole> roles = List.of(new ChapterRole(2, "Chapter Admin"));
+		expectRemoveAffiliationContext(context, roles);
 		service.removeAffiliation(8, 2, 7, "Chapter Admin", roles);
-		expectStatus(remove, 204);
-		replay(service, list, add, update, remove);
-		AccountController controller = new AccountController(service);
+		expectStatus(context, 204);
+		replay(service, context);
 
-		controller.getAccounts(list);
-		controller.addAffiliation(add);
-		controller.updateAffiliation(update);
-		controller.removeAffiliation(remove);
+		new AccountController(service).removeAffiliation(context);
 
-		verify(service, list, add, update, remove);
+		verify(service, context);
 	}
 
 	private void expectOwnPasswordContext(Context context, UpdatePasswordRequest request) {

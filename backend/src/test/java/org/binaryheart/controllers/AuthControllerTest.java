@@ -42,24 +42,34 @@ class AuthControllerTest {
 	}
 
 	@Test
-	void mapsInvalidAndValidCredentials() throws Exception {
+	void mapsInvalidCredentials() throws Exception {
 		AuthService service = mock(AuthService.class);
-		Context invalid = mock(Context.class);
-		Context valid = mock(Context.class);
+		Context context = mock(Context.class);
+		LoginRequest request = new LoginRequest("user", "password", null);
+		expect(context.bodyAsClass(LoginRequest.class)).andReturn(request);
+		expect(service.login("user", "password")).andReturn(null);
+		expectResult(context, 401, "Invalid credentials");
+		replay(service, context);
+
+		new AuthController(service).login(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void mapsValidCredentials() throws Exception {
+		AuthService service = mock(AuthService.class);
+		Context context = mock(Context.class);
 		LoginRequest request = new LoginRequest("user", "password", null);
 		LoginResponse response = new LoginResponse("token", "user", List.of(new ChapterRole(2, "Editor")), "Editor");
-		expect(invalid.bodyAsClass(LoginRequest.class)).andReturn(request);
-		expect(service.login("user", "password")).andReturn(null).andReturn(response);
-		expectResult(invalid, 401, "Invalid credentials");
-		expect(valid.bodyAsClass(LoginRequest.class)).andReturn(request);
-		expectJson(valid, 200, response);
-		replay(service, invalid, valid);
+		expect(context.bodyAsClass(LoginRequest.class)).andReturn(request);
+		expect(service.login("user", "password")).andReturn(response);
+		expectJson(context, 200, response);
+		replay(service, context);
 
-		AuthController controller = new AuthController(service);
-		controller.login(invalid);
-		controller.login(valid);
+		new AuthController(service).login(context);
 
-		verify(service, invalid, valid);
+		verify(service, context);
 	}
 
 	private void expectResult(Context context, int status, String result) {

@@ -12,7 +12,6 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.requests.PartListRequest;
@@ -42,9 +41,8 @@ class PartControllerTest {
 	}
 
 	@ParameterizedTest
-	@MethodSource("invalidParts")
-	void insertAndUpdateValidationStopsBeforeAuthorization(InsertPartRequest request, String message,
-		BiConsumer<PartController, Context> handler) {
+	@MethodSource("invalidPartInserts")
+	void insertPartValidationStopsBeforeAuthorization(InsertPartRequest request, String message) {
 		PartService service = mock(PartService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
@@ -52,7 +50,22 @@ class PartControllerTest {
 		expectResult(context, 400, message);
 		replay(service, authorization, context);
 
-		handler.accept(new PartController(service, authorization), context);
+		new PartController(service, authorization).insertPart(context);
+
+		verify(service, authorization, context);
+	}
+
+	@ParameterizedTest
+	@MethodSource("invalidPartUpdates")
+	void updatePartValidationStopsBeforeAuthorization(InsertPartRequest request, String message) {
+		PartService service = mock(PartService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(InsertPartRequest.class)).andReturn(request);
+		expectResult(context, 400, message);
+		replay(service, authorization, context);
+
+		new PartController(service, authorization).updatePart(context);
 
 		verify(service, authorization, context);
 	}
@@ -76,80 +89,140 @@ class PartControllerTest {
 	}
 
 	@Test
-	void handlersBuildQueriesAndDelegateReadsDeletesAndUpdates() throws Exception {
+	void getAllPartsBuildsQueryAndDelegates() throws Exception {
 		PartService service = mock(PartService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context list = partListContext();
-		Context counts = partCountContext();
-		Context get = mock(Context.class);
-		Context delete = mock(Context.class);
-		Context update = mock(Context.class);
-		Context byDevice = mock(Context.class);
-		Context changelogContext = mock(Context.class);
-		PartListRequest listQuery = new PartListRequest("ram", "RAM", "purchased", true, 9, 25, 25);
-		PartListRequest countQuery = new PartListRequest("ram", "RAM", "purchased", true, 9, null, null);
+		Context context = partListContext();
+		PartListRequest query = new PartListRequest("ram", "RAM", "purchased", true, 9, 25, 25);
 		PartResponse part = partResponse();
-		List<PartTypeCountResponse> typeCounts = List.of(new PartTypeCountResponse("RAM", 1));
-		expect(service.getParts(List.of(2), 2, listQuery)).andReturn(new PartResponse[]{part});
-		expectJson(list, 200, new PartResponse[]{part});
-		expect(service.getPartTypeCounts(List.of(2), 2, countQuery)).andReturn(typeCounts);
-		expectJson(counts, 200, typeCounts);
-		expectIdContext(get, "id", "201", List.of(2));
-		expect(service.getPart(List.of(2), 201)).andReturn(part);
-		expectJson(get, 200, part);
-		expectIdContext(delete, "id", "201", List.of(2));
-		expect(delete.<String>attribute("username")).andReturn("user");
-		service.deletePart(List.of(2), 201, "user");
-		expectStatus(delete, 204);
-		expect(update.bodyAsClass(InsertPartRequest.class)).andReturn(part());
-		authorization.requireChapterEditAccess(update, 2);
-		expect(update.<String>attribute("username")).andReturn("user");
-		service.updatePart(part(), "user");
-		expectResult(update, 201, "Part updated successfully");
-		expectIdContext(byDevice, "deviceId", "101", List.of(2));
-		expect(service.getPartsByDevice(List.of(2), 101)).andReturn(new PartResponse[]{part});
-		expectJson(byDevice, 200, new PartResponse[]{part});
-		expectIdContext(changelogContext, "id", "201", List.of(2));
-		PartChangelogResponse[] changelog = new PartChangelogResponse[0];
-		expect(service.getPartChangelog(List.of(2), 201)).andReturn(changelog);
-		expectJson(changelogContext, 200, changelog);
-		replay(service, authorization, list, counts, get, delete, update, byDevice, changelogContext);
-		PartController controller = new PartController(service, authorization);
+		expect(service.getParts(List.of(2), 2, query)).andReturn(new PartResponse[]{part});
+		expectJson(context, 200, new PartResponse[]{part});
+		replay(service, authorization, context);
 
-		controller.getAllParts(list);
-		controller.getPartTypeCounts(counts);
-		controller.getPart(get);
-		controller.deletePart(delete);
-		controller.updatePart(update);
-		controller.getPartsByDevice(byDevice);
-		controller.getPartChangelog(changelogContext);
+		new PartController(service, authorization).getAllParts(context);
 
-		verify(service, authorization, list, counts, get, delete, update, byDevice, changelogContext);
+		verify(service, authorization, context);
 	}
 
-	private static Stream<Arguments> invalidParts() {
+	@Test
+	void getPartTypeCountsBuildsQueryAndDelegates() throws Exception {
+		PartService service = mock(PartService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = partCountContext();
+		PartListRequest query = new PartListRequest("ram", "RAM", "purchased", true, 9, null, null);
+		List<PartTypeCountResponse> typeCounts = List.of(new PartTypeCountResponse("RAM", 1));
+		expect(service.getPartTypeCounts(List.of(2), 2, query)).andReturn(typeCounts);
+		expectJson(context, 200, typeCounts);
+		replay(service, authorization, context);
+
+		new PartController(service, authorization).getPartTypeCounts(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void getPartDelegates() throws Exception {
+		PartService service = mock(PartService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		PartResponse part = partResponse();
+		expectIdContext(context, "id", "201", List.of(2));
+		expect(service.getPart(List.of(2), 201)).andReturn(part);
+		expectJson(context, 200, part);
+		replay(service, authorization, context);
+
+		new PartController(service, authorization).getPart(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void deletePartDelegates() throws Exception {
+		PartService service = mock(PartService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expectIdContext(context, "id", "201", List.of(2));
+		expect(context.<String>attribute("username")).andReturn("user");
+		service.deletePart(List.of(2), 201, "user");
+		expectStatus(context, 204);
+		replay(service, authorization, context);
+
+		new PartController(service, authorization).deletePart(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void updatePartAuthorizesThenDelegates() throws Exception {
+		PartService service = mock(PartService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(InsertPartRequest.class)).andReturn(part());
+		authorization.requireChapterEditAccess(context, 2);
+		expect(context.<String>attribute("username")).andReturn("user");
+		service.updatePart(part(), "user");
+		expectResult(context, 201, "Part updated successfully");
+		replay(service, authorization, context);
+
+		new PartController(service, authorization).updatePart(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void getPartsByDeviceDelegates() throws Exception {
+		PartService service = mock(PartService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		PartResponse part = partResponse();
+		expectIdContext(context, "deviceId", "101", List.of(2));
+		expect(service.getPartsByDevice(List.of(2), 101)).andReturn(new PartResponse[]{part});
+		expectJson(context, 200, new PartResponse[]{part});
+		replay(service, authorization, context);
+
+		new PartController(service, authorization).getPartsByDevice(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void getPartChangelogDelegates() throws Exception {
+		PartService service = mock(PartService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expectIdContext(context, "id", "201", List.of(2));
+		PartChangelogResponse[] changelog = new PartChangelogResponse[0];
+		expect(service.getPartChangelog(List.of(2), 201)).andReturn(changelog);
+		expectJson(context, 200, changelog);
+		replay(service, authorization, context);
+
+		new PartController(service, authorization).getPartChangelog(context);
+
+		verify(service, authorization, context);
+	}
+
+	private static Stream<Arguments> invalidPartInserts() {
 		InsertPartRequest valid = part();
 		return Stream.of(
 			Arguments.of(
 				new InsertPartRequest(0, valid.type(), valid.description(), valid.wasPurchased(), valid.containedIn(),
 					valid.id(), valid.acquisitionDate(), valid.value(), valid.donorId()),
-				"Missing required parameters", (BiConsumer<PartController, Context>) PartController::insertPart),
-			Arguments.of(new InsertPartRequest(2, "RAM", "desc", true, 0, 1, null, null, null),
-				"Contained In ID must be positive or not specified",
-				(BiConsumer<PartController, Context>) PartController::updatePart),
+				"Missing required parameters"),
 			Arguments.of(new InsertPartRequest(2, "RAM", "desc", true, null, 0, null, null, null),
-				"Asset ID must be positive or not specified",
-				(BiConsumer<PartController, Context>) PartController::insertPart),
+				"Asset ID must be positive or not specified"),
+			Arguments.of(new InsertPartRequest(2, "RAM", "desc", true, null, 1, null, -1.0, null),
+				"Value must be non-negative or not specified"));
+	}
+
+	private static Stream<Arguments> invalidPartUpdates() {
+		return Stream.of(
+			Arguments.of(new InsertPartRequest(2, "RAM", "desc", true, 0, 1, null, null, null),
+				"Contained In ID must be positive or not specified"),
 			Arguments.of(
 				new InsertPartRequest(2, "RAM", "desc", true, null, 1, LocalDate.now().plusDays(1), null, null),
-				"Acquisition date cannot be in the future",
-				(BiConsumer<PartController, Context>) PartController::updatePart),
-			Arguments.of(new InsertPartRequest(2, "RAM", "desc", true, null, 1, null, -1.0, null),
-				"Value must be non-negative or not specified",
-				(BiConsumer<PartController, Context>) PartController::insertPart),
+				"Acquisition date cannot be in the future"),
 			Arguments.of(new InsertPartRequest(2, "RAM", "desc", true, null, 1, null, null, 0),
-				"Donor ID must be positive or not specified",
-				(BiConsumer<PartController, Context>) PartController::updatePart));
+				"Donor ID must be positive or not specified"));
 	}
 
 	private Context partListContext() {

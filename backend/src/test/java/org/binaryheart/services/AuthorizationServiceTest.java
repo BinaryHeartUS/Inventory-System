@@ -15,52 +15,106 @@ import org.junit.jupiter.api.Test;
 class AuthorizationServiceTest {
 
 	@Test
-	void editAccessAllowsLocalWriterAndNationalWriter() throws Exception {
+	void editAccessAllowsLocalWriter() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
 		Context localContext = contextWithRoles(List.of(new ChapterRole(2, "Editor")));
-		Context nationalContext = contextWithRoles(List.of(new ChapterRole(1, "Admin")));
-		expect(chapters.getNationalChapterId()).andReturn(1).times(2);
+		expect(chapters.getNationalChapterId()).andReturn(1);
 		replay(chapters);
 		AuthorizationService service = new AuthorizationService(chapters);
 
 		service.requireChapterEditAccess(localContext, 2);
-		service.requireChapterEditAccess(nationalContext, 9);
 
-		verify(chapters, localContext, nationalContext);
+		verify(chapters, localContext);
 	}
 
 	@Test
-	void editAccessRejectsMissingRolesViewerAndWrongChapter() throws Exception {
+	void editAccessAllowsNationalWriter() throws Exception {
+		ChapterService chapters = mock(ChapterService.class);
+		Context nationalContext = contextWithRoles(List.of(new ChapterRole(1, "Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
+		service.requireChapterEditAccess(nationalContext, 9);
+
+		verify(chapters, nationalContext);
+	}
+
+	@Test
+	void editAccessRejectsMissingRoles() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
 		Context missingContext = contextWithRoles(List.of());
-		Context viewerContext = contextWithRoles(List.of(new ChapterRole(2, "Viewer")));
-		Context wrongContext = contextWithRoles(List.of(new ChapterRole(3, "Editor")));
-		expect(chapters.getNationalChapterId()).andReturn(1).times(2);
 		replay(chapters);
 		AuthorizationService service = new AuthorizationService(chapters);
 
 		assertThrows(ForbiddenResponse.class, () -> service.requireChapterEditAccess(missingContext, 2));
-		assertThrows(ForbiddenResponse.class, () -> service.requireChapterEditAccess(viewerContext, 2));
-		assertThrows(ForbiddenResponse.class, () -> service.requireChapterEditAccess(wrongContext, 2));
 
-		verify(chapters, missingContext, viewerContext, wrongContext);
+		verify(chapters, missingContext);
 	}
 
 	@Test
-	void readAccessAllowsAnyLocalOrNationalRoleAndRejectsOthers() throws Exception {
+	void editAccessRejectsViewer() throws Exception {
+		ChapterService chapters = mock(ChapterService.class);
+		Context viewerContext = contextWithRoles(List.of(new ChapterRole(2, "Viewer")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
+		assertThrows(ForbiddenResponse.class, () -> service.requireChapterEditAccess(viewerContext, 2));
+
+		verify(chapters, viewerContext);
+	}
+
+	@Test
+	void editAccessRejectsWrongChapter() throws Exception {
+		ChapterService chapters = mock(ChapterService.class);
+		Context wrongContext = contextWithRoles(List.of(new ChapterRole(3, "Editor")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
+		assertThrows(ForbiddenResponse.class, () -> service.requireChapterEditAccess(wrongContext, 2));
+
+		verify(chapters, wrongContext);
+	}
+
+	@Test
+	void readAccessAllowsLocalRole() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
 		Context localContext = contextWithRoles(List.of(new ChapterRole(2, "Viewer")));
-		Context nationalContext = contextWithRoles(List.of(new ChapterRole(1, "Viewer")));
-		Context wrongContext = contextWithRoles(List.of(new ChapterRole(3, "Viewer")));
-		expect(chapters.getNationalChapterId()).andReturn(1).times(3);
+		expect(chapters.getNationalChapterId()).andReturn(1);
 		replay(chapters);
 		AuthorizationService service = new AuthorizationService(chapters);
 
 		service.requireChapterReadAccess(localContext, 2);
+
+		verify(chapters, localContext);
+	}
+
+	@Test
+	void readAccessAllowsNationalRole() throws Exception {
+		ChapterService chapters = mock(ChapterService.class);
+		Context nationalContext = contextWithRoles(List.of(new ChapterRole(1, "Viewer")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
 		service.requireChapterReadAccess(nationalContext, 9);
+
+		verify(chapters, nationalContext);
+	}
+
+	@Test
+	void readAccessRejectsWrongChapter() throws Exception {
+		ChapterService chapters = mock(ChapterService.class);
+		Context wrongContext = contextWithRoles(List.of(new ChapterRole(3, "Viewer")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
 		assertThrows(ForbiddenResponse.class, () -> service.requireChapterReadAccess(wrongContext, 2));
 
-		verify(chapters, localContext, nationalContext, wrongContext);
+		verify(chapters, wrongContext);
 	}
 
 	private Context contextWithRoles(List<ChapterRole> roles) {

@@ -20,21 +20,46 @@ import org.junit.jupiter.api.Test;
 class AuthServiceTest {
 
 	@Test
-	void loginHandlesUnknownInvalidAndValidCredentials() throws Exception {
+	void loginReturnsNullForUnknownUser() throws Exception {
+		AuthRepository repository = mock(AuthRepository.class);
+		PasswordService passwords = mock(PasswordService.class);
+		TokenService tokens = mock(TokenService.class);
+		expect(repository.findByUsername("missing")).andReturn(null);
+		replay(repository, passwords, tokens);
+		AuthService service = new AuthService(repository, passwords, tokens);
+
+		assertNull(service.login("missing", "password"));
+
+		verify(repository, passwords, tokens);
+	}
+
+	@Test
+	void loginReturnsNullForWrongPassword() throws Exception {
+		AuthRepository repository = mock(AuthRepository.class);
+		PasswordService passwords = mock(PasswordService.class);
+		TokenService tokens = mock(TokenService.class);
+		expect(repository.findByUsername("user")).andReturn(credentials());
+		expect(passwords.matches("wrong", "hash", "salt")).andReturn(false);
+		replay(repository, passwords, tokens);
+		AuthService service = new AuthService(repository, passwords, tokens);
+
+		assertNull(service.login("user", "wrong"));
+
+		verify(repository, passwords, tokens);
+	}
+
+	@Test
+	void loginReturnsTokenForValidCredentials() throws Exception {
 		AuthRepository repository = mock(AuthRepository.class);
 		PasswordService passwords = mock(PasswordService.class);
 		TokenService tokens = mock(TokenService.class);
 		VolunteerCredentials credentials = credentials();
-		expect(repository.findByUsername("missing")).andReturn(null);
-		expect(repository.findByUsername("user")).andReturn(credentials).times(2);
-		expect(passwords.matches("wrong", "hash", "salt")).andReturn(false);
+		expect(repository.findByUsername("user")).andReturn(credentials);
 		expect(passwords.matches("correct", "hash", "salt")).andReturn(true);
 		expect(tokens.create(7, "user", credentials.chapterRoles(), "Editor")).andReturn("token");
 		replay(repository, passwords, tokens);
 		AuthService service = new AuthService(repository, passwords, tokens);
 
-		assertNull(service.login("missing", "password"));
-		assertNull(service.login("user", "wrong"));
 		LoginResponse response = service.login("user", "correct");
 		assertEquals("token", response.token());
 		assertEquals("user", response.username());

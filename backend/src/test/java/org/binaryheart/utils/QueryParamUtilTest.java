@@ -15,29 +15,57 @@ import org.junit.jupiter.api.Test;
 class QueryParamUtilTest {
 
 	@Test
-	void parsesBlankAndValidValues() throws Exception {
-		Context context = mock(Context.class);
-		expect(context.queryParam("text")).andReturn("  value  ");
-		expect(context.queryParam("blank")).andReturn("  ");
-		expect(context.queryParam("number")).andReturn(" 42 ");
-		expect(context.queryParam("flag")).andReturn("true");
-		replay(context);
+	void stringParamTrimsValidValue() {
+		Context context = queryContext("text", "  value  ");
 
 		assertEquals("value", QueryParamUtil.stringParam(context, "text"));
-		assertNull(QueryParamUtil.stringParam(context, "blank"));
-		assertEquals(42, QueryParamUtil.intParam(context, "number"));
-		assertEquals(true, QueryParamUtil.boolParam(context, "flag", false));
+
 		verify(context);
 	}
 
 	@Test
-	void rejectsMalformedIntegerAndTreatsOtherBooleansAsFalse() throws Exception {
-		Context integer = queryContext("number", "many");
-		Context bool = queryContext("flag", "sometimes");
+	void stringParamReturnsNullForBlankValue() {
+		Context context = queryContext("text", "  ");
 
-		assertThrows(BadArgumentException.class, () -> QueryParamUtil.intParam(integer, "number"));
-		assertEquals(false, QueryParamUtil.boolParam(bool, "flag", true));
-		verify(integer, bool);
+		assertNull(QueryParamUtil.stringParam(context, "text"));
+
+		verify(context);
+	}
+
+	@Test
+	void intParamParsesValidInteger() throws Exception {
+		Context context = queryContext("number", " 42 ");
+
+		assertEquals(42, QueryParamUtil.intParam(context, "number"));
+
+		verify(context);
+	}
+
+	@Test
+	void boolParamParsesTrue() {
+		Context context = queryContext("flag", "true");
+
+		assertEquals(true, QueryParamUtil.boolParam(context, "flag", false));
+
+		verify(context);
+	}
+
+	@Test
+	void intParamRejectsMalformedInteger() {
+		Context context = queryContext("number", "many");
+
+		assertThrows(BadArgumentException.class, () -> QueryParamUtil.intParam(context, "number"));
+
+		verify(context);
+	}
+
+	@Test
+	void boolParamTreatsOtherValuesAsFalse() {
+		Context context = queryContext("flag", "sometimes");
+
+		assertEquals(false, QueryParamUtil.boolParam(context, "flag", true));
+
+		verify(context);
 	}
 
 	private Context queryContext(String name, String value) {

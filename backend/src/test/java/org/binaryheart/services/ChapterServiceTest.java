@@ -18,37 +18,110 @@ import org.junit.jupiter.api.Test;
 class ChapterServiceTest {
 
 	@Test
-	void repositoryOperationsAreDelegated() throws Exception {
+	void getAllChaptersDelegates() throws Exception {
 		ChapterRepository repository = mock(ChapterRepository.class);
 		List<ChapterSummary> chapters = List.of(new ChapterSummary(1, "National"));
-		ChapterSummary created = new ChapterSummary(2, "Chapter Two");
 		expect(repository.getAllChapters()).andReturn(chapters);
-		expect(repository.getNationalChapterId()).andReturn(1);
-		expect(repository.getChapterIdByName("Chapter Two")).andReturn(2);
-		expect(repository.createChapter("Chapter Two")).andReturn(created);
-		repository.deleteChapter(2);
 		replay(repository);
 		ChapterService service = new ChapterService(repository);
 
 		assertSame(chapters, service.getAllChapters());
+
+		verify(repository);
+	}
+
+	@Test
+	void getNationalChapterIdDelegates() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		expect(repository.getNationalChapterId()).andReturn(1);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		assertEquals(1, service.getNationalChapterId());
+
+		verify(repository);
+	}
+
+	@Test
+	void getChapterIdByNameDelegates() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		expect(repository.getChapterIdByName("Chapter Two")).andReturn(2);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		assertEquals(2, service.getChapterIdByName("Chapter Two"));
+
+		verify(repository);
+	}
+
+	@Test
+	void createChapterTrimsNameAndDelegates() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		ChapterSummary created = new ChapterSummary(2, "Chapter Two");
+		expect(repository.createChapter("Chapter Two")).andReturn(created);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		assertSame(created, service.createChapter(" Chapter Two "));
+
+		verify(repository);
+	}
+
+	@Test
+	void deleteChapterDelegates() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		repository.deleteChapter(2);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		service.deleteChapter(2, 1, List.of(1));
 
 		verify(repository);
 	}
 
 	@Test
-	void resolveChapterIdsHandlesNationalAndLocalAccess() throws Exception {
+	void resolveChapterIdsReturnsNullForNationalAccess() throws Exception {
 		ChapterRepository repository = mock(ChapterRepository.class);
-		expect(repository.getNationalChapterId()).andReturn(1).times(4);
+		expect(repository.getNationalChapterId()).andReturn(1);
 		replay(repository);
 		ChapterService service = new ChapterService(repository);
 
 		assertNull(service.resolveChapterIds(List.of(), List.of(1)));
+
+		verify(repository);
+	}
+
+	@Test
+	void resolveChapterIdsReturnsLocalChaptersForLocalAccess() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		expect(repository.getNationalChapterId()).andReturn(1);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		assertEquals(List.of(2), service.resolveChapterIds(List.of(), List.of(2)));
+
+		verify(repository);
+	}
+
+	@Test
+	void resolveChapterIdReturnsRequestedChapterForNationalAccess() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		expect(repository.getNationalChapterId()).andReturn(1);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		assertEquals(List.of(3), service.resolveChapterIds(3, List.of(1)));
+
+		verify(repository);
+	}
+
+	@Test
+	void resolveChapterIdReturnsRequestedLocalChapter() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		expect(repository.getNationalChapterId()).andReturn(1);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		assertEquals(List.of(2), service.resolveChapterIds(2, List.of(2)));
 
 		verify(repository);
@@ -67,12 +140,22 @@ class ChapterServiceTest {
 	}
 
 	@Test
-	void deleteChapterEnforcesNationalRulesBeforeRepositoryCall() {
+	void deleteChapterRejectsNationalChapter() {
 		ChapterRepository repository = mock(ChapterRepository.class);
 		replay(repository);
 		ChapterService service = new ChapterService(repository);
 
 		assertThrows(IllegalArgumentException.class, () -> service.deleteChapter(1, 1, List.of(1)));
+
+		verify(repository);
+	}
+
+	@Test
+	void deleteChapterRejectsNonNationalRequester() {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+
 		assertThrows(IllegalArgumentException.class, () -> service.deleteChapter(2, 1, List.of(2)));
 
 		verify(repository);

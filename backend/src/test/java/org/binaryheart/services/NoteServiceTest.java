@@ -14,20 +14,50 @@ import org.junit.jupiter.api.Test;
 class NoteServiceTest {
 
 	@Test
-	void everyOperationDelegatesToRepository() throws Exception {
+	void addNoteDelegatesToRepository() throws Exception {
 		NoteRepository repository = mock(NoteRepository.class);
 		NoteResponse note = new NoteResponse(3, "text", "today", 42);
-		NoteResponse[] notes = {note};
 		expect(repository.addNote(42, "text")).andReturn(note);
-		expect(repository.getNotes(42)).andReturn(notes);
-		expect(repository.getAssetChapterId(42)).andReturn(7);
-		repository.updateNote(42, 3, "updated");
 		replay(repository);
 		NoteService service = new NoteService(repository);
 
 		assertSame(note, service.addNote(42, "text"));
+
+		verify(repository);
+	}
+
+	@Test
+	void getNotesDelegatesToRepository() throws Exception {
+		NoteRepository repository = mock(NoteRepository.class);
+		NoteResponse[] notes = {new NoteResponse(3, "text", "today", 42)};
+		expect(repository.getNotes(42)).andReturn(notes);
+		replay(repository);
+		NoteService service = new NoteService(repository);
+
 		assertSame(notes, service.getNotes(42));
+
+		verify(repository);
+	}
+
+	@Test
+	void getAssetChapterIdDelegatesToRepository() throws Exception {
+		NoteRepository repository = mock(NoteRepository.class);
+		expect(repository.getAssetChapterId(42)).andReturn(7);
+		replay(repository);
+		NoteService service = new NoteService(repository);
+
 		assertEquals(7, service.getAssetChapterId(42));
+
+		verify(repository);
+	}
+
+	@Test
+	void updateNoteDelegatesToRepository() throws Exception {
+		NoteRepository repository = mock(NoteRepository.class);
+		repository.updateNote(42, 3, "updated");
+		replay(repository);
+		NoteService service = new NoteService(repository);
+
 		service.updateNote(42, 3, "updated");
 
 		verify(repository);

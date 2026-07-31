@@ -28,11 +28,18 @@ class EncryptionHelperTest {
 	}
 
 	@Test
-	void hashPasswordIsDeterministicForSaltAndSensitiveToPassword() throws Exception {
+	void hashPasswordIsDeterministicForSalt() throws Exception {
 		byte[] salt = new byte[16];
 		String first = helper.hashPassword(salt, "password");
 
 		assertEquals(first, helper.hashPassword(salt, "password"));
+	}
+
+	@Test
+	void hashPasswordIsSensitiveToPassword() throws Exception {
+		byte[] salt = new byte[16];
+		String first = helper.hashPassword(salt, "password");
+
 		assertNotEquals(first, helper.hashPassword(salt, "different"));
 	}
 }

@@ -49,18 +49,26 @@ class JwtAccessManagerTest {
 	}
 
 	@Test
-	void missingAndInvalidBearerTokensAreUnauthorized() {
+	void missingBearerTokenIsUnauthorized() {
 		JwtService jwtService = mock(JwtService.class);
-		Context missing = unauthenticatedContext(null);
-		Context invalid = unauthenticatedContext("Bearer invalid");
+		Context context = unauthenticatedContext(null);
+		replay(jwtService);
+
+		assertThrows(UnauthorizedResponse.class, () -> new JwtAccessManager(jwtService).handle(context));
+
+		verify(jwtService, context);
+	}
+
+	@Test
+	void invalidBearerTokenIsUnauthorized() {
+		JwtService jwtService = mock(JwtService.class);
+		Context context = unauthenticatedContext("Bearer invalid");
 		expect(jwtService.verify("invalid")).andReturn(null);
 		replay(jwtService);
-		JwtAccessManager manager = new JwtAccessManager(jwtService);
 
-		assertThrows(UnauthorizedResponse.class, () -> manager.handle(missing));
-		assertThrows(UnauthorizedResponse.class, () -> manager.handle(invalid));
+		assertThrows(UnauthorizedResponse.class, () -> new JwtAccessManager(jwtService).handle(context));
 
-		verify(jwtService, missing, invalid);
+		verify(jwtService, context);
 	}
 
 	@Test

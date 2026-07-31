@@ -30,52 +30,78 @@ class ChapterControllerTest {
 	}
 
 	@Test
-	void rejectsBlankNameAndUnauthorizedCaller() throws Exception {
+	void createChapterRejectsBlankName() {
 		ChapterService service = mock(ChapterService.class);
-		Context blank = mock(Context.class);
-		Context unauthorized = mock(Context.class);
-		expect(blank.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest(" "));
-		expectResult(blank, 400, "Chapter name must not be blank");
-		expect(unauthorized.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest("Chapter"));
-		expect(unauthorized.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
-		expect(service.getNationalChapterId()).andReturn(1);
-		replay(service, blank, unauthorized);
-		ChapterController controller = new ChapterController(service);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest(" "));
+		expectResult(context, 400, "Chapter name must not be blank");
+		replay(service, context);
 
-		controller.createChapter(blank);
-		assertThrows(ForbiddenResponse.class, () -> controller.createChapter(unauthorized));
+		new ChapterController(service).createChapter(context);
 
-		verify(service, blank, unauthorized);
+		verify(service, context);
 	}
 
 	@Test
-	void delegatesListCreateAndDelete() throws Exception {
+	void createChapterRejectsUnauthorizedCaller() throws Exception {
 		ChapterService service = mock(ChapterService.class);
-		Context listContext = mock(Context.class);
-		Context createContext = mock(Context.class);
-		Context deleteContext = mock(Context.class);
-		List<ChapterSummary> chapters = List.of(new ChapterSummary(1, "National"));
-		ChapterSummary created = new ChapterSummary(2, "Chapter Two");
-		expect(service.getAllChapters()).andReturn(chapters);
-		expect(listContext.json(chapters)).andReturn(listContext);
-		expect(createContext.bodyAsClass(CreateChapterRequest.class))
-			.andReturn(new CreateChapterRequest("Chapter Two"));
-		expect(createContext.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
-		expect(service.getNationalChapterId()).andReturn(1).times(2);
-		expect(service.createChapter("Chapter Two")).andReturn(created);
-		expectJson(createContext, 201, created);
-		expect(deleteContext.pathParam("id")).andReturn("2");
-		expect(deleteContext.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
-		service.deleteChapter(2, 1, List.of(1));
-		expectStatus(deleteContext, 204);
-		replay(service, listContext, createContext, deleteContext);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest("Chapter"));
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(service.getNationalChapterId()).andReturn(1);
+		replay(service, context);
 		ChapterController controller = new ChapterController(service);
 
-		controller.getChapters(listContext);
-		controller.createChapter(createContext);
-		controller.deleteChapter(deleteContext);
+		assertThrows(ForbiddenResponse.class, () -> controller.createChapter(context));
 
-		verify(service, listContext, createContext, deleteContext);
+		verify(service, context);
+	}
+
+	@Test
+	void getChaptersDelegates() throws Exception {
+		ChapterService service = mock(ChapterService.class);
+		Context context = mock(Context.class);
+		List<ChapterSummary> chapters = List.of(new ChapterSummary(1, "National"));
+		expect(service.getAllChapters()).andReturn(chapters);
+		expect(context.json(chapters)).andReturn(context);
+		replay(service, context);
+
+		new ChapterController(service).getChapters(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void createChapterDelegates() throws Exception {
+		ChapterService service = mock(ChapterService.class);
+		Context context = mock(Context.class);
+		ChapterSummary created = new ChapterSummary(2, "Chapter Two");
+		expect(context.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest("Chapter Two"));
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
+		expect(service.getNationalChapterId()).andReturn(1);
+		expect(service.createChapter("Chapter Two")).andReturn(created);
+		expectJson(context, 201, created);
+		replay(service, context);
+
+		new ChapterController(service).createChapter(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void deleteChapterDelegates() throws Exception {
+		ChapterService service = mock(ChapterService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("2");
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
+		expect(service.getNationalChapterId()).andReturn(1);
+		service.deleteChapter(2, 1, List.of(1));
+		expectStatus(context, 204);
+		replay(service, context);
+
+		new ChapterController(service).deleteChapter(context);
+
+		verify(service, context);
 	}
 
 	private void expectStatus(Context context, int status) {

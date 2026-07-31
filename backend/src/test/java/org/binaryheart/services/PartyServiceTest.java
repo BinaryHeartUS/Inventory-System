@@ -23,61 +23,147 @@ import org.junit.jupiter.api.Test;
 class PartyServiceTest {
 
 	@Test
-	void selectionUsesTheCorrectRepositoryMethod() throws Exception {
+	void getAllPartiesReturnsPeopleAndOrganizations() throws Exception {
 		PartyRepository repository = mock(PartyRepository.class);
 		List<GetPartyResponse> all = List.of(party());
 		expect(repository.getAllParties()).andReturn(all);
-		expect(repository.getAllPersons()).andReturn(all);
-		expect(repository.getAllOrganizations()).andReturn(all);
 		replay(repository);
 		PartyService service = new PartyService(repository);
 
 		assertSame(all, service.getAllParties(true, true));
+
+		verify(repository);
+	}
+
+	@Test
+	void getAllPartiesReturnsPeopleOnly() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		List<GetPartyResponse> all = List.of(party());
+		expect(repository.getAllPersons()).andReturn(all);
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		assertSame(all, service.getAllParties(true, false));
+
+		verify(repository);
+	}
+
+	@Test
+	void getAllPartiesReturnsOrganizationsOnly() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		List<GetPartyResponse> all = List.of(party());
+		expect(repository.getAllOrganizations()).andReturn(all);
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		assertSame(all, service.getAllParties(false, true));
+
+		verify(repository);
+	}
+
+	@Test
+	void getAllPartiesReturnsEmptyWhenNeitherTypeRequested() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		assertEquals(List.of(), service.getAllParties(false, false));
 
 		verify(repository);
 	}
 
 	@Test
-	void everyMutationAndReadDelegates() throws Exception {
+	void getPartyDelegates() throws Exception {
 		PartyRepository repository = mock(PartyRepository.class);
 		GetPartyResponse party = party();
-		InsertOrganizationRequest organization = new InsertOrganizationRequest("Org", "Here", "Contact", "c@o.org");
-		InsertPersonRequest person = new InsertPersonRequest("Person", "Here", "p@o.org");
-		UpdateOrganizationRequest updateOrganization = new UpdateOrganizationRequest("Org", "There", null, null);
-		UpdatePersonRequest updatePerson = new UpdatePersonRequest("Person", "There", null);
-		expect(repository.getParty(9)).andReturn(party).times(3);
-		repository.addOrganization(organization);
-		repository.addPerson(person);
-		repository.updateOrganization(9, updateOrganization);
-		repository.updatePerson(9, updatePerson);
+		expect(repository.getParty(9)).andReturn(party);
 		replay(repository);
 		PartyService service = new PartyService(repository);
 
 		assertSame(party, service.getParty(9));
+
+		verify(repository);
+	}
+
+	@Test
+	void addOrganizationDelegates() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		InsertOrganizationRequest organization = new InsertOrganizationRequest("Org", "Here", "Contact", "c@o.org");
+		repository.addOrganization(organization);
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		service.addOrganization(organization);
+
+		verify(repository);
+	}
+
+	@Test
+	void addPersonDelegates() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		InsertPersonRequest person = new InsertPersonRequest("Person", "Here", "p@o.org");
+		repository.addPerson(person);
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		service.addPerson(person);
+
+		verify(repository);
+	}
+
+	@Test
+	void updateOrganizationDelegates() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		GetPartyResponse party = party();
+		UpdateOrganizationRequest updateOrganization = new UpdateOrganizationRequest("Org", "There", null, null);
+		expect(repository.getParty(9)).andReturn(party);
+		repository.updateOrganization(9, updateOrganization);
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		service.updateOrganization(9, updateOrganization);
+
+		verify(repository);
+	}
+
+	@Test
+	void updatePersonDelegates() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		GetPartyResponse party = party();
+		UpdatePersonRequest updatePerson = new UpdatePersonRequest("Person", "There", null);
+		expect(repository.getParty(9)).andReturn(party);
+		repository.updatePerson(9, updatePerson);
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		service.updatePerson(9, updatePerson);
 
 		verify(repository);
 	}
 
 	@Test
-	void insertionsTranslateDuplicateSqlState() throws Exception {
+	void addOrganizationTranslatesDuplicateSqlState() throws Exception {
 		PartyRepository repository = mock(PartyRepository.class);
 		InsertOrganizationRequest organization = new InsertOrganizationRequest("Org", null, null, null);
-		InsertPersonRequest person = new InsertPersonRequest("Person", null, null);
 		repository.addOrganization(organization);
-		expectLastCall().andThrow(new SQLException("duplicate", "23505"));
-		repository.addPerson(person);
 		expectLastCall().andThrow(new SQLException("duplicate", "23505"));
 		replay(repository);
 		PartyService service = new PartyService(repository);
 
 		assertThrows(DuplicateKeyException.class, () -> service.addOrganization(organization));
+
+		verify(repository);
+	}
+
+	@Test
+	void addPersonTranslatesDuplicateSqlState() throws Exception {
+		PartyRepository repository = mock(PartyRepository.class);
+		InsertPersonRequest person = new InsertPersonRequest("Person", null, null);
+		repository.addPerson(person);
+		expectLastCall().andThrow(new SQLException("duplicate", "23505"));
+		replay(repository);
+		PartyService service = new PartyService(repository);
+
 		assertThrows(DuplicateKeyException.class, () -> service.addPerson(person));
 
 		verify(repository);

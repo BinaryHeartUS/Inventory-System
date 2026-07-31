@@ -38,30 +38,120 @@ class LookupServiceTest {
 	}
 
 	@Test
-	void everyMutationDelegatesAndAdditionsAreTrimmed() throws Exception {
+	void addManufacturerTrimsAndDelegates() throws Exception {
 		LookupRepository repository = mock(LookupRepository.class);
 		repository.insertManufacturer("Dell");
-		repository.insertRamGeneration("DDR4");
-		repository.insertStorageType("SSD");
-		repository.insertPartType("RAM");
-		repository.insertOperatingSystem("Linux");
-		repository.deleteManufacturer("Dell");
-		repository.deleteRamGeneration("DDR4");
-		repository.deleteStorageType("SSD");
-		repository.deletePartType("RAM");
-		repository.deleteOperatingSystem("Linux");
 		replay(repository);
 		LookupService service = new LookupService(repository);
 
 		service.addManufacturer(" Dell ");
+
+		verify(repository);
+	}
+
+	@Test
+	void addRamGenerationTrimsAndDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.insertRamGeneration("DDR4");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.addRamGeneration(" DDR4 ");
+
+		verify(repository);
+	}
+
+	@Test
+	void addStorageTypeTrimsAndDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.insertStorageType("SSD");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.addStorageType(" SSD ");
+
+		verify(repository);
+	}
+
+	@Test
+	void addPartTypeTrimsAndDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.insertPartType("RAM");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.addPartType(" RAM ");
+
+		verify(repository);
+	}
+
+	@Test
+	void addOperatingSystemTrimsAndDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.insertOperatingSystem("Linux");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.addOperatingSystem(" Linux ");
+
+		verify(repository);
+	}
+
+	@Test
+	void removeManufacturerDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.deleteManufacturer("Dell");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.removeManufacturer("Dell");
+
+		verify(repository);
+	}
+
+	@Test
+	void removeRamGenerationDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.deleteRamGeneration("DDR4");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.removeRamGeneration("DDR4");
+
+		verify(repository);
+	}
+
+	@Test
+	void removeStorageTypeDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.deleteStorageType("SSD");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.removeStorageType("SSD");
+
+		verify(repository);
+	}
+
+	@Test
+	void removePartTypeDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.deletePartType("RAM");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.removePartType("RAM");
+
+		verify(repository);
+	}
+
+	@Test
+	void removeOperatingSystemDelegates() throws Exception {
+		LookupRepository repository = mock(LookupRepository.class);
+		repository.deleteOperatingSystem("Linux");
+		replay(repository);
+		LookupService service = new LookupService(repository);
+
 		service.removeOperatingSystem("Linux");
 
 		verify(repository);

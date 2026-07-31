@@ -33,112 +33,334 @@ import org.junit.jupiter.api.Test;
 class DeviceServiceTest {
 
 	@Test
-	void everyStatisticDelegatesWithResolvedChapters() throws Exception {
+	void getDeviceCountDelegatesWithResolvedChapters() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
 		List<Integer> requested = List.of(2);
 		List<Integer> userChapters = List.of(1, 2);
 		List<Integer> effective = List.of(2);
-		expect(chapters.resolveChapterIds(requested, userChapters)).andReturn(effective).times(7);
-		expect(chapters.resolveChapterIds(List.<Integer>of(), userChapters)).andReturn(effective);
-		DashboardCountsResponse dashboard = new DashboardCountsResponse(1, 2, 3, 4, 5, 6, 7, 8);
-		AvgTimeInInventoryResponse average = new AvgTimeInInventoryResponse(4.5, 2);
-		CompletionRateResponse completion = new CompletionRateResponse(3, 4);
-		ChapterActivityStatsResponse activity = new ChapterActivityStatsResponse(5, 4, 3, 2);
-		List<MonthlyCountPoint> monthlyCounts = List.of(new MonthlyCountPoint(2026, 1, 2));
-		List<MonthlyValuePoint> monthlyValues = List.of(new MonthlyValuePoint(2026, 1, 10.0));
+		expect(chapters.resolveChapterIds(requested, userChapters)).andReturn(effective);
 		expect(repository.getDeviceCountByChapters("desktop", "active", effective)).andReturn(5);
-		expect(repository.getDashboardCounts(effective)).andReturn(dashboard);
-		expect(repository.getAvgTimeInInventory(effective)).andReturn(average);
-		expect(repository.getCompletionRate(effective)).andReturn(completion);
-		expect(repository.getChapterActivityStats(effective)).andReturn(activity);
-		expect(repository.getDevicesReceived(effective, 12)).andReturn(monthlyCounts);
-		expect(repository.getDevicesDonated(effective, 12)).andReturn(monthlyCounts);
-		expect(repository.getDonatedDeviceValue(effective, 12)).andReturn(monthlyValues);
 		replay(repository, chapters);
-		DeviceService service = new DeviceService(repository, chapters);
 
-		assertEquals(5, service.getDeviceCount("desktop", "active", requested, userChapters));
-		assertSame(dashboard, service.getDashboardCounts(requested, userChapters));
-		assertSame(average, service.getAvgTimeInInventory(requested, userChapters));
-		assertSame(completion, service.getCompletionRate(requested, userChapters));
-		assertSame(activity, service.getChapterActivityStats(userChapters));
-		assertSame(monthlyCounts, service.getDevicesReceived(requested, userChapters, 12));
-		assertSame(monthlyCounts, service.getDevicesDonated(requested, userChapters, 12));
-		assertSame(monthlyValues, service.getDonatedDeviceValue(requested, userChapters, 12));
+		assertEquals(5,
+			new DeviceService(repository, chapters).getDeviceCount("desktop", "active", requested, userChapters));
 
 		verify(repository, chapters);
 	}
 
 	@Test
-	void queriesDelegateAndEmptyAccessShortCircuits() throws Exception {
+	void getDashboardCountsDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		DashboardCountsResponse response = new DashboardCountsResponse(1, 2, 3, 4, 5, 6, 7, 8);
+		expect(chapters.resolveChapterIds(List.of(2), List.of(1, 2))).andReturn(List.of(2));
+		expect(repository.getDashboardCounts(List.of(2))).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getDashboardCounts(List.of(2), List.of(1, 2)));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getAvgTimeInInventoryDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AvgTimeInInventoryResponse response = new AvgTimeInInventoryResponse(4.5, 2);
+		expect(chapters.resolveChapterIds(List.of(2), List.of(1, 2))).andReturn(List.of(2));
+		expect(repository.getAvgTimeInInventory(List.of(2))).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getAvgTimeInInventory(List.of(2), List.of(1, 2)));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getCompletionRateDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		CompletionRateResponse response = new CompletionRateResponse(3, 4);
+		expect(chapters.resolveChapterIds(List.of(2), List.of(1, 2))).andReturn(List.of(2));
+		expect(repository.getCompletionRate(List.of(2))).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getCompletionRate(List.of(2), List.of(1, 2)));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getChapterActivityStatsDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		ChapterActivityStatsResponse response = new ChapterActivityStatsResponse(5, 4, 3, 2);
+		expect(chapters.resolveChapterIds(List.<Integer>of(), List.of(1, 2))).andReturn(List.of(2));
+		expect(repository.getChapterActivityStats(List.of(2))).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getChapterActivityStats(List.of(1, 2)));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getDevicesReceivedDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		List<MonthlyCountPoint> response = List.of(new MonthlyCountPoint(2026, 1, 2));
+		expect(chapters.resolveChapterIds(List.of(2), List.of(1, 2))).andReturn(List.of(2));
+		expect(repository.getDevicesReceived(List.of(2), 12)).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getDevicesReceived(List.of(2), List.of(1, 2), 12));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getDevicesDonatedDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		List<MonthlyCountPoint> response = List.of(new MonthlyCountPoint(2026, 1, 2));
+		expect(chapters.resolveChapterIds(List.of(2), List.of(1, 2))).andReturn(List.of(2));
+		expect(repository.getDevicesDonated(List.of(2), 12)).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getDevicesDonated(List.of(2), List.of(1, 2), 12));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getDonatedDeviceValueDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		List<MonthlyValuePoint> response = List.of(new MonthlyValuePoint(2026, 1, 10.0));
+		expect(chapters.resolveChapterIds(List.of(2), List.of(1, 2))).andReturn(List.of(2));
+		expect(repository.getDonatedDeviceValue(List.of(2), 12)).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response,
+			new DeviceService(repository, chapters).getDonatedDeviceValue(List.of(2), List.of(1, 2), 12));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getDeviceDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		GetDeviceResponse response = device();
+		expect(repository.getDevice(101)).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getDevice(101));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getDevicesDelegatesWithResolvedChapter() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
 		DeviceListRequest query = new DeviceListRequest(null, null, null, false, false, null, null, null, null, 25, 0);
-		GetDeviceResponse device = device();
-		List<GetDeviceResponse> devices = List.of(device);
-		List<ChapterInventorySummary> summary = List.of();
-		expect(repository.getDevice(101)).andReturn(device);
+		List<GetDeviceResponse> response = List.of(device());
 		expect(chapters.resolveChapterIds(2, List.of(2))).andReturn(List.of(2));
-		expect(repository.getDevices(List.of(2), query)).andReturn(devices);
-		expect(chapters.resolveChapterIds(List.<Integer>of(), List.of(2))).andReturn(List.of(2));
-		expect(repository.getChapterInventorySummary(List.of(2))).andReturn(summary);
+		expect(repository.getDevices(List.of(2), query)).andReturn(response);
 		replay(repository, chapters);
-		DeviceService service = new DeviceService(repository, chapters);
 
-		assertSame(device, service.getDevice(101));
-		assertSame(devices, service.getDevices(List.of(2), 2, query));
-		assertSame(summary, service.getChapterInventorySummary(List.of(2)));
-		assertEquals(List.of(), service.getDevices(List.of(), null, query));
-		assertEquals(List.of(), service.getChapterInventorySummary(null));
+		assertSame(response, new DeviceService(repository, chapters).getDevices(List.of(2), 2, query));
 
 		verify(repository, chapters);
 	}
 
 	@Test
-	void everyMutationDelegates() throws Exception {
+	void getDevicesShortCircuitsEmptyAccess() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		DeviceListRequest query = new DeviceListRequest(null, null, null, false, false, null, null, null, null, 25, 0);
+		replay(repository, chapters);
+
+		assertEquals(List.of(), new DeviceService(repository, chapters).getDevices(List.of(), null, query));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getChapterInventorySummaryDelegatesWithResolvedChapters() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		List<ChapterInventorySummary> response = List.of();
+		expect(chapters.resolveChapterIds(List.<Integer>of(), List.of(2))).andReturn(List.of(2));
+		expect(repository.getChapterInventorySummary(List.of(2))).andReturn(response);
+		replay(repository, chapters);
+
+		assertSame(response, new DeviceService(repository, chapters).getChapterInventorySummary(List.of(2)));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void getChapterInventorySummaryShortCircuitsNullAccess() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		replay(repository, chapters);
+
+		assertEquals(List.of(), new DeviceService(repository, chapters).getChapterInventorySummary(null));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void insertDesktopDelegates() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
 		expect(repository.insertDesktop(desktop(), "user")).andReturn(101);
-		expect(repository.insertLaptop(laptop(), "user")).andReturn(102);
-		expect(repository.insertTablet(tablet(), "user")).andReturn(103);
-		repository.updateDesktop(desktop(), "user");
-		repository.updateLaptop(laptop(), "user");
-		repository.updateTablet(tablet(), "user");
 		replay(repository, chapters);
-		DeviceService service = new DeviceService(repository, chapters);
 
-		assertEquals(101, service.insertDesktop(desktop(), "user"));
-		assertEquals(102, service.insertLaptop(laptop(), "user"));
-		assertEquals(103, service.insertTablet(tablet(), "user"));
-		service.updateDesktop(desktop(), "user");
-		service.updateLaptop(laptop(), "user");
-		service.updateTablet(tablet(), "user");
+		assertEquals(101, new DeviceService(repository, chapters).insertDesktop(desktop(), "user"));
 
 		verify(repository, chapters);
 	}
 
 	@Test
-	void mutationsTranslateDuplicateAndMissingSqlStates() throws Exception {
+	void insertLaptopDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		expect(repository.insertLaptop(laptop(), "user")).andReturn(102);
+		replay(repository, chapters);
+
+		assertEquals(102, new DeviceService(repository, chapters).insertLaptop(laptop(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void insertTabletDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		expect(repository.insertTablet(tablet(), "user")).andReturn(103);
+		replay(repository, chapters);
+
+		assertEquals(103, new DeviceService(repository, chapters).insertTablet(tablet(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void updateDesktopDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.updateDesktop(desktop(), "user");
+		replay(repository, chapters);
+
+		new DeviceService(repository, chapters).updateDesktop(desktop(), "user");
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void updateLaptopDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.updateLaptop(laptop(), "user");
+		replay(repository, chapters);
+
+		new DeviceService(repository, chapters).updateLaptop(laptop(), "user");
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void updateTabletDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.updateTablet(tablet(), "user");
+		replay(repository, chapters);
+
+		new DeviceService(repository, chapters).updateTablet(tablet(), "user");
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void insertDesktopTranslatesDuplicateSqlState() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
 		expect(repository.insertDesktop(desktop(), "user")).andThrow(sql("23505"));
-		expect(repository.insertLaptop(laptop(), "user")).andThrow(sql("23505"));
-		expect(repository.insertTablet(tablet(), "user")).andThrow(sql("23505"));
-		repository.updateDesktop(desktop(), "user");
-		expectLastCall().andThrow(sql("02000"));
-		repository.updateLaptop(laptop(), "user");
-		expectLastCall().andThrow(sql("02000"));
-		repository.updateTablet(tablet(), "user");
-		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		DeviceService service = new DeviceService(repository, chapters);
 
 		assertThrows(DuplicateKeyException.class, () -> service.insertDesktop(desktop(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void insertLaptopTranslatesDuplicateSqlState() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		expect(repository.insertLaptop(laptop(), "user")).andThrow(sql("23505"));
+		replay(repository, chapters);
+		DeviceService service = new DeviceService(repository, chapters);
+
 		assertThrows(DuplicateKeyException.class, () -> service.insertLaptop(laptop(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void insertTabletTranslatesDuplicateSqlState() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		expect(repository.insertTablet(tablet(), "user")).andThrow(sql("23505"));
+		replay(repository, chapters);
+		DeviceService service = new DeviceService(repository, chapters);
+
 		assertThrows(DuplicateKeyException.class, () -> service.insertTablet(tablet(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void updateDesktopTranslatesMissingSqlState() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.updateDesktop(desktop(), "user");
+		expectLastCall().andThrow(sql("02000"));
+		replay(repository, chapters);
+		DeviceService service = new DeviceService(repository, chapters);
+
 		assertThrows(DeviceNotFoundException.class, () -> service.updateDesktop(desktop(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void updateLaptopTranslatesMissingSqlState() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.updateLaptop(laptop(), "user");
+		expectLastCall().andThrow(sql("02000"));
+		replay(repository, chapters);
+		DeviceService service = new DeviceService(repository, chapters);
+
 		assertThrows(DeviceNotFoundException.class, () -> service.updateLaptop(laptop(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void updateTabletTranslatesMissingSqlState() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.updateTablet(tablet(), "user");
+		expectLastCall().andThrow(sql("02000"));
+		replay(repository, chapters);
+		DeviceService service = new DeviceService(repository, chapters);
+
 		assertThrows(DeviceNotFoundException.class, () -> service.updateTablet(tablet(), "user"));
 
 		verify(repository, chapters);

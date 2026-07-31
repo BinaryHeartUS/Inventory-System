@@ -12,7 +12,6 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.requests.ToolListRequest;
@@ -41,9 +40,8 @@ class ToolControllerTest {
 	}
 
 	@ParameterizedTest
-	@MethodSource("invalidTools")
-	void insertAndUpdateValidationStopsBeforeAuthorization(InsertToolRequest request, String message,
-		BiConsumer<ToolController, Context> handler) {
+	@MethodSource("invalidToolInserts")
+	void insertToolValidationStopsBeforeAuthorization(InsertToolRequest request, String message) {
 		ToolService service = mock(ToolService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
@@ -51,7 +49,22 @@ class ToolControllerTest {
 		expectResult(context, 400, message);
 		replay(service, authorization, context);
 
-		handler.accept(new ToolController(service, authorization), context);
+		new ToolController(service, authorization).insertTool(context);
+
+		verify(service, authorization, context);
+	}
+
+	@ParameterizedTest
+	@MethodSource("invalidToolUpdates")
+	void updateToolValidationStopsBeforeAuthorization(InsertToolRequest request, String message) {
+		ToolService service = mock(ToolService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(InsertToolRequest.class)).andReturn(request);
+		expectResult(context, 400, message);
+		replay(service, authorization, context);
+
+		new ToolController(service, authorization).updateTool(context);
 
 		verify(service, authorization, context);
 	}
@@ -75,60 +88,99 @@ class ToolControllerTest {
 	}
 
 	@Test
-	void handlersBuildQueryAndDelegateReadsDeletesUpdatesAndChangelog() throws Exception {
+	void getAllToolsBuildsQueryAndDelegates() throws Exception {
 		ToolService service = mock(ToolService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
-		Context list = toolListContext();
-		Context get = mock(Context.class);
-		Context delete = mock(Context.class);
-		Context update = mock(Context.class);
-		Context changelogContext = mock(Context.class);
+		Context context = toolListContext();
 		ToolListRequest query = new ToolListRequest("driver", 9, 25, 25);
 		GetToolResponse tool = toolResponse();
 		expect(service.getTools(List.of(2), 2, query)).andReturn(List.of(tool));
-		expectJson(list, 200, new GetToolResponse[]{tool});
-		expectIdContext(get, "id", "301", List.of(2));
-		expect(service.getTool(List.of(2), 301)).andReturn(tool);
-		expectJson(get, 200, tool);
-		expectIdContext(delete, "id", "301", List.of(2));
-		service.deleteTool(List.of(2), 301);
-		expectResult(delete, 204, "Tool deleted successfully");
-		expect(update.bodyAsClass(InsertToolRequest.class)).andReturn(tool());
-		authorization.requireChapterEditAccess(update, 2);
-		expect(update.<String>attribute("username")).andReturn("user");
-		service.updateTool(tool(), "user");
-		expectResult(update, 201, "Tool updated successfully");
-		expectIdContext(changelogContext, "id", "301", List.of(2));
-		ToolChangelogResponse[] changelog = new ToolChangelogResponse[0];
-		expect(service.getToolChangelog(List.of(2), 301)).andReturn(changelog);
-		expectJson(changelogContext, 200, changelog);
-		replay(service, authorization, list, get, delete, update, changelogContext);
-		ToolController controller = new ToolController(service, authorization);
+		expectJson(context, 200, new GetToolResponse[]{tool});
+		replay(service, authorization, context);
 
-		controller.getAllTools(list);
-		controller.getTool(get);
-		controller.deleteTool(delete);
-		controller.updateTool(update);
-		controller.getToolChangelog(changelogContext);
+		new ToolController(service, authorization).getAllTools(context);
 
-		verify(service, authorization, list, get, delete, update, changelogContext);
+		verify(service, authorization, context);
 	}
 
-	private static Stream<Arguments> invalidTools() {
+	@Test
+	void getToolDelegates() throws Exception {
+		ToolService service = mock(ToolService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		GetToolResponse tool = toolResponse();
+		expectIdContext(context, "id", "301", List.of(2));
+		expect(service.getTool(List.of(2), 301)).andReturn(tool);
+		expectJson(context, 200, tool);
+		replay(service, authorization, context);
+
+		new ToolController(service, authorization).getTool(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void deleteToolDelegates() throws Exception {
+		ToolService service = mock(ToolService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expectIdContext(context, "id", "301", List.of(2));
+		service.deleteTool(List.of(2), 301);
+		expectResult(context, 204, "Tool deleted successfully");
+		replay(service, authorization, context);
+
+		new ToolController(service, authorization).deleteTool(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void updateToolAuthorizesThenDelegates() throws Exception {
+		ToolService service = mock(ToolService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(InsertToolRequest.class)).andReturn(tool());
+		authorization.requireChapterEditAccess(context, 2);
+		expect(context.<String>attribute("username")).andReturn("user");
+		service.updateTool(tool(), "user");
+		expectResult(context, 201, "Tool updated successfully");
+		replay(service, authorization, context);
+
+		new ToolController(service, authorization).updateTool(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void getToolChangelogDelegates() throws Exception {
+		ToolService service = mock(ToolService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expectIdContext(context, "id", "301", List.of(2));
+		ToolChangelogResponse[] changelog = new ToolChangelogResponse[0];
+		expect(service.getToolChangelog(List.of(2), 301)).andReturn(changelog);
+		expectJson(context, 200, changelog);
+		replay(service, authorization, context);
+
+		new ToolController(service, authorization).getToolChangelog(context);
+
+		verify(service, authorization, context);
+	}
+
+	private static Stream<Arguments> invalidToolInserts() {
 		return Stream.of(
-			Arguments.of(new InsertToolRequest(0, null, null, null, null, null), "Missing required parameters",
-				(BiConsumer<ToolController, Context>) ToolController::insertTool),
-			Arguments.of(new InsertToolRequest(2, null, "", null, null, null), "Description cannot be empty string",
-				(BiConsumer<ToolController, Context>) ToolController::updateTool),
+			Arguments.of(new InsertToolRequest(0, null, null, null, null, null), "Missing required parameters"),
 			Arguments.of(new InsertToolRequest(2, null, "tool", null, -1.0, null),
-				"Value must be non-negative or not specified",
-				(BiConsumer<ToolController, Context>) ToolController::insertTool),
-			Arguments.of(new InsertToolRequest(2, null, "tool", LocalDate.now().plusDays(1), null, null),
-				"Acquisition date cannot be in the future",
-				(BiConsumer<ToolController, Context>) ToolController::updateTool),
+				"Value must be non-negative or not specified"),
 			Arguments.of(new InsertToolRequest(2, 0, "tool", null, null, null),
-				"Asset ID must be positive or not specified",
-				(BiConsumer<ToolController, Context>) ToolController::insertTool));
+				"Asset ID must be positive or not specified"));
+	}
+
+	private static Stream<Arguments> invalidToolUpdates() {
+		return Stream.of(
+			Arguments.of(new InsertToolRequest(2, null, "", null, null, null), "Description cannot be empty string"),
+			Arguments.of(new InsertToolRequest(2, null, "tool", LocalDate.now().plusDays(1), null, null),
+				"Acquisition date cannot be in the future"));
 	}
 
 	private Context toolListContext() {

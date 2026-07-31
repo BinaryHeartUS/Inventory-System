@@ -25,20 +25,28 @@ class HealthControllerTest {
 	}
 
 	@Test
-	void delegatesBothEndpoints() {
+	void healthDelegates() {
 		HealthService service = mock(HealthService.class);
-		Context healthContext = mock(Context.class);
-		Context pingContext = mock(Context.class);
+		Context context = mock(Context.class);
 		expect(service.health()).andReturn("OK");
+		expect(context.result("OK")).andReturn(context);
+		replay(service, context);
+
+		new HealthController(service).health(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void pingDelegates() {
+		HealthService service = mock(HealthService.class);
+		Context context = mock(Context.class);
 		expect(service.ping()).andReturn("pong");
-		expect(healthContext.result("OK")).andReturn(healthContext);
-		expect(pingContext.result("pong")).andReturn(pingContext);
-		replay(service, healthContext, pingContext);
+		expect(context.result("pong")).andReturn(context);
+		replay(service, context);
 
-		HealthController controller = new HealthController(service);
-		controller.health(healthContext);
-		controller.ping(pingContext);
+		new HealthController(service).ping(context);
 
-		verify(service, healthContext, pingContext);
+		verify(service, context);
 	}
 }
