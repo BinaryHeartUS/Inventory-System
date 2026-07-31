@@ -36,8 +36,10 @@ export function LookupEditor({
     onAdd(trimmed);
   }
 
+  const testId = `lookup-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5">
+    <div data-testid={testId} className="bg-white border border-slate-200 rounded-xl p-5">
       <div className="mb-4">
         <p className="text-sm font-semibold text-slate-800">{title}</p>
         <p className="text-xs text-slate-400 mt-0.5">{description}</p>
