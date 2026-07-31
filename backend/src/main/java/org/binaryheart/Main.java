@@ -25,7 +25,7 @@ import org.binaryheart.controllers.ToolController;
 
 public class Main {
 	public static void main(String[] args) {
-		Injector injector = Guice.createInjector();
+		Injector injector = Guice.createInjector(new ApplicationModule());
 		AccountController accountController = injector.getInstance(AccountController.class);
 		AssetController assetController = injector.getInstance(AssetController.class);
 		AuthController authController = injector.getInstance(AuthController.class);

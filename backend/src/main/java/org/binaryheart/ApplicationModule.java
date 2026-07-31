@@ -1,10 +1,7 @@
 package org.binaryheart;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
 import org.binaryheart.auth.EncryptionHelper;
 import org.binaryheart.auth.JwtAccessManager;
 import org.binaryheart.auth.JwtService;
@@ -43,28 +40,57 @@ import org.binaryheart.services.NoteService;
 import org.binaryheart.services.PartService;
 import org.binaryheart.services.PartyService;
 import org.binaryheart.services.ToolService;
-import org.junit.jupiter.api.Test;
 
-class DependencyInjectionTest {
+public class ApplicationModule extends AbstractModule {
 
-	@Test
-	void applicationModuleConstructsEveryComponentAsSingleton() {
-		Injector injector = Guice.createInjector(new ApplicationModule());
-		Class<?>[] types = {AccountController.class, AssetController.class, AuthController.class,
-				ChapterController.class, DeviceController.class, HealthController.class, LookupController.class,
-				NoteController.class, PartController.class, PartyController.class, ToolController.class,
-				AccountService.class, AssetService.class, AuthService.class, AuthorizationService.class,
-				ChapterService.class, DeviceService.class, HealthService.class, LookupService.class, NoteService.class,
-				PartService.class, PartyService.class, ToolService.class, AccountRepository.class,
-				AssetRepository.class, AuthRepository.class, ChapterRepository.class, DeviceRepository.class,
-				LookupRepository.class, NoteRepository.class, PartRepository.class, PartyRepository.class,
-				ToolRepository.class, EncryptionHelper.class, JwtAccessManager.class, JwtService.class,
-				PasswordService.class, TokenService.class};
+	@Override
+	protected void configure() {
+		binder().requireExplicitBindings();
 
-		for (Class<?> type : types) {
-			Object instance = injector.getInstance(type);
-			assertNotNull(instance, type.getSimpleName());
-			assertSame(instance, injector.getInstance(type), type.getSimpleName());
-		}
+		bindSingleton(AccountController.class);
+		bindSingleton(AssetController.class);
+		bindSingleton(AuthController.class);
+		bindSingleton(ChapterController.class);
+		bindSingleton(DeviceController.class);
+		bindSingleton(HealthController.class);
+		bindSingleton(LookupController.class);
+		bindSingleton(NoteController.class);
+		bindSingleton(PartController.class);
+		bindSingleton(PartyController.class);
+		bindSingleton(ToolController.class);
+
+		bindSingleton(AccountService.class);
+		bindSingleton(AssetService.class);
+		bindSingleton(AuthService.class);
+		bindSingleton(AuthorizationService.class);
+		bindSingleton(ChapterService.class);
+		bindSingleton(DeviceService.class);
+		bindSingleton(HealthService.class);
+		bindSingleton(LookupService.class);
+		bindSingleton(NoteService.class);
+		bindSingleton(PartService.class);
+		bindSingleton(PartyService.class);
+		bindSingleton(ToolService.class);
+
+		bindSingleton(AccountRepository.class);
+		bindSingleton(AssetRepository.class);
+		bindSingleton(AuthRepository.class);
+		bindSingleton(ChapterRepository.class);
+		bindSingleton(DeviceRepository.class);
+		bindSingleton(LookupRepository.class);
+		bindSingleton(NoteRepository.class);
+		bindSingleton(PartRepository.class);
+		bindSingleton(PartyRepository.class);
+		bindSingleton(ToolRepository.class);
+
+		bindSingleton(EncryptionHelper.class);
+		bindSingleton(JwtAccessManager.class);
+		bindSingleton(JwtService.class);
+		bindSingleton(PasswordService.class);
+		bindSingleton(TokenService.class);
+	}
+
+	private <T> void bindSingleton(Class<T> type) {
+		bind(type).in(Scopes.SINGLETON);
 	}
 }
