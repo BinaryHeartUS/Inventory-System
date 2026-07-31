@@ -2,6 +2,7 @@ package org.binaryheart.controllers;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.sql.SQLException;
@@ -18,16 +19,21 @@ import org.binaryheart.services.AccountService;
 
 public class AccountController {
 
-	private static final AccountService service = new AccountService();
+	private final AccountService service;
 
-	public static void registerRoutes() {
-		post("", AccountController::createAccount, AppRole.CHAPTER_ADMIN);
-		get("", AccountController::getAccounts, AppRole.CHAPTER_ADMIN);
-		put("/{id}", AccountController::updatePassword, AppRole.AUTHENTICATED);
-		delete("/{id}", AccountController::deleteAccount, AppRole.CHAPTER_ADMIN);
-		post("/{id}/roles", AccountController::addAffiliation, AppRole.CHAPTER_ADMIN);
-		put("/{id}/roles/{chapterId}", AccountController::updateAffiliation, AppRole.CHAPTER_ADMIN);
-		delete("/{id}/roles/{chapterId}", AccountController::removeAffiliation, AppRole.CHAPTER_ADMIN);
+	@Inject
+	public AccountController(AccountService service) {
+		this.service = service;
+	}
+
+	public void registerRoutes() {
+		post("", this::createAccount, AppRole.CHAPTER_ADMIN);
+		get("", this::getAccounts, AppRole.CHAPTER_ADMIN);
+		put("/{id}", this::updatePassword, AppRole.AUTHENTICATED);
+		delete("/{id}", this::deleteAccount, AppRole.CHAPTER_ADMIN);
+		post("/{id}/roles", this::addAffiliation, AppRole.CHAPTER_ADMIN);
+		put("/{id}/roles/{chapterId}", this::updateAffiliation, AppRole.CHAPTER_ADMIN);
+		delete("/{id}/roles/{chapterId}", this::removeAffiliation, AppRole.CHAPTER_ADMIN);
 	}
 
 	@OpenApi(
@@ -56,7 +62,7 @@ public class AccountController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void createAccount(Context ctx) {
+	public void createAccount(Context ctx) {
 		CreateAccountRequest request = ctx.bodyAsClass(CreateAccountRequest.class);
 		if (request.name() == null || request.name().isBlank() || request.username() == null
 			|| request.username().isBlank() || request.password() == null || request.password().isBlank()) {
@@ -94,7 +100,7 @@ public class AccountController {
 				from = AccountSummary[].class)}), @OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAccounts(Context ctx) {
+	public void getAccounts(Context ctx) {
 		String requesterRole = ctx.attribute("role");
 		List<Integer> requesterChapterIds = ctx.attribute("chapterIds");
 
@@ -126,7 +132,7 @@ public class AccountController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void deleteAccount(Context ctx) {
+	public void deleteAccount(Context ctx) {
 		int targetId = Integer.parseInt(ctx.pathParam("id"));
 		int requesterId = ctx.attribute("volunteerId");
 		String requesterRole = ctx.attribute("role");
@@ -176,7 +182,7 @@ public class AccountController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updatePassword(Context ctx) {
+	public void updatePassword(Context ctx) {
 		int targetId = Integer.parseInt(ctx.pathParam("id"));
 		int volunteerId = ctx.attribute("volunteerId");
 
@@ -228,7 +234,7 @@ public class AccountController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void addAffiliation(Context ctx) {
+	public void addAffiliation(Context ctx) {
 		int targetId = Integer.parseInt(ctx.pathParam("id"));
 		AddAffiliationRequest request = ctx.bodyAsClass(AddAffiliationRequest.class);
 		String creatorRole = ctx.attribute("role");
@@ -273,7 +279,7 @@ public class AccountController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateAffiliation(Context ctx) {
+	public void updateAffiliation(Context ctx) {
 		int targetId = Integer.parseInt(ctx.pathParam("id"));
 		int chapterId = Integer.parseInt(ctx.pathParam("chapterId"));
 		UpdateAffiliationRequest request = ctx.bodyAsClass(UpdateAffiliationRequest.class);
@@ -314,7 +320,7 @@ public class AccountController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void removeAffiliation(Context ctx) {
+	public void removeAffiliation(Context ctx) {
 		int targetId = Integer.parseInt(ctx.pathParam("id"));
 		int chapterId = Integer.parseInt(ctx.pathParam("chapterId"));
 		int requesterId = ctx.attribute("volunteerId");

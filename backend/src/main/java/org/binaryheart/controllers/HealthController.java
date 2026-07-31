@@ -2,6 +2,7 @@ package org.binaryheart.controllers;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import org.binaryheart.auth.AppRole;
@@ -9,11 +10,16 @@ import org.binaryheart.services.HealthService;
 
 public class HealthController {
 
-	private static final HealthService service = new HealthService();
+	private final HealthService service;
 
-	public static void registerRoutes() {
-		get("/health", HealthController::health, AppRole.PUBLIC);
-		get("/ping", HealthController::ping, AppRole.PUBLIC);
+	@Inject
+	public HealthController(HealthService service) {
+		this.service = service;
+	}
+
+	public void registerRoutes() {
+		get("/health", this::health, AppRole.PUBLIC);
+		get("/ping", this::ping, AppRole.PUBLIC);
 	}
 
 	@OpenApi(
@@ -24,7 +30,7 @@ public class HealthController {
 		responses = {@OpenApiResponse(
 			status = "200",
 			description = "Service is up")})
-	public static void health(Context ctx) {
+	public void health(Context ctx) {
 		ctx.result(service.health());
 	}
 
@@ -36,7 +42,7 @@ public class HealthController {
 		responses = {@OpenApiResponse(
 			status = "200",
 			description = "Returns pong")})
-	public static void ping(Context ctx) {
+	public void ping(Context ctx) {
 		ctx.result(service.ping());
 	}
 }

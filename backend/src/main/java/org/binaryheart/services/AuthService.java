@@ -1,17 +1,27 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
-import org.binaryheart.auth.EncryptionHelper;
-import org.binaryheart.auth.JwtService;
+import org.binaryheart.auth.PasswordService;
+import org.binaryheart.auth.TokenService;
 import org.binaryheart.models.VolunteerCredentials;
 import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.responses.LoginResponse;
 
 public class AuthService {
 
-	private final AuthRepository repository = new AuthRepository();
+	private final AuthRepository repository;
+	private final PasswordService passwordService;
+	private final TokenService tokenService;
+
+	@Inject
+	public AuthService(AuthRepository repository, PasswordService passwordService, TokenService tokenService) {
+		this.repository = repository;
+		this.passwordService = passwordService;
+		this.tokenService = tokenService;
+	}
 
 	public LoginResponse login(String username, String password) throws SQLException {
 		VolunteerCredentials credentials = repository.findByUsername(username);
@@ -21,10 +31,7 @@ public class AuthService {
 		}
 		boolean result;
 		try {
-			System.out.println(credentials.passwordHash().concat(credentials.passwordSalt()));
-			result = EncryptionHelper
-				.hashPassword(EncryptionHelper.DECODER.decode(credentials.passwordSalt()), password)
-				.equals(credentials.passwordHash());
+			result = passwordService.matches(password, credentials.passwordHash(), credentials.passwordSalt());
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			return null;
 		}
@@ -32,7 +39,7 @@ public class AuthService {
 		if (!result) {
 			return null;
 		}
-		String token = JwtService.create(credentials.id(), credentials.username(), credentials.chapterRoles(),
+		String token = tokenService.create(credentials.id(), credentials.username(), credentials.chapterRoles(),
 			credentials.effectiveRole());
 		return new LoginResponse(token, credentials.username(), credentials.chapterRoles(),
 			credentials.effectiveRole());

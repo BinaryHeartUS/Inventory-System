@@ -5,6 +5,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.put;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.security.InvalidParameterException;
@@ -21,21 +22,29 @@ import org.binaryheart.responses.IdResponse;
 import org.binaryheart.responses.PartChangelogResponse;
 import org.binaryheart.responses.PartResponse;
 import org.binaryheart.responses.PartTypeCountResponse;
+import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.PartService;
 
 public class PartController {
 
-	private static final PartService service = new PartService();
+	private final PartService service;
+	private final AuthorizationService authorizationService;
 
-	public static void registerRoutes() {
-		get("", PartController::getAllParts, AppRole.AUTHENTICATED);
-		get("/type-counts", PartController::getPartTypeCounts, AppRole.AUTHENTICATED);
-		get("/device/{deviceId}", PartController::getPartsByDevice, AppRole.AUTHENTICATED);
-		get("/{id}", PartController::getPart, AppRole.AUTHENTICATED);
-		get("/{id}/changelog", PartController::getPartChangelog, AppRole.AUTHENTICATED);
-		delete("/{id}", PartController::deletePart, AppRole.CHAPTER_ADMIN);
-		put("/{id}", PartController::updatePart, AppRole.AUTHENTICATED);
-		post("", PartController::insertPart, AppRole.AUTHENTICATED);
+	@Inject
+	public PartController(PartService service, AuthorizationService authorizationService) {
+		this.service = service;
+		this.authorizationService = authorizationService;
+	}
+
+	public void registerRoutes() {
+		get("", this::getAllParts, AppRole.AUTHENTICATED);
+		get("/type-counts", this::getPartTypeCounts, AppRole.AUTHENTICATED);
+		get("/device/{deviceId}", this::getPartsByDevice, AppRole.AUTHENTICATED);
+		get("/{id}", this::getPart, AppRole.AUTHENTICATED);
+		get("/{id}/changelog", this::getPartChangelog, AppRole.AUTHENTICATED);
+		delete("/{id}", this::deletePart, AppRole.CHAPTER_ADMIN);
+		put("/{id}", this::updatePart, AppRole.AUTHENTICATED);
+		post("", this::insertPart, AppRole.AUTHENTICATED);
 	}
 
 	@OpenApi(
@@ -97,7 +106,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAllParts(Context ctx) {
+	public void getAllParts(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int pageSize = PaginationUtil.parsePageSize(ctx);
@@ -169,7 +178,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getPartTypeCounts(Context ctx) {
+	public void getPartTypeCounts(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
@@ -211,7 +220,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error"),})
-	public static void getPart(Context ctx) {
+	public void getPart(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int partId = Integer.parseInt(ctx.pathParam("id"));
@@ -254,7 +263,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error"),})
-	public static void deletePart(Context ctx) {
+	public void deletePart(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int partId = Integer.parseInt(ctx.pathParam("id"));
@@ -313,7 +322,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error"),})
-	public static void updatePart(Context ctx) {
+	public void updatePart(Context ctx) {
 		InsertPartRequest request = ctx.bodyAsClass(InsertPartRequest.class);
 		if (request.chapterId() == 0 || request.type() == null || request.type().isEmpty()
 			|| request.wasPurchased() == null || request.description() == null || request.description().isEmpty()) {
@@ -342,7 +351,7 @@ public class PartController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			service.updatePart(request, ctx.attribute("username"));
 			ctx.status(201).result("Part updated successfully");
 		} catch (PartNotFoundException e) {
@@ -373,7 +382,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getPartsByDevice(Context ctx) {
+	public void getPartsByDevice(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int deviceId = Integer.parseInt(ctx.pathParam("deviceId"));
@@ -427,7 +436,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertPart(Context ctx) {
+	public void insertPart(Context ctx) {
 		InsertPartRequest request = ctx.bodyAsClass(InsertPartRequest.class);
 		if (request.chapterId() == 0 || request.type() == null || request.type().isEmpty()
 			|| request.wasPurchased() == null || request.description() == null || request.description().isEmpty()) {
@@ -456,7 +465,7 @@ public class PartController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertPart(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -490,7 +499,7 @@ public class PartController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getPartChangelog(Context ctx) {
+	public void getPartChangelog(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int partId = Integer.parseInt(ctx.pathParam("id"));

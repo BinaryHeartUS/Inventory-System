@@ -1,11 +1,17 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.sql.SQLException;
 import org.binaryheart.repositories.NoteRepository;
 import org.binaryheart.responses.NoteResponse;
 
 public class NoteService {
-	private final NoteRepository repository = new NoteRepository();
+	private final NoteRepository repository;
+
+	@Inject
+	public NoteService(NoteRepository repository) {
+		this.repository = repository;
+	}
 
 	public NoteResponse addNote(int assetId, String text) throws SQLException {
 		return repository.addNote(assetId, text);

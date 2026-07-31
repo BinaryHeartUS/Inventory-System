@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,12 @@ import org.binaryheart.responses.GetPartyResponse;
 
 public class PartyService {
 
-	private final PartyRepository repository = new PartyRepository();
+	private final PartyRepository repository;
+
+	@Inject
+	public PartyService(PartyRepository repository) {
+		this.repository = repository;
+	}
 
 	public List<GetPartyResponse> getAllParties(boolean getPerson, boolean getOrg) throws SQLException {
 		if (getPerson && getOrg) {

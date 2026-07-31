@@ -5,6 +5,7 @@ import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.put;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.openapi.HttpMethod;
@@ -38,6 +39,7 @@ import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.responses.IdResponse;
 import org.binaryheart.responses.MonthlyCountPoint;
 import org.binaryheart.responses.MonthlyValuePoint;
+import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
 
@@ -46,30 +48,39 @@ public class DeviceController {
 	private static final List<String> VALID_STATUSES = List.of("active", "not-started", "in-progress",
 		"ready-to-donate", "donated");
 
-	private static final DeviceService service = new DeviceService();
-	private static final ChapterService chapterService = new ChapterService();
+	private final DeviceService service;
+	private final ChapterService chapterService;
+	private final AuthorizationService authorizationService;
 
-	public static void registerRoutes() {
+	@Inject
+	public DeviceController(DeviceService service, ChapterService chapterService,
+		AuthorizationService authorizationService) {
+		this.service = service;
+		this.chapterService = chapterService;
+		this.authorizationService = authorizationService;
+	}
+
+	public void registerRoutes() {
 		path("/stats", () -> {
-			get("/counts", DeviceController::getDashboardCounts, AppRole.AUTHENTICATED);
-			get("/count/{type}", DeviceController::getDeviceCount, AppRole.AUTHENTICATED);
-			get("/avg-time", DeviceController::getAvgTimeInInventory, AppRole.AUTHENTICATED);
-			get("/completion-rate", DeviceController::getCompletionRate, AppRole.AUTHENTICATED);
-			get("/chapter-activity", DeviceController::getChapterActivityStats, AppRole.AUTHENTICATED);
-			get("/devices-received", DeviceController::getDevicesReceived, AppRole.AUTHENTICATED);
-			get("/devices-donated", DeviceController::getDevicesDonated, AppRole.AUTHENTICATED);
-			get("/donated-value", DeviceController::getDonatedDeviceValue, AppRole.AUTHENTICATED);
-			get("/chapter-inventory", DeviceController::getChapterInventorySummary, AppRole.AUTHENTICATED);
+			get("/counts", this::getDashboardCounts, AppRole.AUTHENTICATED);
+			get("/count/{type}", this::getDeviceCount, AppRole.AUTHENTICATED);
+			get("/avg-time", this::getAvgTimeInInventory, AppRole.AUTHENTICATED);
+			get("/completion-rate", this::getCompletionRate, AppRole.AUTHENTICATED);
+			get("/chapter-activity", this::getChapterActivityStats, AppRole.AUTHENTICATED);
+			get("/devices-received", this::getDevicesReceived, AppRole.AUTHENTICATED);
+			get("/devices-donated", this::getDevicesDonated, AppRole.AUTHENTICATED);
+			get("/donated-value", this::getDonatedDeviceValue, AppRole.AUTHENTICATED);
+			get("/chapter-inventory", this::getChapterInventorySummary, AppRole.AUTHENTICATED);
 		});
-		get("/{id}", DeviceController::getDevice, AppRole.AUTHENTICATED);
-		get("/{id}/changelog", DeviceController::getDeviceChangelog, AppRole.AUTHENTICATED);
-		get("", DeviceController::getAllDevices, AppRole.AUTHENTICATED);
-		post("/desktop", DeviceController::insertDesktop, AppRole.AUTHENTICATED);
-		post("/laptop", DeviceController::insertLaptop, AppRole.AUTHENTICATED);
-		post("/tablet", DeviceController::insertTablet, AppRole.AUTHENTICATED);
-		put("/desktop/{id}", DeviceController::updateDesktop, AppRole.AUTHENTICATED);
-		put("/laptop/{id}", DeviceController::updateLaptop, AppRole.AUTHENTICATED);
-		put("/tablet/{id}", DeviceController::updateTablet, AppRole.AUTHENTICATED);
+		get("/{id}", this::getDevice, AppRole.AUTHENTICATED);
+		get("/{id}/changelog", this::getDeviceChangelog, AppRole.AUTHENTICATED);
+		get("", this::getAllDevices, AppRole.AUTHENTICATED);
+		post("/desktop", this::insertDesktop, AppRole.AUTHENTICATED);
+		post("/laptop", this::insertLaptop, AppRole.AUTHENTICATED);
+		post("/tablet", this::insertTablet, AppRole.AUTHENTICATED);
+		put("/desktop/{id}", this::updateDesktop, AppRole.AUTHENTICATED);
+		put("/laptop/{id}", this::updateLaptop, AppRole.AUTHENTICATED);
+		put("/tablet/{id}", this::updateTablet, AppRole.AUTHENTICATED);
 	}
 
 	private static List<Integer> parseChapterIds(Context ctx) throws BadArgumentException {
@@ -112,7 +123,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getDashboardCounts(Context ctx) {
+	public void getDashboardCounts(Context ctx) {
 		try {
 			List<Integer> requestedChapterIds = parseChapterIds(ctx);
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
@@ -160,7 +171,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getDeviceCount(Context ctx) {
+	public void getDeviceCount(Context ctx) {
 		String type = ctx.pathParam("type").toLowerCase();
 		String status = ctx.queryParam("status") == null ? "active" : ctx.queryParam("status").toLowerCase();
 		if (!VALID_TYPES.contains(type)) {
@@ -209,7 +220,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAvgTimeInInventory(Context ctx) {
+	public void getAvgTimeInInventory(Context ctx) {
 		try {
 			List<Integer> requestedChapterIds = parseChapterIds(ctx);
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
@@ -246,7 +257,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getCompletionRate(Context ctx) {
+	public void getCompletionRate(Context ctx) {
 		try {
 			List<Integer> requestedChapterIds = parseChapterIds(ctx);
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
@@ -276,7 +287,7 @@ public class DeviceController {
 				from = ChapterActivityStatsResponse.class)}), @OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getChapterActivityStats(Context ctx) {
+	public void getChapterActivityStats(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			ctx.status(200).json(service.getChapterActivityStats(userChapterIds));
@@ -317,7 +328,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getDevicesReceived(Context ctx) {
+	public void getDevicesReceived(Context ctx) {
 		try {
 			int months = parseMonths(ctx);
 			List<Integer> requestedChapterIds = parseChapterIds(ctx);
@@ -362,7 +373,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getDevicesDonated(Context ctx) {
+	public void getDevicesDonated(Context ctx) {
 		try {
 			int months = parseMonths(ctx);
 			List<Integer> requestedChapterIds = parseChapterIds(ctx);
@@ -407,7 +418,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getDonatedDeviceValue(Context ctx) {
+	public void getDonatedDeviceValue(Context ctx) {
 		try {
 			int months = parseMonths(ctx);
 			List<Integer> requestedChapterIds = parseChapterIds(ctx);
@@ -460,7 +471,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getDevice(Context ctx) {
+	public void getDevice(Context ctx) {
 		String idStr = ctx.pathParam("id");
 		try {
 			int id = Integer.parseInt(idStr);
@@ -472,7 +483,7 @@ public class DeviceController {
 			Integer deviceChapterId = chapterService.getChapterIdByName(result.chapter());
 			if (deviceChapterId == null)
 				throw new ForbiddenResponse("Access denied");
-			AuthController.requireChapterReadAccess(ctx, deviceChapterId);
+			authorizationService.requireChapterReadAccess(ctx, deviceChapterId);
 			ctx.status(200).json(result);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric device ID: " + idStr);
@@ -562,7 +573,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAllDevices(Context ctx) {
+	public void getAllDevices(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int pageSize = PaginationUtil.parsePageSize(ctx);
@@ -603,7 +614,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getChapterInventorySummary(Context ctx) {
+	public void getChapterInventorySummary(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			ctx.status(200).json(service.getChapterInventorySummary(userChapterIds));
@@ -658,7 +669,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertDesktop(Context ctx) {
+	public void insertDesktop(Context ctx) {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
 			|| request.model() == null || request.year() == 0 || request.status() == null) {
@@ -687,7 +698,7 @@ public class DeviceController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertDesktop(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -743,7 +754,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertLaptop(Context ctx) {
+	public void insertLaptop(Context ctx) {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
 			|| request.model() == null || request.year() == 0 || request.status() == null
@@ -781,7 +792,7 @@ public class DeviceController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertLaptop(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -836,7 +847,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertTablet(Context ctx) {
+	public void insertTablet(Context ctx) {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
 			|| request.model() == null || request.year() == 0 || request.status() == null
@@ -866,7 +877,7 @@ public class DeviceController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertTablet(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -922,7 +933,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateDesktop(Context ctx) {
+	public void updateDesktop(Context ctx) {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
 			|| request.model() == null || request.year() == 0 || request.status() == null
@@ -952,7 +963,7 @@ public class DeviceController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateDesktop(request, ctx.attribute("username"));
 			ctx.status(201).result("Desktop updated successfully");
 		} catch (DeviceNotFoundException e) {
@@ -1010,7 +1021,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateLaptop(Context ctx) {
+	public void updateLaptop(Context ctx) {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
 			|| request.model() == null || request.year() == 0 || request.status() == null
@@ -1048,7 +1059,7 @@ public class DeviceController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateLaptop(request, ctx.attribute("username"));
 			ctx.status(200).result("Laptop updated successfully");
 		} catch (DeviceNotFoundException e) {
@@ -1105,7 +1116,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateTablet(Context ctx) {
+	public void updateTablet(Context ctx) {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
 		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
 			|| request.model() == null || request.year() == 0 || request.status() == null
@@ -1135,7 +1146,7 @@ public class DeviceController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateTablet(request, ctx.attribute("username"));
 			ctx.status(200).result("Tablet updated successfully");
 		} catch (DeviceNotFoundException e) {
@@ -1169,7 +1180,7 @@ public class DeviceController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getDeviceChangelog(Context ctx) {
+	public void getDeviceChangelog(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int deviceID = Integer.parseInt(ctx.pathParam("id"));

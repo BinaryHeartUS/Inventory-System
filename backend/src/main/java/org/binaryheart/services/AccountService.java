@@ -1,11 +1,13 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
-import org.binaryheart.auth.EncryptionHelper;
+import org.binaryheart.auth.PasswordService;
+import org.binaryheart.auth.PasswordService.PasswordHash;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.models.ChapterRole;
 import org.binaryheart.models.VolunteerCredentials;
@@ -21,7 +23,19 @@ public class AccountService {
 
 	private static final Set<String> ADMIN_CREATABLE_ROLES = Set.of("Admin", "Chapter Admin", "Editor", "Viewer");
 	private static final Set<String> CHAPTER_ADMIN_CREATABLE_ROLES = Set.of("Editor", "Viewer");
-	private final ChapterService chapterService = new ChapterService();
+	private final ChapterService chapterService;
+	private final AccountRepository repository;
+	private final AuthRepository authRepository;
+	private final PasswordService passwordService;
+
+	@Inject
+	public AccountService(AccountRepository repository, AuthRepository authRepository, ChapterService chapterService,
+		PasswordService passwordService) {
+		this.repository = repository;
+		this.authRepository = authRepository;
+		this.chapterService = chapterService;
+		this.passwordService = passwordService;
+	}
 
 	/**
 	 * Throws if the role/chapter combination is invalid (e.g. Admin on a
@@ -35,8 +49,6 @@ public class AccountService {
 			}
 		}
 	}
-
-	private final AccountRepository repository = new AccountRepository();
 
 	/**
 	 * Creates a new account.
@@ -73,17 +85,16 @@ public class AccountService {
 			}
 		}
 
-		byte[] passwordSalt = EncryptionHelper.getNewSalt();
-		String passwordHash;
+		PasswordHash passwordHash;
 		try {
-			passwordHash = EncryptionHelper.hashPassword(passwordSalt, request.password());
+			passwordHash = passwordService.hash(request.password());
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			throw new IllegalArgumentException("Something went wrong when encrypting password");
 		}
 
 		try {
-			int id = repository.createVolunteer(request.name(), request.username(), passwordHash,
-				EncryptionHelper.getStringFromBytes(passwordSalt), request.chapterId(), request.role());
+			int id = repository.createVolunteer(request.name(), request.username(), passwordHash.hash(),
+				passwordHash.salt(), request.chapterId(), request.role());
 			return new AccountSummary(id, request.username(), request.name(),
 				List.of(new ChapterRole(request.chapterId(), request.role())));
 		} catch (SQLException e) {
@@ -141,14 +152,12 @@ public class AccountService {
 	}
 
 	public void updatePassword(int volunteerId, String username, UpdatePasswordRequest request) throws SQLException {
-		AuthRepository authRepo = new AuthRepository();
-		VolunteerCredentials credentials = authRepo.findByUsername(username);
+		VolunteerCredentials credentials = authRepository.findByUsername(username);
 
 		boolean currentPasswordValid;
 		try {
-			currentPasswordValid = EncryptionHelper
-				.hashPassword(EncryptionHelper.DECODER.decode(credentials.passwordSalt()), request.currentPassword())
-				.equals(credentials.passwordHash());
+			currentPasswordValid = passwordService.matches(request.currentPassword(), credentials.passwordHash(),
+				credentials.passwordSalt());
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			throw new IllegalArgumentException("Invalid current password");
 		}
@@ -157,15 +166,14 @@ public class AccountService {
 			throw new IllegalArgumentException("Current password is incorrect");
 		}
 
-		byte[] passwordSalt = EncryptionHelper.getNewSalt();
-		String passwordHash;
+		PasswordHash passwordHash;
 		try {
-			passwordHash = EncryptionHelper.hashPassword(passwordSalt, request.newPassword());
+			passwordHash = passwordService.hash(request.newPassword());
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			throw new IllegalArgumentException("Something went wrong when encrypting password");
 		}
 
-		repository.updatePassword(volunteerId, passwordHash, EncryptionHelper.getStringFromBytes(passwordSalt));
+		repository.updatePassword(volunteerId, passwordHash.hash(), passwordHash.salt());
 	}
 
 	/**

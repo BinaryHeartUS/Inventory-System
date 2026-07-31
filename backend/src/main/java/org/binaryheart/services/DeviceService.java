@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
@@ -23,8 +24,14 @@ import org.binaryheart.responses.MonthlyValuePoint;
 
 public class DeviceService {
 
-	private final DeviceRepository repository = new DeviceRepository();
-	private final ChapterService chapterService = new ChapterService();
+	private final DeviceRepository repository;
+	private final ChapterService chapterService;
+
+	@Inject
+	public DeviceService(DeviceRepository repository, ChapterService chapterService) {
+		this.repository = repository;
+		this.chapterService = chapterService;
+	}
 
 	public int getDeviceCount(String type, String status, List<Integer> requestedChapterIds,
 		List<Integer> userChapterIds) throws ForbiddenException, SQLException {

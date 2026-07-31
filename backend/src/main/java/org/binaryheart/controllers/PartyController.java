@@ -4,6 +4,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.put;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.HttpMethod;
 import io.javalin.openapi.OpenApi;
@@ -26,15 +27,20 @@ import org.binaryheart.services.PartyService;
 
 public class PartyController {
 
-	private static final PartyService service = new PartyService();
+	private final PartyService service;
 
-	public static void registerRoutes() {
-		get("", PartyController::getAllParties, AppRole.AUTHENTICATED);
-		get("/{id}", PartyController::getParty, AppRole.AUTHENTICATED);
-		post("/organization", PartyController::insertOrg, AppRole.AUTHENTICATED);
-		post("/person", PartyController::insertPerson, AppRole.AUTHENTICATED);
-		put("/person/{id}", PartyController::updatePerson, AppRole.CHAPTER_ADMIN);
-		put("/organization/{id}", PartyController::updateOrganization, AppRole.CHAPTER_ADMIN);
+	@Inject
+	public PartyController(PartyService service) {
+		this.service = service;
+	}
+
+	public void registerRoutes() {
+		get("", this::getAllParties, AppRole.AUTHENTICATED);
+		get("/{id}", this::getParty, AppRole.AUTHENTICATED);
+		post("/organization", this::insertOrg, AppRole.AUTHENTICATED);
+		post("/person", this::insertPerson, AppRole.AUTHENTICATED);
+		put("/person/{id}", this::updatePerson, AppRole.CHAPTER_ADMIN);
+		put("/organization/{id}", this::updateOrganization, AppRole.CHAPTER_ADMIN);
 	}
 
 	@OpenApi(
@@ -56,7 +62,7 @@ public class PartyController {
 				from = GetPartyResponse[].class)}), @OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAllParties(Context ctx) {
+	public void getAllParties(Context ctx) {
 		try {
 			String type = ctx.queryParam("type");
 			boolean getPerson = true;
@@ -97,7 +103,7 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getParty(Context ctx) {
+	public void getParty(Context ctx) {
 		String idStr = ctx.pathParam("id");
 		try {
 			int id = Integer.parseInt(idStr);
@@ -149,7 +155,7 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertOrg(Context ctx) {
+	public void insertOrg(Context ctx) {
 		InsertOrganizationRequest request = ctx.bodyAsClass(InsertOrganizationRequest.class);
 		if (request.name() == null) {
 			ctx.status(400).result("Organization name must be non-null");
@@ -209,7 +215,7 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertPerson(Context ctx) {
+	public void insertPerson(Context ctx) {
 		InsertPersonRequest request = ctx.bodyAsClass(InsertPersonRequest.class);
 		if (request.name() == null) {
 			ctx.status(400).result("Person name must be non-null");
@@ -268,7 +274,7 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updatePerson(Context ctx) {
+	public void updatePerson(Context ctx) {
 		String idStr = ctx.pathParam("id");
 		UpdatePersonRequest request = ctx.bodyAsClass(UpdatePersonRequest.class);
 		if (request.name() == null) {
@@ -335,7 +341,7 @@ public class PartyController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateOrganization(Context ctx) {
+	public void updateOrganization(Context ctx) {
 		String idStr = ctx.pathParam("id");
 		UpdateOrganizationRequest request = ctx.bodyAsClass(UpdateOrganizationRequest.class);
 		if (request.name() == null) {

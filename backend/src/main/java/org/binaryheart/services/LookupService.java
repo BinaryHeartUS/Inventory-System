@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +13,12 @@ import org.binaryheart.responses.LookupResponse;
 
 public class LookupService {
 
-	private final LookupRepository repository = new LookupRepository();
+	private final LookupRepository repository;
+
+	@Inject
+	public LookupService(LookupRepository repository) {
+		this.repository = repository;
+	}
 
 	public LookupResponse getAll() throws SQLException {
 		List<String> deviceStatuses = Arrays.stream(Status.values()).map(Status::getDatabaseValue)

@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
@@ -14,8 +15,14 @@ import org.binaryheart.responses.PartResponse;
 import org.binaryheart.responses.PartTypeCountResponse;
 
 public class PartService {
-	private final PartRepository repository = new PartRepository();
-	private final ChapterService chapterService = new ChapterService();
+	private final PartRepository repository;
+	private final ChapterService chapterService;
+
+	@Inject
+	public PartService(PartRepository repository, ChapterService chapterService) {
+		this.repository = repository;
+		this.chapterService = chapterService;
+	}
 
 	/**
 	 * Returns a page of parts scoped to the caller's chapters

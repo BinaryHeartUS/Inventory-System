@@ -2,6 +2,7 @@ package org.binaryheart.controllers;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.sql.SQLException;
@@ -10,10 +11,15 @@ import org.binaryheart.services.AssetService;
 
 public class AssetController {
 
-	private static final AssetService service = new AssetService();
+	private final AssetService service;
 
-	public static void registerRoutes() {
-		get("/{id}/exists", AssetController::assetExists, AppRole.AUTHENTICATED);
+	@Inject
+	public AssetController(AssetService service) {
+		this.service = service;
+	}
+
+	public void registerRoutes() {
+		get("/{id}/exists", this::assetExists, AppRole.AUTHENTICATED);
 	}
 
 	@OpenApi(
@@ -37,7 +43,7 @@ public class AssetController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void assetExists(Context ctx) {
+	public void assetExists(Context ctx) {
 		try {
 			int id = Integer.parseInt(ctx.pathParam("id"));
 			boolean exists = service.assetExists(id);

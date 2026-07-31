@@ -1,5 +1,6 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.util.List;
@@ -15,8 +16,14 @@ import org.binaryheart.responses.ToolChangelogResponse;
 
 public class ToolService {
 
-	private final ToolRepository repository = new ToolRepository();
-	private final ChapterService chapterService = new ChapterService();
+	private final ToolRepository repository;
+	private final ChapterService chapterService;
+
+	@Inject
+	public ToolService(ToolRepository repository, ChapterService chapterService) {
+		this.repository = repository;
+		this.chapterService = chapterService;
+	}
 
 	/**
 	 * Returns a page of tools scoped to the caller's chapters

@@ -5,6 +5,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 import static io.javalin.apibuilder.ApiBuilder.put;
 
+import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.security.InvalidParameterException;
@@ -20,19 +21,27 @@ import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
 import org.binaryheart.responses.IdResponse;
 import org.binaryheart.responses.ToolChangelogResponse;
+import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.ToolService;
 
 public class ToolController {
 
-	private static final ToolService service = new ToolService();
+	private final ToolService service;
+	private final AuthorizationService authorizationService;
 
-	public static void registerRoutes() {
-		get("", ToolController::getAllTools, AppRole.AUTHENTICATED);
-		get("/{id}", ToolController::getTool, AppRole.AUTHENTICATED);
-		get("/{id}/changelog", ToolController::getToolChangelog, AppRole.AUTHENTICATED);
-		post("", ToolController::insertTool, AppRole.AUTHENTICATED);
-		put("/{id}", ToolController::updateTool, AppRole.AUTHENTICATED);
-		delete("/{id}", ToolController::deleteTool, AppRole.CHAPTER_ADMIN);
+	@Inject
+	public ToolController(ToolService service, AuthorizationService authorizationService) {
+		this.service = service;
+		this.authorizationService = authorizationService;
+	}
+
+	public void registerRoutes() {
+		get("", this::getAllTools, AppRole.AUTHENTICATED);
+		get("/{id}", this::getTool, AppRole.AUTHENTICATED);
+		get("/{id}/changelog", this::getToolChangelog, AppRole.AUTHENTICATED);
+		post("", this::insertTool, AppRole.AUTHENTICATED);
+		put("/{id}", this::updateTool, AppRole.AUTHENTICATED);
+		delete("/{id}", this::deleteTool, AppRole.CHAPTER_ADMIN);
 	}
 
 	@OpenApi(
@@ -81,7 +90,7 @@ public class ToolController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getAllTools(Context ctx) {
+	public void getAllTools(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int pageSize = PaginationUtil.parsePageSize(ctx);
@@ -124,7 +133,7 @@ public class ToolController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getTool(Context ctx) {
+	public void getTool(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int toolId = Integer.parseInt(ctx.pathParam("id"));
@@ -180,7 +189,7 @@ public class ToolController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void insertTool(Context ctx) {
+	public void insertTool(Context ctx) {
 		InsertToolRequest request = ctx.bodyAsClass(InsertToolRequest.class);
 		if (request.chapterId() == 0 || request.description() == null) {
 			ctx.status(400).result("Missing required parameters");
@@ -204,7 +213,7 @@ public class ToolController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertTool(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -235,7 +244,7 @@ public class ToolController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void deleteTool(Context ctx) {
+	public void deleteTool(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int toolId = Integer.parseInt(ctx.pathParam("id"));
@@ -290,7 +299,7 @@ public class ToolController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void updateTool(Context ctx) {
+	public void updateTool(Context ctx) {
 		InsertToolRequest request = ctx.bodyAsClass(InsertToolRequest.class);
 		if (request.chapterId() == 0 || request.description() == null) {
 			ctx.status(400).result("Missing required parameters");
@@ -314,7 +323,7 @@ public class ToolController {
 		}
 
 		try {
-			AuthController.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateTool(request, ctx.attribute("username"));
 			ctx.status(201).result("Tool updated successfully");
 		} catch (ToolNotFoundException e) {
@@ -348,7 +357,7 @@ public class ToolController {
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
-	public static void getToolChangelog(Context ctx) {
+	public void getToolChangelog(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int toolId = Integer.parseInt(ctx.pathParam("id"));

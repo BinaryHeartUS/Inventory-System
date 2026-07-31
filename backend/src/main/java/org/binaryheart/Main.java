@@ -2,6 +2,8 @@ package org.binaryheart;
 
 import static io.javalin.apibuilder.ApiBuilder.path;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.javalin.Javalin;
@@ -23,6 +25,18 @@ import org.binaryheart.controllers.ToolController;
 
 public class Main {
 	public static void main(String[] args) {
+		Injector injector = Guice.createInjector();
+		AccountController accountController = injector.getInstance(AccountController.class);
+		AssetController assetController = injector.getInstance(AssetController.class);
+		AuthController authController = injector.getInstance(AuthController.class);
+		ChapterController chapterController = injector.getInstance(ChapterController.class);
+		DeviceController deviceController = injector.getInstance(DeviceController.class);
+		HealthController healthController = injector.getInstance(HealthController.class);
+		LookupController lookupController = injector.getInstance(LookupController.class);
+		NoteController noteController = injector.getInstance(NoteController.class);
+		PartController partController = injector.getInstance(PartController.class);
+		PartyController partyController = injector.getInstance(PartyController.class);
+		ToolController toolController = injector.getInstance(ToolController.class);
 
 		Javalin.create(config -> {
 			config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
@@ -38,19 +52,19 @@ public class Main {
 			config.registerPlugin(new SwaggerPlugin());
 			config.routes.beforeMatched(JwtAccessManager::handle);
 			config.routes.apiBuilder(() -> {
-				path("/api", HealthController::registerRoutes);
-				path("/api/devices", DeviceController::registerRoutes);
-				path("/api/auth", AuthController::registerRoutes);
-				path("/api/accounts", AccountController::registerRoutes);
-				path("/api/chapters", ChapterController::registerRoutes);
-				path("/api/lookup", LookupController::registerRoutes);
+				path("/api", healthController::registerRoutes);
+				path("/api/devices", deviceController::registerRoutes);
+				path("/api/auth", authController::registerRoutes);
+				path("/api/accounts", accountController::registerRoutes);
+				path("/api/chapters", chapterController::registerRoutes);
+				path("/api/lookup", lookupController::registerRoutes);
 				path("/api/assets", () -> {
-					AssetController.registerRoutes();
-					NoteController.registerRoutes();
+					assetController.registerRoutes();
+					noteController.registerRoutes();
 				});
-				path("/api/parts", PartController::registerRoutes);
-				path("/api/tools", ToolController::registerRoutes);
-				path("/api/party", PartyController::registerRoutes);
+				path("/api/parts", partController::registerRoutes);
+				path("/api/tools", toolController::registerRoutes);
+				path("/api/party", partyController::registerRoutes);
 			});
 		}).start(8080);
 	}
