@@ -71,11 +71,13 @@ public class LookupController {
 					description = "Database error")})
 	public static void addManufacturer(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addManufacturer(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -100,11 +102,13 @@ public class LookupController {
 					description = "Database error")})
 	public static void addRamGeneration(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addRamGeneration(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -129,11 +133,13 @@ public class LookupController {
 					description = "Database error")})
 	public static void addStorageType(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addStorageType(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -158,11 +164,13 @@ public class LookupController {
 					description = "Database error")})
 	public static void addPartType(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addPartType(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -299,11 +307,13 @@ public class LookupController {
 					description = "Database error")})
 	public static void addOperatingSystem(Context ctx) {
 		AddLookupRequest req = ctx.bodyAsClass(AddLookupRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("name is required");
+			return;
+		}
 		try {
 			service.addOperatingSystem(req.name());
 			ctx.status(201);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}

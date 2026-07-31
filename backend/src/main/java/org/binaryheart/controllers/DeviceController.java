@@ -24,7 +24,6 @@ import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
@@ -43,6 +42,9 @@ import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
 
 public class DeviceController {
+	private static final List<String> VALID_TYPES = List.of("desktop", "laptop", "tablet", "total");
+	private static final List<String> VALID_STATUSES = List.of("active", "not-started", "in-progress",
+		"ready-to-donate", "donated");
 
 	private static final DeviceService service = new DeviceService();
 	private static final ChapterService chapterService = new ChapterService();
@@ -161,6 +163,14 @@ public class DeviceController {
 	public static void getDeviceCount(Context ctx) {
 		String type = ctx.pathParam("type").toLowerCase();
 		String status = ctx.queryParam("status") == null ? "active" : ctx.queryParam("status").toLowerCase();
+		if (!VALID_TYPES.contains(type)) {
+			ctx.status(400).result("Unknown device type: " + type);
+			return;
+		}
+		if (!VALID_STATUSES.contains(status)) {
+			ctx.status(400).result("Unknown status: " + status);
+			return;
+		}
 
 		try {
 			List<Integer> requestedChapterIds = parseChapterIds(ctx);
@@ -417,7 +427,10 @@ public class DeviceController {
 		if (raw == null || raw.isBlank())
 			return 12;
 		try {
-			return Integer.parseInt(raw.trim());
+			int months = Integer.parseInt(raw.trim());
+			if (months < 1 || months > 120)
+				throw new BadArgumentException("months must be between 1 and 120");
+			return months;
 		} catch (NumberFormatException e) {
 			throw new BadArgumentException("Invalid value for 'months': " + raw);
 		}
@@ -451,6 +464,10 @@ public class DeviceController {
 		String idStr = ctx.pathParam("id");
 		try {
 			int id = Integer.parseInt(idStr);
+			if (id <= 0) {
+				ctx.status(400).result("Device ID must be positive");
+				return;
+			}
 			GetDeviceResponse result = service.getDevice(id);
 			Integer deviceChapterId = chapterService.getChapterIdByName(result.chapter());
 			if (deviceChapterId == null)
@@ -459,8 +476,6 @@ public class DeviceController {
 			ctx.status(200).json(result);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric device ID: " + idStr);
-		} catch (BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
@@ -645,13 +660,36 @@ public class DeviceController {
 					description = "Database error")})
 	public static void insertDesktop(Context ctx) {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
+		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
+			|| request.model() == null || request.year() == 0 || request.status() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.ram() != null && request.ram() <= 0) {
+			ctx.status(400).result("RAM amount must be positive or not specified");
+			return;
+		}
+		if (request.storageAmount() != null && request.storageAmount() <= 0) {
+			ctx.status(400).result("Storage amount must be positive or not specified");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() != null && request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertDesktop(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
@@ -707,13 +745,45 @@ public class DeviceController {
 					description = "Database error")})
 	public static void insertLaptop(Context ctx) {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
+		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
+			|| request.model() == null || request.year() == 0 || request.status() == null
+			|| request.includesCharger() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.ram() != null && request.ram() <= 0) {
+			ctx.status(400).result("RAM amount must be positive or not specified");
+			return;
+		}
+		if (request.storageAmount() != null && request.storageAmount() <= 0) {
+			ctx.status(400).result("Storage amount must be positive or not specified");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() != null && request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive or not specified");
+			return;
+		}
+		if (request.designBatteryCapacity() != null && request.designBatteryCapacity() <= 0) {
+			ctx.status(400).result("Design battery capacity must be positive or not specified");
+			return;
+		}
+		if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
+			ctx.status(400).result("Actual battery capacity must be non-negative or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertLaptop(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
@@ -768,13 +838,37 @@ public class DeviceController {
 					description = "Database error")})
 	public static void insertTablet(Context ctx) {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
+		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
+			|| request.model() == null || request.year() == 0 || request.status() == null
+			|| request.includesCharger() == null || request.workingBattery() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.ram() != null && request.ram() <= 0) {
+			ctx.status(400).result("RAM amount must be positive or not specified");
+			return;
+		}
+		if (request.storageAmount() != null && request.storageAmount() <= 0) {
+			ctx.status(400).result("Storage amount must be positive or not specified");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() != null && request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertTablet(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
@@ -830,13 +924,37 @@ public class DeviceController {
 					description = "Database error")})
 	public static void updateDesktop(Context ctx) {
 		InsertDesktopRequest request = ctx.bodyAsClass(InsertDesktopRequest.class);
+		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
+			|| request.model() == null || request.year() == 0 || request.status() == null
+			|| request.assetId() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.ram() != null && request.ram() <= 0) {
+			ctx.status(400).result("RAM amount must be positive or not specified");
+			return;
+		}
+		if (request.storageAmount() != null && request.storageAmount() <= 0) {
+			ctx.status(400).result("Storage amount must be positive or not specified");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateDesktop(request, ctx.attribute("username"));
 			ctx.status(201).result("Desktop updated successfully");
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
@@ -894,13 +1012,45 @@ public class DeviceController {
 					description = "Database error")})
 	public static void updateLaptop(Context ctx) {
 		InsertLaptopRequest request = ctx.bodyAsClass(InsertLaptopRequest.class);
+		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
+			|| request.model() == null || request.year() == 0 || request.status() == null
+			|| request.includesCharger() == null || request.assetId() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.ram() != null && request.ram() <= 0) {
+			ctx.status(400).result("RAM amount must be positive or not specified");
+			return;
+		}
+		if (request.storageAmount() != null && request.storageAmount() <= 0) {
+			ctx.status(400).result("Storage amount must be positive or not specified");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive");
+			return;
+		}
+		if (request.designBatteryCapacity() != null && request.designBatteryCapacity() < 0) {
+			ctx.status(400).result("Design battery capacity must be non-negative or not specified");
+			return;
+		}
+		if (request.actualBatteryCapacity() != null && request.actualBatteryCapacity() < 0) {
+			ctx.status(400).result("Actual battery capacity must be non-negative or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateLaptop(request, ctx.attribute("username"));
 			ctx.status(200).result("Laptop updated successfully");
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
@@ -957,13 +1107,37 @@ public class DeviceController {
 					description = "Database error")})
 	public static void updateTablet(Context ctx) {
 		InsertTabletRequest request = ctx.bodyAsClass(InsertTabletRequest.class);
+		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
+			|| request.model() == null || request.year() == 0 || request.status() == null
+			|| request.includesCharger() == null || request.workingBattery() == null || request.assetId() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.ram() != null && request.ram() <= 0) {
+			ctx.status(400).result("RAM amount must be positive or not specified");
+			return;
+		}
+		if (request.storageAmount() != null && request.storageAmount() <= 0) {
+			ctx.status(400).result("Storage amount must be positive or not specified");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateTablet(request, ctx.attribute("username"));
 			ctx.status(200).result("Tablet updated successfully");
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
@@ -999,16 +1173,19 @@ public class DeviceController {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int deviceID = Integer.parseInt(ctx.pathParam("id"));
+			if (deviceID <= 0) {
+				ctx.status(400).result("Device ID must be a positive integer");
+				return;
+			}
 			DeviceChangelogResponse[] changelog = service.getDeviceChangelog(userChapterIds, deviceID);
 			ctx.status(200).json(changelog);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Device ID must be a positive integer");
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (InvalidParameterException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
 	}
+
 }

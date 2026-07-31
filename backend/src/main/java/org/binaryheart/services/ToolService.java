@@ -6,7 +6,6 @@ import java.util.List;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.ToolNotFoundException;
 import org.binaryheart.requests.ToolListRequest;
 import org.binaryheart.repositories.ToolRepository;
@@ -32,11 +31,7 @@ public class ToolService {
 		return repository.getTools(effectiveChapterIds, q);
 	}
 
-	public GetToolResponse getTool(List<Integer> userChapterIds, Integer toolID)
-		throws SQLException, MissingRequiredParametersException {
-		if (toolID == null || toolID <= 0) {
-			throw new MissingRequiredParametersException("Non-numeric or non-positive tool ID provided");
-		}
+	public GetToolResponse getTool(List<Integer> userChapterIds, Integer toolID) throws SQLException {
 		if (userChapterIds == null || userChapterIds.isEmpty())
 			return null;
 
@@ -48,23 +43,7 @@ public class ToolService {
 		return null;
 	}
 
-	public int insertTool(InsertToolRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, DuplicateKeyException, SQLException {
-		if (request.chapterId() == 0 || request.description() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.description().length() == 0) {
-			throw new BadArgumentException("Description cannot be emptry string");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() != null && request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive or not specified");
-		}
+	public int insertTool(InsertToolRequest request, String username) throws DuplicateKeyException, SQLException {
 		try {
 			return repository.insertTool(request, username);
 		} catch (SQLException e) {
@@ -76,23 +55,7 @@ public class ToolService {
 		}
 	}
 
-	public void updateTool(InsertToolRequest request, String username)
-		throws MissingRequiredParametersException, BadArgumentException, ToolNotFoundException, SQLException {
-		if (request.chapterId() == 0 || request.description() == null) {
-			throw new MissingRequiredParametersException("Missing required parameters");
-		}
-		if (request.description().length() == 0) {
-			throw new BadArgumentException("Description cannot be emptry string");
-		}
-		if (request.value() != null && request.value() < 0) {
-			throw new BadArgumentException("Value must be non-negative or not specified");
-		}
-		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
-			throw new BadArgumentException("Acquisition date cannot be in the future");
-		}
-		if (request.assetId() != null && request.assetId() <= 0) {
-			throw new BadArgumentException("Asset ID must be positive or not specified");
-		}
+	public void updateTool(InsertToolRequest request, String username) throws ToolNotFoundException, SQLException {
 		try {
 			repository.updateTool(request, username);
 		} catch (SQLException e) {
@@ -105,11 +68,7 @@ public class ToolService {
 	}
 
 	public ToolChangelogResponse[] getToolChangelog(List<Integer> userChapterIds, Integer toolId)
-		throws SQLException, MissingRequiredParametersException, InvalidParameterException {
-		if (toolId == null || toolId <= 0)
-			throw new MissingRequiredParametersException(
-				"Non-numeric or non-positive tool ID provided, must be positive integer");
-
+		throws SQLException, InvalidParameterException {
 		GetToolResponse tool = repository.getTool(toolId);
 		if (tool == null || (!userChapterIds.contains(tool.chapterId())
 			&& !userChapterIds.contains(chapterService.getNationalChapterId()))) {
@@ -121,10 +80,6 @@ public class ToolService {
 
 	public void deleteTool(List<Integer> userChapterIDs, Integer toolID)
 		throws SQLException, BadArgumentException, ToolNotFoundException {
-		if (toolID == null || toolID < 0) {
-			throw new BadArgumentException("Non-numeric or non-positive tool ID provied");
-		}
-
 		GetToolResponse tool = repository.getTool(toolID);
 		if ((tool != null && userChapterIDs.contains(tool.chapterId()))
 			|| userChapterIDs.contains(chapterService.getNationalChapterId())) {

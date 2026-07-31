@@ -76,9 +76,6 @@ public class ChapterService {
 	}
 
 	public ChapterSummary createChapter(String name) throws SQLException {
-		if (name == null || name.isBlank()) {
-			throw new IllegalArgumentException("Chapter name must not be blank");
-		}
 		return repository.createChapter(name.strip());
 	}
 }

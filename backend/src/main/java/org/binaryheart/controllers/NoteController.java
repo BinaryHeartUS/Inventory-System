@@ -8,7 +8,6 @@ import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.sql.SQLException;
 import org.binaryheart.auth.AppRole;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.requests.PostNoteRequest;
 import org.binaryheart.responses.NoteResponse;
 import org.binaryheart.services.NoteService;
@@ -53,17 +52,17 @@ public class NoteController {
 					status = "500",
 					description = "Database error")})
 	public static void postNote(Context ctx) {
+		PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
+		if (body.text() == null || body.text().isEmpty()) {
+			ctx.status(400).result("Missing required parameter(s)");
+			return;
+		}
 		try {
-			PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
 			NoteResponse res = service.addNote(assetId, body.text());
 			ctx.status(200).json(res);
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: ".concat(e.getMessage()));
-			return;
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result("Missing required parameter(s)");
-			return;
 		}
 	}
 
@@ -128,8 +127,12 @@ public class NoteController {
 					status = "500",
 					description = "Database error")})
 	public static void updateNote(Context ctx) {
+		PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
+		if (body.text() == null || body.text().isEmpty()) {
+			ctx.status(400).result("Missing required parameter(s)");
+			return;
+		}
 		try {
-			PostNoteRequest body = ctx.bodyAsClass(PostNoteRequest.class);
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
 			int noteId = Integer.parseInt(ctx.pathParam("noteId"));
 			int chapterId = service.getAssetChapterId(assetId);
@@ -138,10 +141,6 @@ public class NoteController {
 			ctx.status(201).result("Note updated successfully");
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: ".concat(e.getMessage()));
-			return;
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result("Missing required parameter(s)");
-			return;
 		}
 	}
 }

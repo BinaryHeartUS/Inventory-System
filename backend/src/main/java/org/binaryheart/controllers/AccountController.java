@@ -58,6 +58,11 @@ public class AccountController {
 					description = "Database error")})
 	public static void createAccount(Context ctx) {
 		CreateAccountRequest request = ctx.bodyAsClass(CreateAccountRequest.class);
+		if (request.name() == null || request.name().isBlank() || request.username() == null
+			|| request.username().isBlank() || request.password() == null || request.password().isBlank()) {
+			ctx.status(400).result("Name, username, and password are required");
+			return;
+		}
 		String creatorRole = ctx.attribute("role");
 		List<ChapterRole> creatorChapterRoles = ctx.attribute("chapterRoles");
 
@@ -181,6 +186,10 @@ public class AccountController {
 		}
 
 		UpdatePasswordRequest request = ctx.bodyAsClass(UpdatePasswordRequest.class);
+		if (request.newPassword() == null || request.newPassword().isBlank()) {
+			ctx.status(400).result("New password is required");
+			return;
+		}
 
 		try {
 			service.updatePassword(volunteerId, ctx.attribute("username"), request);

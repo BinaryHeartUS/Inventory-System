@@ -75,6 +75,11 @@ public class ChapterController {
 					status = "500",
 					description = "Database error")})
 	public static void createChapter(Context ctx) {
+		CreateChapterRequest req = ctx.bodyAsClass(CreateChapterRequest.class);
+		if (req.name() == null || req.name().isBlank()) {
+			ctx.status(400).result("Chapter name must not be blank");
+			return;
+		}
 		List<Integer> chapterIds = ctx.attribute("chapterIds");
 		try {
 			int nationalId = service.getNationalChapterId();
@@ -89,12 +94,9 @@ public class ChapterController {
 			return;
 		}
 
-		CreateChapterRequest req = ctx.bodyAsClass(CreateChapterRequest.class);
 		try {
 			ChapterSummary created = service.createChapter(req.name());
 			ctx.status(201).json(created);
-		} catch (IllegalArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error");
 			e.printStackTrace();

@@ -15,9 +15,7 @@ import io.javalin.openapi.OpenApiSecurity;
 import java.sql.SQLException;
 import java.util.List;
 import org.binaryheart.auth.AppRole;
-import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartyNotFoundException;
 import org.binaryheart.requests.InsertOrganizationRequest;
 import org.binaryheart.requests.InsertPersonRequest;
@@ -72,6 +70,7 @@ public class PartyController {
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
+		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -102,17 +101,20 @@ public class PartyController {
 		String idStr = ctx.pathParam("id");
 		try {
 			int id = Integer.parseInt(idStr);
+			if (id <= 0) {
+				ctx.status(400).result("Party ID must be positive");
+				return;
+			}
 			GetPartyResponse result = service.getParty(id);
 			ctx.status(200).json(result);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric party ID: " + idStr);
-		} catch (BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (PartyNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
+		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -149,18 +151,31 @@ public class PartyController {
 					description = "Database error")})
 	public static void insertOrg(Context ctx) {
 		InsertOrganizationRequest request = ctx.bodyAsClass(InsertOrganizationRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Organization name must be non-null");
+			return;
+		}
+		if (request.contactName() != null && request.contactName().isEmpty()) {
+			ctx.status(400).result("Contact name must be non-empty, or null");
+			return;
+		}
+		if (request.contactEmail() != null && request.contactEmail().isEmpty()) {
+			ctx.status(400).result("Contact email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 
 		try {
 			service.addOrganization(request);
 			ctx.status(201).result("Organization added successfully");
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
-		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -196,18 +211,27 @@ public class PartyController {
 					description = "Database error")})
 	public static void insertPerson(Context ctx) {
 		InsertPersonRequest request = ctx.bodyAsClass(InsertPersonRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Person name must be non-null");
+			return;
+		}
+		if (request.email() != null && request.email().isEmpty()) {
+			ctx.status(400).result("Email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 
 		try {
 			service.addPerson(request);
 			ctx.status(201).result("Person added successfully");
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
-		ctx.status(201);
 	}
 
 	@OpenApi(
@@ -246,15 +270,29 @@ public class PartyController {
 					description = "Database error")})
 	public static void updatePerson(Context ctx) {
 		String idStr = ctx.pathParam("id");
+		UpdatePersonRequest request = ctx.bodyAsClass(UpdatePersonRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Person name must be non-null");
+			return;
+		}
+		if (request.email() != null && request.email().isEmpty()) {
+			ctx.status(400).result("Email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 		try {
 			int id = Integer.parseInt(idStr);
-			UpdatePersonRequest request = ctx.bodyAsClass(UpdatePersonRequest.class);
+			if (id <= 0) {
+				ctx.status(400).result("Party ID must be positive");
+				return;
+			}
 			service.updatePerson(id, request);
 			ctx.status(204);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric party ID: " + idStr);
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (PartyNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
@@ -299,15 +337,33 @@ public class PartyController {
 					description = "Database error")})
 	public static void updateOrganization(Context ctx) {
 		String idStr = ctx.pathParam("id");
+		UpdateOrganizationRequest request = ctx.bodyAsClass(UpdateOrganizationRequest.class);
+		if (request.name() == null) {
+			ctx.status(400).result("Organization name must be non-null");
+			return;
+		}
+		if (request.contactName() != null && request.contactName().isEmpty()) {
+			ctx.status(400).result("Contact name must be non-empty, or null");
+			return;
+		}
+		if (request.contactEmail() != null && request.contactEmail().isEmpty()) {
+			ctx.status(400).result("Contact email must be non-empty, or null");
+			return;
+		}
+		if (request.location() != null && request.location().isEmpty()) {
+			ctx.status(400).result("Location must be non-empty, or null");
+			return;
+		}
 		try {
 			int id = Integer.parseInt(idStr);
-			UpdateOrganizationRequest request = ctx.bodyAsClass(UpdateOrganizationRequest.class);
+			if (id <= 0) {
+				ctx.status(400).result("Party ID must be positive");
+				return;
+			}
 			service.updateOrganization(id, request);
 			ctx.status(204);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric party ID: " + idStr);
-		} catch (BadArgumentException | MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (PartyNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {

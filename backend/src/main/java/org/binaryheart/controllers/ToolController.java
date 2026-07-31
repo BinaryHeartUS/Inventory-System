@@ -14,7 +14,6 @@ import org.binaryheart.auth.AppRole;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.ToolNotFoundException;
 import org.binaryheart.requests.ToolListRequest;
 import org.binaryheart.requests.InsertToolRequest;
@@ -128,7 +127,12 @@ public class ToolController {
 	public static void getTool(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
-			GetToolResponse tool = service.getTool(userChapterIds, Integer.parseInt(ctx.pathParam("id")));
+			int toolId = Integer.parseInt(ctx.pathParam("id"));
+			if (toolId <= 0) {
+				ctx.status(400).result("Tool ID must be a positive integer");
+				return;
+			}
+			GetToolResponse tool = service.getTool(userChapterIds, toolId);
 
 			if (tool == null) {
 				ctx.status(404).result("No tool with provided ID found");
@@ -139,9 +143,6 @@ public class ToolController {
 			ctx.status(400).result("Tool ID was not an integer");
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
-			return;
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result("Tool ID must be a positive integer");
 		}
 	}
 
@@ -181,13 +182,31 @@ public class ToolController {
 					description = "Database error")})
 	public static void insertTool(Context ctx) {
 		InsertToolRequest request = ctx.bodyAsClass(InsertToolRequest.class);
+		if (request.chapterId() == 0 || request.description() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.description().isEmpty()) {
+			ctx.status(400).result("Description cannot be empty string");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() != null && request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertTool(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
@@ -219,14 +238,19 @@ public class ToolController {
 	public static void deleteTool(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
-			service.deleteTool(userChapterIds, Integer.parseInt(ctx.pathParam("id")));
+			int toolId = Integer.parseInt(ctx.pathParam("id"));
+			if (toolId <= 0) {
+				ctx.status(400).result("Tool ID must be a positive integer");
+				return;
+			}
+			service.deleteTool(userChapterIds, toolId);
 			ctx.status(204).result("Tool deleted successfully");
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Tool ID must be a positive integer");
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		} catch (BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());
-		} catch (ToolNotFoundException e) {
-			ctx.status(404).result(e.getMessage());
 		}
 	}
 
@@ -268,13 +292,31 @@ public class ToolController {
 					description = "Database error")})
 	public static void updateTool(Context ctx) {
 		InsertToolRequest request = ctx.bodyAsClass(InsertToolRequest.class);
+		if (request.chapterId() == 0 || request.description() == null) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.description().isEmpty()) {
+			ctx.status(400).result("Description cannot be empty string");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.assetId() != null && request.assetId() <= 0) {
+			ctx.status(400).result("Asset ID must be positive or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			service.updateTool(request, ctx.attribute("username"));
 			ctx.status(201).result("Tool updated successfully");
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (ToolNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
@@ -310,12 +352,14 @@ public class ToolController {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int toolId = Integer.parseInt(ctx.pathParam("id"));
+			if (toolId <= 0) {
+				ctx.status(400).result("Tool ID must be a positive integer");
+				return;
+			}
 			ToolChangelogResponse[] changelog = service.getToolChangelog(userChapterIds, toolId);
 			ctx.status(200).json(changelog);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Tool ID must be a positive integer");
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (InvalidParameterException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {

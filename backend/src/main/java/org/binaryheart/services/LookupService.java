@@ -27,22 +27,18 @@ public class LookupService {
 	}
 
 	public void addManufacturer(String name) throws SQLException {
-		validateName(name);
 		repository.insertManufacturer(name.strip());
 	}
 
 	public void addRamGeneration(String name) throws SQLException {
-		validateName(name);
 		repository.insertRamGeneration(name.strip());
 	}
 
 	public void addStorageType(String name) throws SQLException {
-		validateName(name);
 		repository.insertStorageType(name.strip());
 	}
 
 	public void addPartType(String name) throws SQLException {
-		validateName(name);
 		repository.insertPartType(name.strip());
 	}
 
@@ -63,7 +59,6 @@ public class LookupService {
 	}
 
 	public void addOperatingSystem(String name) throws SQLException {
-		validateName(name);
 		repository.insertOperatingSystem(name.strip());
 	}
 
@@ -71,9 +66,4 @@ public class LookupService {
 		repository.deleteOperatingSystem(name);
 	}
 
-	private static void validateName(String name) {
-		if (name == null || name.isBlank()) {
-			throw new IllegalArgumentException("name is required");
-		}
-	}
 }

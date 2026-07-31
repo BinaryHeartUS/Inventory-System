@@ -14,7 +14,6 @@ import org.binaryheart.auth.AppRole;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
-import org.binaryheart.exceptions.MissingRequiredParametersException;
 import org.binaryheart.exceptions.PartNotFoundException;
 import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.requests.InsertPartRequest;
@@ -215,17 +214,22 @@ public class PartController {
 	public static void getPart(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
-			PartResponse res = service.getPart(userChapterIds, Integer.parseInt(ctx.pathParam("id")));
+			int partId = Integer.parseInt(ctx.pathParam("id"));
+			if (partId <= 0) {
+				ctx.status(400).result("Part ID must be positive integer; was non-numeric or non-positive");
+				return;
+			}
+			PartResponse res = service.getPart(userChapterIds, partId);
 
 			if (res == null) {
 				ctx.status(404).result("No part with provided ID found");
 			} else {
 				ctx.status(200).json(res);
 			}
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Part ID must be positive integer; was non-numeric or non-positive");
 		} catch (SQLException e) {
 			ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result("Part ID must be positive integer; was non-numeric or non-positive");
 		}
 	}
 
@@ -253,8 +257,15 @@ public class PartController {
 	public static void deletePart(Context ctx) {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
-			service.deletePart(userChapterIds, Integer.parseInt(ctx.pathParam("id")), ctx.attribute("username"));
+			int partId = Integer.parseInt(ctx.pathParam("id"));
+			if (partId <= 0) {
+				ctx.status(400).result("Part ID must be a positive integer");
+				return;
+			}
+			service.deletePart(userChapterIds, partId, ctx.attribute("username"));
 			ctx.status(204);
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Part ID must be a positive integer");
 		} catch (SQLException e) {
 			ctx.status(500).result("Datbase error: ".concat(e.getMessage()));
 		} catch (InvalidParameterException e) {
@@ -304,13 +315,36 @@ public class PartController {
 					description = "Database error"),})
 	public static void updatePart(Context ctx) {
 		InsertPartRequest request = ctx.bodyAsClass(InsertPartRequest.class);
+		if (request.chapterId() == 0 || request.type() == null || request.type().isEmpty()
+			|| request.wasPurchased() == null || request.description() == null || request.description().isEmpty()) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.containedIn() != null && request.containedIn() <= 0) {
+			ctx.status(400).result("Contained In ID must be positive or not specified");
+			return;
+		}
+		if (request.id() != null && request.id() <= 0) {
+			ctx.status(400).result("Asset ID must be positive or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.donorId() != null && request.donorId() <= 0) {
+			ctx.status(400).result("Donor ID must be positive or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			service.updatePart(request, ctx.attribute("username"));
 			ctx.status(201).result("Part updated successfully");
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (PartNotFoundException e) {
 			ctx.status(401).result(e.getMessage());
 		} catch (SQLException e) {
@@ -343,12 +377,14 @@ public class PartController {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int deviceId = Integer.parseInt(ctx.pathParam("deviceId"));
+			if (deviceId <= 0) {
+				ctx.status(400).result("Device ID must be a positive integer");
+				return;
+			}
 			PartResponse[] res = service.getPartsByDevice(userChapterIds, deviceId);
 			ctx.status(200).json(res);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Device ID must be a positive integer");
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
@@ -393,13 +429,36 @@ public class PartController {
 					description = "Database error")})
 	public static void insertPart(Context ctx) {
 		InsertPartRequest request = ctx.bodyAsClass(InsertPartRequest.class);
+		if (request.chapterId() == 0 || request.type() == null || request.type().isEmpty()
+			|| request.wasPurchased() == null || request.description() == null || request.description().isEmpty()) {
+			ctx.status(400).result("Missing required parameters");
+			return;
+		}
+		if (request.containedIn() != null && request.containedIn() <= 0) {
+			ctx.status(400).result("Contained In ID must be positive or not specified");
+			return;
+		}
+		if (request.id() != null && request.id() <= 0) {
+			ctx.status(400).result("Asset ID must be positive or not specified");
+			return;
+		}
+		if (request.acquisitionDate() != null && request.acquisitionDate().isAfter(java.time.LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+		if (request.value() != null && request.value() < 0) {
+			ctx.status(400).result("Value must be non-negative or not specified");
+			return;
+		}
+		if (request.donorId() != null && request.donorId() <= 0) {
+			ctx.status(400).result("Donor ID must be positive or not specified");
+			return;
+		}
 
 		try {
 			AuthController.requireChapterEditAccess(ctx, request.chapterId());
 			int newId = service.insertPart(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
-		} catch (MissingRequiredParametersException | BadArgumentException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (DuplicateKeyException e) {
 			ctx.status(409).result(e.getMessage());
 		} catch (SQLException e) {
@@ -435,12 +494,14 @@ public class PartController {
 		try {
 			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int partId = Integer.parseInt(ctx.pathParam("id"));
+			if (partId <= 0) {
+				ctx.status(400).result("Part ID must be a positive integer");
+				return;
+			}
 			PartChangelogResponse[] changelog = service.getPartChangelog(userChapterIds, partId);
 			ctx.status(200).json(changelog);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Part ID must be a positive integer");
-		} catch (MissingRequiredParametersException e) {
-			ctx.status(400).result(e.getMessage());
 		} catch (InvalidParameterException e) {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {

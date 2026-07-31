@@ -73,11 +73,6 @@ public class AccountService {
 			}
 		}
 
-		if (request.name() == null || request.name().isBlank() || request.username() == null
-			|| request.username().isBlank() || request.password() == null || request.password().isBlank()) {
-			throw new IllegalArgumentException("Name, username, and password are required");
-		}
-
 		byte[] passwordSalt = EncryptionHelper.getNewSalt();
 		String passwordHash;
 		try {
@@ -146,10 +141,6 @@ public class AccountService {
 	}
 
 	public void updatePassword(int volunteerId, String username, UpdatePasswordRequest request) throws SQLException {
-		if (request.newPassword() == null || request.newPassword().isBlank()) {
-			throw new IllegalArgumentException("New password is required");
-		}
-
 		AuthRepository authRepo = new AuthRepository();
 		VolunteerCredentials credentials = authRepo.findByUsername(username);
 
