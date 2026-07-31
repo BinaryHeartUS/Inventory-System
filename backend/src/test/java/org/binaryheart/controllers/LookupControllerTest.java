@@ -69,6 +69,42 @@ class LookupControllerTest {
 	}
 
 	@Test
+	void everyOtherInsertAndDeleteDelegates() throws Exception {
+		LookupService service = mock(LookupService.class);
+		Context addRam = addContext("DDR4");
+		Context addStorage = addContext("SSD");
+		Context addPart = addContext("RAM");
+		Context addOperatingSystem = addContext("Linux");
+		Context deleteRam = deleteContext("DDR4");
+		Context deleteStorage = deleteContext("SSD");
+		Context deletePart = deleteContext("RAM");
+		Context deleteOperatingSystem = deleteContext("Linux");
+		service.addRamGeneration("DDR4");
+		service.addStorageType("SSD");
+		service.addPartType("RAM");
+		service.addOperatingSystem("Linux");
+		service.removeRamGeneration("DDR4");
+		service.removeStorageType("SSD");
+		service.removePartType("RAM");
+		service.removeOperatingSystem("Linux");
+		replay(service, addRam, addStorage, addPart, addOperatingSystem, deleteRam, deleteStorage, deletePart,
+			deleteOperatingSystem);
+		LookupController controller = new LookupController(service);
+
+		controller.addRamGeneration(addRam);
+		controller.addStorageType(addStorage);
+		controller.addPartType(addPart);
+		controller.addOperatingSystem(addOperatingSystem);
+		controller.deleteRamGeneration(deleteRam);
+		controller.deleteStorageType(deleteStorage);
+		controller.deletePartType(deletePart);
+		controller.deleteOperatingSystem(deleteOperatingSystem);
+
+		verify(service, addRam, addStorage, addPart, addOperatingSystem, deleteRam, deleteStorage, deletePart,
+			deleteOperatingSystem);
+	}
+
+	@Test
 	void getAllDelegates() throws Exception {
 		LookupService service = mock(LookupService.class);
 		Context context = mock(Context.class);
@@ -89,6 +125,20 @@ class LookupControllerTest {
 			Arguments.of((BiConsumer<LookupController, Context>) LookupController::addStorageType),
 			Arguments.of((BiConsumer<LookupController, Context>) LookupController::addPartType),
 			Arguments.of((BiConsumer<LookupController, Context>) LookupController::addOperatingSystem));
+	}
+
+	private Context addContext(String name) {
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(AddLookupRequest.class)).andReturn(new AddLookupRequest(name));
+		expectStatus(context, 201);
+		return context;
+	}
+
+	private Context deleteContext(String name) {
+		Context context = mock(Context.class);
+		expect(context.pathParam("name")).andReturn(name);
+		expectStatus(context, 204);
+		return context;
 	}
 
 	private void expectStatus(Context context, int status) {

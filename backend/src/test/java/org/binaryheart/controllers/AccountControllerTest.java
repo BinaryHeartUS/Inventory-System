@@ -74,6 +74,24 @@ class AccountControllerTest {
 	}
 
 	@Test
+	void deleteAccountForwardsAuthenticatedContext() throws Exception {
+		AccountService service = mock(AccountService.class);
+		Context context = mock(Context.class);
+		List<ChapterRole> roles = List.of(new ChapterRole(1, "Admin"));
+		expect(context.pathParam("id")).andReturn("8");
+		expect(context.<Integer>attribute("volunteerId")).andReturn(7);
+		expect(context.<String>attribute("role")).andReturn("Admin");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(roles);
+		service.deleteAccount(8, 7, "Admin", roles);
+		expectStatus(context, 204);
+		replay(service, context);
+
+		new AccountController(service).deleteAccount(context);
+
+		verify(service, context);
+	}
+
+	@Test
 	void handlersForwardAuthenticatedContext() throws Exception {
 		AccountService service = mock(AccountService.class);
 		Context list = mock(Context.class);
