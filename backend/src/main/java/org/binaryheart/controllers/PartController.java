@@ -16,6 +16,7 @@ import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.PartNotFoundException;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.responses.IdResponse;
@@ -353,7 +354,8 @@ public class PartController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			service.updatePart(request, ctx.attribute("username"));
 			ctx.status(201).result("Part updated successfully");
 		} catch (PartNotFoundException e) {
@@ -467,7 +469,8 @@ public class PartController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			int newId = service.insertPart(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {

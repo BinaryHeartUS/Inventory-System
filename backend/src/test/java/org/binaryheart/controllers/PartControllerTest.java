@@ -13,6 +13,7 @@ import io.javalin.http.Context;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.InsertPartRequest;
 import org.binaryheart.requests.PartListRequest;
 import org.binaryheart.responses.IdResponse;
@@ -27,6 +28,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class PartControllerTest {
+	private static final List<ChapterRole> CHAPTER_ROLES = List.of(new ChapterRole(2, "Editor"));
 
 	@Test
 	void registerRoutesDefinesEndpoints() {
@@ -77,7 +79,8 @@ class PartControllerTest {
 		Context context = mock(Context.class);
 		InsertPartRequest request = part();
 		expect(context.bodyAsClass(InsertPartRequest.class)).andReturn(request);
-		authorization.requireChapterEditAccess(context, 2);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(context.<String>attribute("username")).andReturn("user");
 		expect(service.insertPart(request, "user")).andReturn(201);
 		expectJson(context, 201, new IdResponse(201));
@@ -158,7 +161,8 @@ class PartControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(InsertPartRequest.class)).andReturn(part());
-		authorization.requireChapterEditAccess(context, 2);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(context.<String>attribute("username")).andReturn("user");
 		service.updatePart(part(), "user");
 		expectResult(context, 201, "Part updated successfully");

@@ -8,7 +8,9 @@ import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.sql.SQLException;
+import java.util.List;
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.PostNoteRequest;
 import org.binaryheart.responses.NoteResponse;
 import org.binaryheart.services.AuthorizationService;
@@ -145,7 +147,7 @@ public class NoteController {
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
 			int noteId = Integer.parseInt(ctx.pathParam("noteId"));
 			int chapterId = service.getAssetChapterId(assetId);
-			authorizationService.requireChapterEditAccess(ctx, chapterId);
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"), chapterId);
 			service.updateNote(assetId, noteId, body.text());
 			ctx.status(201).result("Note updated successfully");
 		} catch (SQLException e) {

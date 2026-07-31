@@ -1,7 +1,6 @@
 package org.binaryheart.services;
 
 import com.google.inject.Inject;
-import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import java.sql.SQLException;
 import java.util.List;
@@ -18,8 +17,7 @@ public class AuthorizationService {
 		this.chapterService = chapterService;
 	}
 
-	public void requireChapterEditAccess(Context ctx, int chapterId) throws SQLException {
-		List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
+	public void requireChapterEditAccess(List<ChapterRole> chapterRoles, int chapterId) throws SQLException {
 		if (chapterRoles == null || chapterRoles.isEmpty())
 			throw new ForbiddenResponse("Access denied");
 
@@ -34,8 +32,7 @@ public class AuthorizationService {
 		throw new ForbiddenResponse("Access denied: insufficient role for chapter " + chapterId);
 	}
 
-	public void requireChapterReadAccess(Context ctx, int chapterId) throws SQLException {
-		List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
+	public void requireChapterReadAccess(List<ChapterRole> chapterRoles, int chapterId) throws SQLException {
 		if (chapterRoles == null || chapterRoles.isEmpty())
 			throw new ForbiddenResponse("Access denied");
 

@@ -13,6 +13,7 @@ import io.javalin.http.Context;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.requests.ToolListRequest;
 import org.binaryheart.responses.GetToolResponse;
@@ -26,6 +27,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class ToolControllerTest {
+	private static final List<ChapterRole> CHAPTER_ROLES = List.of(new ChapterRole(2, "Editor"));
 
 	@Test
 	void registerRoutesDefinesEndpoints() {
@@ -76,7 +78,8 @@ class ToolControllerTest {
 		Context context = mock(Context.class);
 		InsertToolRequest request = tool();
 		expect(context.bodyAsClass(InsertToolRequest.class)).andReturn(request);
-		authorization.requireChapterEditAccess(context, 2);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(context.<String>attribute("username")).andReturn("user");
 		expect(service.insertTool(request, "user")).andReturn(301);
 		expectJson(context, 201, new IdResponse(301));
@@ -140,7 +143,8 @@ class ToolControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(InsertToolRequest.class)).andReturn(tool());
-		authorization.requireChapterEditAccess(context, 2);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(context.<String>attribute("username")).andReturn("user");
 		service.updateTool(tool(), "user");
 		expectResult(context, 201, "Tool updated successfully");

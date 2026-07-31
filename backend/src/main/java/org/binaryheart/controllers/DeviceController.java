@@ -25,6 +25,7 @@ import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
@@ -485,7 +486,8 @@ public class DeviceController {
 			Integer deviceChapterId = chapterService.getChapterIdByName(result.chapter());
 			if (deviceChapterId == null)
 				throw new ForbiddenResponse("Access denied");
-			authorizationService.requireChapterReadAccess(ctx, deviceChapterId);
+			authorizationService.requireChapterReadAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				deviceChapterId);
 			ctx.status(200).json(result);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric device ID: " + idStr);
@@ -700,7 +702,8 @@ public class DeviceController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			int newId = service.insertDesktop(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -794,7 +797,8 @@ public class DeviceController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			int newId = service.insertLaptop(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -879,7 +883,8 @@ public class DeviceController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			int newId = service.insertTablet(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -965,7 +970,8 @@ public class DeviceController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			service.updateDesktop(request, ctx.attribute("username"));
 			ctx.status(201).result("Desktop updated successfully");
 		} catch (DeviceNotFoundException e) {
@@ -1061,7 +1067,8 @@ public class DeviceController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			service.updateLaptop(request, ctx.attribute("username"));
 			ctx.status(200).result("Laptop updated successfully");
 		} catch (DeviceNotFoundException e) {
@@ -1148,7 +1155,8 @@ public class DeviceController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			service.updateTablet(request, ctx.attribute("username"));
 			ctx.status(200).result("Tablet updated successfully");
 		} catch (DeviceNotFoundException e) {

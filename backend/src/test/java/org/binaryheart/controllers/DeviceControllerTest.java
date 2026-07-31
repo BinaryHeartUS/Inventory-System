@@ -15,6 +15,7 @@ import io.javalin.http.Context;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
@@ -38,6 +39,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class DeviceControllerTest {
+	private static final List<ChapterRole> CHAPTER_ROLES = List.of(new ChapterRole(2, "Editor"));
 
 	@Test
 	void registerRoutesDefinesEndpoints() {
@@ -333,7 +335,8 @@ class DeviceControllerTest {
 		expect(context.pathParam("id")).andReturn("101");
 		expect(service.getDevice(101)).andReturn(device);
 		expect(chapters.getChapterIdByName("Chapter Two")).andReturn(2);
-		authorization.requireChapterReadAccess(context, 2);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		authorization.requireChapterReadAccess(CHAPTER_ROLES, 2);
 		expectJson(context, 200, device);
 		replay(service, chapters, authorization, context);
 
@@ -427,7 +430,7 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertDesktopRequest.class, desktop(), "user");
-		authorization.requireChapterEditAccess(context, 2);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(service.insertDesktop(desktop(), "user")).andReturn(101);
 		expectJson(context, 201, new IdResponse(101));
 		replay(service, chapters, authorization, context);
@@ -443,7 +446,7 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertLaptopRequest.class, laptop(), "user");
-		authorization.requireChapterEditAccess(context, 2);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(service.insertLaptop(laptop(), "user")).andReturn(102);
 		expectJson(context, 201, new IdResponse(102));
 		replay(service, chapters, authorization, context);
@@ -459,7 +462,7 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertTabletRequest.class, tablet(), "user");
-		authorization.requireChapterEditAccess(context, 2);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(service.insertTablet(tablet(), "user")).andReturn(103);
 		expectJson(context, 201, new IdResponse(103));
 		replay(service, chapters, authorization, context);
@@ -475,7 +478,7 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertDesktopRequest.class, desktop(), "user");
-		authorization.requireChapterEditAccess(context, 2);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		service.updateDesktop(desktop(), "user");
 		expectResult(context, 201, "Desktop updated successfully");
 		replay(service, chapters, authorization, context);
@@ -491,7 +494,7 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertLaptopRequest.class, laptop(), "user");
-		authorization.requireChapterEditAccess(context, 2);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		service.updateLaptop(laptop(), "user");
 		expectResult(context, 200, "Laptop updated successfully");
 		replay(service, chapters, authorization, context);
@@ -507,7 +510,7 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertTabletRequest.class, tablet(), "user");
-		authorization.requireChapterEditAccess(context, 2);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		service.updateTablet(tablet(), "user");
 		expectResult(context, 200, "Tablet updated successfully");
 		replay(service, chapters, authorization, context);
@@ -638,6 +641,7 @@ class DeviceControllerTest {
 	private <T> Context mutationContext(Class<T> bodyType, T request, String username) {
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(bodyType)).andReturn(request);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
 		expect(context.<String>attribute("username")).andReturn(username);
 		return context;
 	}

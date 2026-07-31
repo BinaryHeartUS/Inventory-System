@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import java.util.List;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.PostNoteRequest;
 import org.binaryheart.responses.NoteResponse;
 import org.binaryheart.services.AuthorizationService;
@@ -98,7 +100,9 @@ class NoteControllerTest {
 		expect(context.pathParam("id")).andReturn("42");
 		expect(context.pathParam("noteId")).andReturn("3");
 		expect(service.getAssetChapterId(42)).andReturn(2);
-		authorization.requireChapterEditAccess(context, 2);
+		List<ChapterRole> chapterRoles = List.of(new ChapterRole(2, "Editor"));
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(chapterRoles);
+		authorization.requireChapterEditAccess(chapterRoles, 2);
 		service.updateNote(42, 3, "updated");
 		expectResult(context, 201, "Note updated successfully");
 		replay(service, authorization, context);

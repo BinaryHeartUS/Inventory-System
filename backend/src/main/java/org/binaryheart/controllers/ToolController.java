@@ -16,6 +16,7 @@ import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.exceptions.ToolNotFoundException;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.ToolListRequest;
 import org.binaryheart.requests.InsertToolRequest;
 import org.binaryheart.responses.GetToolResponse;
@@ -215,7 +216,8 @@ public class ToolController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			int newId = service.insertTool(request, ctx.attribute("username"));
 			ctx.status(201).json(new IdResponse(newId));
 		} catch (DuplicateKeyException e) {
@@ -325,7 +327,8 @@ public class ToolController {
 		}
 
 		try {
-			authorizationService.requireChapterEditAccess(ctx, request.chapterId());
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
 			service.updateTool(request, ctx.attribute("username"));
 			ctx.status(201).result("Tool updated successfully");
 		} catch (ToolNotFoundException e) {
