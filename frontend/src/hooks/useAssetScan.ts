@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useToast } from "../context/ToastContext";
 import { useAddAsset } from "../context/AddAssetContext";
 import { getDevice } from "../services/deviceService";

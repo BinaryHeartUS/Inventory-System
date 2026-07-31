@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import type { Part } from "../types/inventory";
 import { useChapters } from "../context/ChapterContext";
 import { PartRow } from "../components/parts/PartRow";

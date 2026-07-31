@@ -22,11 +22,11 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   const { auth } = useAuth();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
-  const [editing, setEditing] = useState(false);
-  const lookups = useLookups(editing);
+  const lookups = useLookups();
 
   const [device, setDevice] = useState<AnyDevice | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<AnyDevice | null>(null);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

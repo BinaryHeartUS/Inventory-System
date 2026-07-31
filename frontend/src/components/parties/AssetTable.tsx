@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import StatusBadge from "../StatusBadge";
 import type { DeviceStatus } from "../../types/inventory";
 import { formatDate } from "../../utils/dateUtils";

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useBlocker } from "react-router-dom";
+import { useBlocker } from "react-router";
 import DiscardChangesDialog from "../components/DiscardChangesDialog";
 
 export default function UnsavedChangesGuard({ when }: { when: boolean }) {

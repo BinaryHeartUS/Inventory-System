@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import type { AnyDevice, Part, PartySummary } from "../types/inventory";
 import { getPart, updatePart, deletePart, getPartChangelog } from "../services/partService";
 import { getDevice } from "../services/deviceService";
@@ -21,14 +21,14 @@ export default function PartDetailContainer({ id }: PartDetailContainerProps) {
   const numId = Number(id);
   const navigate = useNavigate();
 
-  const [editing, setEditing] = useState(false);
-  const lookups = useLookups(editing);
+  const lookups = useLookups();
   const { chapters, chapterName } = useChapters();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
 
   const [part, setPart] = useState<Part | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Part | null>(null);
   const [saved, setSaved] = useState(false);
   const [printId, setPrintId] = useState<number | null>(null);

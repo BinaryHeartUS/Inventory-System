@@ -46,6 +46,19 @@ p {
   margin: 0;
 }
 
+/* ─── Prevent iOS auto-zoom on input focus ────────────────────────────────
+ * Mobile Safari zooms the viewport in whenever a focused form control has a
+ * font-size below 16px, and that zoom then persists after blur. Forcing a
+ * 16px minimum on form controls below the `sm` breakpoint stops the zoom
+ * without affecting the desktop layout. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* ─── Responsive tables → stacked, labelled rows on phones ──────────────────
  * Add `responsive-cards` to a <table> to have it collapse into a stacked,
  * card-like list below the `sm` breakpoint (640px). Each <td> that carries a

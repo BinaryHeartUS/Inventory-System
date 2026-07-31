@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import type { ChapterInventorySummary, ChapterSummary } from "../../types/inventory";
 import PageHeading from "../PageHeading";
 

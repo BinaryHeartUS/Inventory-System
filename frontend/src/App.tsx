@@ -5,7 +5,7 @@ import {
   RouterProvider,
   useNavigate,
   useParams,
-} from "react-router-dom";
+} from "react-router";
 import { useState, useCallback } from "react";
 import { ToastProvider, useToast } from "./context/ToastContext";
 import Dashboard from "./pages/Dashboard";
