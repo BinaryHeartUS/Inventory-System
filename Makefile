@@ -3,7 +3,7 @@
 .DEFAULT_GOAL := help
 
 .PHONY: help format format-check format-java format-web format-check-java format-check-web \
-	build build-java build-web build-importer lint lint-web audit-web test test-java ci generate-types check-types
+	build build-java build-web build-importer lint lint-web audit-web test test-java test-e2e ci generate-types check-types
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -51,4 +51,12 @@ lint-web: ## Lint the frontend (ESLint)
 audit-web: ## Scan frontend production dependencies for vulnerabilities (npm audit)
 	cd frontend && npm audit --omit=dev --audit-level=high
 
-ci: format-check-java format-check-web lint-web build-java build-web audit-web check-types ## Run every GitHub CI gate locally
+test: test-java test-e2e ## Run backend and browser tests
+
+test-java: ## Run backend tests
+	cd backend && mvn -B -ntp test
+
+test-e2e: ## Run Playwright browser tests against the isolated mock API
+	cd frontend && npm run test:e2e
+
+ci: format-check-java format-check-web lint-web build-java build-web audit-web check-types test-e2e ## Run every GitHub CI gate locally

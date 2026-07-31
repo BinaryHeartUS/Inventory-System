@@ -1,5 +1,7 @@
 dist/
 node_modules/
+playwright-report/
+test-results/
 
 # Generated from the backend OpenAPI spec via `npm run gen-types`; leave it in
 # openapi-typescript's own formatting so the CI types-drift check stays stable.
