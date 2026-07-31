@@ -2,7 +2,7 @@ DROP PROCEDURE IF EXISTS Insert_Note;
 
 CREATE OR REPLACE PROCEDURE Insert_Note(
     IN p_Text VARCHAR(500),
-    IN p_Date DATE,
+    IN p_Date TIMESTAMPTZ,
     IN p_Asset_ID INTEGER,
     OUT p_Note_ID INTEGER
 )
