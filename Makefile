@@ -56,7 +56,7 @@ test: test-java test-e2e ## Run backend and browser tests
 test-java: ## Run backend tests
 	cd backend && mvn -B -ntp test
 
-test-e2e: ## Run Playwright browser tests against the isolated mock API
+test-e2e: ## Run Playwright against a disposable full application stack
 	cd frontend && npm run test:e2e
 
 ci: format-check-java format-check-web lint-web build-java build-web audit-web check-types test-e2e ## Run every GitHub CI gate locally

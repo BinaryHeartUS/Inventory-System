@@ -44,6 +44,7 @@ For local full-stack development, use the repository root `docker-compose.yml` /
 | `npm run lint`         | Run ESLint over the project.                                      |
 | `npm run format`       | Format all files with Prettier.                                   |
 | `npm run format:check` | Verify formatting without writing (used in CI).                   |
+| `npm run test:e2e`     | Run serial Playwright tests on a disposable full application stack. |
 | `npm run gen-types`    | Regenerate `src/types/api.d.ts` from the backend OpenAPI schema.  |
 
 Before pushing, make sure the CI gate passes:

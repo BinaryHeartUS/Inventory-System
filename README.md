@@ -24,6 +24,23 @@
 | Swagger UI  | http://localhost:8080/swagger                                 |
 | Database    | `localhost:5432` — database: `inventory`, user: `binaryheart` |
 
+## End-to-End Tests
+
+The Playwright suite runs against frontend and backend images built from the current checkout and
+a temporary PostgreSQL database. The database is migrated and seeded with synthetic E2E data,
+reset after every serial test, and destroyed with its containers when the run finishes.
+
+Install the frontend dependencies and Chromium once, then run the suite from the repository root:
+
+```bash
+cd frontend && npm ci && npx playwright install chromium && cd ..
+make test-e2e
+```
+
+Docker Desktop must be running. Set `E2E_PORT` to use a frontend port other than `4173`. The same
+command runs as the required full-stack E2E pull-request gate in GitHub Actions; it never connects
+to the development or production databases.
+
 ## Deployment
 
 Dev and prod both run on a single VPS as two isolated Docker Compose stacks

@@ -122,8 +122,9 @@ jobs:
         run: npm run lint
 
   frontend-e2e:
-    name: Frontend E2E (Playwright)
+    name: Full-Stack E2E (Playwright)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: frontend
@@ -144,7 +145,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright tests
+      - name: Run isolated full-stack Playwright tests
         run: npm run test:e2e
 
   frontend-dependency-vulnerability-scan:
