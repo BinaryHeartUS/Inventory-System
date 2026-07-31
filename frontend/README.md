@@ -36,16 +36,16 @@ For local full-stack development, use the repository root `docker-compose.yml` /
 
 ## Scripts
 
-| Script                 | Description                                                       |
-| ---------------------- | ----------------------------------------------------------------- |
-| `npm run dev`          | Start the Vite dev server with HMR.                               |
-| `npm run build`        | Type-check (`tsc -b`) then produce a production build in `dist/`. |
-| `npm run preview`      | Serve the production build locally.                               |
-| `npm run lint`         | Run ESLint over the project.                                      |
-| `npm run format`       | Format all files with Prettier.                                   |
-| `npm run format:check` | Verify formatting without writing (used in CI).                   |
+| Script                 | Description                                                         |
+| ---------------------- | ------------------------------------------------------------------- |
+| `npm run dev`          | Start the Vite dev server with HMR.                                 |
+| `npm run build`        | Type-check (`tsc -b`) then produce a production build in `dist/`.   |
+| `npm run preview`      | Serve the production build locally.                                 |
+| `npm run lint`         | Run ESLint over the project.                                        |
+| `npm run format`       | Format all files with Prettier.                                     |
+| `npm run format:check` | Verify formatting without writing (used in CI).                     |
 | `npm run test:e2e`     | Run serial Playwright tests on a disposable full application stack. |
-| `npm run gen-types`    | Regenerate `src/types/api.d.ts` from the backend OpenAPI schema.  |
+| `npm run gen-types`    | Regenerate `src/types/api.d.ts` from the backend OpenAPI schema.    |
 
 Before pushing, make sure the CI gate passes:
 

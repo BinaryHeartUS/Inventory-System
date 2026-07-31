@@ -18,6 +18,7 @@ services:
       retries: 30
 
   db-migrate:
+    platform: linux/amd64
     build:
       context: ./sql
       dockerfile: Dockerfile.migrate

@@ -34,5 +34,8 @@ export async function authenticate(page: Page, role: TestRole = "Admin"): Promis
   };
 
   await page.goto("/login");
-  await page.evaluate((auth) => sessionStorage.setItem("bh_auth", JSON.stringify(auth)), storedAuth);
+  await page.evaluate(
+    (auth) => sessionStorage.setItem("bh_auth", JSON.stringify(auth)),
+    storedAuth
+  );
 }
