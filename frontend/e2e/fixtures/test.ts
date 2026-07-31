@@ -1,17 +1,43 @@
+import { execFileSync } from "node:child_process";
+import { dirname, resolve } from "node:path";
+import { env } from "node:process";
+import { fileURLToPath } from "node:url";
 import { test as base, expect } from "@playwright/test";
-import { MockApi } from "./mock-api";
 
 interface Fixtures {
-  mockApi: MockApi;
+  databaseCleanup: void;
 }
 
 export const test = base.extend<Fixtures>({
-  mockApi: [
+  databaseCleanup: [
     async ({ page }, use) => {
-      const mockApi = new MockApi();
-      await mockApi.install(page);
-      await use(mockApi);
-      expect(mockApi.unhandledRequests, "Every API request must have an explicit mock").toEqual([]);
+      await use();
+      void page;
+
+      const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+      execFileSync(
+        "docker",
+        [
+          "compose",
+          "-p",
+          env.E2E_COMPOSE_PROJECT ?? "inventory-e2e",
+          "-f",
+          resolve(repositoryRoot, "docker-compose.e2e.yml"),
+          "exec",
+          "-T",
+          "db",
+          "psql",
+          "-v",
+          "ON_ERROR_STOP=1",
+          "-U",
+          "binaryheart",
+          "-d",
+          "inventory",
+          "-f",
+          "/e2e/reset.sql",
+        ],
+        { stdio: "pipe" }
+      );
     },
     { auto: true },
   ],
