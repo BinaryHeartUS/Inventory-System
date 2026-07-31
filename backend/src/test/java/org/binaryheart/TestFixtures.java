@@ -17,17 +17,17 @@ public final class TestFixtures {
 
 	public static InsertDesktopRequest desktop() {
 		return new InsertDesktopRequest(2, "Dell", "OptiPlex", 2020, "Not Started", 101, "i5", 16, "DDR4", 512, "SSD",
-			250.0, LocalDate.of(2024, 1, 1), null, null, true, "Windows 11");
+			250.0, LocalDate.of(2024, 1, 1), null, null, true, "Windows 11", null);
 	}
 
 	public static InsertLaptopRequest laptop() {
 		return new InsertLaptopRequest(2, "Lenovo", "ThinkPad", 2021, "In Progress", "Included", 102, "i7", 16, "DDR4",
-			512, "SSD", 350.0, LocalDate.of(2024, 1, 1), null, null, 5000, 4500, "Windows 11");
+			512, "SSD", 350.0, LocalDate.of(2024, 1, 1), null, null, 5000, 4500, "Windows 11", null);
 	}
 
 	public static InsertTabletRequest tablet() {
 		return new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", "Included", 103, "M1", 8, "LPDDR4",
-			256, "Flash", 400.0, LocalDate.of(2024, 1, 1), null, null, "Working", "iPad OS");
+			256, "Flash", 400.0, LocalDate.of(2024, 1, 1), null, null, "Working", "iPad OS", null);
 	}
 
 	public static InsertPartRequest part() {
@@ -39,8 +39,8 @@ public final class TestFixtures {
 	}
 
 	public static GetDeviceResponse device() {
-		return new GetDeviceResponse("Desktop", 101, LocalDate.of(2024, 1, 1), 250.0, "Dell", "OptiPlex", 2020, "i5",
-			16, "DDR4", 512, "SSD", "Not Started", true, null, null, null, null, null, "Chapter Two", null,
+		return new GetDeviceResponse("Desktop", 101, LocalDate.of(2024, 1, 1), 250.0, "Dell", "OptiPlex", null, 2020,
+			"i5", 16, "DDR4", 512, "SSD", "Not Started", true, null, null, null, null, null, "Chapter Two", null,
 			"Windows 11", null, null);
 	}
 

@@ -398,7 +398,7 @@ class DeviceControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		InsertTabletRequest request = new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", null, 103,
-			"M1", 8, "LPDDR4", 256, "Flash", 400.0, LocalDate.now(), null, null, "Working", "iPad OS");
+			"M1", 8, "LPDDR4", 256, "Flash", 400.0, LocalDate.now(), null, null, "Working", "iPad OS", null);
 		expect(context.bodyAsClass(InsertTabletRequest.class)).andReturn(request);
 		expectResult(context, 400, "Missing required parameters");
 		replay(service, chapters, authorization, context);
@@ -566,7 +566,7 @@ class DeviceControllerTest {
 			Arguments.of(new InsertDesktopRequest(0, valid.manufacturer(), valid.model(), valid.year(), valid.status(),
 				valid.assetId(), valid.cpu(), valid.ram(), valid.ramGeneration(), valid.storageAmount(),
 				valid.storageType(), valid.value(), valid.acquisitionDate(), valid.recipientId(), valid.donorId(),
-				valid.hasWifi(), valid.operatingSystem()), "Missing required parameters"),
+				valid.hasWifi(), valid.operatingSystem(), valid.serialNumber()), "Missing required parameters"),
 			Arguments.of(desktopWith(0, 512, 250.0, valid.acquisitionDate(), 101),
 				"RAM amount must be positive or not specified"),
 			Arguments.of(desktopWith(16, 0, 250.0, valid.acquisitionDate(), 101),
@@ -583,7 +583,7 @@ class DeviceControllerTest {
 		return Stream.of(
 			Arguments.of(
 				new InsertLaptopRequest(2, "Lenovo", "ThinkPad", 2021, "In Progress", null, 102, "i7", 16, "DDR4", 512,
-					"SSD", 350.0, LocalDate.now(), null, null, 5000, 4500, "Windows 11"),
+					"SSD", 350.0, LocalDate.now(), null, null, 5000, 4500, "Windows 11", null),
 				"Missing required parameters"),
 			Arguments.of(laptopWith(0, 4500, 102), "Design battery capacity must be positive or not specified"),
 			Arguments.of(laptopWith(5000, -1, 102), "Actual battery capacity must be non-negative or not specified"));
@@ -598,12 +598,13 @@ class DeviceControllerTest {
 
 	private static Stream<Arguments> invalidTabletUpdates() {
 		return Stream.of(
-			Arguments.of(new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", "Included", 103, "M1", 8,
-				"LPDDR4", 256, "Flash", 400.0, LocalDate.now(), null, null, null, "iPad OS"),
+			Arguments.of(
+				new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", "Included", 103, "M1", 8, "LPDDR4",
+					256, "Flash", 400.0, LocalDate.now(), null, null, null, "iPad OS", null),
 				"Missing required parameters"),
 			Arguments.of(
 				new InsertTabletRequest(2, "Apple", "iPad", 2022, "Ready To Donate", "Included", 0, "M1", 8, "LPDDR4",
-					256, "Flash", 400.0, LocalDate.now(), null, null, "Working", "iPad OS"),
+					256, "Flash", 400.0, LocalDate.now(), null, null, "Working", "iPad OS", null),
 				"Asset ID must be positive"));
 	}
 
@@ -612,7 +613,7 @@ class DeviceControllerTest {
 		InsertDesktopRequest valid = desktop();
 		return new InsertDesktopRequest(valid.chapterId(), valid.manufacturer(), valid.model(), valid.year(),
 			valid.status(), assetId, valid.cpu(), ram, valid.ramGeneration(), storage, valid.storageType(), value, date,
-			valid.recipientId(), valid.donorId(), valid.hasWifi(), valid.operatingSystem());
+			valid.recipientId(), valid.donorId(), valid.hasWifi(), valid.operatingSystem(), valid.serialNumber());
 	}
 
 	private static InsertLaptopRequest laptopWith(Integer designCapacity, Integer actualCapacity, Integer assetId) {
@@ -620,7 +621,7 @@ class DeviceControllerTest {
 		return new InsertLaptopRequest(valid.chapterId(), valid.manufacturer(), valid.model(), valid.year(),
 			valid.status(), valid.includesCharger(), assetId, valid.cpu(), valid.ram(), valid.ramGeneration(),
 			valid.storageAmount(), valid.storageType(), valid.value(), valid.acquisitionDate(), valid.recipientId(),
-			valid.donorId(), designCapacity, actualCapacity, valid.operatingSystem());
+			valid.donorId(), designCapacity, actualCapacity, valid.operatingSystem(), valid.serialNumber());
 	}
 
 	private Context chapterStatsContext() {
