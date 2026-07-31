@@ -1,0 +1,6 @@
+ALTER TABLE Device
+    ADD COLUMN Serial_Number VARCHAR(100) NULL;
+
+ALTER TABLE Device_Change_Log
+    ADD COLUMN Old_Serial_Number VARCHAR(100) NULL,
+    ADD COLUMN New_Serial_Number VARCHAR(100) NULL;

@@ -3,7 +3,7 @@ DROP VIEW IF EXISTS Get_Devices;
 CREATE VIEW Get_Devices
 AS
 SELECT Get_Device_Type(d.ID) AS type, a.ID, a.acquisition_date, a.value::NUMERIC, m.name AS manufacturer,
-        d.model, d.year, d.cpu, d.ram, r.name AS ram_generation, d.storage_amount, s.name AS storage_type,
+        d.model, d.serial_number, d.year, d.cpu, d.ram, r.name AS ram_generation, d.storage_amount, s.name AS storage_type,
         d.status, dk.haswifi, Get_Charger_Status(l.ID, t.ID, l.includes_charger, t.includes_charger) AS includes_charger,
         l.design_battery_capacity, l.actual_battery_capacity, l.battery_health, t.working_battery, c.name AS chapter, d.Donated_Date,
         os.name AS operating_system, a.donor_id, d.recipient_id, a.chapter_id

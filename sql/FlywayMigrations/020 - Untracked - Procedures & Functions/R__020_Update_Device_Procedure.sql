@@ -17,7 +17,8 @@ CREATE OR REPLACE PROCEDURE Update_Device(
     IN p_Recipient_ID INTEGER = NULL,
     IN p_Donor_ID INTEGER = NULL,
     IN p_Donated_Date DATE = NULL,
-    IN p_Operating_System VARCHAR(50) = NULL
+    IN p_Operating_System VARCHAR(50) = NULL,
+    IN p_Serial_Number VARCHAR(100) = NULL
 )
 LANGUAGE plpgsql
 AS $$
@@ -55,7 +56,8 @@ BEGIN
         Status = p_Status,
         Recipient_ID = p_Recipient_ID,
         Donated_Date = p_Donated_Date,
-        OS_ID = v_OS_ID
+        OS_ID = v_OS_ID,
+        Serial_Number = NULLIF(BTRIM(p_Serial_Number), '')
     WHERE ID = p_Asset_ID;
 END;
 $$;
