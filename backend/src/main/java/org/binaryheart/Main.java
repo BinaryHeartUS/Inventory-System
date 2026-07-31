@@ -26,7 +26,7 @@ import org.binaryheart.controllers.ToolController;
 public class Main {
 	public static void main(String[] args) {
 		DatabaseConnectionService.init();
-		
+
 		Injector injector = Guice.createInjector(new ApplicationModule());
 		AccountController accountController = injector.getInstance(AccountController.class);
 		AssetController assetController = injector.getInstance(AssetController.class);
