@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Link } from "react-router";
 import type { PartySummary } from "../../types/inventory";
 import { PersonPanelContainer } from "../../containers/PersonPanelContainer";
@@ -170,9 +170,8 @@ export default function PartySectionView({
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filtered.map((p) => (
-                <>
+                <Fragment key={p.id}>
                   <tr
-                    key={p.id}
                     className={`transition-colors ${expandedId === p.id ? "bg-slate-50" : "hover:bg-slate-50"}`}
                   >
                     <td className="px-6 py-3 font-medium text-slate-800" data-label="Name">
@@ -196,7 +195,7 @@ export default function PartySectionView({
                     </td>
                   </tr>
                   {expandedId === p.id && (
-                    <tr key={`${p.id}-panel`} className="rc-raw">
+                    <tr className="rc-raw">
                       <td colSpan={2} className="p-0 rc-raw">
                         {isPerson ? (
                           <PersonPanelContainer
@@ -214,7 +213,7 @@ export default function PartySectionView({
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

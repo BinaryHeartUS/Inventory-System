@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { inputCls, labelCls } from "../utils/formStyles";
 
+function editFieldTestId(label: string): string {
+  return `edit-field-${label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")}`;
+}
+
 export function EditText({
   label,
   value,
@@ -25,6 +32,7 @@ export function EditText({
       <label className={labelCls}>{label}</label>
       <input
         type={type}
+        data-testid={editFieldTestId(label)}
         value={value}
         placeholder={placeholder}
         min={min}
@@ -52,6 +60,7 @@ export function EditSelect<T extends string>({
     <div>
       <label className={labelCls}>{label}</label>
       <select
+        data-testid={editFieldTestId(label)}
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
         className={`${inputCls} cursor-pointer`}
@@ -106,6 +115,7 @@ export function EditCombo({
     <div>
       <label className={labelCls}>{label}</label>
       <select
+        data-testid={editFieldTestId(label)}
         value={selectVal}
         onChange={(e) => handleSelect(e.target.value)}
         className={`${inputCls} cursor-pointer`}
@@ -122,6 +132,7 @@ export function EditCombo({
         <input
           autoFocus
           type="text"
+          data-testid={`${editFieldTestId(label)}-custom`}
           value={customText}
           placeholder={placeholder ?? "Enter value"}
           maxLength={maxLength}

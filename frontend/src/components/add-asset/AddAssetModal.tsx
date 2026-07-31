@@ -255,11 +255,19 @@ export function AddAssetModal({
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
 
       {/* Dialog */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-asset-title"
+        data-testid="add-asset-dialog"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col"
+      >
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Add New Asset</h2>
+            <h2 id="add-asset-title" className="text-base font-semibold text-slate-900">
+              Add New Asset
+            </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               {scanId !== undefined ? (
                 <>
@@ -273,6 +281,7 @@ export function AddAssetModal({
           </div>
           <button
             onClick={onCancel}
+            aria-label="Close add asset dialog"
             className="ml-4 shrink-0 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <svg
@@ -405,6 +414,7 @@ export function AddAssetModal({
                   <label className={labelCls}>Asset ID</label>
                   <input
                     type="number"
+                    data-testid="asset-id"
                     min="1"
                     step="1"
                     value={inputId}
