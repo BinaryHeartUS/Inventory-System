@@ -43,6 +43,7 @@ export default function LoginView({ error, loading, onLogin }: LoginViewProps) {
               </label>
               <input
                 type="text"
+                data-testid="login-username"
                 autoComplete="username"
                 autoFocus
                 value={username}
@@ -58,6 +59,7 @@ export default function LoginView({ error, loading, onLogin }: LoginViewProps) {
               </label>
               <input
                 type="password"
+                data-testid="login-password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

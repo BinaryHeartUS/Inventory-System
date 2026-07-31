@@ -3,6 +3,13 @@ import { inputCls, labelCls } from "../../utils/formStyles";
 
 export const Req = () => <span className="text-red-400 ml-0.5">*</span>;
 
+function fieldTestId(label: string): string {
+  return `field-${label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")}`;
+}
+
 export function FText({
   label,
   value,
@@ -34,6 +41,7 @@ export function FText({
       </label>
       <input
         type={type}
+        data-testid={fieldTestId(label)}
         value={value}
         placeholder={placeholder}
         min={min}
@@ -66,6 +74,7 @@ export function FSelect<T extends string>({
         {req && <Req />}
       </label>
       <select
+        data-testid={fieldTestId(label)}
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
         className={`${inputCls} cursor-pointer`}
@@ -125,6 +134,7 @@ export function FCombo({
         {req && <Req />}
       </label>
       <select
+        data-testid={fieldTestId(label)}
         value={selectVal}
         onChange={(e) => handleSelect(e.target.value)}
         className={`${inputCls} cursor-pointer`}
@@ -141,6 +151,7 @@ export function FCombo({
         <input
           autoFocus
           type="text"
+          data-testid={`${fieldTestId(label)}-custom`}
           value={customText}
           placeholder={placeholder ?? "Enter value"}
           maxLength={maxLength}

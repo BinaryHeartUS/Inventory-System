@@ -98,6 +98,7 @@ export default function AccountView({
             <label className={labelCls}>Current password</label>
             <input
               type="password"
+              data-testid="current-password"
               autoComplete="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
@@ -109,6 +110,7 @@ export default function AccountView({
             <label className={labelCls}>New password</label>
             <input
               type="password"
+              data-testid="new-password"
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -120,6 +122,7 @@ export default function AccountView({
             <label className={labelCls}>Confirm new password</label>
             <input
               type="password"
+              data-testid="confirm-password"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

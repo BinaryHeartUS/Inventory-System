@@ -121,6 +121,33 @@ jobs:
       - name: Lint frontend
         run: npm run lint
 
+  frontend-e2e:
+    name: Full-Stack E2E (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run isolated full-stack Playwright tests
+        run: npm run test:e2e
+
   frontend-dependency-vulnerability-scan:
     name: Frontend Dependency Vulnerability Scan
     runs-on: ubuntu-latest

@@ -1,0 +1,64 @@
+name: inventory-e2e
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: binaryheart
+      POSTGRES_PASSWORD: e2e_db_password
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./frontend/e2e/seed:/e2e:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U binaryheart -d inventory"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  db-migrate:
+    platform: linux/amd64
+    build:
+      context: ./sql
+      dockerfile: Dockerfile.migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/inventory
+      FLYWAY_USER: binaryheart
+      FLYWAY_PASSWORD: e2e_db_password
+      FLYWAY_LOCATIONS: "filesystem:/flyway/sql/010 - Tracked,filesystem:/flyway/sql/020 - Untracked - Procedures & Functions,filesystem:/flyway/sql/030 - Untracked - Triggers,filesystem:/flyway/sql/040 - Untracked - Views,filesystem:/flyway/sql/callbacks,filesystem:/flyway/e2e"
+      FLYWAY_PLACEHOLDERS_API_USER_PASSWORD: e2e_api_password
+      FLYWAY_PLACEHOLDERS_IMPORTER_PASSWORD: e2e_importer_password
+    volumes:
+      - ./frontend/e2e/seed:/flyway/e2e:ro
+    command: ["migrate"]
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/inventory
+      DB_USER: api_user
+      DB_PASSWORD: e2e_api_password
+      JWT_SECRET: e2e-only-jwt-secret
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:${E2E_PORT:-4173}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/api/health | grep -q OK"]
+      interval: 2s
+      timeout: 5s
+      retries: 60

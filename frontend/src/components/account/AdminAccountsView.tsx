@@ -165,6 +165,7 @@ export default function AdminAccountsView({
               <label className={labelCls}>Full name</label>
               <input
                 type="text"
+                data-testid="account-full-name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 className={inputCls}
@@ -176,6 +177,7 @@ export default function AdminAccountsView({
               <label className={labelCls}>Username</label>
               <input
                 type="text"
+                data-testid="account-username"
                 autoComplete="off"
                 value={formUsername}
                 onChange={(e) => setFormUsername(e.target.value)}
@@ -187,6 +189,7 @@ export default function AdminAccountsView({
               <label className={labelCls}>Password</label>
               <input
                 type="password"
+                data-testid="account-password"
                 autoComplete="new-password"
                 value={formPassword}
                 onChange={(e) => setFormPassword(e.target.value)}
@@ -221,6 +224,7 @@ export default function AdminAccountsView({
               {formAffiliations.map((a, i) => (
                 <div key={i} className="flex gap-2 items-center">
                   <select
+                    data-testid={`account-chapter-${i}`}
                     value={a.chapter}
                     onChange={(e) => setAffiliation(i, "chapter", e.target.value)}
                     className={`${inputCls} flex-1`}
@@ -234,6 +238,7 @@ export default function AdminAccountsView({
                     ))}
                   </select>
                   <select
+                    data-testid={`account-role-${i}`}
                     value={a.role}
                     onChange={(e) => setAffiliation(i, "role", e.target.value)}
                     className={`${inputCls} flex-1`}

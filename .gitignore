@@ -32,6 +32,8 @@ replay_pid*
 backend/**/target/
 importer/**/target/
 dependency-reduced-pom.xml
+frontend/playwright-report/
+frontend/test-results/
 
 # macOS Finder metadata
 .DS_Store
