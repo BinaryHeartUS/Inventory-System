@@ -1,4 +1,4 @@
-package org.binaryheart.controllers;
+package org.binaryheart.utils;
 
 import io.javalin.http.Context;
 import org.binaryheart.exceptions.BadArgumentException;

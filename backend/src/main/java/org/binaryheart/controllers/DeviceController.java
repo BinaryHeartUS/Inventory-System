@@ -42,6 +42,8 @@ import org.binaryheart.responses.MonthlyValuePoint;
 import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
+import org.binaryheart.utils.PaginationUtil;
+import org.binaryheart.utils.QueryParamUtil;
 
 public class DeviceController {
 	private static final List<String> VALID_TYPES = List.of("desktop", "laptop", "tablet", "total");
