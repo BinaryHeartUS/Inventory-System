@@ -16,7 +16,7 @@ public class JwtService {
 	private static final Algorithm ALGORITHM = Algorithm.HMAC256(SECRET);
 	private static final long EXPIRY_HOURS = 8;
 
-	public static String create(int volunteerId, String username, List<ChapterRole> chapterRoles,
+	public String create(int volunteerId, String username, List<ChapterRole> chapterRoles,
 		String effectiveRole) {
 		List<Integer> chapterIds = chapterRoles.stream().map(ChapterRole::chapterId).collect(Collectors.toList());
 		List<String> roles = chapterRoles.stream().map(ChapterRole::role).collect(Collectors.toList());
@@ -26,7 +26,7 @@ public class JwtService {
 			.sign(ALGORITHM);
 	}
 
-	public static DecodedJWT verify(String token) {
+	public DecodedJWT verify(String token) {
 		try {
 			return JWT.require(ALGORITHM).build().verify(token);
 		} catch (JWTVerificationException e) {
