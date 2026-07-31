@@ -18,6 +18,11 @@ export interface RecordedRequest {
   body: unknown;
 }
 
+interface FailureResponse {
+  status: number;
+  message: string;
+}
+
 interface Device {
   id: number;
   type: "Desktop" | "Laptop" | "Tablet";
@@ -133,6 +138,7 @@ function includesSearch(values: unknown[], search: string | null): boolean {
 export class MockApi {
   readonly unhandledRequests: string[] = [];
   readonly requests: RecordedRequest[] = [];
+  private readonly failures = new Map<string, FailureResponse>();
   loginStatus = 200;
   loginRole: TestRole = "Admin";
   nextId = 2000;
@@ -262,6 +268,15 @@ export class MockApi {
       const method = request.method();
       const body = request.postData() ? request.postDataJSON() : null;
       this.requests.push({ method, path, body });
+
+      const failure = this.failures.get(`${method} ${path}`);
+      if (failure) {
+        return route.fulfill({
+          status: failure.status,
+          contentType: "text/plain",
+          body: failure.message,
+        });
+      }
 
       if (method === "POST" && path === "/auth/login") {
         return this.loginStatus === 200
@@ -525,6 +540,10 @@ export class MockApi {
 
   request(method: string, path: string): RecordedRequest | undefined {
     return this.requests.find((request) => request.method === method && request.path === path);
+  }
+
+  fail(method: string, path: string, status: number, message: string): void {
+    this.failures.set(`${method} ${path}`, { status, message });
   }
 
   loginResponse(role: TestRole) {
