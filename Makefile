@@ -30,7 +30,8 @@ build-importer: ## Build the standalone data importer (skip tests)
 	cd importer && mvn -q -DskipTests package
 
 generate-types:
-	cd backend && mvn clean compile && cd ../frontend && npm run gen-types
+	cd backend && mvn clean compile
+	cd frontend && npm ci && npm run gen-types
 
 check-types: generate-types ## Fail if the generated api.d.ts has drifted from the backend contract
 	@git diff --exit-code -- frontend/src/types/api.d.ts \
