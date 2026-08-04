@@ -5,6 +5,7 @@ import static io.javalin.apibuilder.ApiBuilder.get;
 import com.google.inject.Inject;
 import io.javalin.http.Context;
 import io.javalin.openapi.*;
+import java.sql.SQLException;
 import org.binaryheart.auth.AppRole;
 import org.binaryheart.services.HealthService;
 
@@ -18,31 +19,38 @@ public class HealthController {
 	}
 
 	public void registerRoutes() {
-		get("/health", this::health, AppRole.PUBLIC);
-		get("/ping", this::ping, AppRole.PUBLIC);
+		get("/health/live", this::live, AppRole.PUBLIC);
+		get("/health/ready", this::ready, AppRole.PUBLIC);
 	}
 
 	@OpenApi(
-		path = "/api/health",
+		path = "/api/health/live",
 		methods = {HttpMethod.GET},
 		tags = {"Health"},
-		summary = "Health check",
+		summary = "Liveness check",
 		responses = {@OpenApiResponse(
 			status = "200",
-			description = "Service is up")})
-	public void health(Context ctx) {
-		ctx.result(service.health());
+			description = "Service is running")})
+	public void live(Context ctx) {
+		ctx.result(service.live());
 	}
 
 	@OpenApi(
-		path = "/api/ping",
+		path = "/api/health/ready",
 		methods = {HttpMethod.GET},
 		tags = {"Health"},
-		summary = "Ping",
+		summary = "Readiness check",
 		responses = {@OpenApiResponse(
 			status = "200",
-			description = "Returns pong")})
-	public void ping(Context ctx) {
-		ctx.result(service.ping());
+			description = "Service and database are ready"),
+				@OpenApiResponse(
+					status = "503",
+					description = "Database is unavailable")})
+	public void ready(Context ctx) {
+		try {
+			ctx.result(service.ready());
+		} catch (SQLException e) {
+			ctx.status(503).result("Database unavailable");
+		}
 	}
 }

@@ -1,13 +1,24 @@
 package org.binaryheart.services;
 
+import com.google.inject.Inject;
+import java.sql.SQLException;
+import org.binaryheart.repositories.HealthRepository;
+
 public class HealthService {
 
-	public String health() {
+	private final HealthRepository repository;
+
+	@Inject
+	public HealthService(HealthRepository repository) {
+		this.repository = repository;
+	}
+
+	public String live() {
 		return "OK";
 	}
 
-	public String ping() {
-		System.out.println("Ping received from frontend!");
-		return "pong";
+	public String ready() throws SQLException {
+		repository.checkDatabaseConnection();
+		return "OK";
 	}
 }

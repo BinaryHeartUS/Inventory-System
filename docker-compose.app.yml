@@ -74,6 +74,12 @@ services:
     restart: always
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/api/health/ready | grep -q OK"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     networks:
       # Reachable as ${FRONTEND_ALIAS} (e.g. inventory-prod-frontend) on the
       # shared network so Caddy can route this environment's domain to it.
