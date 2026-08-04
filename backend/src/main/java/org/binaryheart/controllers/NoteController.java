@@ -53,7 +53,7 @@ public class NoteController {
 			name = "id",
 			description = "The unique ID of the asset to which the new note will be assigned")},
 		responses = {@OpenApiResponse(
-			status = "201",
+			status = "200",
 			description = "Note added successfully",
 			content = {@OpenApiContent(
 				from = NoteResponse.class)}), @OpenApiResponse(

@@ -285,7 +285,7 @@ export interface paths {
       };
       responses: {
         /** @description Note added successfully */
-        201: {
+        200: {
           content: {
             "application/json": components["schemas"]["NoteResponse"];
           };
