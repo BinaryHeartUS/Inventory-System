@@ -35,7 +35,7 @@ BEGIN
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO Laptop_Change_Log(Laptop_ID, Modified_By, Change_Type, Old_Design_Battery_Capacity,
             Old_Actual_Battery_Capacity, Old_Includes_Charger)
-        VALUES (OLD.ID, COALESCE(current_setting('app.current_username', true), current),
+        VALUES (OLD.ID, COALESCE(current_setting('app.current_username', true), current_user),
             'Delete', OLD.Design_Battery_Capacity, OLD.Actual_Battery_Capacity, OLD.Includes_Charger);
     END IF;
     RETURN NULL;
