@@ -259,6 +259,13 @@ export default function DeviceDetailView({
                     maxLength={50}
                   />
                   <EditText
+                    label="Serial Number"
+                    value={form.serialNumber ?? ""}
+                    onChange={(v) => onFieldChange("serialNumber", v || null)}
+                    placeholder="e.g. PF3ABC123456"
+                    maxLength={100}
+                  />
+                  <EditText
                     label="Year"
                     type="number"
                     value={String(form.year)}
@@ -441,6 +448,7 @@ export default function DeviceDetailView({
                   <Field label="Manufacturer" value={d.manufacturer} />
                   <Field label="Operating System" value={d.operatingSystem} />
                   <Field label="Model" value={d.model} />
+                  <Field label="Serial Number" value={d.serialNumber} />
                   <Field label="Year" value={d.year} />
                   <Field label="CPU" value={d.cpu} />
                   <Field

@@ -26,6 +26,11 @@ export function buildDeviceFields(entry: DeviceChangelogEntry): ChangelogFieldDe
       new: formatText(entry.newManufacturer),
     },
     { label: "Model", old: formatText(entry.oldModel), new: formatText(entry.newModel) },
+    {
+      label: "Serial Number",
+      old: formatText(entry.oldSerialNumber),
+      new: formatText(entry.newSerialNumber),
+    },
     { label: "Year", old: formatNumber(entry.oldYear), new: formatNumber(entry.newYear) },
     { label: "Status", old: formatText(entry.oldStatus), new: formatText(entry.newStatus) },
     { label: "Chapter ID", old: formatId(entry.oldChapterID), new: formatId(entry.newChapterID) },

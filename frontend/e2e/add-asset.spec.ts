@@ -23,13 +23,26 @@ test("creates a desktop with generated ID", async ({ page }) => {
 
   await page.getByTestId("field-manufacturer").selectOption("Framework");
   await page.getByTestId("field-model").fill("E2E Desktop");
+  await page.getByTestId("field-serial-number").fill("E2E-DESKTOP-SERIAL");
   await page.getByTestId("field-chapter").selectOption(TEST_CHAPTER.name);
   await dialog.getByRole("button", { name: "Add Asset", exact: true }).click();
 
   await expect(page).toHaveURL(/\/devices\/\d+$/);
   await page.reload();
   await expect(page.getByRole("heading", { name: "Framework E2E Desktop" })).toBeVisible();
+  await expect(page.getByText("E2E-DESKTOP-SERIAL", { exact: true })).toBeVisible();
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true }).first()).toBeVisible();
+});
+
+test("shows the serial field in the mobile add-device form", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const dialog = await openDesktopFields(page);
+
+  const serialNumber = page.getByTestId("field-serial-number");
+  await expect(serialNumber).toBeVisible();
+  await serialNumber.fill("MOBILE-SERIAL-001");
+  await expect(serialNumber).toHaveValue("MOBILE-SERIAL-001");
+  await expect(dialog).toBeVisible();
 });
 
 test("creates a donated part", async ({ page }) => {

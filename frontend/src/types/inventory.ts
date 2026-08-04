@@ -75,6 +75,7 @@ export type GetDeviceResponse = components["schemas"]["GetDeviceResponse"];
 export type AnyDevice = Omit<
   GetDeviceResponse,
   | "value"
+  | "serialNumber"
   | "cpu"
   | "ramGeneration"
   | "storageType"
@@ -91,6 +92,7 @@ export type AnyDevice = Omit<
   | "recipientId"
 > & {
   value: number | null;
+  serialNumber?: string | null;
   cpu?: string | null;
   ramGeneration?: string | null;
   storageType?: string | null;

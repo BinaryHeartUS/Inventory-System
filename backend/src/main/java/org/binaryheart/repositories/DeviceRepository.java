@@ -216,6 +216,7 @@ public class DeviceRepository {
 		Double value = rs.getDouble("value");
 		String manufacturer = rs.getString("manufacturer");
 		String model = rs.getString("model");
+		String serialNumber = rs.getString("serial_number");
 		Integer year = rs.getInt("year");
 		String cpu = rs.getString("cpu");
 		Integer ram = rs.getInt("ram");
@@ -234,9 +235,9 @@ public class DeviceRepository {
 		String operatingSystem = rs.getString("operating_system");
 		Integer donorId = rs.getObject("donor_id", Integer.class);
 		Integer recipientId = rs.getObject("recipient_id", Integer.class);
-		return new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model, year, cpu,
-			ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap, actualCap, batteryHealth,
-			workingBattery, chapter, dateDonated, operatingSystem, donorId, recipientId);
+		return new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model,
+			serialNumber, year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap,
+			actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId, recipientId);
 	}
 
 	private static void setStringOrNull(PreparedStatement stmt, int index, String value) throws SQLException {
@@ -260,7 +261,7 @@ public class DeviceRepository {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
-					"call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
+					"call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?)")) {
 				ps.setString(1, username);
 				ps.execute();
 				stmt.registerOutParameter(6, java.sql.Types.INTEGER);
@@ -329,6 +330,8 @@ public class DeviceRepository {
 				} else {
 					stmt.setNull(17, java.sql.Types.VARCHAR);
 				}
+				stmt.setNull(18, java.sql.Types.DATE);
+				setStringOrNull(stmt, 19, request.serialNumber());
 				stmt.execute();
 				int newId = stmt.getInt(6);
 				conn.commit();
@@ -347,7 +350,7 @@ public class DeviceRepository {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
-					"call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)")) {
+					"call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 				ps.setString(1, username);
 				ps.execute();
 				stmt.registerOutParameter(7, java.sql.Types.INTEGER);
@@ -422,6 +425,8 @@ public class DeviceRepository {
 				} else {
 					stmt.setNull(19, java.sql.Types.VARCHAR);
 				}
+				stmt.setNull(20, java.sql.Types.DATE);
+				setStringOrNull(stmt, 21, request.serialNumber());
 
 				stmt.execute();
 				int newId = stmt.getInt(7);
@@ -441,7 +446,7 @@ public class DeviceRepository {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
-					"call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)")) {
+					"call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)")) {
 				ps.setString(1, username);
 				ps.execute();
 				stmt.registerOutParameter(8, java.sql.Types.INTEGER);
@@ -507,6 +512,8 @@ public class DeviceRepository {
 				} else {
 					stmt.setNull(18, java.sql.Types.VARCHAR);
 				}
+				stmt.setNull(19, java.sql.Types.DATE);
+				setStringOrNull(stmt, 20, request.serialNumber());
 
 				stmt.execute();
 				int newId = stmt.getInt(8);
@@ -526,7 +533,7 @@ public class DeviceRepository {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
-					"call Update_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?)")) {
+					"call Update_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?)")) {
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, request.chapterId());
@@ -590,6 +597,8 @@ public class DeviceRepository {
 				} else {
 					stmt.setNull(17, java.sql.Types.VARCHAR);
 				}
+				stmt.setNull(18, java.sql.Types.DATE);
+				setStringOrNull(stmt, 19, request.serialNumber());
 				stmt.execute();
 				conn.commit();
 			} catch (SQLException e) {
@@ -606,7 +615,7 @@ public class DeviceRepository {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
-					"call Update_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)")) {
+					"call Update_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, request.chapterId());
@@ -676,6 +685,8 @@ public class DeviceRepository {
 				} else {
 					stmt.setNull(19, java.sql.Types.VARCHAR);
 				}
+				stmt.setNull(20, java.sql.Types.DATE);
+				setStringOrNull(stmt, 21, request.serialNumber());
 
 				stmt.execute();
 				conn.commit();
@@ -693,7 +704,7 @@ public class DeviceRepository {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
-					"call Update_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?)")) {
+					"call Update_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)")) {
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, request.chapterId());
@@ -754,6 +765,8 @@ public class DeviceRepository {
 				} else {
 					stmt.setNull(18, java.sql.Types.VARCHAR);
 				}
+				stmt.setNull(19, java.sql.Types.DATE);
+				setStringOrNull(stmt, 20, request.serialNumber());
 
 				stmt.execute();
 				conn.commit();
@@ -803,6 +816,8 @@ public class DeviceRepository {
 					String newManf = rs.getString("New_Manufacturer");
 					String oldModel = rs.getString("Old_Model");
 					String newModel = rs.getString("New_Model");
+					String oldSerialNumber = rs.getString("Old_Serial_Number");
+					String newSerialNumber = rs.getString("New_Serial_Number");
 					Integer oldYear = rs.getInt("Old_Year");
 					if (rs.wasNull())
 						oldYear = null;
@@ -869,12 +884,13 @@ public class DeviceRepository {
 						newRecipientID = null;
 					entries.add(new DeviceChangelogResponse(deviceType, ID, modifiedBy, modifiedAt, changeType,
 						oldAcquisitionDate, newAcquisitionDate, oldValue, newValue, oldChapterID, newChapterID,
-						oldDonorID, newDonorID, oldManf, newManf, oldModel, newModel, oldYear, newYear, oldCPU, newCPU,
-						oldRam, newRam, oldRamGeneration, newRamGeneration, oldStorageAmount, newStorageAmount,
-						oldStorageType, newStorageType, oldStatus, newStatus, oldHasWifi, newHasWifi,
-						oldIncludesCharger, newIncludesCharger, oldDesignCap, newDesignCap, oldActualCap, newActualCap,
-						oldBatteryHealth, newBatteryHealth, oldWorkingBattery, newWorkingBattery, oldDonatedDate,
-						newDonatedDate, oldOS, newOS, oldRecipientID, newRecipientID));
+						oldDonorID, newDonorID, oldManf, newManf, oldModel, newModel, oldSerialNumber, newSerialNumber,
+						oldYear, newYear, oldCPU, newCPU, oldRam, newRam, oldRamGeneration, newRamGeneration,
+						oldStorageAmount, newStorageAmount, oldStorageType, newStorageType, oldStatus, newStatus,
+						oldHasWifi, newHasWifi, oldIncludesCharger, newIncludesCharger, oldDesignCap, newDesignCap,
+						oldActualCap, newActualCap, oldBatteryHealth, newBatteryHealth, oldWorkingBattery,
+						newWorkingBattery, oldDonatedDate, newDonatedDate, oldOS, newOS, oldRecipientID,
+						newRecipientID));
 				}
 				return entries.toArray(new DeviceChangelogResponse[0]);
 			}

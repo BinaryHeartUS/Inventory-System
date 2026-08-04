@@ -25,6 +25,7 @@ RETURNS TABLE (
     value NUMERIC,
     manufacturer VARCHAR(50),
     model VARCHAR(50),
+    serial_number VARCHAR(100),
     year INTEGER,
     CPU VARCHAR(50),
     RAM INTEGER,

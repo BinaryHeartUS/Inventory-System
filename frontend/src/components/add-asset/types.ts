@@ -11,6 +11,7 @@ export interface FormState {
   // Device (BaseDevice)
   manufacturer: string | null;
   model: string;
+  serialNumber: string;
   year: string;
   cpu: string;
   ram: string;
@@ -43,6 +44,7 @@ export const DEFAULT_FORM: FormState = {
   acquisitionDate: "",
   manufacturer: null,
   model: "",
+  serialNumber: "",
   year: String(new Date().getFullYear()),
   cpu: "",
   ram: "",
