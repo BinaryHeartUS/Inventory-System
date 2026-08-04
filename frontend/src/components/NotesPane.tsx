@@ -2,8 +2,13 @@ import { useState } from "react";
 import type { Note } from "../types/inventory";
 
 function formatNoteDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default function NotesPane({

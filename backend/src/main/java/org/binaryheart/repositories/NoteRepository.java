@@ -2,12 +2,11 @@ package org.binaryheart.repositories;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.responses.NoteResponse;
@@ -17,15 +16,15 @@ public class NoteRepository {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?, ?)")) {
 			stmt.setString(1, text);
-			Date date = Date.valueOf(LocalDate.now(ZoneId.of("UTC")));
-			stmt.setDate(2, date);
+			Instant createdAt = Instant.now();
+			stmt.setTimestamp(2, Timestamp.from(createdAt));
 			stmt.setInt(3, assetId);
 			stmt.registerOutParameter(4, java.sql.Types.INTEGER);
 			stmt.execute();
 
 			int noteId = stmt.getInt(4);
 
-			return new NoteResponse(noteId, text, date.toString(), assetId);
+			return new NoteResponse(noteId, text, createdAt.toString(), assetId);
 		}
 	}
 
@@ -38,9 +37,9 @@ public class NoteRepository {
 				while (res.next()) {
 					Integer id = res.getInt("ID");
 					String text = res.getString("Text");
-					Date date = res.getDate("Date");
+					Instant createdAt = res.getTimestamp("Date").toInstant();
 					Integer asset_id = res.getInt("Asset_ID");
-					notes.add(new NoteResponse(id, text, date.toString(), asset_id));
+					notes.add(new NoteResponse(id, text, createdAt.toString(), asset_id));
 				}
 				return notes.toArray(new NoteResponse[0]);
 			}

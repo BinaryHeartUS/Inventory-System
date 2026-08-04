@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION Get_Notes_For_Asset(
 RETURNS TABLE (
     ID INTEGER,
     Text VARCHAR(500),
-    Date DATE,
+    Date TIMESTAMPTZ,
     Asset_ID INTEGER
 )
 LANGUAGE plpgsql
