@@ -1,5 +1,14 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures/test";
 import { authenticate, E2E_PASSWORD } from "./fixtures/real-api";
+
+async function getStoredTokenExpiration(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const auth = JSON.parse(sessionStorage.getItem("bh_auth") ?? "{}");
+    const payload = JSON.parse(atob(auth.token.split(".")[1]));
+    return payload.exp * 1000;
+  });
+}
 
 test.describe("authentication", () => {
   test("redirects unauthenticated users to sign in", async ({ page }) => {
@@ -27,6 +36,32 @@ test.describe("authentication", () => {
       sessionStorage.setItem("bh_auth", JSON.stringify({ ...auth, token: "expired-token" }));
     });
     await page.goto("/devices");
+
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => sessionStorage.getItem("bh_auth"))).toBeNull();
+  });
+
+  test("rejects an expired stored session before restoring auth", async ({ page }) => {
+    await authenticate(page);
+    const expiresAt = await getStoredTokenExpiration(page);
+    await page.clock.install({ time: expiresAt + 1 });
+
+    await page.goto("/devices");
+
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => sessionStorage.getItem("bh_auth"))).toBeNull();
+  });
+
+  test("logs out when an active session reaches its expiration", async ({ page }) => {
+    await authenticate(page);
+    const expiresAt = await getStoredTokenExpiration(page);
+    await page.clock.install({ time: expiresAt - 1_000 });
+    await page.goto("/account");
+    await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
+
+    await page.clock.fastForward(1_001);
 
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
