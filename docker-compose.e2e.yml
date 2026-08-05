@@ -48,6 +48,8 @@ services:
       DB_USER: api_user
       DB_PASSWORD: e2e_api_password
       JWT_SECRET: e2e-only-jwt-secret
+      STUCK_DEVICE_THRESHOLD_DAYS: 14
+      STUCK_DEVICE_SCAN_INTERVAL_HOURS: 24
 
   frontend:
     build:
