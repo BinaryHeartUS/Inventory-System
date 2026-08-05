@@ -29,7 +29,7 @@ test("shows the stuck pill in device list surfaces and device details", async ({
   await expect(page.getByLabel("Device stuck")).toBeVisible();
 });
 
-test("stuck filter ignores status visibility filters", async ({ page }) => {
+test("stuck filter clears a conflicting status filter", async ({ page }) => {
   await page.goto("/devices");
 
   await page.locator("select").selectOption("Donated");
@@ -37,12 +37,14 @@ test("stuck filter ignores status visibility filters", async ({ page }) => {
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
 
-  await page.getByText("Show Stuck Devices", { exact: true }).click();
+  await page.getByText("Stuck Devices Only", { exact: true }).click();
 
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
   await expect(page.getByLabel("Device stuck")).toBeVisible();
   await expect(page.locator("select")).toBeDisabled();
+  await expect(page.locator("select")).toHaveValue("All");
+  await expect(page.getByRole("checkbox", { name: "Include Donated" })).not.toBeChecked();
 });
 
 test("adding a note clears the stuck flag", async ({ page }) => {
@@ -67,10 +69,50 @@ test("editing a device clears the stuck flag", async ({ page }) => {
   await page.goto("/devices/1001");
   await expect(page.getByLabel("Device stuck")).toBeVisible();
 
-  await page.getByRole("button", { name: "Edit" }).click();
+  await page.getByRole("button", { name: "Edit" }).first().click();
   await page.getByTestId("edit-field-model").fill("Laptop 13 Active");
   await page.getByRole("button", { name: "Save changes" }).click();
 
   await expect(page.getByRole("heading", { name: "Framework Laptop 13 Active" })).toBeVisible();
   await expect(page.getByLabel("Device stuck")).toBeHidden();
+});
+
+test("editing a note clears the stuck flag", async ({ page }) => {
+  await page.goto("/devices/1001");
+  await expect(page.getByLabel("Device stuck")).toBeVisible();
+
+  const notesPane = page.getByRole("heading", { name: "Notes" }).locator("../..");
+  await notesPane.getByRole("button", { name: "Edit" }).click();
+  const note = notesPane.getByRole("textbox", { name: "Edit note" });
+  await note.fill("Replacement battery ordered");
+  const noteSaved = page.waitForResponse(
+    (response) =>
+      response.request().method() === "PUT" &&
+      /\/api\/assets\/1001\/notes\/\d+$/.test(response.url()) &&
+      response.ok()
+  );
+  await notesPane.getByRole("button", { name: "Save", exact: true }).click();
+  await noteSaved;
+  await page.reload();
+
+  await expect(page.getByLabel("Device stuck")).toBeHidden();
+});
+
+test("saving an unchanged note keeps the stuck flag", async ({ page }) => {
+  await page.goto("/devices/1001");
+  await expect(page.getByLabel("Device stuck")).toBeVisible();
+
+  const notesPane = page.getByRole("heading", { name: "Notes" }).locator("../..");
+  await notesPane.getByRole("button", { name: "Edit" }).click();
+  const noteSaved = page.waitForResponse(
+    (response) =>
+      response.request().method() === "PUT" &&
+      /\/api\/assets\/1001\/notes\/\d+$/.test(response.url()) &&
+      response.ok()
+  );
+  await notesPane.getByRole("button", { name: "Save", exact: true }).click();
+  await noteSaved;
+  await page.reload();
+
+  await expect(page.getByLabel("Device stuck")).toBeVisible();
 });

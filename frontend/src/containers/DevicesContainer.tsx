@@ -158,6 +158,15 @@ export default function DevicesContainer() {
     setSortDir(dir);
   }
 
+  function handleShowStuckChange(value: boolean) {
+    setShowStuck(value);
+    if (value) {
+      setStatusFilter("All");
+      setShowDonated(false);
+      setShowScrapped(false);
+    }
+  }
+
   return (
     <DevicesView
       search={search}
@@ -173,7 +182,7 @@ export default function DevicesContainer() {
       showScrapped={showScrapped}
       onShowScrappedChange={setShowScrapped}
       showStuck={showStuck}
-      onShowStuckChange={setShowStuck}
+      onShowStuckChange={handleShowStuckChange}
       sortKey={sortKey}
       sortDir={sortDir}
       onSort={handleSort}

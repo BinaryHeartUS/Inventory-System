@@ -549,7 +549,7 @@ public class DeviceController {
 					name = "stuckOnly",
 					required = false,
 					type = Boolean.class,
-					description = "Return only stuck devices, regardless of status visibility filters."),
+					description = "Return only stuck devices. Other supplied filters still apply."),
 				@OpenApiParam(
 					name = "donorId",
 					required = false,

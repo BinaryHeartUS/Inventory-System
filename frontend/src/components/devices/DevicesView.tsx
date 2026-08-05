@@ -218,7 +218,7 @@ export default function DevicesView({
                 </svg>
               )}
             </span>
-            Show Stuck Devices
+            Stuck Devices Only
           </label>
 
           {hasFilters && (
