@@ -62,7 +62,7 @@ test-web: ## Run frontend unit tests
 test: test-java test-web test-e2e ## Run backend, frontend unit, and browser tests
 
 test-e2e: ## Run Playwright against a disposable full application stack
-	cd frontend && npm run test:e2e
+	cd frontend && npm run test:e2e -- --project=chromium
 
 test-e2e-headed: ## Run Playwright with a visible browser against the disposable stack
 	cd frontend && npm run test:e2e -- --headed --project=firefox
