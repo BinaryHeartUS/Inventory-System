@@ -761,7 +761,7 @@ export interface paths {
                     includeDonated?: boolean;
                     /** @description Whether to include Scrapped devices. Defaults to true. */
                     includeScrapped?: boolean;
-                    /** @description Return only stuck devices, regardless of status visibility filters. */
+                    /** @description Return only stuck devices. Other supplied filters still apply. */
                     stuckOnly?: boolean;
                     /** @description Restrict to devices donated by this party id. */
                     donorId?: number;
