@@ -101,6 +101,13 @@ UPDATE Laptop_Change_Log
 SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
 WHERE Laptop_ID = 1001;
 
+INSERT INTO Note (Text, Date, Asset_ID)
+VALUES ('Waiting for replacement battery', CURRENT_TIMESTAMP - INTERVAL '30 days', 1001);
+
+UPDATE Note
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Asset_ID = 1001;
+
 SELECT Refresh_Stuck_Devices(14);
 
 INSERT INTO Part (ID, Type_ID, Description, Was_Purchased, Contained_In)

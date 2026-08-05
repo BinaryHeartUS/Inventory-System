@@ -80,9 +80,9 @@ BEGIN
     ) AS k
     WHERE (p_chapter_ids IS NULL OR gd.chapter_id = ANY(p_chapter_ids))
       AND (p_type IS NULL OR gd.type = p_type)
-      AND (p_stuck_only OR p_status IS NULL OR gd.status = p_status)
-      AND (p_stuck_only OR p_include_donated OR gd.status <> 'Donated')
-      AND (p_stuck_only OR p_include_scrapped OR gd.status <> 'Scrapped')
+      AND (p_status IS NULL OR gd.status = p_status)
+      AND (p_include_donated OR gd.status <> 'Donated')
+      AND (p_include_scrapped OR gd.status <> 'Scrapped')
       AND (NOT p_stuck_only OR gd.device_stuck)
       AND (p_donor_id IS NULL OR gd.donor_id = p_donor_id)
       AND (p_recipient_id IS NULL OR gd.recipient_id = p_recipient_id)

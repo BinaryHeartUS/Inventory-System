@@ -14,6 +14,7 @@ AS $$
 DECLARE
     v_Device_ID INTEGER;
 BEGIN
+    -- Trigger arguments identify the asset-id column because each changelog table names it differently.
     v_Device_ID := (to_jsonb(NEW) ->> TG_ARGV[0])::INTEGER;
 
     UPDATE Device
