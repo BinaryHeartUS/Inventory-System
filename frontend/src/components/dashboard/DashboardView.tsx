@@ -134,7 +134,7 @@ export default function DashboardView({
               Stuck Devices
             </p>
             <p className="text-[11px] text-slate-400 mt-1">
-              Number of in-progress and ready-to-donate devices with no recent activity
+              Number of In Progress and Ready To Donate devices with no recent activity
             </p>
           </div>
           <div className="my-5">
@@ -143,7 +143,7 @@ export default function DashboardView({
             </p>
             <p className="text-xs text-slate-500 mt-4">
               {stuckCount !== null && eligibleCount !== null
-                ? `${stuckPct}% of in-progress and ready-to-donate devices`
+                ? `${stuckPct}% of ${eligibleCount} In Progress and Ready To Donate devices`
                 : "Calculating workflow health"}
             </p>
           </div>
