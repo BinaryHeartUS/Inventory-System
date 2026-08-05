@@ -32,6 +32,25 @@ test("shows the stuck pill in device list surfaces and device details", async ({
   await expect(page.getByLabel("Device stuck")).toBeVisible();
 });
 
+test("keeps the stuck pill beside the model in the mobile layout", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/devices");
+
+  const devicesRow = page.getByRole("row").filter({ hasText: "Laptop 13" });
+  const model = devicesRow.getByText("Laptop 13", { exact: true });
+  const stuck = devicesRow.getByLabel("Device stuck");
+  const modelBox = await model.boundingBox();
+  const stuckBox = await stuck.boundingBox();
+  expect(modelBox).not.toBeNull();
+  expect(stuckBox).not.toBeNull();
+  expect(stuckBox!.x).toBeGreaterThan(modelBox!.x + modelBox!.width);
+  expect(Math.abs(stuckBox!.y - modelBox!.y)).toBeLessThan(2);
+  const [scrollWidth, clientWidth] = await page
+    .locator("html")
+    .evaluate((element) => [element.scrollWidth, element.clientWidth]);
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+});
+
 test("stuck filter clears a conflicting status filter", async ({ page }) => {
   await page.goto("/devices");
 

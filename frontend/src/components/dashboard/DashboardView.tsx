@@ -127,32 +127,27 @@ export default function DashboardView({
         <button
           type="button"
           onClick={onStuckSelect}
-          className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-left flex flex-col justify-between transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+          className="bg-rose-50 border border-rose-200 rounded-xl p-5 text-left flex flex-col justify-between transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-rose-700">
                 Stuck Items
               </p>
-              <p className="text-[11px] text-amber-700/70 mt-1">No recent activity</p>
+              <p className="text-[11px] text-rose-700/70 mt-1">No recent activity</p>
             </div>
-            <span className="text-amber-600" aria-hidden="true">
-              →
-            </span>
-          </div>
-          <div className="my-5">
-            <p className="text-4xl font-extrabold text-amber-800 leading-none">
+            <p className="text-3xl font-extrabold text-rose-800 leading-none">
               {stuckCount !== null ? stuckCount : "—"}
             </p>
-            <p className="text-xs text-amber-700/75 mt-2">
-              {stuckCount !== null && eligibleCount !== null
-                ? `${stuckPct}% of ${eligibleCount} eligible devices`
-                : "Calculating workflow health"}
-            </p>
           </div>
-          <div className="h-2 bg-amber-100 rounded-full overflow-hidden">
+          <p className="text-xs text-rose-700/75 my-5">
+            {stuckCount !== null && eligibleCount !== null
+              ? `${stuckPct}% of ${eligibleCount} eligible devices`
+              : "Calculating workflow health"}
+          </p>
+          <div className="h-2 bg-rose-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-amber-500 rounded-full transition-all"
+              className="h-full bg-rose-500 rounded-full transition-all"
               style={{ width: `${stuckPct}%` }}
             />
           </div>

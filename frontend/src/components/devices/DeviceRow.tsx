@@ -54,8 +54,8 @@ export function DeviceRow({
       )}
       {!hide("Model") && (
         <td className="px-5 py-5 text-slate-900 whitespace-nowrap max-w-[180px]" data-label="Model">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="block truncate" title={device.model}>
+          <div className="flex min-w-0 max-w-full flex-nowrap items-center justify-end gap-1.5 sm:justify-start">
+            <span className="min-w-0 flex-1 truncate" title={device.model}>
               {device.model}
             </span>
             {device.deviceStuck && <DeviceStuckBadge />}

@@ -2,6 +2,13 @@
 
 BEGIN;
 TRUNCATE TABLE
+    Asset_Change_Log,
+    Device_Change_Log,
+    Part_Change_Log,
+    Desktop_Change_Log,
+    Tool_Change_Log,
+    Laptop_Change_Log,
+    Tablet_Change_Log,
     Asset,
     Volunteer,
     Party,

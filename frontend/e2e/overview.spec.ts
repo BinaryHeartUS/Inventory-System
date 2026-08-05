@@ -16,6 +16,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("dashboard shows seeded chapter inventory", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
@@ -24,7 +25,14 @@ test("dashboard shows seeded chapter inventory", async ({ page }) => {
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true })).toBeVisible();
   await expect(page.getByText("2 total", { exact: true })).toBeVisible();
   const stuckCard = page.getByRole("button").filter({ hasText: "Stuck Items" });
-  await expect(stuckCard.getByText("1", { exact: true })).toBeVisible();
+  const stuckLabel = stuckCard.getByText("Stuck Items", { exact: true });
+  const stuckCount = stuckCard.getByText("1", { exact: true });
+  await expect(stuckCount).toBeVisible();
+  const labelBox = await stuckLabel.boundingBox();
+  const countBox = await stuckCount.boundingBox();
+  expect(labelBox).not.toBeNull();
+  expect(countBox).not.toBeNull();
+  expect(countBox!.x).toBeGreaterThan(labelBox!.x + labelBox!.width);
 });
 
 test("dashboard pipeline metrics open chapter-filtered device lists", async ({ page }) => {
