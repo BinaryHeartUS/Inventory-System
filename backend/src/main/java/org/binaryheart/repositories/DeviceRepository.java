@@ -44,7 +44,7 @@ public class DeviceRepository {
 
 	public DashboardCountsResponse getDashboardCounts(List<Integer> chapterIds) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
-			CallableStatement stmt = conn.prepareCall("call Get_Dashboard_Counts(?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+			CallableStatement stmt = conn.prepareCall("call Get_Dashboard_Counts(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			setIntegerArray(stmt, 1, chapterIds, conn);
 			stmt.registerOutParameter(2, Types.INTEGER);
 			stmt.registerOutParameter(3, Types.INTEGER);
@@ -54,9 +54,10 @@ public class DeviceRepository {
 			stmt.registerOutParameter(7, Types.INTEGER);
 			stmt.registerOutParameter(8, Types.INTEGER);
 			stmt.registerOutParameter(9, Types.INTEGER);
+			stmt.registerOutParameter(10, Types.INTEGER);
 			stmt.execute();
 			return new DashboardCountsResponse(stmt.getInt(2), stmt.getInt(3), stmt.getInt(4), stmt.getInt(5),
-				stmt.getInt(6), stmt.getInt(7), stmt.getInt(8), stmt.getInt(9));
+				stmt.getInt(6), stmt.getInt(7), stmt.getInt(8), stmt.getInt(9), stmt.getInt(10));
 		}
 	}
 

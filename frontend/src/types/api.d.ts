@@ -1448,7 +1448,7 @@ export interface paths {
         };
         /**
          * All dashboard counts in a single request
-         * @description Returns all eight pipeline and device-type counts needed by the dashboard in one call, optionally filtered to specific chapters. Pipeline counts (not-started, in-progress, ready-to-donate, donated) cover all device types. Active type counts (desktop, laptop, tablet, total) exclude Donated and Ready To Donate devices.
+         * @description Returns pipeline, device-type, and stuck counts needed by the dashboard in one call, optionally filtered to specific chapters. Pipeline counts (not-started, in-progress, ready-to-donate, donated) cover all device types. Active type counts (desktop, laptop, tablet, total) exclude Donated and Scrapped devices.
          */
         get: {
             parameters: {
@@ -4042,6 +4042,8 @@ export interface components {
             tabletActive: number;
             /** Format: int32 */
             totalActive: number;
+            /** Format: int32 */
+            stuck: number;
         };
         DeviceChangelogResponse: {
             deviceType?: string;

@@ -1,5 +1,15 @@
 import { test, expect } from "./fixtures/test";
 import { authenticate, TEST_CHAPTER } from "./fixtures/real-api";
+import type { Page } from "@playwright/test";
+
+async function selectTestChapter(page: Page) {
+  await page.goto("/");
+  await page.getByRole("button", { name: TEST_CHAPTER.name }).click();
+}
+
+async function expectSearchParam(page: Page, name: string, value: string) {
+  await expect.poll(() => new URL(page.url()).searchParams.get(name)).toBe(value);
+}
 
 test.beforeEach(async ({ page }) => {
   await authenticate(page);
@@ -12,7 +22,47 @@ test("dashboard shows seeded chapter inventory", async ({ page }) => {
   await expect(page.getByText("Pipeline", { exact: true })).toBeVisible();
   await expect(page.getByText("Device Types", { exact: true })).toBeVisible();
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true })).toBeVisible();
-  await expect(page.getByText("1 total", { exact: true })).toBeVisible();
+  await expect(page.getByText("2 total", { exact: true })).toBeVisible();
+  const stuckCard = page.getByRole("button").filter({ hasText: "Stuck Items" });
+  await expect(stuckCard.getByText("1", { exact: true })).toBeVisible();
+});
+
+test("dashboard pipeline metrics open chapter-filtered device lists", async ({ page }) => {
+  await selectTestChapter(page);
+  await page.getByRole("button").filter({ hasText: "Not Started" }).click();
+
+  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
+  await expectSearchParam(page, "status", "Not Started");
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+
+  await selectTestChapter(page);
+  await page.getByRole("button").filter({ hasText: "Donated" }).click();
+
+  await expectSearchParam(page, "status", "Donated");
+  await expectSearchParam(page, "includeDonated", "true");
+  await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
+});
+
+test("dashboard device types open chapter-filtered device lists", async ({ page }) => {
+  await selectTestChapter(page);
+  await page.getByRole("button").filter({ hasText: "Desktops" }).click();
+
+  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
+  await expectSearchParam(page, "type", "Desktop");
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+});
+
+test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {
+  await selectTestChapter(page);
+  await page.getByRole("button").filter({ hasText: "Stuck Items" }).click();
+
+  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
+  await expectSearchParam(page, "stuckOnly", "true");
+  await expect(page.getByRole("checkbox", { name: "Stuck Devices Only" })).toBeChecked();
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
 });
 
 test("devices can be filtered and opened", async ({ page }) => {
@@ -21,6 +71,7 @@ test("devices can be filtered and opened", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Devices" })).toBeVisible();
   await expect(page.getByText("Framework", { exact: true })).toBeVisible();
   await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("Framework");
+  await expectSearchParam(page, "search", "Framework");
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
 

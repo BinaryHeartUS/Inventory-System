@@ -53,7 +53,7 @@ class DeviceServiceTest {
 	void getDashboardCountsDelegatesWithResolvedChapters() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		DashboardCountsResponse response = new DashboardCountsResponse(1, 2, 3, 4, 5, 6, 7, 8);
+		DashboardCountsResponse response = new DashboardCountsResponse(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		expect(chapters.resolveChapterIds(List.of(2), List.of(1, 2))).andReturn(List.of(2));
 		expect(repository.getDashboardCounts(List.of(2))).andReturn(response);
 		replay(repository, chapters);

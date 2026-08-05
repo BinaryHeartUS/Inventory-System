@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import type { AnyDevice, DeviceStatus, ChapterInventorySummary } from "../types/inventory";
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
@@ -6,19 +6,39 @@ import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
 import type { SortKey, SortDir } from "../components/devices/DeviceList";
 import DevicesView from "../components/devices/DevicesView";
-import { type DeviceTypeFilter } from "../components/devices/deviceFilters";
+import {
+  DEVICE_TYPES,
+  STATUS_OPTIONS,
+  type DeviceTypeFilter,
+} from "../components/devices/deviceFilters";
+
+function getTypeFilter(value: string | null): DeviceTypeFilter {
+  return DEVICE_TYPES.includes(value as DeviceTypeFilter) ? (value as DeviceTypeFilter) : "All";
+}
+
+function getStatusFilter(value: string | null): DeviceStatus | "All" {
+  return STATUS_OPTIONS.includes(value as DeviceStatus | "All")
+    ? (value as DeviceStatus | "All")
+    : "All";
+}
 
 export default function DevicesContainer() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const chapters = useVisibleChapters();
-  const [search, setSearch] = useState("");
+  const search = searchParams.get("search") ?? "";
+  const typeFilter = getTypeFilter(searchParams.get("type"));
+  const statusFilter = getStatusFilter(searchParams.get("status"));
+  const chapterParam = searchParams.get("chapter");
+  const chapterId = Number(chapterParam);
+  const chapterFilter: number | "All" = chapterParam
+    ? Number.isInteger(chapterId) && chapterId > 0
+      ? chapterId
+      : (chapters.find((chapter) => chapter.name === chapterParam)?.id ?? "All")
+    : "All";
+  const showDonated = searchParams.get("includeDonated") === "true";
+  const showScrapped = searchParams.get("includeScrapped") === "true";
+  const showStuck = searchParams.get("stuckOnly") === "true";
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<DeviceTypeFilter>("All");
-  const [statusFilter, setStatusFilter] = useState<DeviceStatus | "All">("All");
-  const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
-  const [showDonated, setShowDonated] = useState(false);
-  const [showScrapped, setShowScrapped] = useState(false);
-  const [showStuck, setShowStuck] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("id");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
@@ -43,23 +63,25 @@ export default function DevicesContainer() {
     };
   }, []);
 
-  // Resolve a ?chapter=<name> deep link to a chapter id. Chapters load asynchronously
-  // (the list starts empty), so this can't be done in the state initializer — it must wait
-  // until the chapters arrive. Applied at most once so it never clobbers a later user change.
-  const chapterParamApplied = useRef(false);
-  useEffect(() => {
-    if (chapterParamApplied.current) return;
-    const name = searchParams.get("chapter");
-    if (!name) {
-      chapterParamApplied.current = true;
-      return;
-    }
-    if (chapters.length === 0) return; // wait for chapters to load
-    const match = chapters.find((c) => c.name === name);
-    chapterParamApplied.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (match) setChapterFilter(match.id);
-  }, [chapters, searchParams]);
+  const updateFilters = useCallback(
+    (updates: Record<string, string | number | boolean | null>) => {
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          for (const [key, value] of Object.entries(updates)) {
+            if (value === null || value === false || value === "" || value === "All") {
+              next.delete(key);
+            } else {
+              next.set(key, String(value));
+            }
+          }
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
 
   const fetchPage = useCallback(
     (pageKey: number, pageSize: number) =>
@@ -144,13 +166,7 @@ export default function DevicesContainer() {
         : `${devices.length} device${devices.length !== 1 ? "s" : ""}`;
 
   function clearFilters() {
-    setSearch("");
-    setTypeFilter("All");
-    setStatusFilter("All");
-    setChapterFilter("All");
-    setShowDonated(false);
-    setShowScrapped(false);
-    setShowStuck(false);
+    setSearchParams({}, { replace: true });
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
@@ -159,28 +175,28 @@ export default function DevicesContainer() {
   }
 
   function handleShowStuckChange(value: boolean) {
-    setShowStuck(value);
-    if (value) {
-      setStatusFilter("All");
-      setShowDonated(false);
-      setShowScrapped(false);
-    }
+    updateFilters({
+      stuckOnly: value,
+      status: value ? null : statusFilter,
+      includeDonated: value ? null : showDonated,
+      includeScrapped: value ? null : showScrapped,
+    });
   }
 
   return (
     <DevicesView
       search={search}
-      onSearchChange={setSearch}
+      onSearchChange={(value) => updateFilters({ search: value })}
       typeFilter={typeFilter}
-      onTypeFilterChange={setTypeFilter}
+      onTypeFilterChange={(value) => updateFilters({ type: value })}
       statusFilter={statusFilter}
-      onStatusFilterChange={setStatusFilter}
+      onStatusFilterChange={(value) => updateFilters({ status: value })}
       chapterFilter={chapterFilter}
-      onChapterFilterChange={setChapterFilter}
+      onChapterFilterChange={(value) => updateFilters({ chapter: value })}
       showDonated={showDonated}
-      onShowDonatedChange={setShowDonated}
+      onShowDonatedChange={(value) => updateFilters({ includeDonated: value })}
       showScrapped={showScrapped}
-      onShowScrappedChange={setShowScrapped}
+      onShowScrappedChange={(value) => updateFilters({ includeScrapped: value })}
       showStuck={showStuck}
       onShowStuckChange={handleShowStuckChange}
       sortKey={sortKey}

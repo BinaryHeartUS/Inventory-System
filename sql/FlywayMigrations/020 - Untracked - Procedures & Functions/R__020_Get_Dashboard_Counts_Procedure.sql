@@ -9,7 +9,8 @@ CREATE OR REPLACE PROCEDURE Get_Dashboard_Counts(
     OUT p_desktop_active INTEGER,
     OUT p_laptop_active INTEGER,
     OUT p_tablet_active INTEGER,
-    OUT p_total_active INTEGER
+    OUT p_total_active INTEGER,
+    OUT p_stuck INTEGER
 )
 LANGUAGE plpgsql
 AS $$
@@ -19,10 +20,11 @@ BEGIN
         COUNT(*) FILTER (WHERE d.status = 'In Progress')::INTEGER,
         COUNT(*) FILTER (WHERE d.status = 'Ready To Donate')::INTEGER,
         COUNT(*) FILTER (WHERE d.status = 'Donated')::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Ready To Donate') AND dk.ID IS NOT NULL)::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Ready To Donate') AND lp.ID IS NOT NULL)::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Ready To Donate') AND tb.ID IS NOT NULL)::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Ready To Donate'))::INTEGER
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped') AND dk.ID IS NOT NULL)::INTEGER,
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped') AND lp.ID IS NOT NULL)::INTEGER,
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped') AND tb.ID IS NOT NULL)::INTEGER,
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped'))::INTEGER,
+        COUNT(*) FILTER (WHERE d.Device_Stuck)::INTEGER
     INTO
         p_not_started,
         p_in_progress,
@@ -31,7 +33,8 @@ BEGIN
         p_desktop_active,
         p_laptop_active,
         p_tablet_active,
-        p_total_active
+        p_total_active,
+        p_stuck
     FROM Device d
     JOIN Asset a ON d.ID = a.ID
     LEFT JOIN Desktop dk ON d.ID = dk.ID

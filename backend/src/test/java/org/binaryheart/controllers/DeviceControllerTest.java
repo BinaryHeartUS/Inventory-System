@@ -174,7 +174,7 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = chapterStatsContext();
-		DashboardCountsResponse dashboard = new DashboardCountsResponse(1, 2, 3, 4, 5, 6, 7, 8);
+		DashboardCountsResponse dashboard = new DashboardCountsResponse(1, 2, 3, 4, 5, 6, 7, 8, 9);
 		expect(service.getDashboardCounts(List.of(2), List.of(2))).andReturn(dashboard);
 		expectJson(context, 200, dashboard);
 		replay(service, chapters, authorization, context);
