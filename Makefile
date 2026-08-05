@@ -4,7 +4,7 @@
 
 .PHONY: help format format-check format-java format-web format-check-java format-check-web \
 	build build-java build-web build-importer lint lint-web audit-web test test-java test-e2e \
-	test-e2e-headed ci generate-types check-types
+	test-web test-e2e-headed ci generate-types check-types
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -56,9 +56,10 @@ audit-web: ## Scan frontend production dependencies for vulnerabilities (npm aud
 test-java: ## Run backend unit tests
 	cd backend && mvn -ntp test
 
-ci: format-check-java format-check-web lint-web test-java build-java build-web audit-web check-types ## Run every GitHub CI gate locally
+test-web: ## Run frontend unit tests
+	cd frontend && npm test
 
-test: test-java test-e2e ## Run backend and browser tests
+test: test-java test-web test-e2e ## Run backend, frontend unit, and browser tests
 
 test-e2e: ## Run Playwright against a disposable full application stack
 	cd frontend && npm run test:e2e
@@ -66,4 +67,4 @@ test-e2e: ## Run Playwright against a disposable full application stack
 test-e2e-headed: ## Run Playwright with a visible browser against the disposable stack
 	cd frontend && npm run test:e2e -- --headed
 
-ci: format-check-java format-check-web lint-web build-java build-web audit-web check-types test-e2e ## Run every GitHub CI gate locally
+ci: format-check-java format-check-web lint-web test-java test-web build-java build-web audit-web check-types test-e2e ## Run every GitHub CI gate locally

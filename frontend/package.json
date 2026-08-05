@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest run",
     "format": "npx prettier@3.6.2 --write .",
     "format:check": "npx prettier@3.6.2 --check .",
     "test:e2e": "../scripts/test-e2e.sh",
@@ -43,7 +44,8 @@
     "openapi-typescript": "^7.13.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
-    "vite": "^8.0.9"
+    "vite": "^8.0.9",
+    "vitest": "^4.1.10"
   },
   "overrides": {
     "dompurify": "^3.4.11"

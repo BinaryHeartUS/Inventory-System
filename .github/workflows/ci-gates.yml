@@ -34,6 +34,7 @@ jobs:
 
   backend-test:
     name: Backend Tests (Java)
+    needs: backend-compile
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -74,6 +75,30 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+  frontend-test:
+    name: Frontend Tests (Vitest)
+    needs: frontend-build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run frontend unit tests
+        run: npm test
 
   backend-format:
     name: Backend Formatting (Spotless)
@@ -143,6 +168,7 @@ jobs:
 
   frontend-e2e:
     name: Full-Stack E2E (Playwright)
+    needs: frontend-build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
