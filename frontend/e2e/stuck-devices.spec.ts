@@ -9,6 +9,9 @@ test("shows the stuck pill in device list surfaces and device details", async ({
   await page.goto("/devices");
   const devicesRow = page.getByRole("row").filter({ hasText: "Laptop 13" });
   await expect(devicesRow.getByLabel("Device stuck")).toBeVisible();
+  const notStartedRow = page.getByRole("row").filter({ hasText: "ThinkCentre M90q" });
+  await expect(notStartedRow).toBeVisible();
+  await expect(notStartedRow.getByLabel("Device stuck")).toBeHidden();
 
   await page.goto("/search");
   await page

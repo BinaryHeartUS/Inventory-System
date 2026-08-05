@@ -35,7 +35,7 @@ BEGIN
         GROUP BY Asset_ID
     ), desired_state AS (
         SELECT d.ID,
-            d.Status NOT IN ('Donated', 'Scrapped')
+            d.Status IN ('In Progress', 'Ready To Donate')
                 AND COALESCE(
                     la.Modified_At,
                     a.Acquisition_Date::timestamp AT TIME ZONE 'America/New_York',
