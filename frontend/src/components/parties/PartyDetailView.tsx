@@ -320,6 +320,7 @@ export default function PartyDetailView({
                     detail: `${d.type} · ${d.year}`,
                     value: d.value,
                     acquired: d.acquisitionDate ?? null,
+                    deviceStuck: d.deviceStuck,
                   }))}
                   basePath="/devices"
                   emptyMessage="No donated devices."
@@ -402,6 +403,7 @@ export default function PartyDetailView({
                     status: d.status,
                     chapter: d.chapter,
                     acquired: d.acquisitionDate ?? null,
+                    deviceStuck: d.deviceStuck,
                   }))}
                   basePath="/devices"
                   emptyMessage="No received devices."

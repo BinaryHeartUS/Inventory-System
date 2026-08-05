@@ -1,5 +1,6 @@
 import type { AnyDevice, DeviceStatus } from "../../types/inventory";
 import StatusBadge from "../StatusBadge";
+import { DeviceStuckBadge } from "./DeviceStuckBadge";
 /**
  * Renders the columns shared by every device type.
  * Subtype components inject their own cells via the `extraCells` slot,
@@ -53,9 +54,12 @@ export function DeviceRow({
       )}
       {!hide("Model") && (
         <td className="px-5 py-5 text-slate-900 whitespace-nowrap max-w-[180px]" data-label="Model">
-          <span className="block truncate" title={device.model}>
-            {device.model}
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="block truncate" title={device.model}>
+              {device.model}
+            </span>
+            {device.deviceStuck && <DeviceStuckBadge />}
+          </div>
         </td>
       )}
       {!hide("Year") && (

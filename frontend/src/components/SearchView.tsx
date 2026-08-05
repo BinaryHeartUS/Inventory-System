@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import type { AnyDevice, DeviceStatus, Part, Tool } from "../types/inventory";
 import StatusBadge from "./StatusBadge";
+import { DeviceStuckBadge } from "./devices/DeviceStuckBadge";
 import PageHeading from "./PageHeading";
 
 export interface SearchViewProps {
@@ -135,6 +136,7 @@ export default function SearchView({
                   {d.manufacturer} {d.model}
                 </span>
                 <span className="text-xs text-slate-400 hidden sm:block shrink-0">{d.chapter}</span>
+                {d.deviceStuck && <DeviceStuckBadge />}
                 <StatusBadge status={d.status as DeviceStatus} />
               </Link>
             ))}

@@ -761,6 +761,8 @@ export interface paths {
                     includeDonated?: boolean;
                     /** @description Whether to include Scrapped devices. Defaults to true. */
                     includeScrapped?: boolean;
+                    /** @description Return only stuck devices, regardless of status visibility filters. */
+                    stuckOnly?: boolean;
                     /** @description Restrict to devices donated by this party id. */
                     donorId?: number;
                     /** @description Restrict to devices received by this party id. */
@@ -4158,6 +4160,7 @@ export interface components {
             donorId?: number;
             /** Format: int32 */
             recipientId?: number;
+            deviceStuck: boolean;
         };
         GetPartyResponse: {
             /** Format: int32 */

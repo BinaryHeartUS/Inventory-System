@@ -18,6 +18,7 @@ export default function DevicesContainer() {
   const [chapterFilter, setChapterFilter] = useState<number | "All">("All");
   const [showDonated, setShowDonated] = useState(false);
   const [showScrapped, setShowScrapped] = useState(false);
+  const [showStuck, setShowStuck] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("id");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
@@ -71,6 +72,7 @@ export default function DevicesContainer() {
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
         includeDonated: showDonated,
         includeScrapped: showScrapped,
+        stuckOnly: showStuck,
         sort: sortKey,
         dir: sortDir,
       }),
@@ -81,6 +83,7 @@ export default function DevicesContainer() {
       chapterFilter,
       showDonated,
       showScrapped,
+      showStuck,
       sortKey,
       sortDir,
     ]
@@ -98,6 +101,7 @@ export default function DevicesContainer() {
     chapterFilter,
     showDonated,
     showScrapped,
+    showStuck,
     sortKey,
     sortDir,
   ]);
@@ -108,11 +112,12 @@ export default function DevicesContainer() {
     statusFilter !== "All" ||
     chapterFilter !== "All" ||
     showDonated ||
-    showScrapped;
+    showScrapped ||
+    showStuck;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
-    if (debouncedSearch || typeFilter !== "All" || statusFilter !== "All") return null;
+    if (showStuck || debouncedSearch || typeFilter !== "All" || statusFilter !== "All") return null;
     const rows =
       chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
     let total = rows.reduce((sum, r) => sum + r.notStarted + r.inProgress + r.readyToDonate, 0);
@@ -128,6 +133,7 @@ export default function DevicesContainer() {
     chapterFilter,
     showDonated,
     showScrapped,
+    showStuck,
   ]);
 
   const deviceSubtitle =
@@ -144,6 +150,7 @@ export default function DevicesContainer() {
     setChapterFilter("All");
     setShowDonated(false);
     setShowScrapped(false);
+    setShowStuck(false);
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
@@ -165,6 +172,8 @@ export default function DevicesContainer() {
       onShowDonatedChange={setShowDonated}
       showScrapped={showScrapped}
       onShowScrappedChange={setShowScrapped}
+      showStuck={showStuck}
+      onShowStuckChange={setShowStuck}
       sortKey={sortKey}
       sortDir={sortDir}
       onSort={handleSort}

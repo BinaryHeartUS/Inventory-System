@@ -21,6 +21,8 @@ export interface DevicesViewProps {
   onShowDonatedChange: (value: boolean) => void;
   showScrapped: boolean;
   onShowScrappedChange: (value: boolean) => void;
+  showStuck: boolean;
+  onShowStuckChange: (value: boolean) => void;
   sortKey: SortKey;
   sortDir: SortDir;
   onSort: (key: SortKey, dir: SortDir) => void;
@@ -45,6 +47,8 @@ export default function DevicesView({
   onShowDonatedChange,
   showScrapped,
   onShowScrappedChange,
+  showStuck,
+  onShowStuckChange,
   sortKey,
   sortDir,
   onSort,
@@ -97,6 +101,8 @@ export default function DevicesView({
 
           <FilterSelect
             value={statusFilter}
+            disabled={showStuck}
+            className={showStuck ? "opacity-50 cursor-not-allowed" : ""}
             onChange={(e) => onStatusFilterChange(e.target.value as DeviceStatus | "All")}
           >
             {STATUS_OPTIONS.map((s) => (
@@ -107,7 +113,11 @@ export default function DevicesView({
           </FilterSelect>
 
           <label
-            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border select-none transition-all ${
+              showStuck
+                ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+                : "cursor-pointer"
+            } ${
               showDonated
                 ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
                 : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
@@ -116,6 +126,7 @@ export default function DevicesView({
             <input
               type="checkbox"
               checked={showDonated}
+              disabled={showStuck}
               onChange={(e) => onShowDonatedChange(e.target.checked)}
               className="sr-only"
             />
@@ -140,7 +151,11 @@ export default function DevicesView({
           </label>
 
           <label
-            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border select-none transition-all ${
+              showStuck
+                ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+                : "cursor-pointer"
+            } ${
               showScrapped
                 ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
                 : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
@@ -149,6 +164,7 @@ export default function DevicesView({
             <input
               type="checkbox"
               checked={showScrapped}
+              disabled={showStuck}
               onChange={(e) => onShowScrappedChange(e.target.checked)}
               className="sr-only"
             />
@@ -170,6 +186,39 @@ export default function DevicesView({
               )}
             </span>
             Include Scrapped
+          </label>
+
+          <label
+            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
+              showStuck
+                ? "bg-amber-50 border-amber-300 text-amber-800 font-medium"
+                : "bg-white border-slate-200 text-slate-600 hover:border-amber-300"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={showStuck}
+              onChange={(e) => onShowStuckChange(e.target.checked)}
+              className="sr-only"
+            />
+            <span
+              className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
+                showStuck ? "bg-amber-500 border-amber-500" : "border-slate-300"
+              }`}
+            >
+              {showStuck && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path
+                    d="M1.5 5l2.5 2.5 4.5-4.5"
+                    stroke="white"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </span>
+            Show Stuck Devices
           </label>
 
           {hasFilters && (
