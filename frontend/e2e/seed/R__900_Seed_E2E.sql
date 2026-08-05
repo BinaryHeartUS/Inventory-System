@@ -89,6 +89,20 @@ INSERT INTO Desktop (ID, HasWifi)
 VALUES (1002, TRUE)
 ON CONFLICT DO NOTHING;
 
+UPDATE Asset_Change_Log
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Asset_ID = 1001;
+
+UPDATE Device_Change_Log
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Device_ID = 1001;
+
+UPDATE Laptop_Change_Log
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Laptop_ID = 1001;
+
+SELECT Refresh_Stuck_Devices(14);
+
 INSERT INTO Part (ID, Type_ID, Description, Was_Purchased, Contained_In)
 VALUES
     (1101, 1, '16GB DDR5 SODIMM', FALSE, NULL),
