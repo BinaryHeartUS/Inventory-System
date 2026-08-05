@@ -131,15 +131,17 @@ export default function DashboardView({
         >
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              Stuck Items
+              Stuck Devices
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">No recent activity</p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Number of in-progress and ready-to-donate devices with no recent activity
+            </p>
           </div>
           <div className="my-5">
             <p className="text-3xl font-extrabold text-heart-blue leading-none">
               {stuckCount !== null ? stuckCount : "—"}
             </p>
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-500 mt-4">
               {stuckCount !== null && eligibleCount !== null
                 ? `${stuckPct}% of in-progress and ready-to-donate devices`
                 : "Calculating workflow health"}
