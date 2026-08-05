@@ -192,7 +192,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run isolated full-stack Playwright tests
-        run: npm run test:e2e
+        run: npm run test:e2e -- --project=chromium
 
   frontend-dependency-vulnerability-scan:
     name: Frontend Dependency Vulnerability Scan
