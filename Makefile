@@ -65,6 +65,6 @@ test-e2e: ## Run Playwright against a disposable full application stack
 	cd frontend && npm run test:e2e
 
 test-e2e-headed: ## Run Playwright with a visible browser against the disposable stack
-	cd frontend && npm run test:e2e -- --headed
+	cd frontend && npm run test:e2e -- --headed --project=firefox
 
 ci: format-check-java format-check-web lint-web test-java test-web build-java build-web audit-web check-types test-e2e ## Run every GitHub CI gate locally
