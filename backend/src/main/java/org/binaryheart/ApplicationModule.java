@@ -18,6 +18,10 @@ import org.binaryheart.controllers.NoteController;
 import org.binaryheart.controllers.PartController;
 import org.binaryheart.controllers.PartyController;
 import org.binaryheart.controllers.ToolController;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJob;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJobConfig;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJobRepository;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJobScheduler;
 import org.binaryheart.repositories.AccountRepository;
 import org.binaryheart.repositories.AssetRepository;
 import org.binaryheart.repositories.AuthRepository;
@@ -84,6 +88,11 @@ public class ApplicationModule extends AbstractModule {
 		bindSingleton(PartRepository.class);
 		bindSingleton(PartyRepository.class);
 		bindSingleton(ToolRepository.class);
+
+		bind(StuckDeviceJobConfig.class).toInstance(StuckDeviceJobConfig.fromEnvironment());
+		bindSingleton(StuckDeviceJobRepository.class);
+		bindSingleton(StuckDeviceJob.class);
+		bindSingleton(StuckDeviceJobScheduler.class);
 
 		bindSingleton(EncryptionHelper.class);
 		bindSingleton(JwtAccessManager.class);

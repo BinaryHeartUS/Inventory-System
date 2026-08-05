@@ -41,7 +41,7 @@ public final class TestFixtures {
 	public static GetDeviceResponse device() {
 		return new GetDeviceResponse("Desktop", 101, LocalDate.of(2024, 1, 1), 250.0, "Dell", "OptiPlex", null, 2020,
 			"i5", 16, "DDR4", 512, "SSD", "Not Started", true, null, null, null, null, null, "Chapter Two", null,
-			"Windows 11", null, null);
+			"Windows 11", null, null, false);
 	}
 
 	public static PartResponse partResponse() {

@@ -152,12 +152,13 @@ class DeviceControllerTest {
 		expect(context.queryParam("status")).andReturn("active");
 		expect(context.queryParam("includeDonated")).andReturn("true");
 		expect(context.queryParam("includeScrapped")).andReturn("false");
+		expect(context.queryParam("stuckOnly")).andReturn("true");
 		expect(context.queryParam("donorId")).andReturn("9");
 		expect(context.queryParam("recipientId")).andReturn("10");
 		expect(context.queryParam("sort")).andReturn("id");
 		expect(context.queryParam("dir")).andReturn("desc");
-		DeviceListRequest query = new DeviceListRequest("Dell", "desktop", "active", true, false, 9, 10, "id", "desc",
-			25, 50);
+		DeviceListRequest query = new DeviceListRequest("Dell", "desktop", "active", true, false, true, 9, 10, "id",
+			"desc", 25, 50);
 		expect(service.getDevices(List.of(2), 2, query)).andReturn(List.of());
 		expectJson(context, 200, new GetDeviceResponse[0]);
 		replay(service, chapters, authorization, context);

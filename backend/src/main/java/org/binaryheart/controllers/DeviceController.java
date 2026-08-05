@@ -546,6 +546,11 @@ public class DeviceController {
 					type = Boolean.class,
 					description = "Whether to include Scrapped devices. Defaults to true."),
 				@OpenApiParam(
+					name = "stuckOnly",
+					required = false,
+					type = Boolean.class,
+					description = "Return only stuck devices, regardless of status visibility filters."),
+				@OpenApiParam(
 					name = "donorId",
 					required = false,
 					type = Integer.class,
@@ -586,7 +591,8 @@ public class DeviceController {
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
 				QueryParamUtil.stringParam(ctx, "type"), QueryParamUtil.stringParam(ctx, "status"),
 				QueryParamUtil.boolParam(ctx, "includeDonated", true),
-				QueryParamUtil.boolParam(ctx, "includeScrapped", true), QueryParamUtil.intParam(ctx, "donorId"),
+				QueryParamUtil.boolParam(ctx, "includeScrapped", true),
+				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
 				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
 				QueryParamUtil.stringParam(ctx, "dir"), pageSize, pageKey * pageSize);
 			List<GetDeviceResponse> devices = service.getDevices(userChapterIds, chapterId, q);
