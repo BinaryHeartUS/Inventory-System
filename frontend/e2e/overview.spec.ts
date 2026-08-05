@@ -24,10 +24,10 @@ test("dashboard shows seeded chapter inventory", async ({ page }) => {
   await expect(page.getByText("Device Types", { exact: true })).toBeVisible();
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true })).toBeVisible();
   await expect(page.getByText("2 total", { exact: true })).toBeVisible();
-  const stuckCard = page.getByRole("button").filter({ hasText: "Stuck Items" });
+  const stuckCard = page.getByRole("button", { name: /Stuck Devices/ });
   await expect(stuckCard.getByText("1", { exact: true })).toBeVisible();
   await expect(
-    stuckCard.getByText("100% of in-progress and ready-to-donate devices", { exact: true })
+    stuckCard.getByText("100% of 1 In Progress and Ready To Donate devices", { exact: true })
   ).toBeVisible();
 });
 
@@ -60,7 +60,7 @@ test("dashboard device types open chapter-filtered device lists", async ({ page 
 
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {
   await selectTestChapter(page);
-  await page.getByRole("button").filter({ hasText: "Stuck Items" }).click();
+  await page.getByRole("button", { name: /Stuck Devices/ }).click();
 
   await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
   await expectSearchParam(page, "stuckOnly", "true");
