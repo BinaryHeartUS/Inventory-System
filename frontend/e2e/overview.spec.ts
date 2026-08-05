@@ -25,14 +25,10 @@ test("dashboard shows seeded chapter inventory", async ({ page }) => {
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true })).toBeVisible();
   await expect(page.getByText("2 total", { exact: true })).toBeVisible();
   const stuckCard = page.getByRole("button").filter({ hasText: "Stuck Items" });
-  const stuckLabel = stuckCard.getByText("Stuck Items", { exact: true });
-  const stuckCount = stuckCard.getByText("1", { exact: true });
-  await expect(stuckCount).toBeVisible();
-  const labelBox = await stuckLabel.boundingBox();
-  const countBox = await stuckCount.boundingBox();
-  expect(labelBox).not.toBeNull();
-  expect(countBox).not.toBeNull();
-  expect(countBox!.x).toBeGreaterThan(labelBox!.x + labelBox!.width);
+  await expect(stuckCard.getByText("1", { exact: true })).toBeVisible();
+  await expect(
+    stuckCard.getByText("100% of in-progress and ready-to-donate devices", { exact: true })
+  ).toBeVisible();
 });
 
 test("dashboard pipeline metrics open chapter-filtered device lists", async ({ page }) => {
@@ -85,6 +81,26 @@ test("devices can be filtered and opened", async ({ page }) => {
 
   await page.getByText("Laptop 13", { exact: true }).click();
   await expect(page).toHaveURL(/\/devices\/1001$/);
+});
+
+test("places the continuation marker after the matching-device count", async ({ page }) => {
+  await page.route(/\/api\/devices\?.*search=bulk/, async (route) => {
+    const templateUrl = new URL(route.request().url());
+    templateUrl.searchParams.delete("search");
+    templateUrl.searchParams.set("pageSize", "1");
+    const response = await route.fetch({ url: templateUrl.toString() });
+    const [template] = (await response.json()) as Array<Record<string, unknown>>;
+    const devices = Array.from({ length: 50 }, (_, index) => ({
+      ...template,
+      id: 2000 + index,
+      model: `Bulk Device ${index + 1}`,
+    }));
+    await route.fulfill({ response, json: devices });
+  });
+
+  await page.goto("/devices?search=bulk");
+
+  await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
 });
 
 test("parts are grouped by type and open from an expanded group", async ({ page }) => {

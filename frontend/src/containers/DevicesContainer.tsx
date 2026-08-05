@@ -162,7 +162,7 @@ export default function DevicesContainer() {
     exactTotal != null
       ? `${exactTotal} device${exactTotal !== 1 ? "s" : ""}`
       : hasFilters
-        ? `${devices.length} matching device${devices.length !== 1 ? "s" : ""}${hasMore ? "+" : ""}`
+        ? `${devices.length}${hasMore ? "+" : ""} matching device${devices.length !== 1 ? "s" : ""}`
         : `${devices.length} device${devices.length !== 1 ? "s" : ""}`;
 
   function clearFilters() {

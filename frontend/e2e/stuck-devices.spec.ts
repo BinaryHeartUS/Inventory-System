@@ -8,7 +8,16 @@ test.beforeEach(async ({ page }) => {
 test("shows the stuck pill in device list surfaces and device details", async ({ page }) => {
   await page.goto("/devices");
   const devicesRow = page.getByRole("row").filter({ hasText: "Laptop 13" });
-  await expect(devicesRow.getByLabel("Device stuck")).toBeVisible();
+  const model = devicesRow.getByText("Laptop 13", { exact: true });
+  const stuck = devicesRow.getByLabel("Device stuck");
+  await expect(stuck).toBeVisible();
+  const modelBox = await model.boundingBox();
+  const stuckBox = await stuck.boundingBox();
+  expect(modelBox).not.toBeNull();
+  expect(stuckBox).not.toBeNull();
+  expect(stuckBox!.x).toBeGreaterThan(modelBox!.x + modelBox!.width);
+  expect(stuckBox!.x - (modelBox!.x + modelBox!.width)).toBeLessThan(12);
+  expect(Math.abs(stuckBox!.y - modelBox!.y)).toBeLessThan(2);
   const notStartedRow = page.getByRole("row").filter({ hasText: "ThinkCentre M90q" });
   await expect(notStartedRow).toBeVisible();
   await expect(notStartedRow.getByLabel("Device stuck")).toBeHidden();

@@ -127,27 +127,27 @@ export default function DashboardView({
         <button
           type="button"
           onClick={onStuckSelect}
-          className="bg-rose-50 border border-rose-200 rounded-xl p-5 text-left flex flex-col justify-between transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+          className="bg-white border border-slate-200 rounded-xl p-5 text-left flex flex-col justify-between transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heart-blue"
         >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-rose-700">
-                Stuck Items
-              </p>
-              <p className="text-[11px] text-rose-700/70 mt-1">No recent activity</p>
-            </div>
-            <p className="text-3xl font-extrabold text-rose-800 leading-none">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Stuck Items
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1">No recent activity</p>
+          </div>
+          <div className="my-5">
+            <p className="text-3xl font-extrabold text-heart-blue leading-none">
               {stuckCount !== null ? stuckCount : "—"}
             </p>
+            <p className="text-xs text-slate-500 mt-2">
+              {stuckCount !== null && eligibleCount !== null
+                ? `${stuckPct}% of in-progress and ready-to-donate devices`
+                : "Calculating workflow health"}
+            </p>
           </div>
-          <p className="text-xs text-rose-700/75 my-5">
-            {stuckCount !== null && eligibleCount !== null
-              ? `${stuckPct}% of ${eligibleCount} eligible devices`
-              : "Calculating workflow health"}
-          </p>
-          <div className="h-2 bg-rose-100 rounded-full overflow-hidden">
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-rose-500 rounded-full transition-all"
+              className="h-full bg-heart-blue rounded-full transition-all"
               style={{ width: `${stuckPct}%` }}
             />
           </div>
