@@ -11,6 +11,7 @@ CREATE OR REPLACE FUNCTION Get_Devices_Page(
     p_status STATUS DEFAULT NULL,
     p_include_donated BOOLEAN DEFAULT TRUE,
     p_include_scrapped BOOLEAN DEFAULT TRUE,
+    p_stuck_only BOOLEAN DEFAULT FALSE,
     p_donor_id INTEGER DEFAULT NULL,
     p_recipient_id INTEGER DEFAULT NULL,
     p_sort TEXT DEFAULT 'id',
@@ -44,6 +45,7 @@ RETURNS TABLE (
     operating_system VARCHAR(50),
     donor_id INTEGER,
     recipient_id INTEGER,
+    device_stuck BOOLEAN,
     chapter_id INTEGER
 )
 LANGUAGE plpgsql
@@ -81,6 +83,7 @@ BEGIN
       AND (p_status IS NULL OR gd.status = p_status)
       AND (p_include_donated OR gd.status <> 'Donated')
       AND (p_include_scrapped OR gd.status <> 'Scrapped')
+      AND (NOT p_stuck_only OR gd.device_stuck)
       AND (p_donor_id IS NULL OR gd.donor_id = p_donor_id)
       AND (p_recipient_id IS NULL OR gd.recipient_id = p_recipient_id)
       AND (p_search IS NULL OR p_search = '' OR gd::text ILIKE '%' || p_search || '%')

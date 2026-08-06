@@ -188,6 +188,7 @@ export function AddAssetModal({
       value: form.value ? Number(form.value) : null,
       donorId: selectedParty?.id ?? null,
       recipientId: selectedRecipient?.id ?? null,
+      deviceStuck: false,
     };
 
     if (subtype === "Desktop") {

@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { formatDate } from "../../utils/dateUtils";
+import { DeviceStuckBadge } from "../devices/DeviceStuckBadge";
 
 export type DonatedRow = {
   id: number;
@@ -8,6 +9,7 @@ export type DonatedRow = {
   detail: string;
   value: number | null;
   acquired: string | null;
+  deviceStuck?: boolean;
 };
 
 export function DonatedTable({
@@ -77,6 +79,11 @@ export function DonatedTable({
               <td className="px-5 py-3 text-slate-800" data-label="Asset">
                 {row.label}
                 {row.detail && <span className="ml-1.5 text-slate-400 text-xs">{row.detail}</span>}
+                {row.deviceStuck && (
+                  <span className="ml-2">
+                    <DeviceStuckBadge />
+                  </span>
+                )}
               </td>
               <td className="px-5 py-3 text-slate-500 whitespace-nowrap" data-label="Acquired">
                 {formatDate(row.acquired) ?? "—"}

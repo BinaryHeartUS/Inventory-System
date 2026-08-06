@@ -90,6 +90,7 @@ export type AnyDevice = Omit<
   | "operatingSystem"
   | "donorId"
   | "recipientId"
+  | "deviceStuck"
 > & {
   value: number | null;
   serialNumber?: string | null;
@@ -107,6 +108,7 @@ export type AnyDevice = Omit<
   operatingSystem?: string | null;
   donorId?: number | null;
   recipientId?: number | null;
+  deviceStuck: boolean;
 };
 
 // --- Dashboard stat response types ------------------------------------------

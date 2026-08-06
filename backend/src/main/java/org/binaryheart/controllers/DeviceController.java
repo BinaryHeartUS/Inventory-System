@@ -105,10 +105,10 @@ public class DeviceController {
 		security = {@OpenApiSecurity(
 			name = "BearerAuth")},
 		summary = "All dashboard counts in a single request",
-		description = "Returns all eight pipeline and device-type counts needed by the dashboard in one call, "
+		description = "Returns pipeline, device-type, and stuck counts needed by the dashboard in one call, "
 			+ "optionally filtered to specific chapters. "
 			+ "Pipeline counts (not-started, in-progress, ready-to-donate, donated) cover all device types. "
-			+ "Active type counts (desktop, laptop, tablet, total) exclude Donated and Ready To Donate devices.",
+			+ "Active type counts (desktop, laptop, tablet, total) exclude Donated and Scrapped devices.",
 		queryParams = {@OpenApiParam(
 			name = "chapters",
 			required = false,
@@ -546,6 +546,11 @@ public class DeviceController {
 					type = Boolean.class,
 					description = "Whether to include Scrapped devices. Defaults to true."),
 				@OpenApiParam(
+					name = "stuckOnly",
+					required = false,
+					type = Boolean.class,
+					description = "Return only stuck devices. Other supplied filters still apply."),
+				@OpenApiParam(
 					name = "donorId",
 					required = false,
 					type = Integer.class,
@@ -586,7 +591,8 @@ public class DeviceController {
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
 				QueryParamUtil.stringParam(ctx, "type"), QueryParamUtil.stringParam(ctx, "status"),
 				QueryParamUtil.boolParam(ctx, "includeDonated", true),
-				QueryParamUtil.boolParam(ctx, "includeScrapped", true), QueryParamUtil.intParam(ctx, "donorId"),
+				QueryParamUtil.boolParam(ctx, "includeScrapped", true),
+				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
 				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
 				QueryParamUtil.stringParam(ctx, "dir"), pageSize, pageKey * pageSize);
 			List<GetDeviceResponse> devices = service.getDevices(userChapterIds, chapterId, q);

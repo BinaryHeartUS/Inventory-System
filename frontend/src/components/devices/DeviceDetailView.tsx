@@ -26,6 +26,7 @@ import { ModificationLog } from "../ModificationLog";
 import { ModificationModal } from "../ModificationModal";
 import { buildDeviceFields } from "../../utils/changelogFields";
 import { BatteryBar } from "./BatteryBar";
+import { DeviceStuckBadge } from "./DeviceStuckBadge";
 
 export interface DeviceDetailViewProps {
   device: AnyDevice;
@@ -158,6 +159,7 @@ export default function DeviceDetailView({
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:shrink-0">
               <StatusBadge status={d.status as DeviceStatus} size="lg" />
+              {d.deviceStuck && <DeviceStuckBadge size="lg" />}
               {!editing && canPrint && (
                 <button
                   onClick={() => onOpenPrint(d.id)}

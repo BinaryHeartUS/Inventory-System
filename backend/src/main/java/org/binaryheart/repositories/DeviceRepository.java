@@ -44,7 +44,7 @@ public class DeviceRepository {
 
 	public DashboardCountsResponse getDashboardCounts(List<Integer> chapterIds) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
-			CallableStatement stmt = conn.prepareCall("call Get_Dashboard_Counts(?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+			CallableStatement stmt = conn.prepareCall("call Get_Dashboard_Counts(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			setIntegerArray(stmt, 1, chapterIds, conn);
 			stmt.registerOutParameter(2, Types.INTEGER);
 			stmt.registerOutParameter(3, Types.INTEGER);
@@ -54,9 +54,10 @@ public class DeviceRepository {
 			stmt.registerOutParameter(7, Types.INTEGER);
 			stmt.registerOutParameter(8, Types.INTEGER);
 			stmt.registerOutParameter(9, Types.INTEGER);
+			stmt.registerOutParameter(10, Types.INTEGER);
 			stmt.execute();
 			return new DashboardCountsResponse(stmt.getInt(2), stmt.getInt(3), stmt.getInt(4), stmt.getInt(5),
-				stmt.getInt(6), stmt.getInt(7), stmt.getInt(8), stmt.getInt(9));
+				stmt.getInt(6), stmt.getInt(7), stmt.getInt(8), stmt.getInt(9), stmt.getInt(10));
 		}
 	}
 
@@ -186,19 +187,20 @@ public class DeviceRepository {
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
-				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status), ?, ?, ?, ?, ?, ?, ?, ?)")) {
+				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status), ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
 			setStringOrNull(stmt, 3, q.type());
 			setStringOrNull(stmt, 4, q.status());
 			stmt.setBoolean(5, q.includeDonated());
 			stmt.setBoolean(6, q.includeScrapped());
-			setIntegerOrNull(stmt, 7, q.donorId());
-			setIntegerOrNull(stmt, 8, q.recipientId());
-			stmt.setString(9, q.sort() == null ? "id" : q.sort());
-			stmt.setString(10, q.dir() == null ? "asc" : q.dir());
-			setIntegerOrNull(stmt, 11, q.limit());
-			stmt.setInt(12, q.offset() == null ? 0 : q.offset());
+			stmt.setBoolean(7, q.stuckOnly());
+			setIntegerOrNull(stmt, 8, q.donorId());
+			setIntegerOrNull(stmt, 9, q.recipientId());
+			stmt.setString(10, q.sort() == null ? "id" : q.sort());
+			stmt.setString(11, q.dir() == null ? "asc" : q.dir());
+			setIntegerOrNull(stmt, 12, q.limit());
+			stmt.setInt(13, q.offset() == null ? 0 : q.offset());
 			ResultSet rs = stmt.executeQuery();
 			List<GetDeviceResponse> devices = new ArrayList<>();
 			while (rs.next()) {
@@ -235,9 +237,11 @@ public class DeviceRepository {
 		String operatingSystem = rs.getString("operating_system");
 		Integer donorId = rs.getObject("donor_id", Integer.class);
 		Integer recipientId = rs.getObject("recipient_id", Integer.class);
+		Boolean deviceStuck = rs.getBoolean("device_stuck");
 		return new GetDeviceResponse(deviceType, deviceID, acquisitionLocalDate, value, manufacturer, model,
 			serialNumber, year, cpu, ram, ramGeneration, storage, storageType, status, hasWifi, hasCharger, designCap,
-			actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId, recipientId);
+			actualCap, batteryHealth, workingBattery, chapter, dateDonated, operatingSystem, donorId, recipientId,
+			deviceStuck);
 	}
 
 	private static void setStringOrNull(PreparedStatement stmt, int index, String value) throws SQLException {

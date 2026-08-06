@@ -33,6 +33,7 @@ export function useDashboardData(selectedChapterIds: number[], chartMonths: numb
   const [laptopCount, setLaptopCount] = useState<number | null>(null);
   const [tabletCount, setTabletCount] = useState<number | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [stuckCount, setStuckCount] = useState<number | null>(null);
 
   // Other stats
   const [avgTime, setAvgTime] = useState<AvgTimeInInventoryResponse | null>(null);
@@ -61,6 +62,7 @@ export function useDashboardData(selectedChapterIds: number[], chartMonths: numb
     setLaptopCount(counts.laptopActive);
     setTabletCount(counts.tabletActive);
     setTotalCount(counts.totalActive);
+    setStuckCount(counts.stuck);
     setAvgTime(avg);
     setCompletionRate(cr);
     setReceivedData(received);
@@ -98,6 +100,7 @@ export function useDashboardData(selectedChapterIds: number[], chartMonths: numb
     laptopCount,
     tabletCount,
     totalCount,
+    stuckCount,
     completionRate,
     chapterActivity,
     receivedData,

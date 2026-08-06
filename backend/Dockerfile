@@ -7,4 +7,4 @@ RUN --mount=type=cache,target=/root/.m2 \
 FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY --from=build /app/target/inventory-*.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Dguice_bytecode_gen_option=DISABLED", "-jar", "app.jar"]
