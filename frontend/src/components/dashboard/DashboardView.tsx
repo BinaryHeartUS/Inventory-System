@@ -4,12 +4,16 @@ import DeviceValueChart from "./DeviceValueChart";
 import PageHeading from "../PageHeading";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
 import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
+import type { DeviceStatus } from "../../types/inventory";
 
 export interface DashboardViewProps {
   selectedChapter: number | "All";
   onChapterChange: (value: number | "All") => void;
   chartMonths: number;
   data: DashboardData;
+  onStatusSelect: (status: DeviceStatus) => void;
+  onTypeSelect: (type: "Desktop" | "Laptop" | "Tablet") => void;
+  onStuckSelect: () => void;
 }
 
 export default function DashboardView({
@@ -17,6 +21,9 @@ export default function DashboardView({
   onChapterChange,
   chartMonths,
   data,
+  onStatusSelect,
+  onTypeSelect,
+  onStuckSelect,
 }: DashboardViewProps) {
   const {
     notStartedCount,
@@ -27,6 +34,7 @@ export default function DashboardView({
     laptopCount,
     tabletCount,
     totalCount,
+    stuckCount,
     completionRate,
     chapterActivity,
     receivedData,
@@ -37,6 +45,14 @@ export default function DashboardView({
     avgDays,
     sampleSize,
   } = data;
+  const eligibleCount =
+    inProgressCount !== null && readyToDonateCount !== null
+      ? inProgressCount + readyToDonateCount
+      : null;
+  const stuckPct =
+    stuckCount !== null && eligibleCount !== null && eligibleCount > 0
+      ? Math.round((stuckCount / eligibleCount) * 100)
+      : 0;
 
   return (
     <div className="space-y-6">
@@ -59,6 +75,7 @@ export default function DashboardView({
           {[
             {
               label: "Not Started",
+              status: "Not Started" as const,
               count: notStartedCount,
               bg: "bg-slate-100",
               text: "text-slate-700",
@@ -66,6 +83,7 @@ export default function DashboardView({
             },
             {
               label: "In Progress",
+              status: "In Progress" as const,
               count: inProgressCount,
               bg: "bg-amber-50",
               text: "text-amber-700",
@@ -73,6 +91,7 @@ export default function DashboardView({
             },
             {
               label: "Ready to Donate",
+              status: "Ready To Donate" as const,
               count: readyToDonateCount,
               bg: "bg-green-50",
               text: "text-green-700",
@@ -80,25 +99,62 @@ export default function DashboardView({
             },
             {
               label: "Donated",
+              status: "Donated" as const,
               count: donatedCount,
               bg: "bg-sky-50",
               text: "text-sky-700",
               dot: "bg-sky-500",
             },
-          ].map(({ label, count, bg, text, dot }) => (
-            <div key={label} className={`rounded-lg p-4 ${bg}`}>
+          ].map(({ label, status, count, bg, text, dot }) => (
+            <button
+              type="button"
+              key={label}
+              onClick={() => onStatusSelect(status)}
+              className={`rounded-lg p-4 text-left transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heart-blue ${bg}`}
+            >
               <div className={`w-2 h-2 rounded-full ${dot} mb-3`} />
               <p className={`text-3xl font-extrabold leading-none ${text}`}>
                 {count !== null ? count : <span className="text-xl opacity-40">—</span>}
               </p>
               <p className={`text-[11px] font-medium mt-2 ${text} opacity-75`}>{label}</p>
-            </div>
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Device types + Chapter breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Inventory health */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <button
+          type="button"
+          onClick={onStuckSelect}
+          className="bg-white border border-slate-200 rounded-xl p-5 text-left flex flex-col justify-between transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heart-blue"
+        >
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Stuck Devices
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Number of In Progress and Ready To Donate devices with no recent activity
+            </p>
+          </div>
+          <div className="my-5">
+            <p className="text-3xl font-extrabold text-heart-blue leading-none">
+              {stuckCount !== null ? stuckCount : "—"}
+            </p>
+            <p className="text-xs text-slate-500 mt-4">
+              {stuckCount !== null && eligibleCount !== null
+                ? `${stuckPct}% of ${eligibleCount} In Progress and Ready To Donate devices`
+                : "Calculating workflow health"}
+            </p>
+          </div>
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-heart-blue rounded-full transition-all"
+              style={{ width: `${stuckPct}%` }}
+            />
+          </div>
+        </button>
+
         {/* Device type breakdown */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col">
           <div className="flex items-baseline justify-between mb-4">
@@ -115,7 +171,12 @@ export default function DashboardView({
               { label: "Laptops", count: laptopCount, color: "bg-indigo-500" },
               { label: "Tablets", count: tabletCount, color: "bg-violet-500" },
             ].map(({ label, count, color }) => (
-              <div key={label}>
+              <button
+                type="button"
+                key={label}
+                onClick={() => onTypeSelect(label.slice(0, -1) as "Desktop" | "Laptop" | "Tablet")}
+                className="block w-full rounded-md p-1 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heart-blue"
+              >
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-slate-600 font-medium">{label}</span>
                   <span className="text-slate-700 font-semibold">
@@ -135,7 +196,7 @@ export default function DashboardView({
                     }}
                   />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>

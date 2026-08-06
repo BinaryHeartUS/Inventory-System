@@ -161,6 +161,7 @@ export default function NotesPane({
                     <div>
                       <textarea
                         autoFocus
+                        aria-label="Edit note"
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
                         maxLength={500}

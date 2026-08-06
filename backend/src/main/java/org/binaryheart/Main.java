@@ -22,6 +22,7 @@ import org.binaryheart.controllers.NoteController;
 import org.binaryheart.controllers.PartController;
 import org.binaryheart.controllers.PartyController;
 import org.binaryheart.controllers.ToolController;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJobScheduler;
 
 public class Main {
 	public static void main(String[] args) {
@@ -40,8 +41,9 @@ public class Main {
 		PartyController partyController = injector.getInstance(PartyController.class);
 		ToolController toolController = injector.getInstance(ToolController.class);
 		JwtAccessManager accessManager = injector.getInstance(JwtAccessManager.class);
+		StuckDeviceJobScheduler stuckDeviceJobScheduler = injector.getInstance(StuckDeviceJobScheduler.class);
 
-		Javalin.create(config -> {
+		Javalin app = Javalin.create(config -> {
 			config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
 				.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)));
 			config
@@ -70,5 +72,8 @@ public class Main {
 				path("/api/party", partyController::registerRoutes);
 			});
 		}).start(8080);
+
+		stuckDeviceJobScheduler.start();
+		Runtime.getRuntime().addShutdownHook(new Thread(stuckDeviceJobScheduler::close, "stuck-device-job-shutdown"));
 	}
 }

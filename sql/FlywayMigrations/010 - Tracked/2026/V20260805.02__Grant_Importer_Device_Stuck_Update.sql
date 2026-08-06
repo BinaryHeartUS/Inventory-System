@@ -1,0 +1,1 @@
+GRANT UPDATE (Device_Stuck) ON Device TO importer;

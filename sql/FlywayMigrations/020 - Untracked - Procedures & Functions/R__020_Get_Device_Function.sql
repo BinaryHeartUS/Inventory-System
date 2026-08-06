@@ -29,6 +29,7 @@ RETURNS TABLE (
     operating_system VARCHAR(50),
     donor_id INTEGER,
     recipient_id INTEGER,
+    device_stuck BOOLEAN,
     chapter_id INTEGER
 )
 LANGUAGE plpgsql

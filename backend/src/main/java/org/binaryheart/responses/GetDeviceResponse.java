@@ -6,5 +6,5 @@ public record GetDeviceResponse(String type, int id, LocalDate acquisitionDate, 
 	String model, String serialNumber, int year, String cpu, int ram, String ramGeneration, int storage,
 	String storageType, String status, Boolean hasWifi, String includesCharger, Integer designBatteryCapacity,
 	Integer actualBatteryCapacity, Double batteryHealth, String workingBattery, String chapter, LocalDate donatedDate,
-	String operatingSystem, Integer donorId, Integer recipientId) {
+	String operatingSystem, Integer donorId, Integer recipientId, boolean deviceStuck) {
 }

@@ -39,6 +39,7 @@ export interface DeviceListParams {
   chapter?: number;
   includeDonated?: boolean;
   includeScrapped?: boolean;
+  stuckOnly?: boolean;
   donorId?: number;
   recipientId?: number;
   /** Sort key matching DeviceList columns, e.g. "manufacturer". */

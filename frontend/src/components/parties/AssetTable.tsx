@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import StatusBadge from "../StatusBadge";
 import type { DeviceStatus } from "../../types/inventory";
 import { formatDate } from "../../utils/dateUtils";
+import { DeviceStuckBadge } from "../devices/DeviceStuckBadge";
 
 export type AssetRow = {
   id: number;
@@ -10,6 +11,7 @@ export type AssetRow = {
   status?: string;
   chapter?: string;
   acquired: string | null;
+  deviceStuck?: boolean;
 };
 
 export function AssetTable({
@@ -54,6 +56,11 @@ export function AssetTable({
               <td className="px-5 py-3 text-slate-800" data-label="Asset">
                 {row.label}
                 {row.detail && <span className="ml-1.5 text-slate-400 text-xs">{row.detail}</span>}
+                {row.deviceStuck && (
+                  <span className="ml-2">
+                    <DeviceStuckBadge />
+                  </span>
+                )}
               </td>
               {row.status !== undefined && (
                 <td className="px-5 py-3" data-label="Status">

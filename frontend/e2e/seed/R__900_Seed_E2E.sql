@@ -67,6 +67,7 @@ INSERT INTO Asset (ID, Acquisition_Date, Value, Chapter_ID, Donor_ID)
 VALUES
     (1001, '2026-01-15', 750, 101, 301),
     (1002, '2025-11-10', 300, 101, 301),
+    (1003, '2025-12-01', 250, 101, 301),
     (1101, '2026-02-01', 45, 101, 301),
     (1102, '2026-02-02', 70, 101, NULL),
     (1201, '2026-03-01', 25, 101, 301)
@@ -78,7 +79,8 @@ INSERT INTO Device (
 )
 VALUES
     (1001, 2, 'Laptop 13', 2024, 'Ryzen 7 7840U', 16, 2, 512, 2, 'In Progress', NULL, NULL, 1),
-    (1002, 1, 'OptiPlex 7090', 2022, 'Core i5', 8, 1, 256, 1, 'Donated', 302, '2026-02-15', 2)
+    (1002, 1, 'OptiPlex 7090', 2022, 'Core i5', 8, 1, 256, 1, 'Donated', 302, '2026-02-15', 2),
+    (1003, 3, 'ThinkCentre M90q', 2023, 'Core i5', 8, 1, 256, 1, 'Not Started', NULL, NULL, 2)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO Laptop (ID, Includes_Charger)
@@ -86,8 +88,33 @@ VALUES (1001, 'Included')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO Desktop (ID, HasWifi)
-VALUES (1002, TRUE)
+VALUES (1002, TRUE), (1003, TRUE)
 ON CONFLICT DO NOTHING;
+
+UPDATE Asset_Change_Log
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Asset_ID IN (1001, 1003);
+
+UPDATE Device_Change_Log
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Device_ID IN (1001, 1003);
+
+UPDATE Desktop_Change_Log
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Desktop_ID = 1003;
+
+UPDATE Laptop_Change_Log
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Laptop_ID = 1001;
+
+INSERT INTO Note (Text, Date, Asset_ID)
+VALUES ('Waiting for replacement battery', CURRENT_TIMESTAMP - INTERVAL '30 days', 1001);
+
+UPDATE Note
+SET Modified_At = CURRENT_TIMESTAMP - INTERVAL '30 days'
+WHERE Asset_ID = 1001;
+
+SELECT Refresh_Stuck_Devices(14);
 
 INSERT INTO Part (ID, Type_ID, Description, Was_Purchased, Contained_In)
 VALUES

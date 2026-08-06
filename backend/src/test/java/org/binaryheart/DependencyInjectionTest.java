@@ -21,6 +21,10 @@ import org.binaryheart.controllers.NoteController;
 import org.binaryheart.controllers.PartController;
 import org.binaryheart.controllers.PartyController;
 import org.binaryheart.controllers.ToolController;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJob;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJobConfig;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJobRepository;
+import org.binaryheart.jobs.stuckdevices.StuckDeviceJobScheduler;
 import org.binaryheart.repositories.AccountRepository;
 import org.binaryheart.repositories.AssetRepository;
 import org.binaryheart.repositories.AuthRepository;
@@ -60,7 +64,8 @@ class DependencyInjectionTest {
 				AssetRepository.class, AuthRepository.class, ChapterRepository.class, DeviceRepository.class,
 				HealthRepository.class, LookupRepository.class, NoteRepository.class, PartRepository.class,
 				PartyRepository.class, ToolRepository.class, EncryptionHelper.class, JwtAccessManager.class,
-				JwtService.class, PasswordService.class, TokenService.class};
+				JwtService.class, PasswordService.class, TokenService.class, StuckDeviceJobConfig.class,
+				StuckDeviceJobRepository.class, StuckDeviceJob.class, StuckDeviceJobScheduler.class};
 
 		for (Class<?> type : types) {
 			Object instance = injector.getInstance(type);

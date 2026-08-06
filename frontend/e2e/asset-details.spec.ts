@@ -9,7 +9,7 @@ test("edits and saves a device", async ({ page }) => {
   await page.goto("/devices/1001");
   await expect(page.getByRole("heading", { name: "Framework Laptop 13" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Edit" }).click();
+  await page.getByRole("button", { name: "Edit" }).first().click();
   await page.getByTestId("edit-field-model").fill("Laptop 13 E2E");
   await page.getByRole("button", { name: "Save changes" }).click();
 
@@ -22,7 +22,7 @@ test("persists a serial number after leaving and returning to a device", async (
   const serialNumber = "E2E-SERIAL-PERSIST-1001";
 
   await page.goto("/devices/1001");
-  await page.getByRole("button", { name: "Edit" }).click();
+  await page.getByRole("button", { name: "Edit" }).first().click();
   await page.getByTestId("edit-field-serial-number").fill(serialNumber);
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText(serialNumber, { exact: true })).toBeVisible();
@@ -64,8 +64,9 @@ test("edits and saves a tool", async ({ page }) => {
 
 test("guards navigation while edits are unsaved", async ({ page }) => {
   await page.goto("/devices/1001");
-  await page.getByRole("button", { name: "Edit" }).click();
+  await page.getByRole("button", { name: "Edit" }).first().click();
   await page.getByTestId("edit-field-model").fill("Unsaved model");
+  await expect(page.getByRole("heading", { name: "Framework Unsaved model" })).toBeVisible();
 
   const partsLink = page.locator("aside").first().getByRole("link", { name: "Parts", exact: true });
   await partsLink.click();
@@ -85,7 +86,7 @@ test("prevents viewers from editing device details", async ({ page }) => {
   await authenticate(page, "Viewer");
   await page.goto("/devices/1001");
 
-  const editButton = page.getByRole("button", { name: "Edit" });
+  const editButton = page.getByRole("button", { name: "Edit" }).first();
   await expect(editButton).toBeDisabled();
   await expect(editButton).toHaveAttribute("title", "Viewers cannot edit devices");
 });
