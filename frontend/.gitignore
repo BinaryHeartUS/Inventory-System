@@ -23,3 +23,6 @@ src/types/api.generated.ts
 *.njsproj
 *.sln
 *.sw?
+
+*storybook.log
+storybook-static

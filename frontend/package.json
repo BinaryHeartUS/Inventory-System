@@ -14,7 +14,9 @@
     "test:e2e:runner": "playwright test",
     "test:e2e:ui": "../scripts/test-e2e.sh --ui",
     "preview": "vite preview",
-    "gen-types": "openapi-typescript ../backend/target/classes/openapi-plugin/openapi-default.json -o src/types/api.d.ts"
+    "gen-types": "openapi-typescript ../backend/target/classes/openapi-plugin/openapi-default.json -o src/types/api.d.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@mmote/niimbluelib": "0.0.1-alpha.38",
@@ -45,7 +47,18 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.9",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "storybook": "^10.5.6",
+    "@storybook/react-vite": "^10.5.6",
+    "@chromatic-com/storybook": "^5.2.1",
+    "@storybook/addon-vitest": "^10.5.6",
+    "@storybook/addon-a11y": "^10.5.6",
+    "@storybook/addon-docs": "^10.5.6",
+    "@storybook/addon-onboarding": "^10.5.6",
+    "eslint-plugin-storybook": "^10.5.6",
+    "@vitest/browser-playwright": "4.1.10",
+    "@vitest/coverage-v8": "4.1.10",
+    "playwright": "^1.62.1"
   },
   "overrides": {
     "dompurify": "^3.4.11"
