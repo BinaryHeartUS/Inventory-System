@@ -70,6 +70,8 @@ public class NoteController {
 		}
 		try {
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
+			int chapterId = service.getAssetChapterId(assetId);
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"), chapterId);
 			NoteResponse res = service.addNote(assetId, body.text());
 			ctx.status(200).json(res);
 		} catch (SQLException e) {
@@ -97,6 +99,8 @@ public class NoteController {
 	public void getNotes(Context ctx) {
 		try {
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
+			int chapterId = service.getAssetChapterId(assetId);
+			authorizationService.requireChapterReadAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"), chapterId);
 			NoteResponse[] res = service.getNotes(assetId);
 			ctx.status(200).json(res);
 		} catch (SQLException e) {
