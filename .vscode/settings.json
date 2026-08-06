@@ -1,5 +1,6 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.format.settings.url": "backend/eclipse-formatter.xml",
-    "java.format.settings.profile": "Inventory"
+    "java.format.settings.profile": "Inventory",
+    "makefile.configureOnOpen": false
 }
