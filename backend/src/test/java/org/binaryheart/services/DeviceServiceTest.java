@@ -162,6 +162,32 @@ class DeviceServiceTest {
 	}
 
 	@Test
+	void deleteDeviceDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.deleteDevice(101, "admin");
+		replay(repository, chapters);
+
+		new DeviceService(repository, chapters).deleteDevice(101, "admin");
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void deleteDeviceTranslatesMissingSqlState() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		repository.deleteDevice(101, "admin");
+		expectLastCall().andThrow(sql("02000"));
+		replay(repository, chapters);
+		DeviceService service = new DeviceService(repository, chapters);
+
+		assertThrows(DeviceNotFoundException.class, () -> service.deleteDevice(101, "admin"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
 	void getDevicesDelegatesWithResolvedChapter() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);

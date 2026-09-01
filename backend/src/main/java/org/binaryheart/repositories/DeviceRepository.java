@@ -184,6 +184,25 @@ public class DeviceRepository {
 		}
 	}
 
+	public void deleteDevice(int id, String username) throws SQLException {
+		try (Connection conn = DatabaseConnectionService.getConnection()) {
+			conn.setAutoCommit(false);
+			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
+				CallableStatement stmt = conn.prepareCall("call Delete_Device(?)")) {
+				ps.setString(1, username);
+				ps.execute();
+				stmt.setInt(1, id);
+				stmt.execute();
+				conn.commit();
+			} catch (SQLException e) {
+				conn.rollback();
+				throw e;
+			} finally {
+				conn.setAutoCommit(true);
+			}
+		}
+	}
+
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
