@@ -356,7 +356,7 @@ class DeviceControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.pathParam("id")).andReturn("101");
-		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		expect(context.<String>attribute("username")).andReturn("admin");
 		service.deleteDevice(101, "admin");
@@ -375,7 +375,25 @@ class DeviceControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.pathParam("id")).andReturn("101");
-		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(2, "Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(service, chapters, authorization, context);
+
+		assertThrows(ForbiddenResponse.class,
+			() -> new DeviceController(service, chapters, authorization).deleteDevice(context));
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deleteDeviceRejectsNationalMemberWithoutAdminRole() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(1, "Viewer"), new ChapterRole(2, "Admin")));
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		replay(service, chapters, authorization, context);
 
@@ -392,7 +410,7 @@ class DeviceControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.pathParam("id")).andReturn("101");
-		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		expect(context.<String>attribute("username")).andReturn("admin");
 		service.deleteDevice(101, "admin");

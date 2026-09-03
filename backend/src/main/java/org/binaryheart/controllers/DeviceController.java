@@ -540,9 +540,10 @@ public class DeviceController {
 				return;
 			}
 
-			List<Integer> chapterIds = ctx.attribute("chapterIds");
+			List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
 			int nationalId = chapterService.getNationalChapterId();
-			if (chapterIds == null || !chapterIds.contains(nationalId)) {
+			if (chapterRoles == null || chapterRoles.stream()
+				.noneMatch(role -> role.chapterId() == nationalId && "Admin".equals(role.role()))) {
 				throw new ForbiddenResponse("Only national admins may delete devices");
 			}
 
