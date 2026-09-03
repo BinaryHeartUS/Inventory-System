@@ -709,7 +709,7 @@ export interface paths {
                     };
                     content?: never;
                 };
-                /** @description Caller is not affiliated with the National chapter */
+                /** @description Caller is not an admin of the National chapter */
                 403: {
                     headers: {
                         [name: string]: unknown;
