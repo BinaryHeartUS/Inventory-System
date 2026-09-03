@@ -11,6 +11,7 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import java.util.List;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.CreateChapterRequest;
 import org.binaryheart.responses.ChapterSummary;
 import org.binaryheart.services.ChapterService;
@@ -47,12 +48,27 @@ class ChapterControllerTest {
 		ChapterService service = mock(ChapterService.class);
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest("Chapter"));
-		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
 		expect(service.getNationalChapterId()).andReturn(1);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(2, "Admin")));
 		replay(service, context);
 		ChapterController controller = new ChapterController(service);
 
 		assertThrows(ForbiddenResponse.class, () -> controller.createChapter(context));
+
+		verify(service, context);
+	}
+
+	@Test
+	void createChapterRejectsNationalMemberWithoutAdminRole() throws Exception {
+		ChapterService service = mock(ChapterService.class);
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest("Chapter"));
+		expect(service.getNationalChapterId()).andReturn(1);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(1, "Viewer"), new ChapterRole(2, "Admin")));
+		replay(service, context);
+
+		assertThrows(ForbiddenResponse.class, () -> new ChapterController(service).createChapter(context));
 
 		verify(service, context);
 	}
@@ -77,8 +93,8 @@ class ChapterControllerTest {
 		Context context = mock(Context.class);
 		ChapterSummary created = new ChapterSummary(2, "Chapter Two");
 		expect(context.bodyAsClass(CreateChapterRequest.class)).andReturn(new CreateChapterRequest("Chapter Two"));
-		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
 		expect(service.getNationalChapterId()).andReturn(1);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
 		expect(service.createChapter("Chapter Two")).andReturn(created);
 		expectJson(context, 201, created);
 		replay(service, context);
@@ -95,11 +111,28 @@ class ChapterControllerTest {
 		expect(context.pathParam("id")).andReturn("2");
 		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1));
 		expect(service.getNationalChapterId()).andReturn(1);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
 		service.deleteChapter(2, 1, List.of(1));
 		expectStatus(context, 204);
 		replay(service, context);
 
 		new ChapterController(service).deleteChapter(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void deleteChapterRejectsNationalMemberWithoutAdminRole() throws Exception {
+		ChapterService service = mock(ChapterService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("2");
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1, 2));
+		expect(service.getNationalChapterId()).andReturn(1);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(1, "Viewer"), new ChapterRole(2, "Admin")));
+		replay(service, context);
+
+		assertThrows(ForbiddenResponse.class, () -> new ChapterController(service).deleteChapter(context));
 
 		verify(service, context);
 	}

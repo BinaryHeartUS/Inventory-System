@@ -11,6 +11,7 @@ import io.javalin.openapi.*;
 import java.sql.SQLException;
 import java.util.List;
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.models.ChapterRole;
 import org.binaryheart.requests.CreateChapterRequest;
 import org.binaryheart.responses.ChapterSummary;
 import org.binaryheart.services.ChapterService;
@@ -76,7 +77,7 @@ public class ChapterController {
 					description = "Missing or blank chapter name"),
 				@OpenApiResponse(
 					status = "403",
-					description = "Caller is not affiliated with the National chapter"),
+					description = "Caller is not an admin of the National chapter"),
 				@OpenApiResponse(
 					status = "500",
 					description = "Database error")})
@@ -86,10 +87,9 @@ public class ChapterController {
 			ctx.status(400).result("Chapter name must not be blank");
 			return;
 		}
-		List<Integer> chapterIds = ctx.attribute("chapterIds");
 		try {
 			int nationalId = service.getNationalChapterId();
-			if (chapterIds == null || !chapterIds.contains(nationalId)) {
+			if (!isNationalAdmin(ctx, nationalId)) {
 				throw new ForbiddenResponse();
 			}
 		} catch (ForbiddenResponse e) {
@@ -114,6 +114,9 @@ public class ChapterController {
 		List<Integer> callerChapterIds = ctx.attribute("chapterIds");
 		try {
 			int nationalId = service.getNationalChapterId();
+			if (!isNationalAdmin(ctx, nationalId)) {
+				throw new ForbiddenResponse("Only national admins may delete chapters");
+			}
 			service.deleteChapter(id, nationalId, callerChapterIds != null ? callerChapterIds : List.of());
 			ctx.status(204);
 		} catch (IllegalArgumentException e) {
@@ -128,5 +131,11 @@ public class ChapterController {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private boolean isNationalAdmin(Context ctx, int nationalId) {
+		List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
+		return chapterRoles != null
+			&& chapterRoles.stream().anyMatch(role -> role.chapterId() == nationalId && "Admin".equals(role.role()));
 	}
 }

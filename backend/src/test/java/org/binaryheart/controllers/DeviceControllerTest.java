@@ -5,13 +5,17 @@ import static org.binaryheart.TestFixtures.device;
 import static org.binaryheart.TestFixtures.laptop;
 import static org.binaryheart.TestFixtures.tablet;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
@@ -342,6 +346,80 @@ class DeviceControllerTest {
 		replay(service, chapters, authorization, context);
 
 		new DeviceController(service, chapters, authorization).getDevice(context);
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deleteDeviceAllowsNationalAdmin() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		expect(context.<String>attribute("username")).andReturn("admin");
+		service.deleteDevice(101, "admin");
+		expect(context.status(204)).andReturn(context);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).deleteDevice(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deleteDeviceRejectsAdminWithoutNationalAffiliation() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(2, "Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(service, chapters, authorization, context);
+
+		assertThrows(ForbiddenResponse.class,
+			() -> new DeviceController(service, chapters, authorization).deleteDevice(context));
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deleteDeviceRejectsNationalMemberWithoutAdminRole() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(1, "Viewer"), new ChapterRole(2, "Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		replay(service, chapters, authorization, context);
+
+		assertThrows(ForbiddenResponse.class,
+			() -> new DeviceController(service, chapters, authorization).deleteDevice(context));
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deleteDeviceMapsInstalledPartsConflict() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		expect(context.<String>attribute("username")).andReturn("admin");
+		service.deleteDevice(101, "admin");
+		expectLastCall().andThrow(new SQLException("foreign key violation", "23503"));
+		expectResult(context, 409, "Device cannot be deleted while parts are installed");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).deleteDevice(context);
+
 		verify(service, chapters, authorization, context);
 	}
 

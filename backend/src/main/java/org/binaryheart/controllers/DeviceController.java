@@ -1,5 +1,6 @@
 package org.binaryheart.controllers;
 
+import static io.javalin.apibuilder.ApiBuilder.delete;
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.path;
 import static io.javalin.apibuilder.ApiBuilder.post;
@@ -78,6 +79,7 @@ public class DeviceController {
 		get("/{id}", this::getDevice, AppRole.AUTHENTICATED);
 		get("/{id}/changelog", this::getDeviceChangelog, AppRole.AUTHENTICATED);
 		get("", this::getAllDevices, AppRole.AUTHENTICATED);
+		delete("/{id}", this::deleteDevice, AppRole.ADMIN);
 		post("/desktop", this::insertDesktop, AppRole.AUTHENTICATED);
 		post("/laptop", this::insertLaptop, AppRole.AUTHENTICATED);
 		post("/tablet", this::insertTablet, AppRole.AUTHENTICATED);
@@ -495,6 +497,68 @@ public class DeviceController {
 			ctx.status(404).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
+
+	@OpenApi(
+		path = "/api/devices/{id}",
+		methods = {HttpMethod.DELETE},
+		tags = {"Devices"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Delete a device",
+		description = "Permanently deletes a device. Restricted to national admins: users with the Admin role "
+			+ "who are affiliated with the National chapter.",
+		pathParams = {@OpenApiParam(
+			name = "id",
+			required = true,
+			description = "Device ID to delete")},
+		responses = {@OpenApiResponse(
+			status = "204",
+			description = "Device deleted successfully"),
+				@OpenApiResponse(
+					status = "400",
+					description = "Non-numeric or non-positive device ID"),
+				@OpenApiResponse(
+					status = "403",
+					description = "Caller is not a national admin"),
+				@OpenApiResponse(
+					status = "404",
+					description = "Device does not exist"),
+				@OpenApiResponse(
+					status = "409",
+					description = "Device still has installed parts"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public void deleteDevice(Context ctx) {
+		String idStr = ctx.pathParam("id");
+		try {
+			int id = Integer.parseInt(idStr);
+			if (id <= 0) {
+				ctx.status(400).result("Device ID must be positive");
+				return;
+			}
+
+			List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
+			int nationalId = chapterService.getNationalChapterId();
+			if (chapterRoles == null || chapterRoles.stream()
+				.noneMatch(role -> role.chapterId() == nationalId && "Admin".equals(role.role()))) {
+				throw new ForbiddenResponse("Only national admins may delete devices");
+			}
+
+			service.deleteDevice(id, ctx.attribute("username"));
+			ctx.status(204);
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Non-numeric device ID: " + idStr);
+		} catch (DeviceNotFoundException e) {
+			ctx.status(404).result(e.getMessage());
+		} catch (SQLException e) {
+			if ("23503".equals(e.getSQLState())) {
+				ctx.status(409).result("Device cannot be deleted while parts are installed");
+			} else {
+				ctx.status(500).result("Database error: " + e.getMessage());
+			}
 		}
 	}
 

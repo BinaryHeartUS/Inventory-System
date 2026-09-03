@@ -86,6 +86,17 @@ public class DeviceService {
 		return repository.getDevice(id);
 	}
 
+	public void deleteDevice(int id, String username) throws DeviceNotFoundException, SQLException {
+		try {
+			repository.deleteDevice(id, username);
+		} catch (SQLException e) {
+			if ("02000".equals(e.getSQLState())) {
+				throw new DeviceNotFoundException("Could not find device with specified ID: " + id);
+			}
+			throw e;
+		}
+	}
+
 	/**
 	 * Returns a page of devices scoped to the caller's chapters
 	 * ({@code userChapterIds}), optionally narrowed to one {@code chapterId} (the
