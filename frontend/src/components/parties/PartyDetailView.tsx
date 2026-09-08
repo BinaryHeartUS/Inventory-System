@@ -14,6 +14,7 @@ import { SectionCard } from "./SectionCard";
 import { DonatedTable } from "./DonatedTable";
 import { AssetTable } from "./AssetTable";
 import { Chevron } from "../Chevron";
+import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
 
 export interface PartyDetailViewProps {
   party: PartyDetail;
@@ -317,7 +318,7 @@ export default function PartyDetailView({
                     id: d.id,
                     label: `${d.manufacturer} ${d.model}`,
                     year: d.year,
-                    detail: `${d.type} · ${d.year}`,
+                    detail: `${deviceTypeLabel(d.type)} · ${d.year}`,
                     value: d.value,
                     acquired: d.acquisitionDate ?? null,
                     deviceStuck: d.deviceStuck,
@@ -399,7 +400,7 @@ export default function PartyDetailView({
                   rows={receivedDevices.map((d) => ({
                     id: d.id,
                     label: `${d.manufacturer} ${d.model}`,
-                    detail: `${d.type} · ${d.year}`,
+                    detail: `${deviceTypeLabel(d.type)} · ${d.year}`,
                     status: d.status,
                     chapter: d.chapter,
                     acquired: d.acquisitionDate ?? null,

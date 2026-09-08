@@ -3,6 +3,7 @@ import type { AnyDevice, DeviceStatus, Part, Tool } from "../types/inventory";
 import StatusBadge from "./StatusBadge";
 import { DeviceStuckBadge } from "./devices/DeviceStuckBadge";
 import PageHeading from "./PageHeading";
+import { deviceTypeLabel } from "../utils/deviceTypeLabel";
 
 export interface SearchViewProps {
   query: string;
@@ -130,7 +131,7 @@ export default function SearchView({
                         : "bg-violet-50 text-violet-600"
                   }`}
                 >
-                  {d.type}
+                  {deviceTypeLabel(d.type)}
                 </span>
                 <span className="text-sm text-slate-800 font-medium flex-1 truncate">
                   {d.manufacturer} {d.model}

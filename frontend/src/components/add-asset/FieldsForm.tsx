@@ -468,7 +468,7 @@ export function FieldsForm({
       {subtype === "Tablet" && (
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 pb-3 border-b border-slate-100 mb-4">
-            Tablet Details
+            Mobile Device Details
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <FSelect

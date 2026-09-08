@@ -5,6 +5,7 @@ import PageHeading from "../PageHeading";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
 import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
 import type { DeviceStatus } from "../../types/inventory";
+import { deviceTypePluralLabel } from "../../utils/deviceTypeLabel";
 
 export interface DashboardViewProps {
   selectedChapter: number | "All";
@@ -167,18 +168,18 @@ export default function DashboardView({
           </div>
           <div className="flex-1 flex flex-col justify-between">
             {[
-              { label: "Desktops", count: desktopCount, color: "bg-blue-500" },
-              { label: "Laptops", count: laptopCount, color: "bg-indigo-500" },
-              { label: "Tablets", count: tabletCount, color: "bg-violet-500" },
-            ].map(({ label, count, color }) => (
+              { type: "Desktop" as const, count: desktopCount, color: "bg-blue-500" },
+              { type: "Laptop" as const, count: laptopCount, color: "bg-indigo-500" },
+              { type: "Tablet" as const, count: tabletCount, color: "bg-violet-500" },
+            ].map(({ type, count, color }) => (
               <button
                 type="button"
-                key={label}
-                onClick={() => onTypeSelect(label.slice(0, -1) as "Desktop" | "Laptop" | "Tablet")}
+                key={type}
+                onClick={() => onTypeSelect(type)}
                 className="block w-full rounded-md p-1 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heart-blue"
               >
                 <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-slate-600 font-medium">{label}</span>
+                  <span className="text-slate-600 font-medium">{deviceTypePluralLabel(type)}</span>
                   <span className="text-slate-700 font-semibold">
                     {count !== null ? count : "—"}{" "}
                     <span className="text-slate-400 font-normal">

@@ -27,6 +27,7 @@ import { ModificationModal } from "../ModificationModal";
 import { buildDeviceFields } from "../../utils/changelogFields";
 import { BatteryBar } from "./BatteryBar";
 import { DeviceStuckBadge } from "./DeviceStuckBadge";
+import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
 
 export interface DeviceDetailViewProps {
   device: AnyDevice;
@@ -146,7 +147,7 @@ export default function DeviceDetailView({
             <div>
               <div className="flex items-center gap-2.5 mb-2">
                 <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-500 uppercase tracking-wide">
-                  {d.type}
+                  {deviceTypeLabel(d.type)}
                 </span>
                 <span className="font-mono text-xs text-slate-400">#{d.id}</span>
               </div>
@@ -586,7 +587,7 @@ export default function DeviceDetailView({
               (() => {
                 const fTablet = form?.type === "Tablet" ? form : null;
                 return (
-                  <Section title="Tablet Details">
+                  <Section title="Mobile Device Details">
                     {editing && fTablet ? (
                       <>
                         <EditSelect
