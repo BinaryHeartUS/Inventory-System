@@ -12,7 +12,7 @@ const CATEGORY_CARDS: {
     cat: "Device",
     color: "border-heart-blue/25 bg-heart-blue/5 hover:bg-heart-blue/10 text-heart-blue",
     title: "Device",
-    desc: "Desktop, laptop, or tablet computer",
+    desc: "Desktop, laptop, phone, or tablet",
     icon: (
       <svg
         width="28"

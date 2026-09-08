@@ -1,6 +1,7 @@
 import type { AnyDevice, DeviceStatus } from "../../types/inventory";
 import StatusBadge from "../StatusBadge";
 import { DeviceStuckBadge } from "./DeviceStuckBadge";
+import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
 /**
  * Renders the columns shared by every device type.
  * Subtype components inject their own cells via the `extraCells` slot,
@@ -43,7 +44,7 @@ export function DeviceRow({
                   : "bg-violet-50 text-violet-600"
             }`}
           >
-            {device.type}
+            {deviceTypeLabel(device.type)}
           </span>
         </td>
       )}

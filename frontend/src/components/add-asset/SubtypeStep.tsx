@@ -44,8 +44,8 @@ const SUBTYPE_CARDS: { sub: DeviceSubtype; title: string; desc: string; icon: Re
   },
   {
     sub: "Tablet",
-    title: "Tablet",
-    desc: "Touch-screen tablet",
+    title: "Mobile Device",
+    desc: "Phone or tablet",
     icon: (
       <svg
         width="28"

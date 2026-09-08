@@ -7,6 +7,7 @@ import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
 import FilterSelect from "../FilterSelect";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
 import { DEVICE_TYPES, STATUS_OPTIONS, type DeviceTypeFilter } from "./deviceFilters";
+import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
 
 export interface DevicesViewProps {
   search: string;
@@ -243,7 +244,7 @@ export default function DevicesView({
                   : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700"
               }`}
             >
-              {t === "All" ? "All Types" : t}
+              {t === "All" ? "All Types" : deviceTypeLabel(t)}
             </button>
           ))}
         </div>

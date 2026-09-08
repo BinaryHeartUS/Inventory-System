@@ -18,7 +18,7 @@ import SettingsView from "../components/settings/SettingsView";
 const LOOKUP_SECTIONS: LookupSection[] = [
   {
     title: "Manufacturers",
-    description: "Device manufacturer names used across desktops, laptops, and tablets.",
+    description: "Device manufacturer names used across desktops, laptops, and mobile devices.",
     key: "manufacturers",
     add: addManufacturer,
     remove: deleteManufacturer,
