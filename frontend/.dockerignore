@@ -2,3 +2,9 @@
 # and should not be in the image if they exist locally.
 .env.local
 .env.development.local
+node_modules
+npm-debug.log
+.git
+dist
+build
+.next
