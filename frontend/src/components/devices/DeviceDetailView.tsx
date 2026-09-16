@@ -519,7 +519,7 @@ export default function DeviceDetailView({
                           onChange={(v) => onFieldChange("includesCharger", v)}
                         />
                         <EditText
-                          label="Design Capacity (mWh)"
+                          label="Design Capacity (Wh)"
                           type="number"
                           value={String(
                             fLaptop.designBatteryCapacity === 0
@@ -532,7 +532,7 @@ export default function DeviceDetailView({
                           min={1}
                         />
                         <EditText
-                          label="Actual Capacity (mWh)"
+                          label="Actual Capacity (Wh)"
                           type="number"
                           value={String(
                             fLaptop.actualBatteryCapacity === 0
@@ -559,7 +559,7 @@ export default function DeviceDetailView({
                           label="Design Capacity"
                           value={
                             d.designBatteryCapacity != null
-                              ? `${d.designBatteryCapacity.toLocaleString()} mWh`
+                              ? `${d.designBatteryCapacity.toLocaleString()} Wh`
                               : null
                           }
                         />
@@ -567,7 +567,7 @@ export default function DeviceDetailView({
                           label="Actual Capacity"
                           value={
                             d.actualBatteryCapacity != null
-                              ? `${d.actualBatteryCapacity.toLocaleString()} mWh`
+                              ? `${d.actualBatteryCapacity.toLocaleString()} Wh`
                               : null
                           }
                         />

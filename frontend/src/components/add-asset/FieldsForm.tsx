@@ -439,19 +439,19 @@ export function FieldsForm({
               req
             />
             <FText
-              label="Design Capacity (mWh)"
+              label="Design Capacity (Wh)"
               value={form.designBatteryCapacity}
               onChange={set("designBatteryCapacity")}
               type="number"
-              placeholder="e.g. 56000"
+              placeholder="e.g. 56"
               min={1}
             />
             <FText
-              label="Actual Capacity (mWh)"
+              label="Actual Capacity (Wh)"
               value={form.actualBatteryCapacity}
               onChange={set("actualBatteryCapacity")}
               type="number"
-              placeholder="e.g. 48000"
+              placeholder="e.g. 48"
               min={1}
             />
             {form.actualBatteryCapacity &&
