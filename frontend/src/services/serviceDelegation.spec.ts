@@ -21,12 +21,13 @@ vi.mock("./api", () => ({
   },
 }));
 
-import { checkAssetIdExists } from "./assetService";
+import { checkAssetIdExists, getAssetPath } from "./assetService";
 import { createChapter, deleteChapter } from "./chapterService";
 import { addManufacturer, deleteManufacturer } from "./lookupService";
 import { createNote, updateNote } from "./noteService";
 import { getParts } from "./partService";
 import { getTools } from "./toolService";
+import { createMisc, getMiscAssets } from "./miscService";
 
 describe("service endpoint delegation", () => {
   beforeEach(() => {
@@ -38,6 +39,35 @@ describe("service endpoint delegation", () => {
 
     await expect(checkAssetIdExists(42)).resolves.toBe(true);
     expect(api.apiGet).toHaveBeenCalledWith("/assets/42/exists");
+  });
+
+  it("resolves asset types to detail routes", async () => {
+    api.apiGetOrNull.mockResolvedValue({ type: "Misc" });
+
+    await expect(getAssetPath(401)).resolves.toBe("/misc/401");
+    expect(api.apiGetOrNull).toHaveBeenCalledWith("/assets/401/type");
+  });
+
+  it("creates a misc asset without chapter data", async () => {
+    const asset = {
+      id: 0,
+      description: "Cable bundle",
+      acquisitionDate: null,
+      value: 25,
+      donorId: 9,
+    };
+    api.apiPost.mockResolvedValue({ id: 401 });
+    api.apiGet.mockResolvedValue({ ...asset, id: 401 });
+
+    await expect(createMisc(asset)).resolves.toEqual({ ...asset, id: 401 });
+    expect(api.apiPost).toHaveBeenCalledWith("/misc", {
+      assetId: undefined,
+      description: "Cable bundle",
+      acquisitionDate: undefined,
+      value: 25,
+      donorId: 9,
+    });
+    expect(api.apiGet).toHaveBeenCalledWith("/misc/401");
   });
 
   it("creates and deletes chapters with their expected payloads", async () => {
@@ -71,7 +101,9 @@ describe("service endpoint delegation", () => {
 
     await getParts({ pageKey: 0, pageSize: 100, source: "donated" });
     await getTools({ pageKey: 1, pageSize: 50, chapter: 4 });
+    await getMiscAssets({ pageKey: 2, pageSize: 25, donorId: 9 });
     expect(api.apiGet).toHaveBeenNthCalledWith(1, "/parts?pageKey=0&pageSize=100&source=donated");
     expect(api.apiGet).toHaveBeenNthCalledWith(2, "/tools?pageKey=1&pageSize=50&chapter=4");
+    expect(api.apiGet).toHaveBeenNthCalledWith(3, "/misc?pageKey=2&pageSize=25&donorId=9");
   });
 });

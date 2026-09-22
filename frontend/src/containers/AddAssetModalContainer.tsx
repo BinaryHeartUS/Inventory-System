@@ -1,4 +1,4 @@
-import type { AnyDevice, Part, Tool } from "../types/inventory";
+import type { AnyDevice, Misc, Part, Tool } from "../types/inventory";
 import { useLookups } from "../hooks/useLookups";
 import { useChapters } from "../context/ChapterContext";
 import { checkAssetIdExists } from "../services/assetService";
@@ -10,7 +10,7 @@ export function AddAssetModalContainer({
   onCancel,
 }: {
   scanId?: number;
-  onAdd?: (asset: AnyDevice | Part | Tool) => void;
+  onAdd?: (asset: AnyDevice | Part | Tool | Misc) => void;
   onCancel: () => void;
 }) {
   const lookups = useLookups();

@@ -29,7 +29,8 @@ BEGIN
     FROM Chapter
     WHERE Name = 'National';
 
-    CALL Update_Asset(national_chapter_id, p_Misc_ID, p_Acquisition_Date, p_Value, p_Donor_ID);
+    CALL Update_Asset(national_chapter_id, p_Misc_ID, COALESCE(p_Acquisition_Date, CURRENT_DATE), p_Value,
+        p_Donor_ID);
 
     UPDATE Misc
     SET Description = p_Description

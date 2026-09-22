@@ -2,17 +2,14 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useToast } from "../context/ToastContext";
 import { useAddAsset } from "../context/AddAssetContext";
-import { getDevice } from "../services/deviceService";
-import { getPart } from "../services/partService";
-import { getTool } from "../services/toolService";
+import { getAssetPath } from "../services/assetService";
 
 /**
  * Shared "a code was scanned" handler used by the camera Scanner page.
  *
  * Mirrors the USB-wedge scanner behaviour in App.tsx: a barcode is a numeric
- * asset ID — look it up as a device, then part, then tool, and navigate to the
- * matching detail page. An unknown ID opens the "add asset" flow pre-filled
- * with that ID.
+ * asset ID, so resolve its asset type and navigate to the matching detail page.
+ * An unknown ID opens the "add asset" flow pre-filled with that ID.
  *
  * Must be used within AddAssetProvider (i.e. inside a routed page).
  */
@@ -29,21 +26,9 @@ export function useAssetScan() {
         return;
       }
 
-      const device = await getDevice(id);
-      if (device) {
-        navigate(`/devices/${id}`);
-        return;
-      }
-
-      const part = await getPart(id);
-      if (part) {
-        navigate(`/parts/${id}`);
-        return;
-      }
-
-      const tool = await getTool(id);
-      if (tool) {
-        navigate(`/tools/${id}`);
+      const path = await getAssetPath(id);
+      if (path) {
+        navigate(path);
         return;
       }
 

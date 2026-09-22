@@ -79,13 +79,35 @@ const CATEGORY_CARDS: {
       </svg>
     ),
   },
+  {
+    cat: "Misc",
+    color: "border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-600",
+    title: "Misc",
+    desc: "Bulk donations such as cables or network gear",
+    icon: (
+      <svg
+        width="28"
+        height="28"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+        <path d="m3.3 7 8.7 5 8.7-5" />
+        <path d="M12 22V12" />
+      </svg>
+    ),
+  },
 ];
 
 export function CategoryStep({ onSelect }: { onSelect: (cat: AssetCategory) => void }) {
   return (
     <div>
       <p className="text-sm text-slate-500 mb-5">What type of asset is this?</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {CATEGORY_CARDS.map(({ cat, color, title, desc, icon }) => (
           <button
             key={cat}
