@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS Misc (
+    ID INTEGER NOT NULL PRIMARY KEY,
+    Description VARCHAR(500) NOT NULL,
+    FOREIGN KEY (ID) REFERENCES Asset(ID)
+        ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Misc_Change_Log (
+    ID INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Misc_ID INTEGER NOT NULL,
+    Modified_By Name_Type NOT NULL,
+    Modified_At TIMESTAMPTZ DEFAULT now(),
+    Transaction_ID BIGINT NOT NULL DEFAULT txid_current(),
+    Change_Type Change_Type NOT NULL,
+    Old_Description VARCHAR(500) NULL,
+    New_Description VARCHAR(500) NULL
+);

@@ -1,0 +1,17 @@
+DROP FUNCTION IF EXISTS Get_Asset_Type;
+
+CREATE OR REPLACE FUNCTION Get_Asset_Type(
+    p_Asset_ID INTEGER
+)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+AS $$
+    SELECT CASE
+        WHEN EXISTS (SELECT 1 FROM Device WHERE ID = p_Asset_ID) THEN 'Device'
+        WHEN EXISTS (SELECT 1 FROM Part WHERE ID = p_Asset_ID) THEN 'Part'
+        WHEN EXISTS (SELECT 1 FROM Tool WHERE ID = p_Asset_ID) THEN 'Tool'
+        WHEN EXISTS (SELECT 1 FROM Misc WHERE ID = p_Asset_ID) THEN 'Misc'
+        ELSE NULL
+    END;
+$$;
