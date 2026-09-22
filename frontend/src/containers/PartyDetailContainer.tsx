@@ -5,7 +5,7 @@ import { getParty } from "../services/partyService";
 import { getDevices } from "../services/deviceService";
 import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
-import { getMiscAssets } from "../services/miscService";
+import { getMiscByDonor } from "../services/miscService";
 import { fetchAllPages } from "../services/api";
 import type { PartyDetail, AnyDevice, Misc, Part, Tool } from "../types/inventory";
 import { canManageAccounts } from "../utils/roles";
@@ -53,7 +53,7 @@ export default function PartyDetailContainer({ id }: PartyDetailContainerProps) 
       ),
       fetchAllPages((pageKey, pageSize) => getParts({ pageKey, pageSize, donorId: numId })),
       fetchAllPages((pageKey, pageSize) => getTools({ pageKey, pageSize, donorId: numId })),
-      fetchAllPages((pageKey, pageSize) => getMiscAssets({ pageKey, pageSize, donorId: numId })),
+      fetchAllPages((pageKey, pageSize) => getMiscByDonor({ pageKey, pageSize, donorId: numId })),
     ])
       .then(([p, byDonor, byRecipient, parts, tools, misc]) => {
         setParty(p);

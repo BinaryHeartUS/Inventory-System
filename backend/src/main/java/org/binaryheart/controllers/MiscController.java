@@ -43,7 +43,7 @@ public class MiscController {
 	}
 
 	public void registerRoutes() {
-		get("", this::getMiscAssets, AppRole.AUTHENTICATED);
+		get("", this::getMiscByDonor, AppRole.AUTHENTICATED);
 		get("/{id}", this::getMisc, AppRole.AUTHENTICATED);
 		get("/{id}/changelog", this::getMiscChangelog, AppRole.AUTHENTICATED);
 		post("", this::insertMisc, AppRole.AUTHENTICATED);
@@ -76,7 +76,7 @@ public class MiscController {
 				from = GetMiscResponse[].class)}), @OpenApiResponse(
 					status = "400",
 					description = "Invalid donor or pagination parameters")})
-	public void getMiscAssets(Context ctx) {
+	public void getMiscByDonor(Context ctx) {
 		try {
 			Integer donorId = QueryParamUtil.intParam(ctx, "donorId");
 			if (donorId == null || donorId <= 0) {
@@ -85,7 +85,7 @@ public class MiscController {
 			}
 			int pageSize = PaginationUtil.parsePageSize(ctx);
 			int pageKey = PaginationUtil.parsePageKey(ctx);
-			List<GetMiscResponse> assets = service.getMiscAssets(donorId, pageSize, pageKey * pageSize);
+			List<GetMiscResponse> assets = service.getMiscByDonor(donorId, pageSize, pageKey * pageSize);
 			ctx.status(200).json(assets.toArray(new GetMiscResponse[0]));
 		} catch (BadArgumentException e) {
 			ctx.status(400).result(e.getMessage());

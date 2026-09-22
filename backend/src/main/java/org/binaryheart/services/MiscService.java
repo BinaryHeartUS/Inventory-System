@@ -19,8 +19,8 @@ public class MiscService {
 		this.repository = repository;
 	}
 
-	public List<GetMiscResponse> getMiscAssets(int donorId, Integer limit, int offset) throws SQLException {
-		return repository.getMiscAssets(donorId, limit, offset);
+	public List<GetMiscResponse> getMiscByDonor(int donorId, Integer limit, int offset) throws SQLException {
+		return repository.getMiscByDonor(donorId, limit, offset);
 	}
 
 	public GetMiscResponse getMisc(int id) throws SQLException {

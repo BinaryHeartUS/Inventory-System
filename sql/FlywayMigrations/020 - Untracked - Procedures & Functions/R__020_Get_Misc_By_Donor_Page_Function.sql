@@ -1,6 +1,7 @@
 DROP FUNCTION IF EXISTS Get_Misc_Page;
+DROP FUNCTION IF EXISTS Get_Misc_By_Donor_Page;
 
-CREATE OR REPLACE FUNCTION Get_Misc_Page(
+CREATE OR REPLACE FUNCTION Get_Misc_By_Donor_Page(
     p_donor_id INTEGER,
     p_limit INTEGER DEFAULT NULL,
     p_offset INTEGER DEFAULT 0

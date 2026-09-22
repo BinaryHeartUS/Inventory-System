@@ -18,9 +18,9 @@ import org.binaryheart.responses.MiscChangelogResponse;
 
 public class MiscRepository {
 
-	public List<GetMiscResponse> getMiscAssets(int donorId, Integer limit, int offset) throws SQLException {
+	public List<GetMiscResponse> getMiscByDonor(int donorId, Integer limit, int offset) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Misc_Page(?, ?, ?)")) {
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Misc_By_Donor_Page(?, ?, ?)")) {
 			stmt.setInt(1, donorId);
 			if (limit == null) {
 				stmt.setNull(2, Types.INTEGER);

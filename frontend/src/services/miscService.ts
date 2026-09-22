@@ -7,7 +7,7 @@ import type {
 } from "../types/inventory";
 import type { MiscChangelogEntry } from "../types/changelog";
 
-export async function getMiscAssets(params: {
+export async function getMiscByDonor(params: {
   donorId: number;
   pageKey: number;
   pageSize: number;

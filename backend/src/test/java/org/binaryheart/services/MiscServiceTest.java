@@ -27,12 +27,12 @@ class MiscServiceTest {
 		"Cable bundle", 9);
 
 	@Test
-	void getMiscAssetsDelegates() throws Exception {
+	void getMiscByDonorDelegates() throws Exception {
 		MiscRepository repository = mock(MiscRepository.class);
-		expect(repository.getMiscAssets(9, 25, 25)).andReturn(List.of(RESPONSE));
+		expect(repository.getMiscByDonor(9, 25, 25)).andReturn(List.of(RESPONSE));
 		replay(repository);
 
-		assertEquals(List.of(RESPONSE), new MiscService(repository).getMiscAssets(9, 25, 25));
+		assertEquals(List.of(RESPONSE), new MiscService(repository).getMiscByDonor(9, 25, 25));
 
 		verify(repository);
 	}
@@ -49,12 +49,47 @@ class MiscServiceTest {
 	}
 
 	@Test
+	void insertMiscDelegates() throws Exception {
+		MiscRepository repository = mock(MiscRepository.class);
+		expect(repository.insertMisc(REQUEST, "user")).andReturn(401);
+		replay(repository);
+
+		assertEquals(401, new MiscService(repository).insertMisc(REQUEST, "user"));
+
+		verify(repository);
+	}
+
+	@Test
 	void insertMiscTranslatesDuplicateSqlState() throws Exception {
 		MiscRepository repository = mock(MiscRepository.class);
 		expect(repository.insertMisc(REQUEST, "user")).andThrow(sql("23505"));
 		replay(repository);
 
 		assertThrows(DuplicateKeyException.class, () -> new MiscService(repository).insertMisc(REQUEST, "user"));
+
+		verify(repository);
+	}
+
+	@Test
+	void insertMiscPropagatesOtherSqlErrors() throws Exception {
+		MiscRepository repository = mock(MiscRepository.class);
+		SQLException failure = sql("08006");
+		expect(repository.insertMisc(REQUEST, "user")).andThrow(failure);
+		replay(repository);
+
+		assertSame(failure,
+			assertThrows(SQLException.class, () -> new MiscService(repository).insertMisc(REQUEST, "user")));
+
+		verify(repository);
+	}
+
+	@Test
+	void updateMiscDelegates() throws Exception {
+		MiscRepository repository = mock(MiscRepository.class);
+		repository.updateMisc(REQUEST, "user");
+		replay(repository);
+
+		new MiscService(repository).updateMisc(REQUEST, "user");
 
 		verify(repository);
 	}
@@ -67,6 +102,56 @@ class MiscServiceTest {
 		replay(repository);
 
 		assertThrows(MiscNotFoundException.class, () -> new MiscService(repository).updateMisc(REQUEST, "user"));
+
+		verify(repository);
+	}
+
+	@Test
+	void updateMiscPropagatesOtherSqlErrors() throws Exception {
+		MiscRepository repository = mock(MiscRepository.class);
+		SQLException failure = sql("08006");
+		repository.updateMisc(REQUEST, "user");
+		expectLastCall().andThrow(failure);
+		replay(repository);
+
+		assertSame(failure,
+			assertThrows(SQLException.class, () -> new MiscService(repository).updateMisc(REQUEST, "user")));
+
+		verify(repository);
+	}
+
+	@Test
+	void deleteMiscDelegates() throws Exception {
+		MiscRepository repository = mock(MiscRepository.class);
+		repository.deleteMisc(401);
+		replay(repository);
+
+		new MiscService(repository).deleteMisc(401);
+
+		verify(repository);
+	}
+
+	@Test
+	void deleteMiscTranslatesMissingSqlState() throws Exception {
+		MiscRepository repository = mock(MiscRepository.class);
+		repository.deleteMisc(401);
+		expectLastCall().andThrow(sql("02000"));
+		replay(repository);
+
+		assertThrows(MiscNotFoundException.class, () -> new MiscService(repository).deleteMisc(401));
+
+		verify(repository);
+	}
+
+	@Test
+	void deleteMiscPropagatesOtherSqlErrors() throws Exception {
+		MiscRepository repository = mock(MiscRepository.class);
+		SQLException failure = sql("08006");
+		repository.deleteMisc(401);
+		expectLastCall().andThrow(failure);
+		replay(repository);
+
+		assertSame(failure, assertThrows(SQLException.class, () -> new MiscService(repository).deleteMisc(401)));
 
 		verify(repository);
 	}
