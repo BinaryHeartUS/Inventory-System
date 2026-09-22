@@ -18,6 +18,7 @@ import org.binaryheart.controllers.ChapterController;
 import org.binaryheart.controllers.DeviceController;
 import org.binaryheart.controllers.HealthController;
 import org.binaryheart.controllers.LookupController;
+import org.binaryheart.controllers.MiscController;
 import org.binaryheart.controllers.NoteController;
 import org.binaryheart.controllers.PartController;
 import org.binaryheart.controllers.PartyController;
@@ -36,6 +37,7 @@ public class Main {
 		DeviceController deviceController = injector.getInstance(DeviceController.class);
 		HealthController healthController = injector.getInstance(HealthController.class);
 		LookupController lookupController = injector.getInstance(LookupController.class);
+		MiscController miscController = injector.getInstance(MiscController.class);
 		NoteController noteController = injector.getInstance(NoteController.class);
 		PartController partController = injector.getInstance(PartController.class);
 		PartyController partyController = injector.getInstance(PartyController.class);
@@ -63,6 +65,7 @@ public class Main {
 				path("/api/accounts", accountController::registerRoutes);
 				path("/api/chapters", chapterController::registerRoutes);
 				path("/api/lookup", lookupController::registerRoutes);
+				path("/api/misc", miscController::registerRoutes);
 				path("/api/assets", () -> {
 					assetController.registerRoutes();
 					noteController.registerRoutes();

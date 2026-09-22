@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.sql.SQLException;
+import org.binaryheart.responses.AssetTypeResponse;
 import org.binaryheart.services.AssetService;
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +63,20 @@ class AssetControllerTest {
 		replay(service, context);
 
 		new AssetController(service).assetExists(context);
+
+		verify(service, context);
+	}
+
+	@Test
+	void resolvesAssetType() throws Exception {
+		AssetService service = mock(AssetService.class);
+		Context context = mock(Context.class);
+		expect(context.pathParam("id")).andReturn("42");
+		expect(service.getAssetType(42)).andReturn("Misc");
+		expectJson(context, 200, new AssetTypeResponse("Misc"));
+		replay(service, context);
+
+		new AssetController(service).getAssetType(context);
 
 		verify(service, context);
 	}

@@ -16,4 +16,8 @@ public class AssetService {
 	public boolean assetExists(int id) throws SQLException {
 		return repository.assetExists(id);
 	}
+
+	public String getAssetType(int id) throws SQLException {
+		return repository.getAssetType(id);
+	}
 }
