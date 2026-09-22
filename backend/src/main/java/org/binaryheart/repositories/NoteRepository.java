@@ -57,11 +57,22 @@ public class NoteRepository {
 		}
 	}
 
+	public String getAssetType(int assetId) throws SQLException {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT Get_Asset_Type(?)")) {
+			stmt.setInt(1, assetId);
+			try (ResultSet rs = stmt.executeQuery()) {
+				return rs.next() ? rs.getString(1) : null;
+			}
+		}
+	}
+
 	public void updateNote(int assetId, int noteId, String text) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
-			CallableStatement stmt = conn.prepareCall("call Update_Note(?, ?)")) {
+			CallableStatement stmt = conn.prepareCall("call Update_Note(?, ?, ?)")) {
 			stmt.setString(1, text);
 			stmt.setInt(2, noteId);
+			stmt.setInt(3, assetId);
 			stmt.execute();
 		}
 	}

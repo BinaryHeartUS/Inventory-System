@@ -6,6 +6,11 @@ import PageHeading from "./PageHeading";
 import { deviceTypeLabel } from "../utils/deviceTypeLabel";
 
 export interface SearchViewProps {
+  assetId: string;
+  assetIdError: string | null;
+  findingAsset: boolean;
+  onAssetIdChange: (value: string) => void;
+  onAssetIdSearch: () => void;
   query: string;
   onQueryChange: (value: string) => void;
   searching: boolean;
@@ -17,6 +22,11 @@ export interface SearchViewProps {
 }
 
 export default function SearchView({
+  assetId,
+  assetIdError,
+  findingAsset,
+  onAssetIdChange,
+  onAssetIdSearch,
   query,
   onQueryChange,
   searching,
@@ -32,6 +42,43 @@ export default function SearchView({
   return (
     <div className="space-y-6">
       <PageHeading title="Search" subtitle="Search across all devices, parts, and tools" />
+
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          onAssetIdSearch();
+        }}
+        className="bg-white border border-slate-200 rounded-xl px-4 py-4 sm:px-5"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label
+              htmlFor="asset-id-search"
+              className="block text-xs font-semibold text-slate-600 mb-1.5"
+            >
+              Asset ID
+            </label>
+            <input
+              id="asset-id-search"
+              type="number"
+              min="1"
+              step="1"
+              value={assetId}
+              onChange={(event) => onAssetIdChange(event.target.value)}
+              placeholder="Enter an asset ID"
+              className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={findingAsset}
+            className="text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-50 px-4 py-2.5 rounded-lg transition-colors"
+          >
+            {findingAsset ? "Searching…" : "Search by asset ID"}
+          </button>
+        </div>
+        {assetIdError && <p className="text-xs text-red-600 mt-2">{assetIdError}</p>}
+      </form>
 
       {/* Search input */}
       <div className="relative">

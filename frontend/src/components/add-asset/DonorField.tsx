@@ -1,20 +1,23 @@
 import type { PartySummary } from "../../types/inventory";
 import { labelCls } from "../../utils/formStyles";
+import { Req } from "./FormFields";
 
 export function DonorField({
   selectedParty,
   onOpen,
   onClear,
   colSpan = true,
+  required = false,
 }: {
   selectedParty: PartySummary | null;
   onOpen: () => void;
   onClear: () => void;
   colSpan?: boolean;
+  required?: boolean;
 }) {
   return (
     <div className={colSpan ? "col-span-full" : ""}>
-      <label className={labelCls}>Donor</label>
+      <label className={labelCls}>Donor {required && <Req />}</label>
       {selectedParty ? (
         <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg">
           <span className="text-sm text-slate-700">{selectedParty.name}</span>
@@ -65,7 +68,7 @@ export function DonorField({
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
-          Select donor (optional)
+          Select donor{required ? "" : " (optional)"}
         </button>
       )}
     </div>

@@ -5,8 +5,9 @@ import { getParty } from "../services/partyService";
 import { getDevices } from "../services/deviceService";
 import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
+import { getMiscByDonor } from "../services/miscService";
 import { fetchAllPages } from "../services/api";
-import type { PartyDetail, AnyDevice, Part, Tool } from "../types/inventory";
+import type { PartyDetail, AnyDevice, Misc, Part, Tool } from "../types/inventory";
 import { canManageAccounts } from "../utils/roles";
 import PartyDetailView from "../components/parties/PartyDetailView";
 
@@ -26,6 +27,7 @@ export default function PartyDetailContainer({ id }: PartyDetailContainerProps) 
   const [receivedDevices, setReceivedDevices] = useState<AnyDevice[]>([]);
   const [donatedParts, setDonatedParts] = useState<Part[]>([]);
   const [donatedTools, setDonatedTools] = useState<Tool[]>([]);
+  const [donatedMisc, setDonatedMisc] = useState<Misc[]>([]);
 
   useEffect(() => {
     if (!numId) return;
@@ -51,13 +53,15 @@ export default function PartyDetailContainer({ id }: PartyDetailContainerProps) 
       ),
       fetchAllPages((pageKey, pageSize) => getParts({ pageKey, pageSize, donorId: numId })),
       fetchAllPages((pageKey, pageSize) => getTools({ pageKey, pageSize, donorId: numId })),
+      fetchAllPages((pageKey, pageSize) => getMiscByDonor({ pageKey, pageSize, donorId: numId })),
     ])
-      .then(([p, byDonor, byRecipient, parts, tools]) => {
+      .then(([p, byDonor, byRecipient, parts, tools, misc]) => {
         setParty(p);
         setDonatedDevices(byDonor);
         setReceivedDevices(byRecipient);
         setDonatedParts(parts);
         setDonatedTools(tools);
+        setDonatedMisc(misc);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -92,6 +96,7 @@ export default function PartyDetailContainer({ id }: PartyDetailContainerProps) 
       receivedDevices={receivedDevices}
       donatedParts={donatedParts}
       donatedTools={donatedTools}
+      donatedMisc={donatedMisc}
       onBack={() => navigate(-1)}
     />
   );

@@ -570,6 +570,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets/{id}/type": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve an asset ID to its asset type */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssetTypeResponse"];
+                    };
+                };
+                /** @description Asset not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/login": {
         parameters: {
             query?: never;
@@ -2611,6 +2654,245 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/misc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve misc assets donated by a party */
+        get: {
+            parameters: {
+                query: {
+                    donorId: number;
+                    pageSize: number;
+                    pageKey?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GetMiscResponse"][];
+                    };
+                };
+                /** @description Invalid donor or pagination parameters */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Create a National misc asset */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InsertMiscRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IdResponse"];
+                    };
+                };
+                /** @description Invalid misc asset */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Inventory edit access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Asset ID already exists */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/misc/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve a misc asset */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GetMiscResponse"];
+                    };
+                };
+                /** @description Misc asset not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Update a misc asset */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InsertMiscRequest"];
+                };
+            };
+            responses: {
+                /** @description Misc asset updated */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid misc asset */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Misc asset not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        /** Delete a misc asset */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Misc asset deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Misc asset not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/misc/{id}/changelog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve a misc asset changelog */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MiscChangelogResponse"][];
+                    };
+                };
+                /** @description Misc asset not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/parts": {
         parameters: {
             query?: never;
@@ -3926,6 +4208,17 @@ export interface components {
             operatingSystem?: string;
             serialNumber?: string;
         };
+        InsertMiscRequest: {
+            /** Format: int32 */
+            assetId?: number;
+            description?: string;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: double */
+            value?: number;
+            /** Format: int32 */
+            donorId?: number;
+        };
         InsertOrganizationRequest: {
             name?: string;
             location?: string;
@@ -4029,6 +4322,9 @@ export interface components {
             username?: string;
             name?: string;
             chapterRoles?: components["schemas"]["ChapterRole"][];
+        };
+        AssetTypeResponse: {
+            type?: string;
         };
         AvgTimeInInventoryResponse: {
             /** Format: double */
@@ -4223,6 +4519,17 @@ export interface components {
             recipientId?: number;
             deviceStuck: boolean;
         };
+        GetMiscResponse: {
+            /** Format: int32 */
+            id: number;
+            /** Format: date */
+            acquisitionDate?: string;
+            /** Format: double */
+            value?: number;
+            description?: string;
+            /** Format: int32 */
+            donorId: number;
+        };
         GetPartyResponse: {
             /** Format: int32 */
             id: number;
@@ -4264,6 +4571,28 @@ export interface components {
             storageTypes?: string[];
             partTypes?: string[];
             operatingSystems?: string[];
+        };
+        MiscChangelogResponse: {
+            /** Format: int32 */
+            miscId?: number;
+            modifiedBy?: string;
+            /** Format: date-time */
+            modifiedAt?: string;
+            changeType?: string;
+            /** Format: date */
+            oldAcquisitionDate?: string;
+            /** Format: date */
+            newAcquisitionDate?: string;
+            /** Format: double */
+            oldValue?: number;
+            /** Format: double */
+            newValue?: number;
+            /** Format: int32 */
+            oldDonorId?: number;
+            /** Format: int32 */
+            newDonorId?: number;
+            oldDescription?: string;
+            newDescription?: string;
         };
         MonthlyCountPoint: {
             /** Format: int32 */

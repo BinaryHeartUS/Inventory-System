@@ -25,6 +25,10 @@ public class NoteService {
 		return repository.getAssetChapterId(assetId);
 	}
 
+	public String getAssetType(int assetId) throws SQLException {
+		return repository.getAssetType(assetId);
+	}
+
 	public void updateNote(int assetId, int noteId, String text) throws SQLException {
 		repository.updateNote(assetId, noteId, text);
 	}

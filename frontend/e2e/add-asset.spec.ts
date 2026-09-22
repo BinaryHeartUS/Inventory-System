@@ -74,6 +74,48 @@ test("creates a tool", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "E2E anti-static mat" })).toBeVisible();
 });
 
+test("creates, edits, receipts, and finds a misc asset by ID", async ({ page }) => {
+  const dialog = await openAddAsset(page);
+  await dialog.getByRole("button", { name: "Continue" }).click();
+  await dialog.getByRole("button", { name: /^Misc/ }).click();
+
+  await expect(dialog.getByTestId("field-chapter")).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "Add Asset", exact: true })).toBeDisabled();
+  await page.getByTestId("field-description").fill("E2E assorted cables");
+  await page.getByTestId("field-value").fill("75");
+  await expect(dialog.getByRole("button", { name: "Add Asset", exact: true })).toBeDisabled();
+  await dialog.getByRole("button", { name: "Select donor" }).click();
+  await page.getByText("Test Donor", { exact: true }).click();
+  await dialog.getByRole("button", { name: "Add Asset", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/misc\/\d+$/);
+  const assetId = page.url().split("/").pop()!;
+  await expect(page.getByRole("heading", { name: "E2E assorted cables" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Print Label" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Edit" }).click();
+  await page.getByTestId("edit-field-description").fill("E2E assorted network cables");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "E2E assorted network cables" })).toBeVisible();
+
+  await page.goto("/admin/parties/301");
+  const miscSection = page.getByRole("heading", { name: "Donated Misc" }).locator("../..");
+  await expect(miscSection.getByText("E2E assorted network cables", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Create Donation Receipt" }).click();
+  await miscSection
+    .getByRole("row")
+    .filter({ hasText: "E2E assorted network cables" })
+    .getByRole("checkbox")
+    .check();
+  await expect(page.getByRole("button", { name: "Generate Donor Receipt" })).toBeEnabled();
+
+  await page.goto("/search");
+  await page.getByLabel("Asset ID").fill(assetId);
+  await page.getByRole("button", { name: "Search by asset ID" }).click();
+  await expect(page).toHaveURL(new RegExp(`/misc/${assetId}$`));
+});
+
 test("rejects an asset ID that is already in use", async ({ page }) => {
   const dialog = await openAddAsset(page);
   await dialog.getByRole("button", { name: "Input an ID" }).click();

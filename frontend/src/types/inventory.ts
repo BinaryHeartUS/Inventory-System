@@ -11,11 +11,13 @@ export type InsertLaptopRequest = components["schemas"]["InsertLaptopRequest"];
 export type InsertTabletRequest = components["schemas"]["InsertTabletRequest"];
 export type InsertToolRequest = components["schemas"]["InsertToolRequest"];
 export type InsertPartRequest = components["schemas"]["InsertPartRequest"];
+export type InsertMiscRequest = components["schemas"]["InsertMiscRequest"];
 export type LoginRequest = components["schemas"]["LoginRequest"];
 export type PostNoteRequest = components["schemas"]["PostNoteRequest"];
 export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"];
 export type PartChangelogResponse = components["schemas"]["PartChangelogResponse"];
 export type ToolChangelogResponse = components["schemas"]["ToolChangelogResponse"];
+export type MiscChangelogResponse = components["schemas"]["MiscChangelogResponse"];
 export type DeviceChangelogResponse = components["schemas"]["DeviceChangelogResponse"];
 export type ChapterInventorySummary = Required<components["schemas"]["ChapterInventorySummary"]>;
 export type PartTypeCountResponse = Required<components["schemas"]["PartTypeCountResponse"]>;
@@ -131,6 +133,19 @@ export type Tool = Omit<
   description: string;
   donorId: number | null;
 };
+
+// --- Misc ---------------------------------------------------------------------
+export type Misc = Omit<
+  components["schemas"]["GetMiscResponse"],
+  "acquisitionDate" | "value" | "description"
+> & {
+  acquisitionDate: string | null;
+  value: number;
+  description: string;
+};
+
+export type AssetType = "Device" | "Part" | "Tool" | "Misc";
+export type AssetTypeResponse = components["schemas"]["AssetTypeResponse"];
 
 // --- Party (donor / recipient) -----------------------------------------------
 

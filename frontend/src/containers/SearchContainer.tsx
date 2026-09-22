@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import type { AnyDevice, Part, Tool } from "../types/inventory";
 import { getDevices } from "../services/deviceService";
 import { getParts } from "../services/partService";
 import { getTools } from "../services/toolService";
 import { fetchAllPages } from "../services/api";
 import { useChapters } from "../context/ChapterContext";
+import { getAssetPath } from "../services/assetService";
 import SearchView from "../components/SearchView";
 
 // Cap each category's results so a broad/short query can't pull an unbounded number of rows.
@@ -12,7 +14,11 @@ import SearchView from "../components/SearchView";
 const SEARCH_RESULT_CAP = 100;
 
 export default function SearchContainer() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [assetId, setAssetId] = useState("");
+  const [assetIdError, setAssetIdError] = useState<string | null>(null);
+  const [findingAsset, setFindingAsset] = useState(false);
   const [deviceResults, setDeviceResults] = useState<AnyDevice[]>([]);
   const [partResults, setPartResults] = useState<Part[]>([]);
   const [toolResults, setToolResults] = useState<Tool[]>([]);
@@ -72,8 +78,38 @@ export default function SearchContainer() {
     };
   }, [q]);
 
+  async function handleAssetIdSearch() {
+    const id = Number(assetId.trim());
+    if (!assetId.trim() || !Number.isInteger(id) || id <= 0) {
+      setAssetIdError("Enter a positive whole-number asset ID.");
+      return;
+    }
+    setFindingAsset(true);
+    setAssetIdError(null);
+    try {
+      const path = await getAssetPath(id);
+      if (path) {
+        navigate(path);
+      } else {
+        setAssetIdError(`No asset with ID ${id} was found.`);
+      }
+    } catch {
+      setAssetIdError("Unable to look up that asset.");
+    } finally {
+      setFindingAsset(false);
+    }
+  }
+
   return (
     <SearchView
+      assetId={assetId}
+      assetIdError={assetIdError}
+      findingAsset={findingAsset}
+      onAssetIdChange={(value) => {
+        setAssetId(value);
+        setAssetIdError(null);
+      }}
+      onAssetIdSearch={handleAssetIdSearch}
       query={query}
       onQueryChange={setQuery}
       searching={searching}

@@ -1,6 +1,6 @@
 import type { ChargerStatus, DeviceStatus, WorkingBattery } from "../../types/inventory";
 
-export type AssetCategory = "Device" | "Part" | "Tool";
+export type AssetCategory = "Device" | "Part" | "Tool" | "Misc";
 export type DeviceSubtype = "Desktop" | "Laptop" | "Tablet";
 
 // ─── Form state ───────────────────────────────────────────────────────────────

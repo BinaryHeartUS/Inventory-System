@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import type { AnyDevice, DeviceStatus, Part, PartySummary, Tool } from "../../types/inventory";
+import type {
+  AnyDevice,
+  DeviceStatus,
+  Misc,
+  Part,
+  PartySummary,
+  Tool,
+} from "../../types/inventory";
 import type { LookupData } from "../../hooks/useLookups";
 import { inputCls, labelCls } from "../../utils/formStyles";
 import { DevicePickerModalContainer } from "../../containers/DevicePickerModalContainer";
@@ -23,7 +30,7 @@ export function AddAssetModal({
   lookups: LookupData;
   chapterList: { id: number; name: string }[];
   checkAssetId: (id: number) => Promise<boolean>;
-  onAdd?: (asset: AnyDevice | Part | Tool) => void;
+  onAdd?: (asset: AnyDevice | Part | Tool | Misc) => void;
   onCancel: () => void;
 }) {
   // Set default chapter once lookup data loads
@@ -118,6 +125,8 @@ export function AddAssetModal({
   function isValid(): boolean {
     if (!category) return false;
     const f = form;
+    if (category === "Misc")
+      return f.description.trim() !== "" && f.value !== "" && selectedParty !== null;
     if (category === "Tool") return f.toolDescription.trim() !== "" && f.chapter !== "";
     if (category === "Part") return !!f.partType && f.description.trim() !== "" && f.chapter !== "";
     // Device — RAM and storage default to 0 in the DB, so 0 is valid; only require non-empty strings
@@ -137,6 +146,18 @@ export function AddAssetModal({
 
   function handleSubmit() {
     if (!category || !isValid()) return;
+
+    if (category === "Misc") {
+      const misc: Misc = {
+        id: idMode === "input" ? Number(inputId) : 0,
+        description: form.description.trim(),
+        acquisitionDate: form.acquisitionDate || null,
+        value: Number(form.value),
+        donorId: selectedParty!.id,
+      };
+      onAdd?.(misc);
+      return;
+    }
 
     if (category === "Tool") {
       const tool: Tool = {
