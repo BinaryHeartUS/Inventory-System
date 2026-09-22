@@ -11,9 +11,7 @@ const api = vi.hoisted(() => ({
 vi.mock("./api", () => ({
   ...api,
   buildQuery: (params: Record<string, unknown>) =>
-    `?${new URLSearchParams(
-      Object.entries(params).map(([key, value]) => [key, String(value)])
-    )}`,
+    `?${new URLSearchParams(Object.entries(params).map(([key, value]) => [key, String(value)]))}`,
 }));
 
 import {
@@ -41,9 +39,7 @@ describe("miscService", () => {
   it("gets one donor's paginated misc assets", async () => {
     api.apiGet.mockResolvedValue([misc]);
 
-    await expect(getMiscByDonor({ donorId: 9, pageKey: 2, pageSize: 25 })).resolves.toEqual([
-      misc,
-    ]);
+    await expect(getMiscByDonor({ donorId: 9, pageKey: 2, pageSize: 25 })).resolves.toEqual([misc]);
 
     expect(api.apiGet).toHaveBeenCalledWith("/misc?donorId=9&pageKey=2&pageSize=25");
   });

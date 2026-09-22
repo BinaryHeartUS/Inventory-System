@@ -65,10 +65,9 @@ test("editor manages a National misc asset through donor, changelog, note, and t
     )
   ).toBe("true,true");
 
-  const donorResponse = await page.request.get(
-    "/api/misc?donorId=301&pageSize=1&pageKey=0",
-    { headers }
-  );
+  const donorResponse = await page.request.get("/api/misc?donorId=301&pageSize=1&pageKey=0", {
+    headers,
+  });
   expect(donorResponse.status()).toBe(200);
   expect(await donorResponse.json()).toEqual([misc]);
 
