@@ -33,7 +33,7 @@ export async function authenticate(page: Page, role: TestRole = "Admin"): Promis
     chapterIds: login.chapterRoles.map((chapterRole) => chapterRole.chapterId),
   };
 
-  await page.goto("/login");
+  await page.goto("/login", { waitUntil: "domcontentloaded" });
   await page.evaluate(
     (auth) => sessionStorage.setItem("bh_auth", JSON.stringify(auth)),
     storedAuth
