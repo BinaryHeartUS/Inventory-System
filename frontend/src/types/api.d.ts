@@ -802,6 +802,8 @@ export interface paths {
                     chapter?: number;
                     /** @description Whether to include Donated devices. Defaults to true. */
                     includeDonated?: boolean;
+                    /** @description Whether to include Sold devices. Defaults to true. */
+                    includeSold?: boolean;
                     /** @description Whether to include Scrapped devices. Defaults to true. */
                     includeScrapped?: boolean;
                     /** @description Return only stuck devices. Other supplied filters still apply. */
@@ -1423,12 +1425,12 @@ export interface paths {
         };
         /**
          * Retrieve the number of devices of a given type
-         * @description Returns the count of devices by type and status, optionally filtered to specific chapters. Status values: active (default), not-started, in-progress, ready-to-donate, donated. Type values: desktop, laptop, tablet, total.
+         * @description Returns the count of devices by type and status, optionally filtered to specific chapters. Status values: active (default), not-started, in-progress, ready-to-donate, donated, sold. Type values: desktop, laptop, tablet, total.
          */
         get: {
             parameters: {
                 query?: {
-                    /** @description Filter by status: active (default), not-started, in-progress, ready-to-donate, donated */
+                    /** @description Filter by status: active (default), not-started, in-progress, ready-to-donate, donated, sold */
                     status?: string;
                     /** @description Comma-separated list of chapter IDs to filter by. Defaults to all accessible chapters. */
                     chapters?: string;
@@ -1491,7 +1493,7 @@ export interface paths {
         };
         /**
          * All dashboard counts in a single request
-         * @description Returns pipeline, device-type, and stuck counts needed by the dashboard in one call, optionally filtered to specific chapters. Pipeline counts (not-started, in-progress, ready-to-donate, donated) cover all device types. Active type counts (desktop, laptop, tablet, total) exclude Donated and Scrapped devices.
+         * @description Returns pipeline, device-type, and stuck counts needed by the dashboard in one call, optionally filtered to specific chapters. Pipeline counts (not-started, in-progress, ready-to-donate, donated) cover all device types. Active type counts (desktop, laptop, tablet, total) exclude Donated, Sold, and Scrapped devices.
          */
         get: {
             parameters: {

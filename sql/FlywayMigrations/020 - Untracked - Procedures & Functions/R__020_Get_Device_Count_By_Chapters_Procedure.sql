@@ -22,11 +22,12 @@ BEGIN
         OR (p_type = 'tablet' AND tb.ID IS NOT NULL)
     )
     AND (
-        (p_status = 'active' AND d.status NOT IN ('Donated', 'Ready To Donate'))
+        (p_status = 'active' AND d.status NOT IN ('Donated', 'Sold', 'Ready To Donate'))
         OR (p_status = 'not-started' AND d.status = 'Not Started')
         OR (p_status = 'in-progress' AND d.status = 'In Progress')
         OR (p_status = 'ready-to-donate' AND d.status = 'Ready To Donate')
         OR (p_status = 'donated' AND d.status = 'Donated')
+        OR (p_status = 'sold' AND d.status = 'Sold')
     )
     AND (p_chapter_ids IS NULL OR a.chapter_id = ANY(p_chapter_ids));
 END;

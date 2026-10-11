@@ -50,7 +50,7 @@ import org.binaryheart.utils.QueryParamUtil;
 public class DeviceController {
 	private static final List<String> VALID_TYPES = List.of("desktop", "laptop", "tablet", "total");
 	private static final List<String> VALID_STATUSES = List.of("active", "not-started", "in-progress",
-		"ready-to-donate", "donated");
+		"ready-to-donate", "donated", "sold");
 
 	private final DeviceService service;
 	private final ChapterService chapterService;
@@ -110,7 +110,7 @@ public class DeviceController {
 		description = "Returns pipeline, device-type, and stuck counts needed by the dashboard in one call, "
 			+ "optionally filtered to specific chapters. "
 			+ "Pipeline counts (not-started, in-progress, ready-to-donate, donated) cover all device types. "
-			+ "Active type counts (desktop, laptop, tablet, total) exclude Donated and Scrapped devices.",
+			+ "Active type counts (desktop, laptop, tablet, total) exclude Donated, Sold, and Scrapped devices.",
 		queryParams = {@OpenApiParam(
 			name = "chapters",
 			required = false,
@@ -150,7 +150,7 @@ public class DeviceController {
 			name = "BearerAuth")},
 		summary = "Retrieve the number of devices of a given type",
 		description = "Returns the count of devices by type and status, optionally filtered to specific chapters. "
-			+ "Status values: active (default), not-started, in-progress, ready-to-donate, donated. "
+			+ "Status values: active (default), not-started, in-progress, ready-to-donate, donated, sold. "
 			+ "Type values: desktop, laptop, tablet, total.",
 		pathParams = {@OpenApiParam(
 			name = "type",
@@ -158,7 +158,7 @@ public class DeviceController {
 		queryParams = {@OpenApiParam(
 			name = "status",
 			required = false,
-			description = "Filter by status: active (default), not-started, in-progress, ready-to-donate, donated"),
+			description = "Filter by status: active (default), not-started, in-progress, ready-to-donate, donated, sold"),
 				@OpenApiParam(
 					name = "chapters",
 					required = false,
@@ -605,6 +605,11 @@ public class DeviceController {
 					type = Boolean.class,
 					description = "Whether to include Donated devices. Defaults to true."),
 				@OpenApiParam(
+					name = "includeSold",
+					required = false,
+					type = Boolean.class,
+					description = "Whether to include Sold devices. Defaults to true."),
+				@OpenApiParam(
 					name = "includeScrapped",
 					required = false,
 					type = Boolean.class,
@@ -655,6 +660,7 @@ public class DeviceController {
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
 				QueryParamUtil.stringParam(ctx, "type"), QueryParamUtil.stringParam(ctx, "status"),
 				QueryParamUtil.boolParam(ctx, "includeDonated", true),
+				QueryParamUtil.boolParam(ctx, "includeSold", true),
 				QueryParamUtil.boolParam(ctx, "includeScrapped", true),
 				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
 				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),

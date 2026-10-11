@@ -1,0 +1,1 @@
+ALTER TYPE Status ADD VALUE IF NOT EXISTS 'Sold' BEFORE 'Scrapped';

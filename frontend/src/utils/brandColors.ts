@@ -40,6 +40,11 @@ export const STATUS_CONFIG: Record<
     badge: "bg-sky-50     text-sky-700",
     badgeDark: "bg-sky-400/30     text-sky-100",
   },
+  Sold: {
+    dot: "bg-teal-500",
+    badge: "bg-teal-50    text-teal-700",
+    badgeDark: "bg-teal-400/30    text-teal-100",
+  },
   Scrapped: {
     dot: "bg-red-400",
     badge: "bg-red-50     text-red-600",

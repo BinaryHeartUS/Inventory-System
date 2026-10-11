@@ -38,6 +38,7 @@ export interface DeviceListParams {
   /** Chapter id to restrict to (within the user's access). */
   chapter?: number;
   includeDonated?: boolean;
+  includeSold?: boolean;
   includeScrapped?: boolean;
   stuckOnly?: boolean;
   donorId?: number;
@@ -182,7 +183,7 @@ export async function getDashboardCounts(chapterIds: number[]): Promise<Dashboar
 
 export async function getDeviceCount(
   type: "desktop" | "laptop" | "tablet" | "total",
-  status: "active" | "not-started" | "in-progress" | "ready-to-donate" | "donated",
+  status: "active" | "not-started" | "in-progress" | "ready-to-donate" | "donated" | "sold",
   chapterIds: number[]
 ): Promise<number> {
   return apiGet<number>(

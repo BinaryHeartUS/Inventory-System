@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router";
 import type { AnyDevice, DeviceStatus, Part, PartySummary } from "../types/inventory";
 import type { DeviceChangelogEntry } from "../types/changelog";
 import { getDevice, updateDevice, getDeviceChangelog } from "../services/deviceService";
@@ -19,6 +20,8 @@ interface DeviceDetailContainerProps {
 
 export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps) {
   const numId = Number(id);
+  const location = useLocation();
+  const deviceListHref = `/devices${location.search}`;
   const { auth } = useAuth();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
@@ -33,6 +36,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   const [printId, setPrintId] = useState<number | null>(null);
   const [linkedParts, setLinkedParts] = useState<Part[]>([]);
   const [showDonateModal, setShowDonateModal] = useState(false);
+  const [showSoldValueModal, setShowSoldValueModal] = useState(false);
   const [linkedParty, setLinkedParty] = useLinkedParty(device?.donorId);
   const [editParty, setEditParty] = useState<PartySummary | null>(null);
   const [partyPickerOpen, setPartyPickerOpen] = useState(false);
@@ -65,7 +69,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   if (loading) return <LoadingSpinner />;
 
   if (!device) {
-    return <NotFound entity="Device" id={id} backTo="/devices" backLabel="Back to Devices" />;
+    return <NotFound entity="Device" id={id} backTo={deviceListHref} backLabel="Back to Devices" />;
   }
 
   function startEdit() {
@@ -78,11 +82,20 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
     setEditing(false);
     setEditParty(null);
     setEditRecipient(null);
+    setShowSoldValueModal(false);
   }
   async function saveEdit() {
     if (!form) return;
     if (form.status === "Donated" && !editRecipient) {
       setSaveError("A recipient must be selected when status is Donated.");
+      setTimeout(() => setSaveError(null), 5000);
+      return;
+    }
+    if (
+      form.status === "Sold" &&
+      (form.value === null || !Number.isFinite(form.value) || form.value < 0)
+    ) {
+      setSaveError("A sale value is required when status is Sold.");
       setTimeout(() => setSaveError(null), 5000);
       return;
     }
@@ -121,6 +134,8 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
     } else if (newStatus === "Donated") {
       set("status")(newStatus);
       setRecipientPickerOpen(true);
+    } else if (newStatus === "Sold") {
+      setShowSoldValueModal(true);
     } else {
       set("status")(newStatus);
       setEditRecipient(null);
@@ -155,6 +170,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   return (
     <DeviceDetailView
       device={device}
+      backHref={deviceListHref}
       editing={editing}
       form={form}
       saved={saved}
@@ -168,6 +184,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
       partyPickerOpen={partyPickerOpen}
       recipientPickerOpen={recipientPickerOpen}
       showDonateModal={showDonateModal}
+      showSoldValueModal={showSoldValueModal}
       linkedParty={linkedParty}
       editParty={editParty}
       linkedRecipient={linkedRecipient}
@@ -209,6 +226,14 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
         setShowDonateModal(false);
       }}
       onCancelDonate={() => setShowDonateModal(false)}
+      onConfirmSold={(value) => {
+        setForm((prev) =>
+          prev ? ({ ...prev, status: "Sold", value, recipientId: null } as AnyDevice) : prev
+        );
+        setEditRecipient(null);
+        setShowSoldValueModal(false);
+      }}
+      onCancelSold={() => setShowSoldValueModal(false)}
       onUnlinkPart={handleUnlink}
     />
   );

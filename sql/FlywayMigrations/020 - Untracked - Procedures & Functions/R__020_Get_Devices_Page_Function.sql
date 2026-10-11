@@ -10,6 +10,7 @@ CREATE OR REPLACE FUNCTION Get_Devices_Page(
     p_type TEXT DEFAULT NULL,
     p_status STATUS DEFAULT NULL,
     p_include_donated BOOLEAN DEFAULT TRUE,
+    p_include_sold BOOLEAN DEFAULT TRUE,
     p_include_scrapped BOOLEAN DEFAULT TRUE,
     p_stuck_only BOOLEAN DEFAULT FALSE,
     p_donor_id INTEGER DEFAULT NULL,
@@ -69,7 +70,7 @@ BEGIN
           WHEN 'status' THEN CASE gd.status
               WHEN 'Not Started' THEN '0' WHEN 'In Progress' THEN '1'
               WHEN 'Ready To Donate' THEN '2' WHEN 'Donated' THEN '3'
-              WHEN 'Scrapped' THEN '4' ELSE '5' END
+              WHEN 'Sold' THEN '4' WHEN 'Scrapped' THEN '5' ELSE '6' END
           WHEN 'year' THEN lpad(gd.year::text, 12, '0')
           WHEN 'ram' THEN lpad(gd.RAM::text, 12, '0')
           WHEN 'storage' THEN lpad(gd.storage_amount::text, 12, '0')
@@ -81,8 +82,9 @@ BEGIN
     WHERE (p_chapter_ids IS NULL OR gd.chapter_id = ANY(p_chapter_ids))
       AND (p_type IS NULL OR gd.type = p_type)
       AND (p_status IS NULL OR gd.status = p_status)
-      AND (p_include_donated OR gd.status <> 'Donated')
-      AND (p_include_scrapped OR gd.status <> 'Scrapped')
+      AND (p_status IS NOT NULL OR p_include_donated OR gd.status <> 'Donated')
+      AND (p_status IS NOT NULL OR p_include_sold OR gd.status <> 'Sold')
+      AND (p_status IS NOT NULL OR p_include_scrapped OR gd.status <> 'Scrapped')
       AND (NOT p_stuck_only OR gd.device_stuck)
       AND (p_donor_id IS NULL OR gd.donor_id = p_donor_id)
       AND (p_recipient_id IS NULL OR gd.recipient_id = p_recipient_id)

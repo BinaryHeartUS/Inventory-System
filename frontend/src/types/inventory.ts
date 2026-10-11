@@ -65,6 +65,7 @@ export type DeviceStatus =
   | "In Progress"
   | "Ready To Donate"
   | "Donated"
+  | "Sold"
   | "Scrapped"
   | "Unknown";
 export type ChargerStatus = "Included" | "Not Included" | "Unknown";

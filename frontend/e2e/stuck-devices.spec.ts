@@ -64,7 +64,10 @@ test("stuck filter clears a conflicting status filter", async ({ page }) => {
   await page.goto("/devices");
 
   await page.locator("select").selectOption("Donated");
-  await page.getByText("Include Donated", { exact: true }).click();
+  const archivedButton = page.getByRole("button", { name: /^Archived/ });
+  await archivedButton.click();
+  await page.getByRole("checkbox", { name: "Include Donated" }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.has("includeDonated")).toBe(true);
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
 
@@ -75,7 +78,8 @@ test("stuck filter clears a conflicting status filter", async ({ page }) => {
   await expect(page.getByLabel("Device stuck")).toBeVisible();
   await expect(page.locator("select")).toBeDisabled();
   await expect(page.locator("select")).toHaveValue("All");
-  await expect(page.getByRole("checkbox", { name: "Include Donated" })).not.toBeChecked();
+  await expect(archivedButton).toBeDisabled();
+  await expect.poll(() => new URL(page.url()).searchParams.has("includeDonated")).toBe(false);
 });
 
 test("adding a note clears the stuck flag", async ({ page }) => {

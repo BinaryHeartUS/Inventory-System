@@ -97,10 +97,10 @@ class DeviceControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.pathParam("type")).andReturn("DESKTOP");
-		expect(context.queryParam("status")).andReturn("ACTIVE").times(2);
+		expect(context.queryParam("status")).andReturn("SOLD").times(2);
 		expect(context.queryParam("chapters")).andReturn("2, 3");
 		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1, 2, 3));
-		expect(service.getDeviceCount("desktop", "active", List.of(2, 3), List.of(1, 2, 3))).andReturn(4);
+		expect(service.getDeviceCount("desktop", "sold", List.of(2, 3), List.of(1, 2, 3))).andReturn(4);
 		expectJson(context, 200, 4);
 		replay(service, chapters, authorization, context);
 
@@ -155,14 +155,15 @@ class DeviceControllerTest {
 		expect(context.queryParam("type")).andReturn("desktop");
 		expect(context.queryParam("status")).andReturn("active");
 		expect(context.queryParam("includeDonated")).andReturn("true");
+		expect(context.queryParam("includeSold")).andReturn("false");
 		expect(context.queryParam("includeScrapped")).andReturn("false");
 		expect(context.queryParam("stuckOnly")).andReturn("true");
 		expect(context.queryParam("donorId")).andReturn("9");
 		expect(context.queryParam("recipientId")).andReturn("10");
 		expect(context.queryParam("sort")).andReturn("id");
 		expect(context.queryParam("dir")).andReturn("desc");
-		DeviceListRequest query = new DeviceListRequest("Dell", "desktop", "active", true, false, true, 9, 10, "id",
-			"desc", 25, 50);
+		DeviceListRequest query = new DeviceListRequest("Dell", "desktop", "active", true, false, false, true, 9, 10,
+			"id", "desc", 25, 50);
 		expect(service.getDevices(List.of(2), 2, query)).andReturn(List.of());
 		expectJson(context, 200, new GetDeviceResponse[0]);
 		replay(service, chapters, authorization, context);

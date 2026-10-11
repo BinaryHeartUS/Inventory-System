@@ -80,7 +80,7 @@ test("devices can be filtered and opened", async ({ page }) => {
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
 
   await page.getByText("Laptop 13", { exact: true }).click();
-  await expect(page).toHaveURL(/\/devices\/1001$/);
+  await expect(page).toHaveURL(/\/devices\/1001\?search=Framework$/);
 });
 
 test("places the continuation marker after the matching-device count", async ({ page }) => {

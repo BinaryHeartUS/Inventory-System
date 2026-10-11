@@ -12,6 +12,7 @@ import StatusBadge from "../StatusBadge";
 import NotesPaneContainer from "../../containers/NotesPaneContainer";
 import { PrintLabelModalContainer } from "../../containers/PrintLabelModalContainer";
 import { ReadyToDonateFormModal } from "./ReadyToDonateFormModal";
+import { SoldValueModal } from "./SoldValueModal";
 import { PartRowContainer } from "../../containers/PartRowContainer";
 import { PartyPickerModalContainer } from "../../containers/PartyPickerModalContainer";
 import UnsavedChangesGuard from "../../containers/UnsavedChangesGuard";
@@ -31,6 +32,7 @@ import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
 
 export interface DeviceDetailViewProps {
   device: AnyDevice;
+  backHref: string;
   editing: boolean;
   form: AnyDevice | null;
   saved: boolean;
@@ -44,6 +46,7 @@ export interface DeviceDetailViewProps {
   partyPickerOpen: boolean;
   recipientPickerOpen: boolean;
   showDonateModal: boolean;
+  showSoldValueModal: boolean;
   linkedParty: PartySummary | null;
   editParty: PartySummary | null;
   linkedRecipient: PartySummary | null;
@@ -68,11 +71,14 @@ export interface DeviceDetailViewProps {
   onRemoveRecipient: () => void;
   onConfirmDonate: () => void;
   onCancelDonate: () => void;
+  onConfirmSold: (value: number) => void;
+  onCancelSold: () => void;
   onUnlinkPart: (part: Part) => void;
 }
 
 export default function DeviceDetailView({
   device,
+  backHref,
   editing,
   form,
   saved,
@@ -86,6 +92,7 @@ export default function DeviceDetailView({
   partyPickerOpen,
   recipientPickerOpen,
   showDonateModal,
+  showSoldValueModal,
   linkedParty,
   editParty,
   linkedRecipient,
@@ -110,6 +117,8 @@ export default function DeviceDetailView({
   onRemoveRecipient,
   onConfirmDonate,
   onCancelDonate,
+  onConfirmSold,
+  onCancelSold,
   onUnlinkPart,
 }: DeviceDetailViewProps) {
   const d = editing && form ? form : device;
@@ -130,11 +139,18 @@ export default function DeviceDetailView({
       {showDonateModal && (
         <ReadyToDonateFormModal onConfirm={onConfirmDonate} onCancel={onCancelDonate} />
       )}
+      {showSoldValueModal && (
+        <SoldValueModal
+          initialValue={form?.value ?? null}
+          onConfirm={onConfirmSold}
+          onCancel={onCancelSold}
+        />
+      )}
       <div className="space-y-5">
         {/* Breadcrumb + Add Asset */}
         <div className="flex items-center justify-between">
           <Breadcrumb
-            backHref="/devices"
+            backHref={backHref}
             backLabel="Devices"
             current={`${device.manufacturer} ${device.model}`}
           />

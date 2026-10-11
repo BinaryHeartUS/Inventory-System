@@ -1,22 +1,11 @@
 import { useState, useMemo } from "react";
 import type { AnyDevice } from "../../types/inventory";
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from "../../utils/deviceUtils";
+import { DEVICE_SORT_KEYS } from "./deviceFilters";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type SortKey =
-  | "id"
-  | "type"
-  | "manufacturer"
-  | "model"
-  | "year"
-  | "cpu"
-  | "operatingSystem"
-  | "ram"
-  | "storage"
-  | "status"
-  | "chapter"
-  | "acquisitionDate";
+type SortKey = (typeof DEVICE_SORT_KEYS)[number];
 type SortDir = "asc" | "desc";
 
 export type { SortKey, SortDir };
@@ -41,8 +30,9 @@ const STATUS_ORDER: Record<string, number> = {
   "In Progress": 1,
   "Ready To Donate": 2,
   Donated: 3,
-  Scrapped: 4,
-  Unknown: 5,
+  Sold: 4,
+  Scrapped: 5,
+  Unknown: 6,
 };
 
 function getValue(d: AnyDevice, key: SortKey): string | number | null {

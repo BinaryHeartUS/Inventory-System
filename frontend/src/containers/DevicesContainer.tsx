@@ -8,6 +8,7 @@ import type { SortKey, SortDir } from "../components/devices/DeviceList";
 import DevicesView from "../components/devices/DevicesView";
 import {
   DEVICE_TYPES,
+  DEVICE_SORT_KEYS,
   STATUS_OPTIONS,
   type DeviceTypeFilter,
 } from "../components/devices/deviceFilters";
@@ -20,6 +21,14 @@ function getStatusFilter(value: string | null): DeviceStatus | "All" {
   return STATUS_OPTIONS.includes(value as DeviceStatus | "All")
     ? (value as DeviceStatus | "All")
     : "All";
+}
+
+function getSortKey(value: string | null): SortKey {
+  return DEVICE_SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : "id";
+}
+
+function getSortDir(value: string | null): SortDir {
+  return value === "desc" ? "desc" : "asc";
 }
 
 export default function DevicesContainer() {
@@ -36,11 +45,12 @@ export default function DevicesContainer() {
       : (chapters.find((chapter) => chapter.name === chapterParam)?.id ?? "All")
     : "All";
   const showDonated = searchParams.get("includeDonated") === "true";
+  const showSold = searchParams.get("includeSold") === "true";
   const showScrapped = searchParams.get("includeScrapped") === "true";
   const showStuck = searchParams.get("stuckOnly") === "true";
+  const sortKey = getSortKey(searchParams.get("sort"));
+  const sortDir = getSortDir(searchParams.get("dir"));
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("id");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [summaryLoaded, setSummaryLoaded] = useState(false);
 
@@ -92,8 +102,9 @@ export default function DevicesContainer() {
         type: typeFilter === "All" ? undefined : typeFilter,
         status: statusFilter === "All" ? undefined : statusFilter,
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
-        includeDonated: showDonated,
-        includeScrapped: showScrapped,
+        includeDonated: showDonated || statusFilter === "Donated",
+        includeSold: showSold || statusFilter === "Sold",
+        includeScrapped: showScrapped || statusFilter === "Scrapped",
         stuckOnly: showStuck,
         sort: sortKey,
         dir: sortDir,
@@ -104,6 +115,7 @@ export default function DevicesContainer() {
       statusFilter,
       chapterFilter,
       showDonated,
+      showSold,
       showScrapped,
       showStuck,
       sortKey,
@@ -122,6 +134,7 @@ export default function DevicesContainer() {
     statusFilter,
     chapterFilter,
     showDonated,
+    showSold,
     showScrapped,
     showStuck,
     sortKey,
@@ -134,12 +147,14 @@ export default function DevicesContainer() {
     statusFilter !== "All" ||
     chapterFilter !== "All" ||
     showDonated ||
+    showSold ||
     showScrapped ||
     showStuck;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
-    if (showStuck || debouncedSearch || typeFilter !== "All" || statusFilter !== "All") return null;
+    if (showStuck || showSold || debouncedSearch || typeFilter !== "All" || statusFilter !== "All")
+      return null;
     const rows =
       chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
     let total = rows.reduce((sum, r) => sum + r.notStarted + r.inProgress + r.readyToDonate, 0);
@@ -154,6 +169,7 @@ export default function DevicesContainer() {
     statusFilter,
     chapterFilter,
     showDonated,
+    showSold,
     showScrapped,
     showStuck,
   ]);
@@ -170,8 +186,10 @@ export default function DevicesContainer() {
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
-    setSortKey(key);
-    setSortDir(dir);
+    updateFilters({
+      sort: key === "id" ? null : key,
+      dir: dir === "asc" ? null : dir,
+    });
   }
 
   function handleShowStuckChange(value: boolean) {
@@ -179,6 +197,7 @@ export default function DevicesContainer() {
       stuckOnly: value,
       status: value ? null : statusFilter,
       includeDonated: value ? null : showDonated,
+      includeSold: value ? null : showSold,
       includeScrapped: value ? null : showScrapped,
     });
   }
@@ -195,6 +214,8 @@ export default function DevicesContainer() {
       onChapterFilterChange={(value) => updateFilters({ chapter: value })}
       showDonated={showDonated}
       onShowDonatedChange={(value) => updateFilters({ includeDonated: value })}
+      showSold={showSold}
+      onShowSoldChange={(value) => updateFilters({ includeSold: value })}
       showScrapped={showScrapped}
       onShowScrappedChange={(value) => updateFilters({ includeScrapped: value })}
       showStuck={showStuck}

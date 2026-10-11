@@ -20,10 +20,10 @@ BEGIN
         COUNT(*) FILTER (WHERE d.status = 'In Progress')::INTEGER,
         COUNT(*) FILTER (WHERE d.status = 'Ready To Donate')::INTEGER,
         COUNT(*) FILTER (WHERE d.status = 'Donated')::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped') AND dk.ID IS NOT NULL)::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped') AND lp.ID IS NOT NULL)::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped') AND tb.ID IS NOT NULL)::INTEGER,
-        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Scrapped'))::INTEGER,
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Sold', 'Scrapped') AND dk.ID IS NOT NULL)::INTEGER,
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Sold', 'Scrapped') AND lp.ID IS NOT NULL)::INTEGER,
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Sold', 'Scrapped') AND tb.ID IS NOT NULL)::INTEGER,
+        COUNT(*) FILTER (WHERE d.status NOT IN ('Donated', 'Sold', 'Scrapped'))::INTEGER,
         COUNT(*) FILTER (WHERE d.Device_Stuck)::INTEGER
     INTO
         p_not_started,
