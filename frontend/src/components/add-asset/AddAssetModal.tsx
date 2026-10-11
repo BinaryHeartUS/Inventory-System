@@ -6,6 +6,7 @@ import type {
   Part,
   PartySummary,
   Tool,
+  BulkInsertDevicesRequest,
 } from "../../types/inventory";
 import type { LookupData } from "../../hooks/useLookups";
 import { inputCls, labelCls } from "../../utils/formStyles";
@@ -15,7 +16,14 @@ import { SoldValueModal } from "../devices/SoldValueModal";
 import { CategoryStep } from "./CategoryStep";
 import { SubtypeStep } from "./SubtypeStep";
 import { FieldsForm } from "./FieldsForm";
-import { DEFAULT_FORM, type AssetCategory, type DeviceSubtype, type FormState } from "./types";
+import { BulkDeviceForm } from "./BulkDeviceForm";
+import {
+  DEFAULT_BULK_FORM,
+  DEFAULT_FORM,
+  type AssetCategory,
+  type DeviceSubtype,
+  type FormState,
+} from "./types";
 
 // ─── Main modal ───────────────────────────────────────────────────────────────
 
@@ -25,6 +33,7 @@ export function AddAssetModal({
   chapterList,
   checkAssetId,
   onAdd,
+  onBulkAdd,
   onCancel,
 }: {
   scanId?: number;
@@ -32,19 +41,21 @@ export function AddAssetModal({
   chapterList: { id: number; name: string }[];
   checkAssetId: (id: number) => Promise<boolean>;
   onAdd?: (asset: AnyDevice | Part | Tool | Misc) => void;
+  onBulkAdd?: (request: BulkInsertDevicesRequest) => void;
   onCancel: () => void;
 }) {
   // Set default chapter once lookup data loads
-  const [step, setStep] = useState<"id" | "category" | "subtype" | "fields">(
-    scanId !== undefined ? "category" : "id"
-  );
-  const [idMode, setIdMode] = useState<"input" | "generate">(
+  const [step, setStep] = useState<
+    "id" | "category" | "subtype" | "fields" | "bulk-warning" | "bulk-fields"
+  >(scanId !== undefined ? "category" : "id");
+  const [idMode, setIdMode] = useState<"input" | "generate" | "bulk">(
     scanId !== undefined ? "input" : "generate"
   );
   const [inputId, setInputId] = useState(scanId !== undefined ? String(scanId) : "");
   const [category, setCategory] = useState<AssetCategory | null>(null);
   const [subtype, setSubtype] = useState<DeviceSubtype | null>(null);
   const [form, setForm] = useState<FormState>({ ...DEFAULT_FORM });
+  const [bulkForm, setBulkForm] = useState({ ...DEFAULT_BULK_FORM });
   const [idConflict, setIdConflict] = useState(false);
   const [devicePickerOpen, setDevicePickerOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<AnyDevice | null>(null);
@@ -62,6 +73,13 @@ export function AddAssetModal({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lookups.chapters.length]);
+
+  useEffect(() => {
+    if (lookups.chapters.length > 0 && bulkForm.chapter === "") {
+      const first = lookups.chapters[0];
+      Promise.resolve().then(() => setBulkForm((previous) => ({ ...previous, chapter: first })));
+    }
+  }, [lookups.chapters, bulkForm.chapter]);
 
   // Async ID conflict check
   useEffect(() => {
@@ -84,14 +102,14 @@ export function AddAssetModal({
   }, [idMode, inputId, checkAssetId]);
 
   function isIdStepValid(): boolean {
-    if (idMode === "generate") return true;
+    if (idMode === "generate" || idMode === "bulk") return true;
     const n = Number(inputId);
     if (!inputId || !Number.isInteger(n) || n <= 0) return false;
     return !idConflict;
   }
 
   function idError(): string | null {
-    if (idMode === "generate" || !inputId) return null;
+    if (idMode !== "input" || !inputId) return null;
     const n = Number(inputId);
     if (!Number.isInteger(n) || n <= 0) return "ID must be a positive whole number.";
     if (idConflict) return `ID ${n} is already in use.`;
@@ -109,10 +127,43 @@ export function AddAssetModal({
   }
 
   function handleBack() {
-    if (step === "fields" && category === "Device") setStep("subtype");
+    if (step === "bulk-fields") setStep("bulk-warning");
+    else if (step === "bulk-warning") setStep("id");
+    else if (step === "fields" && category === "Device") setStep("subtype");
     else if (step === "fields") setStep("category");
     else if (step === "subtype") setStep("category");
     else if (step === "category" && scanId === undefined) setStep("id");
+  }
+
+  function isBulkValid(): boolean {
+    const count = Number(bulkForm.count);
+    const year = Number(bulkForm.year);
+    return (
+      Number.isInteger(count) &&
+      count >= 1 &&
+      count <= 100 &&
+      !!bulkForm.manufacturer?.trim() &&
+      bulkForm.model.trim() !== "" &&
+      Number.isInteger(year) &&
+      year >= 1980 &&
+      year <= new Date().getFullYear() &&
+      bulkForm.chapter !== "" &&
+      bulkForm.acquisitionDate !== ""
+    );
+  }
+
+  function handleBulkSubmit() {
+    if (!isBulkValid()) return;
+    onBulkAdd?.({
+      count: Number(bulkForm.count),
+      type: bulkForm.type,
+      chapterId: chapterList.find((chapter) => chapter.name === bulkForm.chapter)?.id ?? 0,
+      manufacturer: bulkForm.manufacturer!.trim(),
+      model: bulkForm.model.trim(),
+      year: Number(bulkForm.year),
+      donorId: selectedParty?.id,
+      acquisitionDate: bulkForm.acquisitionDate,
+    });
   }
 
   function handleDeviceStatusChange(newStatus: DeviceStatus) {
@@ -258,31 +309,39 @@ export function AddAssetModal({
 
   // Step indicator
   const steps =
-    scanId !== undefined
-      ? category === "Device"
-        ? ["Category", "Device Type", "Details"]
-        : ["Category", "Details"]
-      : category === "Device"
-        ? ["ID", "Category", "Device Type", "Details"]
-        : ["ID", "Category", "Details"];
+    step === "bulk-warning" || step === "bulk-fields" || (step === "id" && idMode === "bulk")
+      ? ["Import", "Warnings", "Details"]
+      : scanId !== undefined
+        ? category === "Device"
+          ? ["Category", "Device Type", "Details"]
+          : ["Category", "Details"]
+        : category === "Device"
+          ? ["ID", "Category", "Device Type", "Details"]
+          : ["ID", "Category", "Details"];
   const stepIdx =
-    scanId !== undefined
-      ? step === "category"
-        ? 0
-        : step === "subtype"
-          ? 1
-          : category === "Device"
-            ? 2
-            : 1
-      : step === "id"
-        ? 0
-        : step === "category"
-          ? 1
-          : step === "subtype"
-            ? 2
-            : category === "Device"
-              ? 3
-              : 2;
+    step === "bulk-warning"
+      ? 1
+      : step === "bulk-fields"
+        ? 2
+        : step === "id" && idMode === "bulk"
+          ? 0
+          : scanId !== undefined
+            ? step === "category"
+              ? 0
+              : step === "subtype"
+                ? 1
+                : category === "Device"
+                  ? 2
+                  : 1
+            : step === "id"
+              ? 0
+              : step === "category"
+                ? 1
+                : step === "subtype"
+                  ? 2
+                  : category === "Device"
+                    ? 3
+                    : 2;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -301,10 +360,14 @@ export function AddAssetModal({
         <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between shrink-0">
           <div>
             <h2 id="add-asset-title" className="text-base font-semibold text-slate-900">
-              Add New Asset
+              {step === "bulk-warning" || step === "bulk-fields"
+                ? "Bulk Device Import"
+                : "Add New Asset"}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              {scanId !== undefined ? (
+              {step === "bulk-warning" || step === "bulk-fields" ? (
+                "Create matching devices and generate their asset IDs together."
+              ) : scanId !== undefined ? (
                 <>
                   Barcode <span className="font-mono font-medium text-slate-600">#{scanId}</span>{" "}
                   was not found — fill in the details below to add it.
@@ -456,6 +519,28 @@ export function AddAssetModal({
                   </button>
                 ))}
               </div>
+              <button
+                onClick={() => setIdMode("bulk")}
+                className={`w-full flex items-start gap-3 p-5 rounded-xl border-2 transition-all text-left ${
+                  idMode === "bulk"
+                    ? "border-heart-blue bg-heart-blue/5 text-heart-blue"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                }`}
+              >
+                <span
+                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                    idMode === "bulk" ? "border-heart-blue" : "border-slate-300"
+                  }`}
+                >
+                  {idMode === "bulk" && <span className="w-2 h-2 rounded-full bg-heart-blue" />}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold">Bulk device import</p>
+                  <p className="text-xs opacity-70 mt-0.5 leading-snug">
+                    Add up to 100 matching desktops, laptops, or tablets at once.
+                  </p>
+                </div>
+              </button>
               {idMode === "input" && (
                 <div>
                   <label className={labelCls}>Asset ID</label>
@@ -494,6 +579,34 @@ export function AddAssetModal({
                 </div>
               )}
             </div>
+          )}
+          {step === "bulk-warning" && (
+            <div>
+              <p className="text-sm font-semibold text-slate-900 mb-3">Before you continue</p>
+              <ul className="space-y-2.5 text-sm text-slate-600 list-disc pl-5">
+                <li>All devices must have the same device type.</li>
+                <li>All devices must have the same manufacturer and model.</li>
+                <li>All devices must have the same manufacture year.</li>
+                <li>All devices must belong to the same chapter.</li>
+                <li>All devices must have the same donor, or no donor.</li>
+                <li>All devices must have the same acquisition date.</li>
+                <li>
+                  Device-specific information, such as serial numbers and hardware details, must be
+                  added to each device later.
+                </li>
+                <li>Asset IDs will be generated automatically.</li>
+              </ul>
+            </div>
+          )}
+          {step === "bulk-fields" && (
+            <BulkDeviceForm
+              form={bulkForm}
+              setForm={setBulkForm}
+              lookups={lookups}
+              selectedParty={selectedParty}
+              onOpenPartyPicker={() => setPartyPickerOpen(true)}
+              onClearParty={() => setSelectedParty(null)}
+            />
           )}
           {step === "category" && <CategoryStep onSelect={handleSelectCategory} />}
           {step === "subtype" && <SubtypeStep onSelect={handleSelectSubtype} />}
@@ -563,11 +676,28 @@ export function AddAssetModal({
             </button>
             {step === "id" && (
               <button
-                onClick={() => setStep("category")}
+                onClick={() => setStep(idMode === "bulk" ? "bulk-warning" : "category")}
                 disabled={!isIdStepValid()}
                 className="text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors"
               >
                 Continue
+              </button>
+            )}
+            {step === "bulk-warning" && (
+              <button
+                onClick={() => setStep("bulk-fields")}
+                className="text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark px-5 py-2 rounded-lg transition-colors"
+              >
+                I Understand, Continue
+              </button>
+            )}
+            {step === "bulk-fields" && (
+              <button
+                onClick={handleBulkSubmit}
+                disabled={!isBulkValid()}
+                className="text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors"
+              >
+                Add Devices
               </button>
             )}
             {step === "fields" && (

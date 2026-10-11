@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.exceptions.DeviceNotFoundException;
+import org.binaryheart.requests.BulkInsertDevicesRequest;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
@@ -549,6 +550,120 @@ public class DeviceRepository {
 			} finally {
 				conn.setAutoCommit(true);
 			}
+		}
+	}
+
+	public List<Integer> insertBulkDevices(BulkInsertDevicesRequest request, String username) throws SQLException {
+		try (Connection conn = DatabaseConnectionService.getConnection()) {
+			conn.setAutoCommit(false);
+			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)")) {
+				ps.setString(1, username);
+				ps.execute();
+
+				List<Integer> ids = new ArrayList<>(request.count());
+				for (int index = 0; index < request.count(); index++) {
+					ids.add(switch (request.type()) {
+						case "Desktop" -> insertBulkDesktop(conn, request);
+						case "Laptop" -> insertBulkLaptop(conn, request);
+						case "Tablet" -> insertBulkTablet(conn, request);
+						default -> throw new IllegalArgumentException("Unsupported device type: " + request.type());
+					});
+				}
+				conn.commit();
+				return ids;
+			} catch (SQLException | RuntimeException e) {
+				conn.rollback();
+				throw e;
+			} finally {
+				conn.setAutoCommit(true);
+			}
+		}
+	}
+
+	private int insertBulkDesktop(Connection conn, BulkInsertDevicesRequest request) throws SQLException {
+		try (CallableStatement stmt = conn.prepareCall(
+			"call Insert_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?)")) {
+			stmt.setInt(1, request.chapterId());
+			stmt.setString(2, request.manufacturer());
+			stmt.setString(3, request.model());
+			stmt.setInt(4, request.year());
+			stmt.setString(5, "Not Started");
+			stmt.registerOutParameter(6, Types.INTEGER);
+			stmt.setNull(6, Types.INTEGER);
+			stmt.setNull(7, Types.VARCHAR);
+			stmt.setInt(8, 0);
+			stmt.setNull(9, Types.VARCHAR);
+			stmt.setInt(10, 0);
+			stmt.setNull(11, Types.VARCHAR);
+			stmt.setDouble(12, 0);
+			stmt.setDate(13, Date.valueOf(request.acquisitionDate()));
+			stmt.setNull(14, Types.INTEGER);
+			setIntegerOrNull(stmt, 15, request.donorId());
+			stmt.setNull(16, Types.BOOLEAN);
+			stmt.setNull(17, Types.VARCHAR);
+			stmt.setNull(18, Types.DATE);
+			stmt.setNull(19, Types.VARCHAR);
+			stmt.execute();
+			return stmt.getInt(6);
+		}
+	}
+
+	private int insertBulkLaptop(Connection conn, BulkInsertDevicesRequest request) throws SQLException {
+		try (CallableStatement stmt = conn.prepareCall(
+			"call Insert_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+			stmt.setInt(1, request.chapterId());
+			stmt.setString(2, request.manufacturer());
+			stmt.setString(3, request.model());
+			stmt.setInt(4, request.year());
+			stmt.setString(5, "Not Started");
+			stmt.setString(6, "Unknown");
+			stmt.registerOutParameter(7, Types.INTEGER);
+			stmt.setNull(7, Types.INTEGER);
+			stmt.setNull(8, Types.VARCHAR);
+			stmt.setInt(9, 0);
+			stmt.setNull(10, Types.VARCHAR);
+			stmt.setInt(11, 0);
+			stmt.setNull(12, Types.VARCHAR);
+			stmt.setDouble(13, 0);
+			stmt.setDate(14, Date.valueOf(request.acquisitionDate()));
+			stmt.setNull(15, Types.INTEGER);
+			setIntegerOrNull(stmt, 16, request.donorId());
+			stmt.setNull(17, Types.INTEGER);
+			stmt.setNull(18, Types.INTEGER);
+			stmt.setNull(19, Types.VARCHAR);
+			stmt.setNull(20, Types.DATE);
+			stmt.setNull(21, Types.VARCHAR);
+			stmt.execute();
+			return stmt.getInt(7);
+		}
+	}
+
+	private int insertBulkTablet(Connection conn, BulkInsertDevicesRequest request) throws SQLException {
+		try (CallableStatement stmt = conn.prepareCall(
+			"call Insert_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)")) {
+			stmt.setInt(1, request.chapterId());
+			stmt.setString(2, request.manufacturer());
+			stmt.setString(3, request.model());
+			stmt.setInt(4, request.year());
+			stmt.setString(5, "Not Started");
+			stmt.setString(6, "Unknown");
+			stmt.setString(7, "Unknown");
+			stmt.registerOutParameter(8, Types.INTEGER);
+			stmt.setNull(8, Types.INTEGER);
+			stmt.setNull(9, Types.VARCHAR);
+			stmt.setInt(10, 0);
+			stmt.setNull(11, Types.VARCHAR);
+			stmt.setInt(12, 0);
+			stmt.setNull(13, Types.VARCHAR);
+			stmt.setDouble(14, 0);
+			stmt.setDate(15, Date.valueOf(request.acquisitionDate()));
+			stmt.setNull(16, Types.INTEGER);
+			setIntegerOrNull(stmt, 17, request.donorId());
+			stmt.setNull(18, Types.VARCHAR);
+			stmt.setNull(19, Types.DATE);
+			stmt.setNull(20, Types.VARCHAR);
+			stmt.execute();
+			return stmt.getInt(8);
 		}
 	}
 

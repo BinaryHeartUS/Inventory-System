@@ -29,7 +29,7 @@ import PartyDetail from "./pages/PartyDetail";
 import Scanner from "./pages/Scanner";
 import { useBarcodeScanner } from "./hooks/useBarcodeScanner";
 import { usePWA } from "./hooks/usePWA";
-import { createDevice } from "./services/deviceService";
+import { createBulkDevices, createDevice } from "./services/deviceService";
 import { createPart } from "./services/partService";
 import { createTool } from "./services/toolService";
 import { createMisc } from "./services/miscService";
@@ -43,7 +43,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ChapterProvider, useIsNationalAdmin } from "./context/ChapterContext";
 import { AddAssetProvider } from "./context/AddAssetContext";
 
-import type { AnyDevice, Misc, Part, Tool } from "./types/inventory";
+import type { AnyDevice, BulkInsertDevicesRequest, Misc, Part, Tool } from "./types/inventory";
 
 const Icons = {
   dashboard: (
@@ -748,6 +748,7 @@ function AppShell() {
   const { showToast } = useToast();
   const [pendingScanId, setPendingScanId] = useState<number | null>(null);
   const [pendingPrintId, setPendingPrintId] = useState<number | null>(null);
+  const [pendingBulkPrintIds, setPendingBulkPrintIds] = useState<number[] | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useBarcodeScanner({
@@ -799,6 +800,16 @@ function AppShell() {
     }
   }
 
+  async function handleBulkAdd(request: BulkInsertDevicesRequest) {
+    try {
+      const ids = await createBulkDevices(request);
+      setPendingScanId(null);
+      setPendingBulkPrintIds(ids);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to create devices", false);
+    }
+  }
+
   return (
     <AddAssetProvider onOpen={(scanId?: number) => setPendingScanId(scanId ?? -1)}>
       <div className="flex min-h-dvh bg-slate-50 text-slate-900">
@@ -818,6 +829,7 @@ function AppShell() {
           <AddAssetModalContainer
             scanId={pendingScanId >= 0 ? pendingScanId : undefined}
             onAdd={handleAddAsset}
+            onBulkAdd={handleBulkAdd}
             onCancel={() => setPendingScanId(null)}
           />
         )}
@@ -827,6 +839,14 @@ function AppShell() {
           <PrintLabelModalContainer
             assetId={pendingPrintId}
             onClose={() => setPendingPrintId(null)}
+          />
+        )}
+
+        {pendingBulkPrintIds !== null && (
+          <PrintLabelModalContainer
+            assetIds={pendingBulkPrintIds}
+            showIdList
+            onClose={() => setPendingBulkPrintIds(null)}
           />
         )}
       </div>

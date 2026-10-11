@@ -14,10 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.repositories.DeviceRepository;
+import org.binaryheart.requests.BulkInsertDevicesRequest;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.responses.AvgTimeInInventoryResponse;
 import org.binaryheart.responses.ChapterActivityStatsResponse;
@@ -273,6 +275,21 @@ class DeviceServiceTest {
 		replay(repository, chapters);
 
 		assertEquals(103, new DeviceService(repository, chapters).insertTablet(tablet(), "user"));
+
+		verify(repository, chapters);
+	}
+
+	@Test
+	void insertBulkDevicesDelegates() throws Exception {
+		DeviceRepository repository = mock(DeviceRepository.class);
+		ChapterService chapters = mock(ChapterService.class);
+		BulkInsertDevicesRequest request = new BulkInsertDevicesRequest(3, "Tablet", 2, "Apple", "iPad", 2022, 301,
+			LocalDate.now());
+		List<Integer> ids = List.of(201, 202, 203);
+		expect(repository.insertBulkDevices(request, "user")).andReturn(ids);
+		replay(repository, chapters);
+
+		assertSame(ids, new DeviceService(repository, chapters).insertBulkDevices(request, "user"));
 
 		verify(repository, chapters);
 	}

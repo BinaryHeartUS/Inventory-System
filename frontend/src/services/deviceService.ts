@@ -11,7 +11,9 @@
 import { apiGet, apiGetOrNull, apiPost, apiPutVoid, buildQuery } from "./api";
 import type {
   AnyDevice,
+  BulkInsertDevicesRequest,
   IdResponse,
+  IdsResponse,
   InsertDesktopRequest,
   InsertLaptopRequest,
   InsertTabletRequest,
@@ -84,6 +86,7 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
     value: device.value ?? undefined,
     acquisitionDate: device.acquisitionDate ?? undefined,
     operatingSystem: device.operatingSystem ?? undefined,
+    donorId: device.donorId ?? undefined,
   };
 
   let newId: number;
@@ -114,6 +117,11 @@ export async function createDevice(device: AnyDevice): Promise<AnyDevice> {
 
   // Backend returns 201 with the new asset id; fetch the full record by id.
   return apiGet<AnyDevice>(`/devices/${newId}`);
+}
+
+export async function createBulkDevices(request: BulkInsertDevicesRequest): Promise<number[]> {
+  const response = await apiPost<IdsResponse>("/devices/bulk", request);
+  return response.ids;
 }
 
 export async function updateDevice(id: number, updates: AnyDevice): Promise<AnyDevice> {
