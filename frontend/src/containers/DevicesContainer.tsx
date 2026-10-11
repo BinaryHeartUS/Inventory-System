@@ -143,13 +143,7 @@ export default function DevicesContainer() {
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
-    if (
-      showStuck ||
-      showSold ||
-      debouncedSearch ||
-      typeFilter !== "All" ||
-      statusFilter !== "All"
-    )
+    if (showStuck || showSold || debouncedSearch || typeFilter !== "All" || statusFilter !== "All")
       return null;
     const rows =
       chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
