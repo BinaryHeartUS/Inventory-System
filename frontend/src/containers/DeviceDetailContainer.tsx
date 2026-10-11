@@ -224,9 +224,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
       onCancelDonate={() => setShowDonateModal(false)}
       onConfirmSold={(value) => {
         setForm((prev) =>
-          prev
-            ? ({ ...prev, status: "Sold", value, recipientId: null } as AnyDevice)
-            : prev
+          prev ? ({ ...prev, status: "Sold", value, recipientId: null } as AnyDevice) : prev
         );
         setEditRecipient(null);
         setShowSoldValueModal(false);
