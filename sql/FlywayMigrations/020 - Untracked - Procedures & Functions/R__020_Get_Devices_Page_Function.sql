@@ -69,7 +69,7 @@ BEGIN
           WHEN 'status' THEN CASE gd.status
               WHEN 'Not Started' THEN '0' WHEN 'In Progress' THEN '1'
               WHEN 'Ready To Donate' THEN '2' WHEN 'Donated' THEN '3'
-              WHEN 'Scrapped' THEN '4' ELSE '5' END
+              WHEN 'Sold' THEN '4' WHEN 'Scrapped' THEN '5' ELSE '6' END
           WHEN 'year' THEN lpad(gd.year::text, 12, '0')
           WHEN 'ram' THEN lpad(gd.RAM::text, 12, '0')
           WHEN 'storage' THEN lpad(gd.storage_amount::text, 12, '0')
