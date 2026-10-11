@@ -71,7 +71,7 @@ test("bulk endpoint creates each supported device type with shared details", asy
     const response = await page.request.post("/api/devices/bulk", {
       headers: { Authorization: `Bearer ${token}` },
       data: {
-        count: 1,
+        count: 2,
         type,
         chapterId: TEST_CHAPTER.id,
         manufacturer: "Framework",
@@ -83,18 +83,28 @@ test("bulk endpoint creates each supported device type with shared details", asy
     });
     expect(response.status()).toBe(201);
     const { ids } = (await response.json()) as { ids: number[] };
-    expect(ids).toHaveLength(1);
+    expect(ids).toHaveLength(2);
 
-    const deviceResponse = await page.request.get(`/api/devices/${ids[0]}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    expect(deviceResponse.status()).toBe(200);
-    const device = (await deviceResponse.json()) as {
-      type: string;
-      donorId: number;
-      acquisitionDate: string;
-    };
-    expect(device).toMatchObject({ type, donorId: 301, acquisitionDate });
+    for (const id of ids) {
+      const deviceResponse = await page.request.get(`/api/devices/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(deviceResponse.status()).toBe(200);
+      const device = (await deviceResponse.json()) as {
+        type: string;
+        donorId: number;
+        acquisitionDate: string;
+      };
+      expect(device).toMatchObject({ type, donorId: 301, acquisitionDate });
+
+      const changelogResponse = await page.request.get(`/api/devices/${id}/changelog`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(changelogResponse.status()).toBe(200);
+      expect(await changelogResponse.json()).toEqual([
+        expect.objectContaining({ deviceID: id, changeType: "Insert" }),
+      ]);
+    }
   }
 });
 
