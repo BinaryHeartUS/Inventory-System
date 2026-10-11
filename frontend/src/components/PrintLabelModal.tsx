@@ -1,102 +1,38 @@
 import { useEffect, useRef } from "react";
-import JsBarcode from "jsbarcode";
-
-// ─── Label dimensions ─────────────────────────────────────────────────────────
-// 50 × 30 mm labels at 203 dpi (NIIMBOT standard thermal head resolution):
-//   50mm × (203 / 25.4) ≈ 400 px  (print-head axis)
-//   30mm × (203 / 25.4) ≈ 240 px  (feed axis)
-
-const LABEL_W = 400;
-const LABEL_H = 240;
-
-async function drawLabel(canvas: HTMLCanvasElement, assetId: number) {
-  canvas.width = LABEL_W;
-  canvas.height = LABEL_H;
-
-  const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, LABEL_W, LABEL_H);
-
-  // Organisation logo + name — logo is 60 px tall, vertically centred with the text.
-  const LOGO_H = 60;
-  const ROW_MID = 66; // vertical midpoint of the header row
-  ctx.font = "bold 22px sans-serif";
-  const TEXT_LABEL = "BinaryHeart";
-
-  await new Promise<void>((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const logoW = Math.round((img.naturalWidth / img.naturalHeight) * LOGO_H);
-      const textW = ctx.measureText(TEXT_LABEL).width;
-      const gap = 8;
-      const startX = Math.round((LABEL_W - logoW - gap - textW) / 2);
-      // Force the (potentially coloured) logo to pure B&W so it prints
-      // correctly on a monochrome thermal head.
-      ctx.filter = "grayscale(1)";
-      ctx.drawImage(img, startX, ROW_MID - LOGO_H / 2, logoW, LOGO_H);
-      ctx.filter = "none";
-      ctx.fillStyle = "black";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(TEXT_LABEL, startX + logoW + gap, ROW_MID);
-      ctx.textBaseline = "alphabetic";
-      resolve();
-    };
-    img.onerror = () => {
-      ctx.fillStyle = "black";
-      ctx.textAlign = "center";
-      ctx.fillText(TEXT_LABEL, LABEL_W / 2, 60);
-      resolve();
-    };
-    img.src = "/icon.png";
-  });
-
-  // Generate Code128 barcode on a temporary canvas, then blit it centred.
-  // "1" prints as "000001", "1042" prints as "001042", etc.
-  const tmp = document.createElement("canvas");
-  JsBarcode(tmp, String(assetId).padStart(6, "0"), {
-    format: "CODE128",
-    width: 3, // module (thin bar) width in px
-    height: 100, // bar height in px
-    displayValue: true, // human-readable digits below bars
-    fontSize: 16,
-    margin: 0,
-    textMargin: 4,
-  });
-
-  const bx = Math.round((LABEL_W - tmp.width) / 2);
-  ctx.drawImage(tmp, bx, 112);
-}
+import { drawAssetLabel } from "../utils/drawAssetLabel";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export type PrintStatus = "idle" | "connecting" | "printing" | "done" | "error";
 
 export function PrintLabelModal({
-  assetId,
+  assetIds,
+  showIdList = false,
   status,
   errorMsg,
   serialSupported,
   onPrint,
   onClose,
 }: {
-  assetId: number;
+  assetIds: number[];
+  showIdList?: boolean;
   status: PrintStatus;
   errorMsg: string | null;
   serialSupported: boolean;
-  onPrint: (canvas: HTMLCanvasElement) => void;
+  onPrint: () => void;
   onClose: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (canvasRef.current) {
-      drawLabel(canvasRef.current, assetId);
+    if (canvasRef.current && assetIds.length > 0) {
+      drawAssetLabel(canvasRef.current, assetIds[0]);
     }
-  }, [assetId]);
+  }, [assetIds]);
 
   const busy = status === "connecting" || status === "printing";
-  const paddedId = String(assetId).padStart(6, "0");
+  const paddedIds = assetIds.map((id) => String(id).padStart(6, "0"));
+  const isBatch = showIdList || assetIds.length > 1;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -104,14 +40,28 @@ export function PrintLabelModal({
       <div className="absolute inset-0 bg-black/40" onClick={busy ? undefined : onClose} />
 
       {/* Dialog */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="print-label-title"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
+      >
         {/* Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Print Barcode Label</h2>
+            <h2 id="print-label-title" className="text-base font-semibold text-slate-900">
+              Print Barcode Label
+            </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Asset <span className="font-mono font-medium text-slate-600">#{paddedId}</span> added
-              successfully.
+              {isBatch ? (
+                <>{assetIds.length} devices added successfully.</>
+              ) : (
+                <>
+                  Asset{" "}
+                  <span className="font-mono font-medium text-slate-600">#{paddedIds[0]}</span>{" "}
+                  added successfully.
+                </>
+              )}
             </p>
           </div>
           <button
@@ -161,8 +111,26 @@ export function PrintLabelModal({
           </div>
         )}
 
-        {/* Label preview */}
-        <div className="px-6 py-5 flex flex-col items-center gap-4">
+        <div className="px-6 py-5 flex flex-col items-center gap-4 overflow-y-auto">
+          {isBatch && (
+            <div className="w-full">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                Generated Asset IDs
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+                {paddedIds.map((id) => (
+                  <span
+                    key={id}
+                    className="font-mono text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded px-2 py-1 text-center"
+                  >
+                    {id}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Label preview */}
           <div className="border border-slate-200 rounded-lg p-2 bg-slate-50 shadow-inner">
             {/* Displayed at half size (200 × 120 px) — actual canvas is 400 × 240 */}
             <canvas ref={canvasRef} style={{ width: 200, height: 120 }} className="block" />
@@ -178,10 +146,14 @@ export function PrintLabelModal({
               <span className="text-blue-600 animate-pulse">Connecting to printer…</span>
             )}
             {status === "printing" && (
-              <span className="text-blue-600 animate-pulse">Printing…</span>
+              <span className="text-blue-600 animate-pulse">
+                Printing {isBatch ? `${assetIds.length} labels…` : "…"}
+              </span>
             )}
             {status === "done" && (
-              <span className="text-green-600 font-medium">Label printed successfully.</span>
+              <span className="text-green-600 font-medium">
+                {isBatch ? "Labels printed successfully." : "Label printed successfully."}
+              </span>
             )}
             {status === "error" && (
               <span className="text-red-500">{errorMsg ?? "Print failed. Please try again."}</span>
@@ -200,7 +172,7 @@ export function PrintLabelModal({
 
           {status !== "done" && (
             <button
-              onClick={() => canvasRef.current && onPrint(canvasRef.current)}
+              onClick={onPrint}
               disabled={busy || !serialSupported}
               className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-2 rounded-lg transition-colors flex items-center gap-2"
             >
@@ -217,7 +189,11 @@ export function PrintLabelModal({
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
               )}
-              {status === "error" ? "Retry" : "Print Label"}
+              {status === "error"
+                ? "Retry"
+                : isBatch
+                  ? `Print ${assetIds.length} Labels`
+                  : "Print Label"}
             </button>
           )}
         </div>

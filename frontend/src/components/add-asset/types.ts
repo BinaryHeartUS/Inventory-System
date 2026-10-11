@@ -3,6 +3,33 @@ import type { ChargerStatus, DeviceStatus, WorkingBattery } from "../../types/in
 export type AssetCategory = "Device" | "Part" | "Tool" | "Misc";
 export type DeviceSubtype = "Desktop" | "Laptop" | "Tablet";
 
+export interface BulkDeviceFormState {
+  count: string;
+  type: DeviceSubtype;
+  manufacturer: string | null;
+  model: string;
+  year: string;
+  chapter: string;
+  acquisitionDate: string;
+}
+
+function localDateString(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+export const DEFAULT_BULK_FORM: BulkDeviceFormState = {
+  count: "",
+  type: "Desktop",
+  manufacturer: null,
+  model: "",
+  year: String(new Date().getFullYear()),
+  chapter: "",
+  acquisitionDate: localDateString(),
+};
+
 // ─── Form state ───────────────────────────────────────────────────────────────
 export interface FormState {
   // Shared

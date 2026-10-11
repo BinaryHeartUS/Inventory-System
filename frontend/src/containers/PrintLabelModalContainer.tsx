@@ -1,19 +1,25 @@
 import { useState } from "react";
 import { NiimbotSerialClient, ImageEncoder } from "@mmote/niimbluelib";
 import { PrintLabelModal, type PrintStatus } from "../components/PrintLabelModal";
+import { drawAssetLabel } from "../utils/drawAssetLabel";
 
 export function PrintLabelModalContainer({
   assetId,
+  assetIds,
+  showIdList = false,
   onClose,
 }: {
-  assetId: number;
+  assetId?: number;
+  assetIds?: number[];
+  showIdList?: boolean;
   onClose: () => void;
 }) {
   const [status, setStatus] = useState<PrintStatus>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const serialSupported = "serial" in navigator;
+  const ids = assetIds ?? (assetId === undefined ? [] : [assetId]);
 
-  async function handlePrint(canvas: HTMLCanvasElement) {
+  async function handlePrint() {
     setStatus("connecting");
     setErrorMsg(null);
 
@@ -26,20 +32,23 @@ export function PrintLabelModalContainer({
 
       // 'top' = no rotation — canvas width (400 px) maps to the 50 mm print head.
       // If your labels come out sideways, change 'top' to 'left'.
-      const encoded = ImageEncoder.encodeCanvas(canvas, "top");
-
       // getPrintTaskType() auto-detects for some models; falls back to 'B1'.
       // If your printer model is not auto-detected, change 'B1' to match your model.
       const taskType = client.getPrintTaskType() ?? "B1";
       const task = client.abstraction.newPrintTask(taskType, {
-        totalPages: 1,
+        totalPages: ids.length,
         statusPollIntervalMs: 100,
         statusTimeoutMs: 8_000,
       });
 
       await task.printInit();
-      await task.printPage(encoded, 1);
-      await task.waitForPageFinished();
+      for (const [index, id] of ids.entries()) {
+        const canvas = document.createElement("canvas");
+        await drawAssetLabel(canvas, id);
+        const encoded = ImageEncoder.encodeCanvas(canvas, "top");
+        await task.printPage(encoded, index + 1);
+        await task.waitForPageFinished();
+      }
       await task.waitForFinished();
       setStatus("done");
     } catch (err) {
@@ -68,7 +77,8 @@ export function PrintLabelModalContainer({
 
   return (
     <PrintLabelModal
-      assetId={assetId}
+      assetIds={ids}
+      showIdList={showIdList}
       status={status}
       errorMsg={errorMsg}
       serialSupported={serialSupported}

@@ -25,8 +25,10 @@ import { checkAssetIdExists, getAssetPath } from "./assetService";
 import { createChapter, deleteChapter } from "./chapterService";
 import { addManufacturer, deleteManufacturer } from "./lookupService";
 import { createNote, updateNote } from "./noteService";
+import { createBulkDevices, createDevice } from "./deviceService";
 import { getParts } from "./partService";
 import { getTools } from "./toolService";
+import type { AnyDevice } from "../types/inventory";
 
 describe("service endpoint delegation", () => {
   beforeEach(() => {
@@ -80,5 +82,50 @@ describe("service endpoint delegation", () => {
     await getTools({ pageKey: 1, pageSize: 50, chapter: 4 });
     expect(api.apiGet).toHaveBeenNthCalledWith(1, "/parts?pageKey=0&pageSize=100&source=donated");
     expect(api.apiGet).toHaveBeenNthCalledWith(2, "/tools?pageKey=1&pageSize=50&chapter=4");
+  });
+
+  it("creates a bulk device batch and returns every generated ID", async () => {
+    const request = {
+      count: 3,
+      type: "Laptop",
+      chapterId: 4,
+      manufacturer: "Lenovo",
+      model: "ThinkPad T14",
+      year: 2022,
+      donorId: 301,
+      acquisitionDate: "2026-10-11",
+    };
+    api.apiPost.mockResolvedValue({ ids: [1201, 1202, 1203] });
+
+    await expect(createBulkDevices(request)).resolves.toEqual([1201, 1202, 1203]);
+    expect(api.apiPost).toHaveBeenCalledWith("/devices/bulk", request);
+  });
+
+  it("includes the selected donor when creating a device", async () => {
+    const device: AnyDevice = {
+      id: 0,
+      type: "Desktop",
+      manufacturer: "Dell",
+      model: "OptiPlex",
+      year: 2022,
+      ram: 0,
+      storage: 0,
+      status: "Not Started",
+      chapter: "Test Chapter",
+      value: null,
+      donorId: 301,
+      deviceStuck: false,
+    };
+    const saved = { ...device, id: 501 };
+    api.apiGet
+      .mockResolvedValueOnce([{ id: 4, name: "Test Chapter" }])
+      .mockResolvedValueOnce(saved);
+    api.apiPost.mockResolvedValue({ id: 501 });
+
+    await expect(createDevice(device)).resolves.toEqual(saved);
+    expect(api.apiPost).toHaveBeenCalledWith(
+      "/devices/desktop",
+      expect.objectContaining({ donorId: 301 })
+    );
   });
 });

@@ -25,6 +25,8 @@ test("creates a desktop with generated ID", async ({ page }) => {
   await page.getByTestId("field-model").fill("E2E Desktop");
   await page.getByTestId("field-serial-number").fill("E2E-DESKTOP-SERIAL");
   await page.getByTestId("field-chapter").selectOption(TEST_CHAPTER.name);
+  await dialog.getByRole("button", { name: "Select donor (optional)" }).click();
+  await page.getByText("Test Donor", { exact: true }).click();
   await dialog.getByRole("button", { name: "Add Asset", exact: true }).click();
 
   await expect(page).toHaveURL(/\/devices\/\d+$/);
@@ -32,6 +34,68 @@ test("creates a desktop with generated ID", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Framework E2E Desktop" })).toBeVisible();
   await expect(page.getByText("E2E-DESKTOP-SERIAL", { exact: true })).toBeVisible();
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Test Donor", { exact: true })).toBeVisible();
+});
+
+test("bulk imports matching devices and lists their generated IDs", async ({ page }) => {
+  const dialog = await openAddAsset(page);
+  await dialog.getByRole("button", { name: /Bulk device import/ }).click();
+  await dialog.getByRole("button", { name: "Continue" }).click();
+
+  const bulkDialog = page.getByRole("dialog", { name: "Bulk Device Import" });
+  await expect(
+    bulkDialog.getByText("All devices must have the same manufacturer and model.")
+  ).toBeVisible();
+  await expect(bulkDialog.getByText("Asset IDs will be generated automatically.")).toBeVisible();
+  await bulkDialog.getByRole("button", { name: "I Understand, Continue" }).click();
+
+  await page.getByTestId("field-number-of-devices").fill("2");
+  await page.getByTestId("field-device-type").selectOption("Desktop");
+  await page.getByTestId("field-manufacturer").selectOption("Framework");
+  await page.getByTestId("field-model").fill("E2E Bulk Desktop");
+  await page.getByTestId("field-chapter").selectOption(TEST_CHAPTER.name);
+  await bulkDialog.getByRole("button", { name: "Add Devices" }).click();
+
+  const result = page.getByRole("dialog", { name: "Print Barcode Label" });
+  await expect(result).toBeVisible();
+  await expect(result.getByText("2 devices added successfully.")).toBeVisible();
+  await expect(result.getByText(/^\d{6}$/)).toHaveCount(2);
+  await expect(result.getByRole("button", { name: "Print 2 Labels" })).toBeVisible();
+});
+
+test("bulk endpoint creates each supported device type with shared details", async ({ page }) => {
+  const token = await authenticate(page);
+  const acquisitionDate = new Date().toISOString().slice(0, 10);
+
+  for (const type of ["Desktop", "Laptop", "Tablet"]) {
+    const response = await page.request.post("/api/devices/bulk", {
+      headers: { Authorization: `Bearer ${token}` },
+      data: {
+        count: 1,
+        type,
+        chapterId: TEST_CHAPTER.id,
+        manufacturer: "Framework",
+        model: `E2E Bulk ${type}`,
+        year: 2024,
+        donorId: 301,
+        acquisitionDate,
+      },
+    });
+    expect(response.status()).toBe(201);
+    const { ids } = (await response.json()) as { ids: number[] };
+    expect(ids).toHaveLength(1);
+
+    const deviceResponse = await page.request.get(`/api/devices/${ids[0]}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(deviceResponse.status()).toBe(200);
+    const device = (await deviceResponse.json()) as {
+      type: string;
+      donorId: number;
+      acquisitionDate: string;
+    };
+    expect(device).toMatchObject({ type, donorId: 301, acquisitionDate });
+  }
 });
 
 test("shows the serial field in the mobile add-device form", async ({ page }) => {

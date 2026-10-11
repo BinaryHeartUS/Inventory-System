@@ -861,6 +861,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/devices/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add multiple matching devices
+         * @description Adds 1 to 100 matching devices in a single transaction
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BulkInsertDevicesRequest"];
+                };
+            };
+            responses: {
+                /** @description Devices added successfully; returns all generated asset ids */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IdsResponse"];
+                    };
+                };
+                /** @description Missing parameters or invalid field values */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Database error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/devices/desktop": {
         parameters: {
             query?: never;
@@ -4135,6 +4192,21 @@ export interface components {
         AddLookupRequest: {
             name?: string;
         };
+        BulkInsertDevicesRequest: {
+            /** Format: int32 */
+            count: number;
+            type?: string;
+            /** Format: int32 */
+            chapterId: number;
+            manufacturer?: string;
+            model?: string;
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            donorId?: number;
+            /** Format: date */
+            acquisitionDate?: string;
+        };
         CreateAccountRequest: {
             name?: string;
             username?: string;
@@ -4555,6 +4627,9 @@ export interface components {
         IdResponse: {
             /** Format: int32 */
             id: number;
+        };
+        IdsResponse: {
+            ids?: number[];
         };
         LoginResponse: {
             token?: string;

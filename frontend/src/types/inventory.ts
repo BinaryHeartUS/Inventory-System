@@ -6,6 +6,7 @@ export type { components };
 export type AddAffiliationRequest = components["schemas"]["AddAffiliationRequest"];
 export type CreateAccountRequest = components["schemas"]["CreateAccountRequest"];
 export type CreateChapterRequest = components["schemas"]["CreateChapterRequest"];
+export type BulkInsertDevicesRequest = components["schemas"]["BulkInsertDevicesRequest"];
 export type InsertDesktopRequest = components["schemas"]["InsertDesktopRequest"];
 export type InsertLaptopRequest = components["schemas"]["InsertLaptopRequest"];
 export type InsertTabletRequest = components["schemas"]["InsertTabletRequest"];
@@ -22,6 +23,7 @@ export type DeviceChangelogResponse = components["schemas"]["DeviceChangelogResp
 export type ChapterInventorySummary = Required<components["schemas"]["ChapterInventorySummary"]>;
 export type PartTypeCountResponse = Required<components["schemas"]["PartTypeCountResponse"]>;
 export type IdResponse = Required<components["schemas"]["IdResponse"]>;
+export type IdsResponse = Required<components["schemas"]["IdsResponse"]>;
 export type Note = Omit<components["schemas"]["NoteResponse"], "text" | "date"> & {
   text: string;
   date: string;
