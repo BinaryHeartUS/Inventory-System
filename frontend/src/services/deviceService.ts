@@ -182,7 +182,7 @@ export async function getDashboardCounts(chapterIds: number[]): Promise<Dashboar
 
 export async function getDeviceCount(
   type: "desktop" | "laptop" | "tablet" | "total",
-  status: "active" | "not-started" | "in-progress" | "ready-to-donate" | "donated",
+  status: "active" | "not-started" | "in-progress" | "ready-to-donate" | "donated" | "sold",
   chapterIds: number[]
 ): Promise<number> {
   return apiGet<number>(

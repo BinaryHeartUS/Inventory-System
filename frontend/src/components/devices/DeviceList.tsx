@@ -41,8 +41,9 @@ const STATUS_ORDER: Record<string, number> = {
   "In Progress": 1,
   "Ready To Donate": 2,
   Donated: 3,
-  Scrapped: 4,
-  Unknown: 5,
+  Sold: 4,
+  Scrapped: 5,
+  Unknown: 6,
 };
 
 function getValue(d: AnyDevice, key: SortKey): string | number | null {

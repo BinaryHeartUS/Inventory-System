@@ -4,6 +4,7 @@ import type { LookupData } from "../../hooks/useLookups";
 import { inputCls, labelCls } from "../../utils/formStyles";
 import { DevicePickerModalContainer } from "../../containers/DevicePickerModalContainer";
 import { PartyPickerModalContainer } from "../../containers/PartyPickerModalContainer";
+import { SoldValueModal } from "../devices/SoldValueModal";
 import { CategoryStep } from "./CategoryStep";
 import { SubtypeStep } from "./SubtypeStep";
 import { FieldsForm } from "./FieldsForm";
@@ -44,6 +45,7 @@ export function AddAssetModal({
   const [selectedParty, setSelectedParty] = useState<PartySummary | null>(null);
   const [recipientPickerOpen, setRecipientPickerOpen] = useState(false);
   const [selectedRecipient, setSelectedRecipient] = useState<PartySummary | null>(null);
+  const [showSoldValueModal, setShowSoldValueModal] = useState(false);
 
   // Pre-select first chapter when lookups load
   useEffect(() => {
@@ -107,6 +109,10 @@ export function AddAssetModal({
   }
 
   function handleDeviceStatusChange(newStatus: DeviceStatus) {
+    if (newStatus === "Sold") {
+      setShowSoldValueModal(true);
+      return;
+    }
     setForm((prev) => ({ ...prev, status: newStatus }));
     if (newStatus === "Donated") {
       setRecipientPickerOpen(true);
@@ -124,6 +130,12 @@ export function AddAssetModal({
     if (!(f.manufacturer?.trim() && f.model.trim() && f.year && f.chapter)) return false;
     // Donated devices require a recipient
     if (f.status === "Donated" && !selectedRecipient) return false;
+    const saleValue = Number(f.value);
+    if (
+      f.status === "Sold" &&
+      (f.value.trim() === "" || !Number.isFinite(saleValue) || saleValue < 0)
+    )
+      return false;
     // Battery cross-validation: actual ≤ design (DB CHECK constraint)
     if (
       subtype === "Laptop" &&
@@ -365,6 +377,18 @@ export function AddAssetModal({
               setRecipientPickerOpen(false);
             }}
             onCancel={() => setRecipientPickerOpen(false)}
+          />
+        )}
+
+        {showSoldValueModal && (
+          <SoldValueModal
+            initialValue={form.value}
+            onConfirm={(value) => {
+              setForm((prev) => ({ ...prev, status: "Sold", value: String(value) }));
+              setSelectedRecipient(null);
+              setShowSoldValueModal(false);
+            }}
+            onCancel={() => setShowSoldValueModal(false)}
           />
         )}
 

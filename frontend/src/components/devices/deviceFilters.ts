@@ -9,5 +9,6 @@ export const STATUS_OPTIONS: Array<DeviceStatus | "All"> = [
   "In Progress",
   "Ready To Donate",
   "Donated",
+  "Sold",
   "Scrapped",
 ];
