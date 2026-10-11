@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router";
 import type { AnyDevice, DeviceStatus, Part, PartySummary } from "../types/inventory";
 import type { DeviceChangelogEntry } from "../types/changelog";
 import { getDevice, updateDevice, getDeviceChangelog } from "../services/deviceService";
@@ -19,6 +20,8 @@ interface DeviceDetailContainerProps {
 
 export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps) {
   const numId = Number(id);
+  const location = useLocation();
+  const deviceListHref = `/devices${location.search}`;
   const { auth } = useAuth();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
@@ -66,7 +69,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   if (loading) return <LoadingSpinner />;
 
   if (!device) {
-    return <NotFound entity="Device" id={id} backTo="/devices" backLabel="Back to Devices" />;
+    return <NotFound entity="Device" id={id} backTo={deviceListHref} backLabel="Back to Devices" />;
   }
 
   function startEdit() {
@@ -167,6 +170,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   return (
     <DeviceDetailView
       device={device}
+      backHref={deviceListHref}
       editing={editing}
       form={form}
       saved={saved}

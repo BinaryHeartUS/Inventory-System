@@ -4,7 +4,7 @@ import type { AnyDevice, DeviceStatus, ChapterInventorySummary } from "../types/
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
-import type { SortKey, SortDir } from "../components/devices/DeviceList";
+import { SORT_KEYS, type SortKey, type SortDir } from "../components/devices/DeviceList";
 import DevicesView from "../components/devices/DevicesView";
 import {
   DEVICE_TYPES,
@@ -20,6 +20,14 @@ function getStatusFilter(value: string | null): DeviceStatus | "All" {
   return STATUS_OPTIONS.includes(value as DeviceStatus | "All")
     ? (value as DeviceStatus | "All")
     : "All";
+}
+
+function getSortKey(value: string | null): SortKey {
+  return SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : "id";
+}
+
+function getSortDir(value: string | null): SortDir {
+  return value === "desc" ? "desc" : "asc";
 }
 
 export default function DevicesContainer() {
@@ -39,9 +47,9 @@ export default function DevicesContainer() {
   const showSold = searchParams.get("includeSold") === "true";
   const showScrapped = searchParams.get("includeScrapped") === "true";
   const showStuck = searchParams.get("stuckOnly") === "true";
+  const sortKey = getSortKey(searchParams.get("sort"));
+  const sortDir = getSortDir(searchParams.get("dir"));
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("id");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [summaryLoaded, setSummaryLoaded] = useState(false);
 
@@ -125,6 +133,7 @@ export default function DevicesContainer() {
     statusFilter,
     chapterFilter,
     showDonated,
+    showSold,
     showScrapped,
     showStuck,
     sortKey,
@@ -176,8 +185,10 @@ export default function DevicesContainer() {
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
-    setSortKey(key);
-    setSortDir(dir);
+    updateFilters({
+      sort: key === "id" ? null : key,
+      dir: dir === "asc" ? null : dir,
+    });
   }
 
   function handleShowStuckChange(value: boolean) {

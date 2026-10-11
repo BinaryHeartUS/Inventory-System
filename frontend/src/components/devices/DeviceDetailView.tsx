@@ -32,6 +32,7 @@ import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
 
 export interface DeviceDetailViewProps {
   device: AnyDevice;
+  backHref: string;
   editing: boolean;
   form: AnyDevice | null;
   saved: boolean;
@@ -77,6 +78,7 @@ export interface DeviceDetailViewProps {
 
 export default function DeviceDetailView({
   device,
+  backHref,
   editing,
   form,
   saved,
@@ -148,7 +150,7 @@ export default function DeviceDetailView({
         {/* Breadcrumb + Add Asset */}
         <div className="flex items-center justify-between">
           <Breadcrumb
-            backHref="/devices"
+            backHref={backHref}
             backLabel="Devices"
             current={`${device.manufacturer} ${device.model}`}
           />

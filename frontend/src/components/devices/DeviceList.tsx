@@ -4,19 +4,21 @@ import { renderDeviceRow, DEVICE_TABLE_HEADERS } from "../../utils/deviceUtils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type SortKey =
-  | "id"
-  | "type"
-  | "manufacturer"
-  | "model"
-  | "year"
-  | "cpu"
-  | "operatingSystem"
-  | "ram"
-  | "storage"
-  | "status"
-  | "chapter"
-  | "acquisitionDate";
+export const SORT_KEYS = [
+  "id",
+  "type",
+  "manufacturer",
+  "model",
+  "year",
+  "cpu",
+  "operatingSystem",
+  "ram",
+  "storage",
+  "status",
+  "chapter",
+  "acquisitionDate",
+] as const;
+type SortKey = (typeof SORT_KEYS)[number];
 type SortDir = "asc" | "desc";
 
 export type { SortKey, SortDir };
