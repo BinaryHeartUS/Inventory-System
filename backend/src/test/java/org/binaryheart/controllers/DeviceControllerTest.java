@@ -97,10 +97,10 @@ class DeviceControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.pathParam("type")).andReturn("DESKTOP");
-		expect(context.queryParam("status")).andReturn("ACTIVE").times(2);
+		expect(context.queryParam("status")).andReturn("SOLD").times(2);
 		expect(context.queryParam("chapters")).andReturn("2, 3");
 		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(1, 2, 3));
-		expect(service.getDeviceCount("desktop", "active", List.of(2, 3), List.of(1, 2, 3))).andReturn(4);
+		expect(service.getDeviceCount("desktop", "sold", List.of(2, 3), List.of(1, 2, 3))).andReturn(4);
 		expectJson(context, 200, 4);
 		replay(service, chapters, authorization, context);
 

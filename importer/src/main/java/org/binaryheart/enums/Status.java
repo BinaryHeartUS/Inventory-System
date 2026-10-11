@@ -2,7 +2,7 @@ package org.binaryheart.enums;
 
 public enum Status {
 	NOT_STARTED("Not Started"), IN_PROGRESS("In Progress"), READY_TO_DONATE("Ready To Donate"), DONATED(
-		"Donated"), SCRAPPED("Scrapped"), UNKNOWN("Unknown");
+		"Donated"), SOLD("Sold"), SCRAPPED("Scrapped"), UNKNOWN("Unknown");
 
 	private final String databaseValue;
 
