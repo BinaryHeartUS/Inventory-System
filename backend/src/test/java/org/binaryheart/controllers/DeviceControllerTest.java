@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 import org.binaryheart.models.ChapterRole;
+import org.binaryheart.requests.BulkInsertDevicesRequest;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
@@ -32,6 +33,7 @@ import org.binaryheart.responses.DashboardCountsResponse;
 import org.binaryheart.responses.DeviceChangelogResponse;
 import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.responses.IdResponse;
+import org.binaryheart.responses.IdsResponse;
 import org.binaryheart.responses.MonthlyCountPoint;
 import org.binaryheart.responses.MonthlyValuePoint;
 import org.binaryheart.services.AuthorizationService;
@@ -547,6 +549,43 @@ class DeviceControllerTest {
 		replay(service, chapters, authorization, context);
 
 		new DeviceController(service, chapters, authorization).insertTablet(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void insertBulkDevicesDefaultsDateAuthorizesAndDelegates() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		BulkInsertDevicesRequest body = new BulkInsertDevicesRequest(3, "Laptop", 2, "Lenovo", "ThinkPad", 2021, 301,
+			null);
+		BulkInsertDevicesRequest expected = new BulkInsertDevicesRequest(3, "Laptop", 2, "Lenovo", "ThinkPad", 2021,
+			301, LocalDate.now());
+		Context context = mutationContext(BulkInsertDevicesRequest.class, body, "user");
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
+		expect(service.insertBulkDevices(expected, "user")).andReturn(List.of(201, 202, 203));
+		expectJson(context, 201, new IdsResponse(List.of(201, 202, 203)));
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).insertBulkDevices(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void insertBulkDevicesRejectsOutOfRangeCount() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		BulkInsertDevicesRequest request = new BulkInsertDevicesRequest(101, "Desktop", 2, "Dell", "OptiPlex", 2020,
+			null, LocalDate.now());
+		Context context = mock(Context.class);
+		expect(context.bodyAsClass(BulkInsertDevicesRequest.class)).andReturn(request);
+		expectResult(context, 400, "Count must be between 1 and 100");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).insertBulkDevices(context);
 
 		verify(service, chapters, authorization, context);
 	}

@@ -7,6 +7,7 @@ import java.util.List;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
+import org.binaryheart.requests.BulkInsertDevicesRequest;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.requests.InsertDesktopRequest;
@@ -152,6 +153,10 @@ public class DeviceService {
 				throw e;
 			}
 		}
+	}
+
+	public List<Integer> insertBulkDevices(BulkInsertDevicesRequest request, String username) throws SQLException {
+		return repository.insertBulkDevices(request, username);
 	}
 
 	public void updateDesktop(InsertDesktopRequest request, String username)

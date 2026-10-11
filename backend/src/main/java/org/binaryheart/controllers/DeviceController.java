@@ -18,6 +18,7 @@ import io.javalin.openapi.OpenApiResponse;
 import io.javalin.openapi.OpenApiSecurity;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
 import org.binaryheart.exceptions.ForbiddenException;
 import org.binaryheart.models.ChapterRole;
+import org.binaryheart.requests.BulkInsertDevicesRequest;
 import org.binaryheart.requests.DeviceListRequest;
 import org.binaryheart.requests.InsertDesktopRequest;
 import org.binaryheart.requests.InsertLaptopRequest;
@@ -39,6 +41,7 @@ import org.binaryheart.responses.DashboardCountsResponse;
 import org.binaryheart.responses.DeviceChangelogResponse;
 import org.binaryheart.responses.GetDeviceResponse;
 import org.binaryheart.responses.IdResponse;
+import org.binaryheart.responses.IdsResponse;
 import org.binaryheart.responses.MonthlyCountPoint;
 import org.binaryheart.responses.MonthlyValuePoint;
 import org.binaryheart.services.AuthorizationService;
@@ -83,9 +86,71 @@ public class DeviceController {
 		post("/desktop", this::insertDesktop, AppRole.AUTHENTICATED);
 		post("/laptop", this::insertLaptop, AppRole.AUTHENTICATED);
 		post("/tablet", this::insertTablet, AppRole.AUTHENTICATED);
+		post("/bulk", this::insertBulkDevices, AppRole.AUTHENTICATED);
 		put("/desktop/{id}", this::updateDesktop, AppRole.AUTHENTICATED);
 		put("/laptop/{id}", this::updateLaptop, AppRole.AUTHENTICATED);
 		put("/tablet/{id}", this::updateTablet, AppRole.AUTHENTICATED);
+	}
+
+	@OpenApi(
+		path = "/api/devices/bulk",
+		methods = {HttpMethod.POST},
+		tags = {"Devices"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Add multiple matching devices",
+		description = "Adds 1 to 100 matching devices in a single transaction",
+		requestBody = @OpenApiRequestBody(
+			required = true,
+			content = {@OpenApiContent(
+				from = BulkInsertDevicesRequest.class)}),
+		responses = {@OpenApiResponse(
+			status = "201",
+			description = "Devices added successfully; returns all generated asset ids",
+			content = {@OpenApiContent(
+				from = IdsResponse.class)}), @OpenApiResponse(
+					status = "400",
+					description = "Missing parameters or invalid field values"),
+				@OpenApiResponse(
+					status = "500",
+					description = "Database error")})
+	public void insertBulkDevices(Context ctx) {
+		BulkInsertDevicesRequest body = ctx.bodyAsClass(BulkInsertDevicesRequest.class);
+		LocalDate acquisitionDate = body.acquisitionDate() == null ? LocalDate.now() : body.acquisitionDate();
+		BulkInsertDevicesRequest request = new BulkInsertDevicesRequest(body.count(), body.type(), body.chapterId(),
+			body.manufacturer(), body.model(), body.year(), body.donorId(), acquisitionDate);
+
+		if (request.count() < 1 || request.count() > 100) {
+			ctx.status(400).result("Count must be between 1 and 100");
+			return;
+		}
+		if (!List.of("Desktop", "Laptop", "Tablet").contains(request.type())) {
+			ctx.status(400).result("Type must be Desktop, Laptop, or Tablet");
+			return;
+		}
+		if (request.chapterId() == 0 || request.manufacturer() == null || request.manufacturer().isBlank()
+			|| request.model() == null || request.model().isBlank() || request.year() < 1980
+			|| request.year() > LocalDate.now().getYear()) {
+			ctx.status(400).result("Missing required parameters or invalid year");
+			return;
+		}
+		if (request.donorId() != null && request.donorId() <= 0) {
+			ctx.status(400).result("Donor ID must be positive or not specified");
+			return;
+		}
+		if (request.acquisitionDate().isAfter(LocalDate.now())) {
+			ctx.status(400).result("Acquisition date cannot be in the future");
+			return;
+		}
+
+		try {
+			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				request.chapterId());
+			List<Integer> ids = service.insertBulkDevices(request, ctx.attribute("username"));
+			ctx.status(201).json(new IdsResponse(ids));
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
 	}
 
 	private static List<Integer> parseChapterIds(Context ctx) throws BadArgumentException {
