@@ -4,10 +4,11 @@ import type { AnyDevice, DeviceStatus, ChapterInventorySummary } from "../types/
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useVisibleChapters } from "../context/ChapterContext";
-import { SORT_KEYS, type SortKey, type SortDir } from "../components/devices/DeviceList";
+import type { SortKey, SortDir } from "../components/devices/DeviceList";
 import DevicesView from "../components/devices/DevicesView";
 import {
   DEVICE_TYPES,
+  DEVICE_SORT_KEYS,
   STATUS_OPTIONS,
   type DeviceTypeFilter,
 } from "../components/devices/deviceFilters";
@@ -23,7 +24,7 @@ function getStatusFilter(value: string | null): DeviceStatus | "All" {
 }
 
 function getSortKey(value: string | null): SortKey {
-  return SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : "id";
+  return DEVICE_SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : "id";
 }
 
 function getSortDir(value: string | null): SortDir {

@@ -1,24 +1,11 @@
 import { useState, useMemo } from "react";
 import type { AnyDevice } from "../../types/inventory";
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from "../../utils/deviceUtils";
+import { DEVICE_SORT_KEYS } from "./deviceFilters";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export const SORT_KEYS = [
-  "id",
-  "type",
-  "manufacturer",
-  "model",
-  "year",
-  "cpu",
-  "operatingSystem",
-  "ram",
-  "storage",
-  "status",
-  "chapter",
-  "acquisitionDate",
-] as const;
-type SortKey = (typeof SORT_KEYS)[number];
+type SortKey = (typeof DEVICE_SORT_KEYS)[number];
 type SortDir = "asc" | "desc";
 
 export type { SortKey, SortDir };
