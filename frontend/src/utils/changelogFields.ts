@@ -5,6 +5,7 @@
 import type {
   ChangelogFieldDef,
   DeviceChangelogEntry,
+  MiscChangelogEntry,
   PartChangelogEntry,
   ToolChangelogEntry,
 } from "../types/changelog";
@@ -154,5 +155,22 @@ export function buildToolFields(entry: ToolChangelogEntry): ChangelogFieldDef[] 
     { label: "Value", old: formatMoney(entry.oldValue), new: formatMoney(entry.newValue) },
     { label: "Chapter ID", old: formatId(entry.oldChapterID), new: formatId(entry.newChapterID) },
     { label: "Donor ID", old: formatId(entry.oldDonorID), new: formatId(entry.newDonorID) },
+  ];
+}
+
+export function buildMiscFields(entry: MiscChangelogEntry): ChangelogFieldDef[] {
+  return [
+    {
+      label: "Description",
+      old: formatText(entry.oldDescription),
+      new: formatText(entry.newDescription),
+    },
+    {
+      label: "Acquisition Date",
+      old: formatDate(entry.oldAcquisitionDate),
+      new: formatDate(entry.newAcquisitionDate),
+    },
+    { label: "Value", old: formatMoney(entry.oldValue), new: formatMoney(entry.newValue) },
+    { label: "Donor ID", old: formatId(entry.oldDonorId), new: formatId(entry.newDonorId) },
   ];
 }

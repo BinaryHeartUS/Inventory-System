@@ -17,6 +17,7 @@ import Chapters from "./pages/Chapters";
 import DeviceDetail from "./pages/DeviceDetail";
 import PartDetail from "./pages/PartDetail";
 import ToolDetail from "./pages/ToolDetail";
+import MiscDetail from "./pages/MiscDetail";
 import Search from "./pages/Search";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -28,9 +29,11 @@ import PartyDetail from "./pages/PartyDetail";
 import Scanner from "./pages/Scanner";
 import { useBarcodeScanner } from "./hooks/useBarcodeScanner";
 import { usePWA } from "./hooks/usePWA";
-import { getDevice, createDevice } from "./services/deviceService";
-import { getPart, createPart } from "./services/partService";
-import { getTool, createTool } from "./services/toolService";
+import { createDevice } from "./services/deviceService";
+import { createPart } from "./services/partService";
+import { createTool } from "./services/toolService";
+import { createMisc } from "./services/miscService";
+import { getAssetPath } from "./services/assetService";
 import { AddAssetModalContainer } from "./containers/AddAssetModalContainer";
 import { PrintLabelModalContainer } from "./containers/PrintLabelModalContainer";
 import { canPrintLabels } from "./utils/canPrintLabels";
@@ -40,7 +43,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ChapterProvider, useIsNationalAdmin } from "./context/ChapterContext";
 import { AddAssetProvider } from "./context/AddAssetContext";
 
-import type { AnyDevice, Part, Tool } from "./types/inventory";
+import type { AnyDevice, Misc, Part, Tool } from "./types/inventory";
 
 const Icons = {
   dashboard: (
@@ -565,6 +568,10 @@ function ToolDetailKeyed() {
   const { id } = useParams<{ id: string }>();
   return <ToolDetail key={id} />;
 }
+function MiscDetailKeyed() {
+  const { id } = useParams<{ id: string }>();
+  return <MiscDetail key={id} />;
+}
 
 const router = createBrowserRouter([
   {
@@ -624,6 +631,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ToolDetailKeyed />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "misc/:id",
+        element: (
+          <ProtectedRoute>
+            <MiscDetailKeyed />
           </ProtectedRoute>
         ),
       },
@@ -744,21 +759,9 @@ function AppShell() {
           return;
         }
 
-        const device = await getDevice(id);
-        if (device) {
-          navigate(`/devices/${id}`);
-          return;
-        }
-
-        const part = await getPart(id);
-        if (part) {
-          navigate(`/parts/${id}`);
-          return;
-        }
-
-        const tool = await getTool(id);
-        if (tool) {
-          navigate(`/tools/${id}`);
+        const path = await getAssetPath(id);
+        if (path) {
+          navigate(path);
           return;
         }
 
@@ -769,7 +772,7 @@ function AppShell() {
     ),
   });
 
-  async function handleAddAsset(asset: AnyDevice | Part | Tool) {
+  async function handleAddAsset(asset: AnyDevice | Part | Tool | Misc) {
     try {
       if ("ram" in asset) {
         const saved = await createDevice(asset as AnyDevice);
@@ -781,11 +784,15 @@ function AppShell() {
         setPendingScanId(null);
         setPendingPrintId(saved.id);
         navigate(`/parts/${saved.id}`);
-      } else {
+      } else if ("chapterId" in asset) {
         const saved = await createTool(asset as Tool);
         setPendingScanId(null);
         setPendingPrintId(saved.id);
         navigate(`/tools/${saved.id}`);
+      } else {
+        const saved = await createMisc(asset as Misc);
+        setPendingScanId(null);
+        navigate(`/misc/${saved.id}`);
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to save asset", false);

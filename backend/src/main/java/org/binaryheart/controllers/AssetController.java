@@ -7,6 +7,7 @@ import io.javalin.http.Context;
 import io.javalin.openapi.*;
 import java.sql.SQLException;
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.responses.AssetTypeResponse;
 import org.binaryheart.services.AssetService;
 
 public class AssetController {
@@ -20,6 +21,40 @@ public class AssetController {
 
 	public void registerRoutes() {
 		get("/{id}/exists", this::assetExists, AppRole.AUTHENTICATED);
+		get("/{id}/type", this::getAssetType, AppRole.AUTHENTICATED);
+	}
+
+	@OpenApi(
+		path = "/api/assets/{id}/type",
+		methods = {HttpMethod.GET},
+		tags = {"Assets"},
+		security = {@OpenApiSecurity(
+			name = "BearerAuth")},
+		summary = "Resolve an asset ID to its asset type",
+		responses = {@OpenApiResponse(
+			status = "200",
+			content = {@OpenApiContent(
+				from = AssetTypeResponse.class)}), @OpenApiResponse(
+					status = "404",
+					description = "Asset not found")})
+	public void getAssetType(Context ctx) {
+		try {
+			int id = Integer.parseInt(ctx.pathParam("id"));
+			if (id <= 0) {
+				ctx.status(400).result("Asset ID must be a positive integer");
+				return;
+			}
+			String type = service.getAssetType(id);
+			if (type == null) {
+				ctx.status(404).result("Asset not found");
+			} else {
+				ctx.status(200).json(new AssetTypeResponse(type));
+			}
+		} catch (NumberFormatException e) {
+			ctx.status(400).result("Asset ID must be a positive integer");
+		} catch (SQLException e) {
+			ctx.status(500).result("Database error: " + e.getMessage());
+		}
 	}
 
 	@OpenApi(

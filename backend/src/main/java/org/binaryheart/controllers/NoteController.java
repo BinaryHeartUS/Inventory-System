@@ -70,8 +70,7 @@ public class NoteController {
 		}
 		try {
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
-			int chapterId = service.getAssetChapterId(assetId);
-			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"), chapterId);
+			requireEditAccess(ctx, assetId);
 			NoteResponse res = service.addNote(assetId, body.text());
 			ctx.status(200).json(res);
 		} catch (SQLException e) {
@@ -99,8 +98,7 @@ public class NoteController {
 	public void getNotes(Context ctx) {
 		try {
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
-			int chapterId = service.getAssetChapterId(assetId);
-			authorizationService.requireChapterReadAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"), chapterId);
+			requireReadAccess(ctx, assetId);
 			NoteResponse[] res = service.getNotes(assetId);
 			ctx.status(200).json(res);
 		} catch (SQLException e) {
@@ -150,12 +148,27 @@ public class NoteController {
 		try {
 			int assetId = Integer.parseInt(ctx.pathParam("id"));
 			int noteId = Integer.parseInt(ctx.pathParam("noteId"));
-			int chapterId = service.getAssetChapterId(assetId);
-			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"), chapterId);
+			requireEditAccess(ctx, assetId);
 			service.updateNote(assetId, noteId, body.text());
 			ctx.status(201).result("Note updated successfully");
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: ".concat(e.getMessage()));
+		}
+	}
+
+	private void requireEditAccess(Context ctx, int assetId) throws SQLException {
+		List<ChapterRole> chapterRoles = ctx.attribute("chapterRoles");
+		if ("Misc".equals(service.getAssetType(assetId))) {
+			authorizationService.requireInventoryEditAccess(chapterRoles);
+		} else {
+			authorizationService.requireChapterEditAccess(chapterRoles, service.getAssetChapterId(assetId));
+		}
+	}
+
+	private void requireReadAccess(Context ctx, int assetId) throws SQLException {
+		if (!"Misc".equals(service.getAssetType(assetId))) {
+			authorizationService.requireChapterReadAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
+				service.getAssetChapterId(assetId));
 		}
 	}
 }

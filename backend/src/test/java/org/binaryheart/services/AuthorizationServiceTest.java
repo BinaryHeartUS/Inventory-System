@@ -14,6 +14,29 @@ import org.junit.jupiter.api.Test;
 class AuthorizationServiceTest {
 
 	@Test
+	void inventoryEditAccessAllowsWriterFromAnyChapter() {
+		ChapterService chapters = mock(ChapterService.class);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
+		service.requireInventoryEditAccess(List.of(new ChapterRole(7, "Editor")));
+
+		verify(chapters);
+	}
+
+	@Test
+	void inventoryEditAccessRejectsViewer() {
+		ChapterService chapters = mock(ChapterService.class);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
+		assertThrows(ForbiddenResponse.class,
+			() -> service.requireInventoryEditAccess(List.of(new ChapterRole(7, "Viewer"))));
+
+		verify(chapters);
+	}
+
+	@Test
 	void editAccessAllowsLocalWriter() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
 		expect(chapters.getNationalChapterId()).andReturn(1);

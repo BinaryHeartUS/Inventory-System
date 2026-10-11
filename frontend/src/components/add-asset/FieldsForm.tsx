@@ -43,6 +43,45 @@ export function FieldsForm({
     return (value: FormState[K]) => setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  if (category === "Misc") {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <FText
+          label="Description"
+          value={form.description}
+          onChange={set("description")}
+          req
+          colSpan
+          placeholder="e.g. Assorted network cables and switches"
+          maxLength={500}
+        />
+        <FText
+          label="Value ($)"
+          value={form.value}
+          onChange={set("value")}
+          req
+          type="number"
+          placeholder="e.g. 125.00"
+        />
+        <div>
+          <label className={labelCls}>Acquisition Date</label>
+          <input
+            type="date"
+            value={form.acquisitionDate}
+            onChange={(e) => set("acquisitionDate")(e.target.value)}
+            className={inputCls}
+          />
+        </div>
+        <DonorField
+          selectedParty={selectedParty}
+          onOpen={onOpenPartyPicker}
+          onClear={onClearParty}
+          required
+        />
+      </div>
+    );
+  }
+
   if (category === "Tool") {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -439,19 +478,19 @@ export function FieldsForm({
               req
             />
             <FText
-              label="Design Capacity (mWh)"
+              label="Design Capacity (Wh)"
               value={form.designBatteryCapacity}
               onChange={set("designBatteryCapacity")}
               type="number"
-              placeholder="e.g. 56000"
+              placeholder="e.g. 56"
               min={1}
             />
             <FText
-              label="Actual Capacity (mWh)"
+              label="Actual Capacity (Wh)"
               value={form.actualBatteryCapacity}
               onChange={set("actualBatteryCapacity")}
               type="number"
-              placeholder="e.g. 48000"
+              placeholder="e.g. 48"
               min={1}
             />
             {form.actualBatteryCapacity &&

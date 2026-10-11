@@ -1,7 +1,7 @@
 /**
  * Note service — create, read, and update asset notes.
  *
- * Notes are attached to any asset (device, part, or tool) via Asset_ID.
+ * Notes are attached to any asset via Asset_ID.
  * The max text length is 500 characters (Note table constraint).
  *
  * Endpoints (Javalin backend):

@@ -17,6 +17,12 @@ public class AuthorizationService {
 		this.chapterService = chapterService;
 	}
 
+	public void requireInventoryEditAccess(List<ChapterRole> chapterRoles) {
+		if (chapterRoles == null || chapterRoles.stream().noneMatch(role -> WRITE_ROLES.contains(role.role()))) {
+			throw new ForbiddenResponse("Inventory edit access required");
+		}
+	}
+
 	public void requireChapterEditAccess(List<ChapterRole> chapterRoles, int chapterId) throws SQLException {
 		if (chapterRoles == null || chapterRoles.isEmpty())
 			throw new ForbiddenResponse("Access denied");

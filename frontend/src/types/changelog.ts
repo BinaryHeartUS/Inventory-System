@@ -2,6 +2,7 @@ import type {
   PartChangelogResponse,
   ToolChangelogResponse,
   DeviceChangelogResponse,
+  MiscChangelogResponse,
 } from "./inventory";
 
 /** Fields shared by every changelog entry type — used by the generic ModificationLog component. */
@@ -28,6 +29,9 @@ export type PartChangelogEntry = PartChangelogResponse & { assetId: number };
 
 /** ToolChangelogResponse from the API with `toolID` remapped to `assetId`. */
 export type ToolChangelogEntry = ToolChangelogResponse & { assetId: number };
+
+/** MiscChangelogResponse with `miscId` remapped to `assetId`. */
+export type MiscChangelogEntry = MiscChangelogResponse & { assetId: number };
 
 /** DeviceChangelogResponse with `deviceID` remapped to `assetId`. */
 export type DeviceChangelogEntry = DeviceChangelogResponse & { assetId: number };

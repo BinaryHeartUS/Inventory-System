@@ -21,7 +21,7 @@ vi.mock("./api", () => ({
   },
 }));
 
-import { checkAssetIdExists } from "./assetService";
+import { checkAssetIdExists, getAssetPath } from "./assetService";
 import { createChapter, deleteChapter } from "./chapterService";
 import { addManufacturer, deleteManufacturer } from "./lookupService";
 import { createNote, updateNote } from "./noteService";
@@ -38,6 +38,13 @@ describe("service endpoint delegation", () => {
 
     await expect(checkAssetIdExists(42)).resolves.toBe(true);
     expect(api.apiGet).toHaveBeenCalledWith("/assets/42/exists");
+  });
+
+  it("resolves asset types to detail routes", async () => {
+    api.apiGetOrNull.mockResolvedValue({ type: "Misc" });
+
+    await expect(getAssetPath(401)).resolves.toBe("/misc/401");
+    expect(api.apiGetOrNull).toHaveBeenCalledWith("/assets/401/type");
   });
 
   it("creates and deletes chapters with their expected payloads", async () => {

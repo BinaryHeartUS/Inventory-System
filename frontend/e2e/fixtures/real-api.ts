@@ -19,7 +19,7 @@ interface LoginResponse {
   role: string;
 }
 
-export async function authenticate(page: Page, role: TestRole = "Admin"): Promise<void> {
+export async function authenticate(page: Page, role: TestRole = "Admin"): Promise<string> {
   const response = await page.request.post("/api/auth/login", {
     data: { username: USERNAMES[role], password: E2E_PASSWORD },
   });
@@ -38,4 +38,5 @@ export async function authenticate(page: Page, role: TestRole = "Admin"): Promis
     (auth) => sessionStorage.setItem("bh_auth", JSON.stringify(auth)),
     storedAuth
   );
+  return login.token;
 }

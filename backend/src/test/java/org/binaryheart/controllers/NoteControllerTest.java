@@ -71,8 +71,9 @@ class NoteControllerTest {
 		NoteResponse note = new NoteResponse(3, "text", "today", 42);
 		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("text"));
 		expect(context.pathParam("id")).andReturn("42");
-		expect(service.getAssetChapterId(42)).andReturn(2);
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		expect(service.getAssetType(42)).andReturn("Tool");
+		expect(service.getAssetChapterId(42)).andReturn(2);
 		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(service.addNote(42, "text")).andReturn(note);
 		expectJson(context, 200, note);
@@ -90,8 +91,9 @@ class NoteControllerTest {
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("text"));
 		expect(context.pathParam("id")).andReturn("42");
-		expect(service.getAssetChapterId(42)).andReturn(2);
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(null);
+		expect(service.getAssetType(42)).andReturn("Tool");
+		expect(service.getAssetChapterId(42)).andReturn(2);
 		authorization.requireChapterEditAccess(null, 2);
 		expectLastCall().andThrow(new ForbiddenResponse("Access denied"));
 		replay(service, authorization, context);
@@ -108,6 +110,7 @@ class NoteControllerTest {
 		Context context = mock(Context.class);
 		NoteResponse[] notes = {new NoteResponse(3, "text", "today", 42)};
 		expect(context.pathParam("id")).andReturn("42");
+		expect(service.getAssetType(42)).andReturn("Tool");
 		expect(service.getAssetChapterId(42)).andReturn(2);
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
 		authorization.requireChapterReadAccess(CHAPTER_ROLES, 2);
@@ -126,6 +129,7 @@ class NoteControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.pathParam("id")).andReturn("42");
+		expect(service.getAssetType(42)).andReturn("Tool");
 		expect(service.getAssetChapterId(42)).andReturn(2);
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(null);
 		authorization.requireChapterReadAccess(null, 2);
@@ -145,15 +149,35 @@ class NoteControllerTest {
 		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("updated"));
 		expect(context.pathParam("id")).andReturn("42");
 		expect(context.pathParam("noteId")).andReturn("3");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		expect(service.getAssetType(42)).andReturn("Tool");
 		expect(service.getAssetChapterId(42)).andReturn(2);
-		List<ChapterRole> chapterRoles = List.of(new ChapterRole(2, "Editor"));
-		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(chapterRoles);
-		authorization.requireChapterEditAccess(chapterRoles, 2);
+		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		service.updateNote(42, 3, "updated");
 		expectResult(context, 201, "Note updated successfully");
 		replay(service, authorization, context);
 
 		new NoteController(service, authorization).updateNote(context);
+
+		verify(service, authorization, context);
+	}
+
+	@Test
+	void miscNotesUseInventoryWideAccess() throws Exception {
+		NoteService service = mock(NoteService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		NoteResponse note = new NoteResponse(3, "text", "today", 42);
+		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("text"));
+		expect(context.pathParam("id")).andReturn("42");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		expect(service.getAssetType(42)).andReturn("Misc");
+		authorization.requireInventoryEditAccess(CHAPTER_ROLES);
+		expect(service.addNote(42, "text")).andReturn(note);
+		expectJson(context, 200, note);
+		replay(service, authorization, context);
+
+		new NoteController(service, authorization).postNote(context);
 
 		verify(service, authorization, context);
 	}
