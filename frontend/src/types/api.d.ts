@@ -802,6 +802,8 @@ export interface paths {
                     chapter?: number;
                     /** @description Whether to include Donated devices. Defaults to true. */
                     includeDonated?: boolean;
+                    /** @description Whether to include Sold devices. Defaults to true. */
+                    includeSold?: boolean;
                     /** @description Whether to include Scrapped devices. Defaults to true. */
                     includeScrapped?: boolean;
                     /** @description Return only stuck devices. Other supplied filters still apply. */

@@ -38,6 +38,7 @@ export interface DeviceListParams {
   /** Chapter id to restrict to (within the user's access). */
   chapter?: number;
   includeDonated?: boolean;
+  includeSold?: boolean;
   includeScrapped?: boolean;
   stuckOnly?: boolean;
   donorId?: number;

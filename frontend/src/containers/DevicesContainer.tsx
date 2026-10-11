@@ -36,6 +36,7 @@ export default function DevicesContainer() {
       : (chapters.find((chapter) => chapter.name === chapterParam)?.id ?? "All")
     : "All";
   const showDonated = searchParams.get("includeDonated") === "true";
+  const showSold = searchParams.get("includeSold") === "true";
   const showScrapped = searchParams.get("includeScrapped") === "true";
   const showStuck = searchParams.get("stuckOnly") === "true";
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -92,8 +93,9 @@ export default function DevicesContainer() {
         type: typeFilter === "All" ? undefined : typeFilter,
         status: statusFilter === "All" ? undefined : statusFilter,
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
-        includeDonated: showDonated,
-        includeScrapped: showScrapped,
+        includeDonated: showDonated || statusFilter === "Donated",
+        includeSold: showSold || statusFilter === "Sold",
+        includeScrapped: showScrapped || statusFilter === "Scrapped",
         stuckOnly: showStuck,
         sort: sortKey,
         dir: sortDir,
@@ -104,6 +106,7 @@ export default function DevicesContainer() {
       statusFilter,
       chapterFilter,
       showDonated,
+      showSold,
       showScrapped,
       showStuck,
       sortKey,
@@ -134,12 +137,20 @@ export default function DevicesContainer() {
     statusFilter !== "All" ||
     chapterFilter !== "All" ||
     showDonated ||
+    showSold ||
     showScrapped ||
     showStuck;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
-    if (showStuck || debouncedSearch || typeFilter !== "All" || statusFilter !== "All") return null;
+    if (
+      showStuck ||
+      showSold ||
+      debouncedSearch ||
+      typeFilter !== "All" ||
+      statusFilter !== "All"
+    )
+      return null;
     const rows =
       chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
     let total = rows.reduce((sum, r) => sum + r.notStarted + r.inProgress + r.readyToDonate, 0);
@@ -154,6 +165,7 @@ export default function DevicesContainer() {
     statusFilter,
     chapterFilter,
     showDonated,
+    showSold,
     showScrapped,
     showStuck,
   ]);
@@ -179,6 +191,7 @@ export default function DevicesContainer() {
       stuckOnly: value,
       status: value ? null : statusFilter,
       includeDonated: value ? null : showDonated,
+      includeSold: value ? null : showSold,
       includeScrapped: value ? null : showScrapped,
     });
   }
@@ -195,6 +208,8 @@ export default function DevicesContainer() {
       onChapterFilterChange={(value) => updateFilters({ chapter: value })}
       showDonated={showDonated}
       onShowDonatedChange={(value) => updateFilters({ includeDonated: value })}
+      showSold={showSold}
+      onShowSoldChange={(value) => updateFilters({ includeSold: value })}
       showScrapped={showScrapped}
       onShowScrappedChange={(value) => updateFilters({ includeScrapped: value })}
       showStuck={showStuck}

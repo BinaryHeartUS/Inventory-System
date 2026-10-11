@@ -605,6 +605,11 @@ public class DeviceController {
 					type = Boolean.class,
 					description = "Whether to include Donated devices. Defaults to true."),
 				@OpenApiParam(
+					name = "includeSold",
+					required = false,
+					type = Boolean.class,
+					description = "Whether to include Sold devices. Defaults to true."),
+				@OpenApiParam(
 					name = "includeScrapped",
 					required = false,
 					type = Boolean.class,
@@ -655,6 +660,7 @@ public class DeviceController {
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
 				QueryParamUtil.stringParam(ctx, "type"), QueryParamUtil.stringParam(ctx, "status"),
 				QueryParamUtil.boolParam(ctx, "includeDonated", true),
+				QueryParamUtil.boolParam(ctx, "includeSold", true),
 				QueryParamUtil.boolParam(ctx, "includeScrapped", true),
 				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
 				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),

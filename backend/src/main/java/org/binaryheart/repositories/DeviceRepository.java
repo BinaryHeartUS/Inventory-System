@@ -206,20 +206,21 @@ public class DeviceRepository {
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
-				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status), ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
 			setStringOrNull(stmt, 3, q.type());
 			setStringOrNull(stmt, 4, q.status());
 			stmt.setBoolean(5, q.includeDonated());
-			stmt.setBoolean(6, q.includeScrapped());
-			stmt.setBoolean(7, q.stuckOnly());
-			setIntegerOrNull(stmt, 8, q.donorId());
-			setIntegerOrNull(stmt, 9, q.recipientId());
-			stmt.setString(10, q.sort() == null ? "id" : q.sort());
-			stmt.setString(11, q.dir() == null ? "asc" : q.dir());
-			setIntegerOrNull(stmt, 12, q.limit());
-			stmt.setInt(13, q.offset() == null ? 0 : q.offset());
+			stmt.setBoolean(6, q.includeSold());
+			stmt.setBoolean(7, q.includeScrapped());
+			stmt.setBoolean(8, q.stuckOnly());
+			setIntegerOrNull(stmt, 9, q.donorId());
+			setIntegerOrNull(stmt, 10, q.recipientId());
+			stmt.setString(11, q.sort() == null ? "id" : q.sort());
+			stmt.setString(12, q.dir() == null ? "asc" : q.dir());
+			setIntegerOrNull(stmt, 13, q.limit());
+			stmt.setInt(14, q.offset() == null ? 0 : q.offset());
 			ResultSet rs = stmt.executeQuery();
 			List<GetDeviceResponse> devices = new ArrayList<>();
 			while (rs.next()) {

@@ -8,6 +8,7 @@ import FilterSelect from "../FilterSelect";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
 import { DEVICE_TYPES, STATUS_OPTIONS, type DeviceTypeFilter } from "./deviceFilters";
 import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
+import { ArchivedDevicesMenu } from "./ArchivedDevicesMenu";
 
 export interface DevicesViewProps {
   search: string;
@@ -20,6 +21,8 @@ export interface DevicesViewProps {
   onChapterFilterChange: (value: number | "All") => void;
   showDonated: boolean;
   onShowDonatedChange: (value: boolean) => void;
+  showSold: boolean;
+  onShowSoldChange: (value: boolean) => void;
   showScrapped: boolean;
   onShowScrappedChange: (value: boolean) => void;
   showStuck: boolean;
@@ -46,6 +49,8 @@ export default function DevicesView({
   onChapterFilterChange,
   showDonated,
   onShowDonatedChange,
+  showSold,
+  onShowSoldChange,
   showScrapped,
   onShowScrappedChange,
   showStuck,
@@ -113,81 +118,15 @@ export default function DevicesView({
             ))}
           </FilterSelect>
 
-          <label
-            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border select-none transition-all ${
-              showStuck
-                ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-                : "cursor-pointer"
-            } ${
-              showDonated
-                ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
-                : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={showDonated}
-              disabled={showStuck}
-              onChange={(e) => onShowDonatedChange(e.target.checked)}
-              className="sr-only"
-            />
-            <span
-              className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
-                showDonated ? "bg-heart-blue border-heart-blue" : "border-slate-300"
-              }`}
-            >
-              {showDonated && (
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M1.5 5l2.5 2.5 4.5-4.5"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </span>
-            Include Donated
-          </label>
-
-          <label
-            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border select-none transition-all ${
-              showStuck
-                ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-                : "cursor-pointer"
-            } ${
-              showScrapped
-                ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
-                : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={showScrapped}
-              disabled={showStuck}
-              onChange={(e) => onShowScrappedChange(e.target.checked)}
-              className="sr-only"
-            />
-            <span
-              className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
-                showScrapped ? "bg-heart-blue border-heart-blue" : "border-slate-300"
-              }`}
-            >
-              {showScrapped && (
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M1.5 5l2.5 2.5 4.5-4.5"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </span>
-            Include Scrapped
-          </label>
+          <ArchivedDevicesMenu
+            includeDonated={showDonated}
+            onIncludeDonatedChange={onShowDonatedChange}
+            includeSold={showSold}
+            onIncludeSoldChange={onShowSoldChange}
+            includeScrapped={showScrapped}
+            onIncludeScrappedChange={onShowScrappedChange}
+            disabled={showStuck}
+          />
 
           <label
             className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
