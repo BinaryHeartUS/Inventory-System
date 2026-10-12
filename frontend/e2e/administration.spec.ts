@@ -33,6 +33,42 @@ test("creates a volunteer account with chapter access", async ({ page }) => {
   await expect(page.getByText("e2e-new-volunteer", { exact: true })).toBeVisible();
 });
 
+test("chapter admins can create and demote another chapter admin", async ({ page }) => {
+  await authenticate(page, "Chapter Admin");
+  await page.goto("/admin/accounts");
+  await page.getByRole("button", { name: "New Account" }).click();
+  await page.getByTestId("account-full-name").fill("E2E Peer Chapter Admin");
+  await page.getByTestId("account-username").fill("e2e-peer-chapter-admin");
+  await page.getByTestId("account-password").fill("temporary-password");
+  await page.getByTestId("account-chapter-0").selectOption(String(TEST_CHAPTER.id));
+  await page.getByTestId("account-role-0").selectOption("Chapter Admin");
+  await page.getByRole("button", { name: "Create Account" }).click();
+
+  await expect(page.getByTestId("account-full-name")).toBeHidden();
+  await page.getByRole("button", { name: /E2E Test Chapter.*account/i }).click();
+  const accountRow = page.getByRole("row").filter({ hasText: "e2e-peer-chapter-admin" }).first();
+  await expect(accountRow).toBeVisible();
+  await accountRow.click();
+
+  const roleSelect = page.locator('tr.rc-raw td[data-label="Role"] select');
+  await expect(roleSelect).toHaveValue("Chapter Admin");
+  await roleSelect.selectOption("Editor");
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("E2E Peer Chapter Admin", { exact: true })).toBeVisible();
+  await accountRow.click();
+  const demotedRoleSelect = page.locator('tr.rc-raw td[data-label="Role"] select');
+  await expect(demotedRoleSelect).toHaveValue("Editor");
+  await demotedRoleSelect.selectOption("Chapter Admin");
+  await page.getByRole("button", { name: "Save" }).click();
+  await accountRow.click();
+  const promotedRoleSelect = page.locator('tr.rc-raw td[data-label="Role"] select');
+  await expect(promotedRoleSelect).toHaveValue("Chapter Admin");
+  await promotedRoleSelect.selectOption("Editor");
+  await page.getByRole("button", { name: "Save" }).click();
+  await accountRow.click();
+  await expect(page.locator('tr.rc-raw td[data-label="Role"] select')).toHaveValue("Editor");
+});
+
 test("creates an individual party", async ({ page }) => {
   await page.goto("/admin/parties");
   await expect(page.getByRole("heading", { name: "Manage Parties" })).toBeVisible();

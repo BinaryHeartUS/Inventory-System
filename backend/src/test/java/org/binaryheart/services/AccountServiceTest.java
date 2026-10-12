@@ -62,17 +62,20 @@ class AccountServiceTest {
 	}
 
 	@Test
-	void createAccountRejectsChapterAdminRoleCreatedByChapterAdmin() throws Exception {
+	void createAccountAllowsChapterAdminRoleWithinChapterAdminScope() throws Exception {
 		AccountRepository repository = mock(AccountRepository.class);
 		AuthRepository authRepository = mock(AuthRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
 		PasswordService passwords = mock(PasswordService.class);
+		expect(passwords.hash("password")).andReturn(new PasswordHash("hash", "salt"));
+		expect(repository.createVolunteer("Name", "user", "hash", "salt", 2, "Chapter Admin")).andReturn(7);
 		replay(repository, authRepository, chapters, passwords);
 		AccountService service = new AccountService(repository, authRepository, chapters, passwords);
 
-		assertThrows(IllegalArgumentException.class,
-			() -> service.createAccount(new CreateAccountRequest("Name", "user", "password", 2, "Chapter Admin"),
-				"Chapter Admin", List.of(new ChapterRole(2, "Chapter Admin"))));
+		AccountSummary created = service.createAccount(new CreateAccountRequest("Name", "user", "password", 2, "Chapter Admin"),
+			"Chapter Admin", List.of(new ChapterRole(2, "Chapter Admin")));
+
+		assertEquals(List.of(new ChapterRole(2, "Chapter Admin")), created.chapterRoles());
 
 		verify(repository, authRepository, chapters, passwords);
 	}
@@ -129,18 +132,19 @@ class AccountServiceTest {
 	}
 
 	@Test
-	void getAccountsFiltersElevatedAccountsForChapterAdmin() throws Exception {
+	void getAccountsIncludesChapterAdminsButExcludesGlobalAdminsForChapterAdmin() throws Exception {
 		AccountRepository repository = mock(AccountRepository.class);
 		AuthRepository authRepository = mock(AuthRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
 		PasswordService passwords = mock(PasswordService.class);
 		AccountSummary editor = account(2, "Editor");
+		AccountSummary chapterAdmin = account(4, "Chapter Admin");
 		AccountSummary admin = account(3, "Admin");
-		expect(repository.getVolunteersForChapters(List.of(2))).andReturn(List.of(editor, admin));
+		expect(repository.getVolunteersForChapters(List.of(2))).andReturn(List.of(editor, chapterAdmin, admin));
 		replay(repository, authRepository, chapters, passwords);
 		AccountService service = new AccountService(repository, authRepository, chapters, passwords);
 
-		assertEquals(List.of(editor), service.getAccounts("Chapter Admin", List.of(2)));
+		assertEquals(List.of(editor, chapterAdmin), service.getAccounts("Chapter Admin", List.of(2)));
 
 		verify(repository, authRepository, chapters, passwords);
 	}
@@ -234,12 +238,13 @@ class AccountServiceTest {
 		AuthRepository authRepository = mock(AuthRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
 		PasswordService passwords = mock(PasswordService.class);
-		repository.updateAffiliation(8, 2, "Editor");
+		repository.updateAffiliation(8, 2, "Chapter Admin");
 		replay(repository, authRepository, chapters, passwords);
 		AccountService service = new AccountService(repository, authRepository, chapters, passwords);
 		List<ChapterRole> adminRoles = List.of(new ChapterRole(2, "Chapter Admin"));
 
-		service.updateAffiliation(8, 2, new UpdateAffiliationRequest("Editor"), 7, "Chapter Admin", adminRoles);
+		service.updateAffiliation(8, 2, new UpdateAffiliationRequest("Chapter Admin"), 7, "Chapter Admin",
+			adminRoles);
 
 		verify(repository, authRepository, chapters, passwords);
 	}

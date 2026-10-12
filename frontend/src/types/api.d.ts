@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * List accounts
-         * @description Admins see all accounts. Chapter Admins see only accounts in their chapters.
+         * @description Admins see all accounts. Chapter Admins see accounts in their chapters, excluding global Admin accounts.
          */
         get: {
             parameters: {
@@ -45,7 +45,7 @@ export interface paths {
         put?: never;
         /**
          * Create a new account
-         * @description Admins can create Chapter Admin / Editor / Viewer accounts for any chapter. Chapter Admins can create Editor / Viewer accounts for their own chapters.
+         * @description Admins can create Chapter Admin / Editor / Viewer accounts for any chapter. Chapter Admins can create Chapter Admin / Editor / Viewer accounts for their own chapters.
          */
         post: {
             parameters: {
