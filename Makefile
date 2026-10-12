@@ -4,7 +4,7 @@
 
 .PHONY: help format format-check format-java format-web format-check-java format-check-web \
 	build build-java build-web build-importer lint lint-web audit-web test test-java test-e2e \
-	test-web test-e2e-headed ci generate-types check-types
+	test-web test-storybook test-e2e-headed storybook build-storybook ci generate-types check-types
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -59,6 +59,15 @@ test-java: ## Run backend unit tests
 test-web: ## Run frontend unit tests
 	cd frontend && npm test
 
+test-storybook: ## Run Storybook component tests in headless Chromium
+	cd frontend && npm run test:storybook
+
+storybook: ## Start the Storybook development server
+	cd frontend && npm run storybook
+
+build-storybook: ## Build the static Storybook site
+	cd frontend && npm run build-storybook
+
 test: test-java test-web test-e2e ## Run backend, frontend unit, and browser tests
 
 test-e2e: ## Run Playwright against a disposable full application stack
@@ -67,4 +76,4 @@ test-e2e: ## Run Playwright against a disposable full application stack
 test-e2e-headed: ## Run Playwright with a visible browser against the disposable stack
 	cd frontend && npm run test:e2e -- --headed --project=firefox
 
-ci: format-check-java format-check-web lint-web test-java test-web build-java build-web audit-web check-types test-e2e ## Run every GitHub CI gate locally
+ci: format-check-java format-check-web lint-web test-java test-web test-storybook build-java build-web build-storybook audit-web check-types test-e2e ## Run every GitHub CI gate locally
