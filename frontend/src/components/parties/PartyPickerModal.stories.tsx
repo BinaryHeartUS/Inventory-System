@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn, userEvent } from "storybook/test";
 import { organization, person } from "../../stories/fixtures";
 import { PartyPickerModal, PartyTypeBadge } from "./PartyPickerModal";
+import { changeFormControls } from "../../stories/interactions";
 
 const meta = {
   component: PartyPickerModal,
@@ -15,6 +16,19 @@ const meta = {
 } satisfies Meta<typeof PartyPickerModal>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+export const CreateWithAddress: Story = {
+  play: async ({ canvas, canvasElement, args }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "New Individual" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Add address (optional)" }));
+    await changeFormControls(canvasElement.querySelectorAll<HTMLElement>(".relative.bg-white")[1]);
+    await userEvent.click(canvas.getByRole("button", { name: "Create" }));
+    await expect(args.onCreate).toHaveBeenCalledWith("Person", {
+      name: "A",
+      email: "A",
+      location: "(A,A,A,,A)",
+    });
+  },
+};
 export const Select: Story = {
   play: async ({ canvas, args }) => {
     await userEvent.click(canvas.getByText(person.name));

@@ -50,6 +50,17 @@ const meta = {
 } satisfies Meta<typeof AdminAccountsView>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+export const AffiliationRows: Story = {
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "New Account" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Add role" }));
+    await expect(canvas.getByTestId("account-chapter-1")).toBeVisible();
+    await userEvent.selectOptions(canvas.getByTestId("account-chapter-0"), "0");
+    await userEvent.selectOptions(canvas.getByTestId("account-role-0"), "Admin");
+    await userEvent.click(canvas.getAllByRole("button", { name: "" })[0]);
+    await expect(canvas.queryByTestId("account-chapter-1")).not.toBeInTheDocument();
+  },
+};
 const createAccount: NonNullable<Story["play"]> = async ({ canvas, args }) => {
   await userEvent.click(canvas.getByRole("button", { name: "New Account" }));
   await userEvent.type(canvas.getByTestId("account-full-name"), "Alex");

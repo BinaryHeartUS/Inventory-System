@@ -55,6 +55,14 @@ const meta = {
 } satisfies Meta<typeof PartDetailView>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+export const History: Story = {
+  args: { changelog: [{ assetId: 43, changeType: "Insert", newType: "RAM" }] },
+  play: async ({ canvas }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "View more" }));
+    await expect(canvas.getByRole("heading", { name: "Change Details" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Close" }));
+  },
+};
 export const Details: Story = {
   play: async ({ canvas, args }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Edit" }));
