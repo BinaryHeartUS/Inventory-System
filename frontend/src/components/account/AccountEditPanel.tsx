@@ -51,7 +51,15 @@ export function AccountEditPanel({
   const addChapterOptions =
     addRole === "Admin"
       ? assignableChapters.filter((c) => c.id === nationalChapterId)
-      : assignableChapters.filter((c) => c.id !== nationalChapterId);
+      : assignableChapters;
+  const addRoleOptions = addChapter
+    ? rolesFor(Number(addChapter))
+    : assignableRoles.filter((role) => role !== "Admin");
+  const hasAvailableAddChapters = assignableChapters.some(
+    (chapter) =>
+      !account.chapterRoles.some((cr) => cr.chapterId === chapter.id) &&
+      rolesFor(chapter.id).length > 0
+  );
 
   // Delete account
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -144,6 +152,9 @@ export function AccountEditPanel({
           <tbody>
             {account.chapterRoles.map((cr) => {
               const isSelf = account.id === currentUserId;
+              const canManageChapter = assignableChapters.some(
+                (chapter) => chapter.id === cr.chapterId
+              );
               const isDirty = roleValues[cr.chapterId] !== cr.role;
               return (
                 <tr key={cr.chapterId} className="border-b border-slate-50 last:border-0">
@@ -151,7 +162,7 @@ export function AccountEditPanel({
                     {chapterName(cr.chapterId)}
                   </td>
                   <td className="px-4 py-2.5" data-label="Role">
-                    {isAdminAccount ? (
+                    {isAdminAccount || (!canManageChapter && !isSelf) ? (
                       <RoleBadge role={cr.role} />
                     ) : (
                       <div className="flex items-center gap-2">
@@ -161,7 +172,7 @@ export function AccountEditPanel({
                             !isSelf &&
                             setRoleValues((prev) => ({ ...prev, [cr.chapterId]: e.target.value }))
                           }
-                          disabled={isSelf}
+                          disabled={isSelf || !canManageChapter}
                           className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {rolesFor(cr.chapterId).map((r) => (
@@ -170,7 +181,7 @@ export function AccountEditPanel({
                             </option>
                           ))}
                         </select>
-                        {isDirty && !isSelf && (
+                        {isDirty && !isSelf && canManageChapter && (
                           <button
                             onClick={() => handleSaveRole(cr.chapterId)}
                             disabled={savingChapter === cr.chapterId}
@@ -186,7 +197,7 @@ export function AccountEditPanel({
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-right" data-label="">
-                    {!isSelf && !isAdminAccount && (
+                    {!isSelf && !isAdminAccount && canManageChapter && (
                       <button
                         onClick={() => handleRemove(cr.chapterId)}
                         disabled={removingChapter === cr.chapterId}
@@ -211,7 +222,7 @@ export function AccountEditPanel({
           access.
         </p>
       )}
-      {!isAdminAccount && (
+      {!isAdminAccount && hasAvailableAddChapters && (
         <form
           onSubmit={handleAdd}
           className="flex flex-col items-stretch gap-3 mb-5 sm:flex-row sm:items-end"
@@ -220,7 +231,13 @@ export function AccountEditPanel({
             <label className={labelCls}>Add Chapter Access</label>
             <select
               value={addChapter}
-              onChange={(e) => setAddChapter(e.target.value)}
+              onChange={(e) => {
+                const chapter = e.target.value;
+                setAddChapter(chapter);
+                if (addRole === "Admin" && Number(chapter) !== nationalChapterId) {
+                  setAddRole("");
+                }
+              }}
               className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white w-full sm:w-44"
             >
               <option value="">Chapter…</option>
@@ -241,7 +258,7 @@ export function AccountEditPanel({
               className="text-sm border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-heart-blue focus:border-heart-blue bg-white w-full sm:w-36"
             >
               <option value="">Role…</option>
-              {assignableRoles.map((r) => (
+              {addRoleOptions.map((r) => (
                 <option key={r} value={r}>
                   {r}
                 </option>

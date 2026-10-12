@@ -33,6 +33,48 @@ test("creates a volunteer account with chapter access", async ({ page }) => {
   await expect(page.getByText("e2e-new-volunteer", { exact: true })).toBeVisible();
 });
 
+test("national admins can assign National Viewer access to a chapter admin", async ({ page }) => {
+  const adminToken = await authenticate(page, "Admin");
+  const accountResponse = await page.request.post("/api/accounts", {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: {
+      name: "E2E National Viewer Volunteer",
+      username: "e2e-national-viewer-volunteer",
+      password: "temporary-password",
+      chapterId: TEST_CHAPTER.id,
+      role: "Chapter Admin",
+    },
+  });
+  expect(accountResponse.ok()).toBe(true);
+
+  await page.goto("/admin/accounts");
+  await page.getByRole("button", { name: /E2E Test Chapter.*account/i }).click();
+  const accountRow = page
+    .getByRole("row")
+    .filter({ hasText: "e2e-national-viewer-volunteer" })
+    .first();
+  await accountRow.click();
+
+  const editor = page.locator("tr.rc-raw");
+  const addForm = editor.locator("form");
+  const chapterSelect = addForm.locator("select").nth(0);
+  const roleSelect = addForm.locator("select").nth(1);
+  await expect(roleSelect.locator('option[value="Admin"]')).toHaveCount(0);
+  await chapterSelect.selectOption(String(TEST_CHAPTER.id));
+  await expect(roleSelect.locator('option[value="Admin"]')).toHaveCount(0);
+  await chapterSelect.selectOption("1");
+  await expect(roleSelect.locator('option[value="Admin"]')).toHaveCount(1);
+  await roleSelect.selectOption("Viewer");
+  await expect(chapterSelect.locator('option[value="1"]')).toHaveCount(1);
+  await chapterSelect.selectOption("1");
+  await addForm.getByRole("button", { name: "Add", exact: true }).click();
+
+  await expect(editor).toHaveCount(0);
+  await accountRow.click();
+  const nationalAffiliation = editor.getByRole("row").filter({ hasText: "National" });
+  await expect(nationalAffiliation.locator("select")).toHaveValue("Viewer");
+});
+
 test("cannot add chapter access when no chapters are available", async ({ page }) => {
   await page.route("**/api/chapters", (route) => route.fulfill({ json: [] }));
   await page.goto("/admin/accounts");
@@ -77,6 +119,40 @@ test("chapter admins can create and demote another chapter admin", async ({ page
   await page.getByRole("button", { name: "Save" }).click();
   await accountRow.click();
   await expect(page.locator('tr.rc-raw td[data-label="Role"] select')).toHaveValue("Editor");
+});
+
+test("chapter admins cannot adjust affiliations outside their chapters", async ({ page }) => {
+  const adminToken = await authenticate(page, "Admin");
+  const accountResponse = await page.request.post("/api/accounts", {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: {
+      name: "E2E Cross-Chapter Volunteer",
+      username: "e2e-cross-chapter-volunteer",
+      password: "temporary-password",
+      chapterId: TEST_CHAPTER.id,
+      role: "Editor",
+    },
+  });
+  expect(accountResponse.ok()).toBe(true);
+  const account = (await accountResponse.json()) as { id: number };
+  const affiliationResponse = await page.request.post(`/api/accounts/${account.id}/roles`, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: { chapterId: 1, role: "Editor" },
+  });
+  expect(affiliationResponse.ok()).toBe(true);
+
+  await authenticate(page, "Chapter Admin");
+  await page.goto("/admin/accounts");
+  await page.getByRole("button", { name: /E2E Test Chapter.*account/i }).click();
+  await page.getByRole("row").filter({ hasText: "e2e-cross-chapter-volunteer" }).click();
+
+  const editor = page.locator("tr.rc-raw");
+  const managedAffiliation = editor.getByRole("row").filter({ hasText: TEST_CHAPTER.name });
+  const unmanagedAffiliation = editor.getByRole("row").filter({ hasText: "National" });
+  await expect(managedAffiliation.locator("select")).toBeEnabled();
+  await expect(unmanagedAffiliation.locator("select")).toHaveCount(0);
+  await expect(unmanagedAffiliation.getByTitle("Remove chapter access")).toHaveCount(0);
+  await expect(editor.getByText("Add Chapter Access", { exact: true })).toHaveCount(0);
 });
 
 test("creates an individual party", async ({ page }) => {
