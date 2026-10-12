@@ -7,7 +7,7 @@ DROP FUNCTION IF EXISTS Get_Devices_Page;
 CREATE OR REPLACE FUNCTION Get_Devices_Page(
     p_chapter_ids INTEGER[] DEFAULT NULL,
     p_search TEXT DEFAULT NULL,
-    p_type TEXT DEFAULT NULL,
+    p_types TEXT[] DEFAULT NULL,
     p_statuses STATUS[] DEFAULT NULL,
     p_stuck_only BOOLEAN DEFAULT FALSE,
     p_donor_id INTEGER DEFAULT NULL,
@@ -77,7 +77,7 @@ BEGIN
         AS sort_key
     ) AS k
     WHERE (p_chapter_ids IS NULL OR gd.chapter_id = ANY(p_chapter_ids))
-      AND (p_type IS NULL OR gd.type = p_type)
+      AND (p_types IS NULL OR gd.type = ANY(p_types))
       AND (p_statuses IS NULL OR gd.status = ANY(p_statuses))
       AND (NOT p_stuck_only OR gd.device_stuck)
       AND (p_donor_id IS NULL OR gd.donor_id = p_donor_id)

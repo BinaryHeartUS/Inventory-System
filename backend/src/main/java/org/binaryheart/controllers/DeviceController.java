@@ -54,6 +54,7 @@ import org.binaryheart.utils.QueryParamUtil;
 
 public class DeviceController {
 	private static final List<String> VALID_TYPES = List.of("desktop", "laptop", "tablet", "total");
+	private static final List<String> DEVICE_LIST_TYPES = List.of("Desktop", "Laptop", "Tablet");
 	private static final List<String> VALID_STATUSES = List.of("active", "not-started", "in-progress",
 		"ready-to-donate", "donated", "sold");
 
@@ -654,9 +655,9 @@ public class DeviceController {
 					description = "Free-text search matched against every device field "
 						+ "(id, manufacturer, model, cpu, chapter, status, operating system, etc.)."),
 				@OpenApiParam(
-					name = "type",
+					name = "types",
 					required = false,
-					description = "Filter by device type: Desktop, Laptop or Tablet."),
+					description = "Comma-separated device types: Desktop, Laptop and Tablet."),
 				@OpenApiParam(
 					name = "statuses",
 					required = false,
@@ -710,10 +711,10 @@ public class DeviceController {
 			int pageKey = PaginationUtil.parsePageKey(ctx);
 			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
-				QueryParamUtil.stringParam(ctx, "type"), parseDeviceStatuses(ctx),
-				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
-				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
-				QueryParamUtil.stringParam(ctx, "dir"), pageSize, pageKey * pageSize);
+				parseDeviceTypes(ctx), parseDeviceStatuses(ctx), QueryParamUtil.boolParam(ctx, "stuckOnly", false),
+				QueryParamUtil.intParam(ctx, "donorId"), QueryParamUtil.intParam(ctx, "recipientId"),
+				QueryParamUtil.stringParam(ctx, "sort"), QueryParamUtil.stringParam(ctx, "dir"), pageSize,
+				pageKey * pageSize);
 			List<GetDeviceResponse> devices = service.getDevices(userChapterIds, chapterId, q);
 			ctx.status(200).json(devices.toArray(new GetDeviceResponse[0]));
 		} catch (BadArgumentException e) {
@@ -723,6 +724,24 @@ public class DeviceController {
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
 		}
+	}
+
+	private static List<String> parseDeviceTypes(Context ctx) throws BadArgumentException {
+		String value = QueryParamUtil.stringParam(ctx, "types");
+		if (value == null) {
+			return null;
+		}
+		List<String> types = new ArrayList<>();
+		for (String typeValue : value.split(",")) {
+			String type = typeValue.trim();
+			if (!DEVICE_LIST_TYPES.contains(type)) {
+				throw new BadArgumentException("types contains an invalid device type: " + value);
+			}
+			if (!types.contains(type)) {
+				types.add(type);
+			}
+		}
+		return types;
 	}
 
 	private static List<String> parseDeviceStatuses(Context ctx) throws BadArgumentException {

@@ -177,6 +177,10 @@ public class DeviceRepository {
 		return statuses == null ? null : conn.createArrayOf("status", statuses.toArray());
 	}
 
+	private static Array toTextSqlArray(List<String> values, Connection conn) throws SQLException {
+		return values == null ? null : conn.createArrayOf("text", values.toArray());
+	}
+
 	public GetDeviceResponse getDevice(int id) throws SQLException, DeviceNotFoundException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Device(?)")) {
@@ -211,10 +215,10 @@ public class DeviceRepository {
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
-				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status[]), ?, ?, ?, ?, ?, ?, ?)")) {
+				"SELECT * FROM Get_Devices_Page(?, ?, CAST(? AS TEXT[]), CAST(? AS Status[]), ?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
-			setStringOrNull(stmt, 3, q.type());
+			stmt.setArray(3, toTextSqlArray(q.types(), conn));
 			stmt.setArray(4, toStatusSqlArray(q.statuses(), conn));
 			stmt.setBoolean(5, q.stuckOnly());
 			setIntegerOrNull(stmt, 6, q.donorId());
