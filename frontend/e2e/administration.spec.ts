@@ -35,6 +35,12 @@ test("creates a volunteer account with chapter access", async ({ page }) => {
 
 test("national admins can assign National Viewer access to a chapter admin", async ({ page }) => {
   const adminToken = await authenticate(page, "Admin");
+  const chapterResponse = await page.request.post("/api/chapters", {
+    headers: { Authorization: `Bearer ${adminToken}` },
+    data: { name: "E2E National Role Option Chapter" },
+  });
+  expect(chapterResponse.ok()).toBe(true);
+  const chapter = (await chapterResponse.json()) as { id: number };
   const accountResponse = await page.request.post("/api/accounts", {
     headers: { Authorization: `Bearer ${adminToken}` },
     data: {
@@ -60,7 +66,7 @@ test("national admins can assign National Viewer access to a chapter admin", asy
   const chapterSelect = addForm.locator("select").nth(0);
   const roleSelect = addForm.locator("select").nth(1);
   await expect(roleSelect.locator('option[value="Admin"]')).toHaveCount(0);
-  await chapterSelect.selectOption(String(TEST_CHAPTER.id));
+  await chapterSelect.selectOption(String(chapter.id));
   await expect(roleSelect.locator('option[value="Admin"]')).toHaveCount(0);
   await chapterSelect.selectOption("1");
   await expect(roleSelect.locator('option[value="Admin"]')).toHaveCount(1);
