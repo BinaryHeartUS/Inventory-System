@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface FilterChecklistMenuProps<T extends string> {
   label: string;
@@ -7,6 +7,7 @@ interface FilterChecklistMenuProps<T extends string> {
   onChange: (selected: T[]) => void;
   isDefault: boolean;
   optionLabel?: (option: T) => string;
+  footer?: ReactNode;
 }
 
 export function FilterChecklistMenu<T extends string>({
@@ -16,6 +17,7 @@ export function FilterChecklistMenu<T extends string>({
   onChange,
   isDefault,
   optionLabel = (option) => option,
+  footer,
 }: FilterChecklistMenuProps<T>) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(selected);
@@ -105,6 +107,7 @@ export function FilterChecklistMenu<T extends string>({
               {optionLabel(option)}
             </label>
           ))}
+          {footer && <div className="mt-2 border-t border-slate-200 pt-2">{footer}</div>}
         </div>
       )}
     </div>

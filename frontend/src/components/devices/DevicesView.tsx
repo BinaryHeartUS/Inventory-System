@@ -92,42 +92,14 @@ export default function DevicesView({
             />
           </div>
 
-          <StatusFilterMenu selected={selectedStatuses} onChange={onSelectedStatusesChange} />
+          <StatusFilterMenu
+            selected={selectedStatuses}
+            onChange={onSelectedStatusesChange}
+            showStuck={showStuck}
+            onShowStuckChange={onShowStuckChange}
+          />
 
           <DeviceTypeFilterMenu selected={selectedTypes} onChange={onSelectedTypesChange} />
-
-          <label
-            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
-              showStuck
-                ? "bg-amber-50 border-amber-300 text-amber-800 font-medium"
-                : "bg-white border-slate-200 text-slate-600 hover:border-amber-300"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={showStuck}
-              onChange={(e) => onShowStuckChange(e.target.checked)}
-              className="sr-only"
-            />
-            <span
-              className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
-                showStuck ? "bg-amber-500 border-amber-500" : "border-slate-300"
-              }`}
-            >
-              {showStuck && (
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M1.5 5l2.5 2.5 4.5-4.5"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </span>
-            Stuck Devices Only
-          </label>
 
           {hasFilters && (
             <button
