@@ -794,7 +794,7 @@ export interface paths {
                     pageKey?: number;
                     /** @description Free-text search matched against every device field (id, manufacturer, model, cpu, chapter, status, operating system, etc.). */
                     search?: string;
-                    /** @description Comma-separated device types: Desktop, Laptop and Tablet. */
+                    /** @description Comma-separated device types: Desktop, Laptop, and Tablet. */
                     types?: string;
                     /** @description Comma-separated exact statuses, e.g. 'Not Started,Ready To Donate'. */
                     statuses?: string;
