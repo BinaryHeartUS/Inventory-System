@@ -33,6 +33,16 @@ test("creates a volunteer account with chapter access", async ({ page }) => {
   await expect(page.getByText("e2e-new-volunteer", { exact: true })).toBeVisible();
 });
 
+test("cannot add chapter access when no chapters are available", async ({ page }) => {
+  await page.route("**/api/chapters", (route) => route.fulfill({ json: [] }));
+  await page.goto("/admin/accounts");
+  await page.getByRole("button", { name: "New Account" }).click();
+
+  await expect(page.getByRole("button", { name: "Add role" })).toBeDisabled();
+  await expect(page.getByTestId("account-chapter-0")).toBeVisible();
+  await expect(page.getByTestId("account-chapter-1")).toHaveCount(0);
+});
+
 test("chapter admins can create and demote another chapter admin", async ({ page }) => {
   await authenticate(page, "Chapter Admin");
   await page.goto("/admin/accounts");
