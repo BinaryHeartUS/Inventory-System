@@ -74,7 +74,7 @@ test("stuck filter combines with the selected statuses", async ({ page }) => {
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Device stuck")).toBeVisible();
   await expect(statusesButton).toBeEnabled();
-  await expect(statusesButton).toContainText("1");
+  await expect(statusesButton).toHaveText("Statuses");
   await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("In Progress");
 
   await statusesButton.click();

@@ -61,7 +61,7 @@ test("device types can be combined from the checklist", async ({ page }) => {
   await page.goto("/devices");
 
   const typesButton = page.getByRole("button", { name: /^Device Types/ });
-  await expect(typesButton).toContainText("3");
+  await expect(typesButton).toHaveText("Device Types");
   await typesButton.click();
   await expect(page.getByRole("checkbox", { name: "Desktop" })).toBeChecked();
   await expect(page.getByRole("checkbox", { name: "Laptop" })).toBeChecked();

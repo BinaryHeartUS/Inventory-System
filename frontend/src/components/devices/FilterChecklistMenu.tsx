@@ -5,6 +5,7 @@ interface FilterChecklistMenuProps<T extends string> {
   options: readonly T[];
   selected: T[];
   onChange: (selected: T[]) => void;
+  isDefault: boolean;
   optionLabel?: (option: T) => string;
 }
 
@@ -13,6 +14,7 @@ export function FilterChecklistMenu<T extends string>({
   options,
   selected,
   onChange,
+  isDefault,
   optionLabel = (option) => option,
 }: FilterChecklistMenuProps<T>) {
   const [open, setOpen] = useState(false);
@@ -57,7 +59,11 @@ export function FilterChecklistMenu<T extends string>({
           if (!open) setDraft(selected);
           setOpen((current) => !current);
         }}
-        className="flex w-full sm:w-auto items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border transition-all bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+        className={`flex w-full sm:w-auto items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border transition-all ${
+          isDefault
+            ? "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+            : "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
+        }`}
       >
         {label}
         <span className="min-w-5 h-5 px-1 rounded-full bg-heart-blue text-white text-[11px] font-semibold flex items-center justify-center">
@@ -82,7 +88,7 @@ export function FilterChecklistMenu<T extends string>({
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-30 mt-2 w-52 rounded-lg border border-slate-200 bg-white p-2 shadow-lg"
+          className="absolute left-0 top-full z-30 mt-2 w-52 rounded-lg border border-slate-200 bg-white p-2 shadow-md"
         >
           {options.map((option) => (
             <label
