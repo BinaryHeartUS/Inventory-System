@@ -13,6 +13,8 @@ describe("component story coverage", () => {
   });
 
   it.each(componentFiles)("%s has colocated stories", (file) => {
-    expect(existsSync(`${componentsDirectory}${file.replace(/\.tsx$/, ".stories.tsx")}`)).toBe(true);
+    expect(existsSync(`${componentsDirectory}${file.replace(/\.tsx$/, ".stories.tsx")}`)).toBe(
+      true
+    );
   });
 });
