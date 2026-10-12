@@ -91,7 +91,9 @@ export default function DevicesView({
       </div>
 
       {/* Chapter filter */}
-      {chapterFilterControl ?? <ChapterFilterContainer selected={chapterFilter} onChange={onChapterFilterChange} />}
+      {chapterFilterControl ?? (
+        <ChapterFilterContainer selected={chapterFilter} onChange={onChapterFilterChange} />
+      )}
 
       {/* Filter bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">

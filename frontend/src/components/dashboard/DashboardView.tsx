@@ -69,7 +69,9 @@ export default function DashboardView({
       </div>
 
       {/* Chapter tabs */}
-      {chapterFilter ?? <ChapterFilterContainer selected={selectedChapter} onChange={onChapterChange} />}
+      {chapterFilter ?? (
+        <ChapterFilterContainer selected={selectedChapter} onChange={onChapterChange} />
+      )}
 
       {/* Pipeline card */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

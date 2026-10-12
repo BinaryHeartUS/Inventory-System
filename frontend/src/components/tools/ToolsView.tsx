@@ -51,7 +51,9 @@ export default function ToolsView({
       </div>
 
       {/* Chapter filter */}
-      {chapterFilterControl ?? <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />}
+      {chapterFilterControl ?? (
+        <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />
+      )}
 
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -82,7 +84,9 @@ export default function ToolsView({
                   </td>
                 </tr>
               ) : (
-                tools.map((t) => renderRow ? renderRow(t) : <ToolRowContainer key={t.id} tool={t} />)
+                tools.map((t) =>
+                  renderRow ? renderRow(t) : <ToolRowContainer key={t.id} tool={t} />
+                )
               )}
             </tbody>
           </table>

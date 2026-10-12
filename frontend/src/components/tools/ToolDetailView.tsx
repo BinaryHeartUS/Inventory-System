@@ -85,10 +85,14 @@ export default function ToolDetailView({
   return (
     <>
       {content?.unsavedChangesGuard ?? <UnsavedChangesGuard when={isDirty} />}
-      {printId !== null && (content?.printModal ?? <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />)}
-      {partyPickerOpen && (
-        content?.partyPicker ?? <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
-      )}
+      {printId !== null &&
+        (content?.printModal ?? (
+          <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />
+        ))}
+      {partyPickerOpen &&
+        (content?.partyPicker ?? (
+          <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
+        ))}
       <div className="space-y-5">
         {/* Breadcrumb + Add Asset */}
         <div className="flex items-center justify-between">
