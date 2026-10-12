@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { FilterPopover } from "./FilterPopover";
 import { MIN_MODEL_YEAR } from "./modelYearRange";
 
 interface ModelYearFilterProps {
@@ -10,69 +10,9 @@ interface ModelYearFilterProps {
 
 export function ModelYearFilter({ from, to, error, onChange }: ModelYearFilterProps) {
   const currentYear = new Date().getFullYear();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const hasRange = from !== "" || to !== "";
-
-  useEffect(() => {
-    if (!open) return;
-
-    function handlePointerDown(event: MouseEvent) {
-      if (!menuRef.current?.contains(event.target as Node)) setOpen(false);
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setOpen(false);
-        menuRef.current?.querySelector("button")?.focus();
-      }
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [open]);
 
   return (
-    <div ref={menuRef} className="relative w-full sm:w-auto">
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-controls={open ? "model-year-popover" : undefined}
-        onClick={() => setOpen((current) => !current)}
-        className={`flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm transition-all sm:w-auto ${
-          hasRange
-            ? "border-heart-blue bg-heart-blue/10 font-medium text-heart-blue"
-            : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-        }`}
-      >
-        Year
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </button>
-      {open && (
-        <div
-          id="model-year-popover"
-          role="dialog"
-          aria-label="Model year range"
-          className="absolute left-0 top-full z-30 mt-2 w-full rounded-lg border border-slate-200 bg-white p-3 shadow-md sm:w-72"
-        >
+    <FilterPopover label="Year" active={from !== "" || to !== ""}>
           <div className="flex h-10 items-center gap-2 text-sm text-slate-600">
             <label className="sr-only" htmlFor="model-year-from">
               Model year from
@@ -113,8 +53,6 @@ export function ModelYearFilter({ from, to, error, onChange }: ModelYearFilterPr
               {error}
             </p>
           )}
-        </div>
-      )}
-    </div>
+    </FilterPopover>
   );
 }

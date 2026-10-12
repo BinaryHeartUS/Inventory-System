@@ -30,6 +30,8 @@ describe("device filter storage", () => {
       stuckOnly: true,
       yearFrom: 2020,
       yearTo: 2024,
+      acquiredFrom: "2025-12-01",
+      acquiredTo: "2026-01-15",
       sort: "model",
       dir: "desc",
     });
@@ -59,6 +61,15 @@ describe("device filter storage", () => {
 
     clearDeviceFilters(storage);
     expect(storage.getItem(DEVICE_FILTER_STORAGE_KEY)).toBeNull();
+  });
+
+  it("discards invalid acquisition bounds while retaining other filters", () => {
+    const storage = createStorage();
+    saveDeviceFilters(createDeviceFilters({ search: "Framework", acquiredFrom: "2026-01-15", acquiredTo: "2025-12-01" }), storage, 1_000);
+    const restored = loadDeviceFilters(storage, 2_000);
+    expect(restored.search).toBe("Framework");
+    expect(restored.acquiredFrom).toBeNull();
+    expect(restored.acquiredTo).toBeNull();
   });
 
   it("discards malformed stored filters", () => {

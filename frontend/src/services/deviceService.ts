@@ -48,6 +48,8 @@ export interface DeviceListParams {
   /** Inclusive model-year bounds. */
   yearFrom?: number;
   yearTo?: number;
+  acquiredFrom?: string;
+  acquiredTo?: string;
   /** Sort key matching DeviceList columns, e.g. "manufacturer". */
   sort?: string;
   dir?: "asc" | "desc";

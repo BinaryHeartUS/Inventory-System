@@ -1,4 +1,5 @@
 import type { DeviceStatus } from "../../types/inventory";
+import { parseAcquisitionDateRange } from "./acquisitionDateRange";
 import {
   DEFAULT_DEVICE_STATUSES,
   DEVICE_SORT_KEYS,
@@ -21,6 +22,8 @@ export interface DeviceFilters {
   stuckOnly: boolean;
   yearFrom: number | null;
   yearTo: number | null;
+  acquiredFrom: string | null;
+  acquiredTo: string | null;
   sort: DeviceFilterSortKey;
   dir: "asc" | "desc";
 }
@@ -43,6 +46,8 @@ export function createDeviceFilters(overrides: Partial<DeviceFilters> = {}): Dev
     stuckOnly: false,
     yearFrom: null,
     yearTo: null,
+    acquiredFrom: null,
+    acquiredTo: null,
     sort: "id",
     dir: "asc",
     ...overrides,
@@ -58,6 +63,10 @@ function normalizeFilters(value: unknown): DeviceFilters | null {
   const statuses = Array.isArray(filters.statuses)
     ? DEVICE_STATUS_OPTIONS.filter((status) => filters.statuses?.includes(status))
     : [];
+  const acquisitionRange = parseAcquisitionDateRange(
+    typeof filters.acquiredFrom === "string" ? filters.acquiredFrom : "",
+    typeof filters.acquiredTo === "string" ? filters.acquiredTo : ""
+  );
   const operatingSystems =
     filters.operatingSystems === null
       ? null
@@ -71,6 +80,8 @@ function normalizeFilters(value: unknown): DeviceFilters | null {
     types: types.length > 0 ? types : [...DEVICE_TYPES],
     statuses: statuses.length > 0 ? statuses : [...DEFAULT_DEVICE_STATUSES],
     operatingSystems,
+    acquiredFrom: acquisitionRange.range?.acquiredFrom ?? null,
+    acquiredTo: acquisitionRange.range?.acquiredTo ?? null,
     chapter:
       filters.chapter === "All" ||
       (typeof filters.chapter === "number" &&

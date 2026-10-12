@@ -133,6 +133,62 @@ test("model years can be filtered with inclusive open-ended bounds", async ({ pa
   await expect(yearFrom).toBeHidden();
 });
 
+test("acquisition dates support calendar selection, open bounds and persistence", async ({ page }) => {
+  await page.goto("/devices");
+  const button = page.getByRole("button", { name: "Acquisition date", exact: true });
+  const from = page.getByLabel("Acquired from", { exact: true });
+  const to = page.getByLabel("Acquired to", { exact: true });
+  await expect(from).toBeHidden();
+  await button.click();
+  await from.fill("2025-12-01");
+  await to.fill("2026-01-15");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("2 matching devices", { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/devices$/);
+
+  await page.reload();
+  await button.click();
+  await expect(from).toHaveValue("2025-12-01");
+  await expect(to).toHaveValue("2026-01-15");
+  await to.fill("2025-12-01");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await from.fill("2026-01-15");
+  await expect(page.getByText("The starting date cannot be later than the ending date.")).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await to.fill("");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
+
+  await from.fill("");
+  const dialog = page.getByRole("dialog", { name: "Acquisition date range" });
+  await dialog.getByRole("combobox", { name: /month/i }).selectOption("0");
+  await dialog.getByRole("combobox", { name: /year/i }).selectOption("2026");
+  await dialog.getByRole("button", { name: /January 15th, 2026/ }).click();
+  await dialog.getByRole("button", { name: /January 16th, 2026/ }).click();
+  await expect(from).toHaveValue("2026-01-15");
+  await expect(to).toHaveValue("2026-01-16");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
+  await page.screenshot({ path: "test-results/acquisition-date-desktop.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const box = await dialog.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(844 - 64);
+  const [scrollWidth, clientWidth] = await page.locator("html").evaluate((element) => [element.scrollWidth, element.clientWidth]);
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+  await page.screenshot({ path: "test-results/acquisition-date-mobile.png" });
+  await page.keyboard.press("Escape");
+  await expect(from).toBeHidden();
+  await page.getByRole("button", { name: "Clear filters" }).first().click();
+  await button.click();
+  await expect(from).toHaveValue("");
+  await expect(to).toHaveValue("");
+});
+
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {
   await selectTestChapter(page);
   await page.getByRole("button", { name: /Stuck Devices/ }).click();

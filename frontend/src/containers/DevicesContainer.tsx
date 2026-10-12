@@ -23,6 +23,7 @@ import {
   type DeviceFilters,
 } from "../components/devices/deviceFilterStorage";
 import { parseModelYearRange } from "../components/devices/modelYearRange";
+import { parseAcquisitionDateRange } from "../components/devices/acquisitionDateRange";
 
 function hasDefaultStatuses(statuses: DeviceStatus[]): boolean {
   return (
@@ -46,6 +47,8 @@ export default function DevicesContainer() {
     stuckOnly: showStuck,
     yearFrom,
     yearTo,
+    acquiredFrom,
+    acquiredTo,
     sort: sortKey,
     dir: sortDir,
   } = filters;
@@ -61,6 +64,9 @@ export default function DevicesContainer() {
   const [yearFromInput, setYearFromInput] = useState(yearFrom?.toString() ?? "");
   const [yearToInput, setYearToInput] = useState(yearTo?.toString() ?? "");
   const [yearError, setYearError] = useState<string | null>(null);
+  const [acquiredFromInput, setAcquiredFromInput] = useState(acquiredFrom ?? "");
+  const [acquiredToInput, setAcquiredToInput] = useState(acquiredTo ?? "");
+  const [acquisitionError, setAcquisitionError] = useState<string | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [summaryLoaded, setSummaryLoaded] = useState(false);
@@ -106,6 +112,8 @@ export default function DevicesContainer() {
         stuckOnly: showStuck,
         yearFrom: yearFrom ?? undefined,
         yearTo: yearTo ?? undefined,
+        acquiredFrom: acquiredFrom ?? undefined,
+        acquiredTo: acquiredTo ?? undefined,
         sort: sortKey,
         dir: sortDir,
       }),
@@ -118,6 +126,8 @@ export default function DevicesContainer() {
       showStuck,
       yearFrom,
       yearTo,
+      acquiredFrom,
+      acquiredTo,
       sortKey,
       sortDir,
     ]
@@ -137,6 +147,8 @@ export default function DevicesContainer() {
     showStuck,
     yearFrom,
     yearTo,
+    acquiredFrom,
+    acquiredTo,
     sortKey,
     sortDir,
   ]);
@@ -149,7 +161,9 @@ export default function DevicesContainer() {
     chapterFilter !== "All" ||
     showStuck ||
     yearFrom !== null ||
-    yearTo !== null;
+    yearTo !== null ||
+    acquiredFrom !== null ||
+    acquiredTo !== null;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
@@ -157,6 +171,8 @@ export default function DevicesContainer() {
       showStuck ||
       yearFrom !== null ||
       yearTo !== null ||
+      acquiredFrom !== null ||
+      acquiredTo !== null ||
       hasOperatingSystemFilter ||
       selectedStatuses.includes("Sold") ||
       debouncedSearch ||
@@ -186,6 +202,8 @@ export default function DevicesContainer() {
     showStuck,
     yearFrom,
     yearTo,
+    acquiredFrom,
+    acquiredTo,
   ]);
 
   const deviceSubtitle =
@@ -201,6 +219,9 @@ export default function DevicesContainer() {
     setYearFromInput("");
     setYearToInput("");
     setYearError(null);
+    setAcquiredFromInput("");
+    setAcquiredToInput("");
+    setAcquisitionError(null);
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
@@ -237,6 +258,14 @@ export default function DevicesContainer() {
     if (result.range) updateFilters(result.range);
   }
 
+  function handleAcquisitionRangeChange(from: string, to: string) {
+    setAcquiredFromInput(from);
+    setAcquiredToInput(to);
+    const result = parseAcquisitionDateRange(from, to);
+    setAcquisitionError(result.error);
+    if (result.range) updateFilters(result.range);
+  }
+
   return (
     <DevicesView
       search={search}
@@ -256,6 +285,10 @@ export default function DevicesContainer() {
       yearTo={yearToInput}
       yearError={yearError}
       onYearRangeChange={handleYearRangeChange}
+      acquiredFrom={acquiredFromInput}
+      acquiredTo={acquiredToInput}
+      acquisitionError={acquisitionError}
+      onAcquisitionRangeChange={handleAcquisitionRangeChange}
       sortKey={sortKey}
       sortDir={sortDir}
       onSort={handleSort}

@@ -10,6 +10,7 @@ import { StatusFilterMenu } from "./StatusFilterMenu";
 import { DeviceTypeFilterMenu } from "./DeviceTypeFilterMenu";
 import { OperatingSystemFilterMenu } from "./OperatingSystemFilterMenu";
 import { ModelYearFilter } from "./ModelYearFilter";
+import { AcquisitionDateFilter } from "./AcquisitionDateFilter";
 
 export interface DevicesViewProps {
   search: string;
@@ -29,6 +30,10 @@ export interface DevicesViewProps {
   yearTo: string;
   yearError: string | null;
   onYearRangeChange: (from: string, to: string) => void;
+  acquiredFrom: string;
+  acquiredTo: string;
+  acquisitionError: string | null;
+  onAcquisitionRangeChange: (from: string, to: string) => void;
   sortKey: SortKey;
   sortDir: SortDir;
   onSort: (key: SortKey, dir: SortDir) => void;
@@ -58,6 +63,10 @@ export default function DevicesView({
   yearTo,
   yearError,
   onYearRangeChange,
+  acquiredFrom,
+  acquiredTo,
+  acquisitionError,
+  onAcquisitionRangeChange,
   sortKey,
   sortDir,
   onSort,
@@ -129,6 +138,9 @@ export default function DevicesView({
             error={yearError}
             onChange={onYearRangeChange}
           />
+
+          <AcquisitionDateFilter from={acquiredFrom} to={acquiredTo}
+            error={acquisitionError} onChange={onAcquisitionRangeChange} />
 
           {hasFilters && (
             <button
