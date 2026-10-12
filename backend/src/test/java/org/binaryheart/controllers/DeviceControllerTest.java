@@ -163,11 +163,13 @@ class DeviceControllerTest {
 		expect(context.queryParam("recipientId")).andReturn("10");
 		expect(context.queryParam("yearFrom")).andReturn("2020");
 		expect(context.queryParam("yearTo")).andReturn("2024");
+		expect(context.queryParam("acquiredFrom")).andReturn("2025-01-01");
+		expect(context.queryParam("acquiredTo")).andReturn("2026-01-15");
 		expect(context.queryParam("sort")).andReturn("id");
 		expect(context.queryParam("dir")).andReturn("desc");
 		DeviceListRequest query = new DeviceListRequest("Dell", List.of("Desktop", "Laptop"),
 			List.of("Not Started", "Ready To Donate"), List.of("Windows 11", "Ubuntu"), true, true, 9, 10, "id", "desc",
-			2020, 2024, 25, 50);
+			2020, 2024, LocalDate.of(2025, 1, 1), LocalDate.of(2026, 1, 15), 25, 50);
 		expect(service.getDevices(List.of(2), 2, query)).andReturn(List.of());
 		expectJson(context, 200, new GetDeviceResponse[0]);
 		replay(service, chapters, authorization, context);

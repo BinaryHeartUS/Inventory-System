@@ -19,7 +19,9 @@ CREATE OR REPLACE FUNCTION Get_Devices_Page(
     p_year_from INTEGER DEFAULT NULL,
     p_year_to INTEGER DEFAULT NULL,
     p_limit INTEGER DEFAULT NULL,
-    p_offset INTEGER DEFAULT 0
+    p_offset INTEGER DEFAULT 0,
+    p_acquired_from DATE DEFAULT NULL,
+    p_acquired_to DATE DEFAULT NULL
 )
 RETURNS TABLE (
     type VARCHAR(10),
@@ -93,6 +95,8 @@ BEGIN
       AND (p_recipient_id IS NULL OR gd.recipient_id = p_recipient_id)
       AND (p_year_from IS NULL OR gd.year >= p_year_from)
       AND (p_year_to IS NULL OR gd.year <= p_year_to)
+      AND (p_acquired_from IS NULL OR gd.acquisition_date >= p_acquired_from)
+      AND (p_acquired_to IS NULL OR gd.acquisition_date <= p_acquired_to)
       AND (p_search IS NULL OR p_search = '' OR gd::text ILIKE '%' || p_search || '%')
     ORDER BY
       CASE WHEN p_dir <> 'desc' THEN k.sort_key END ASC NULLS LAST,

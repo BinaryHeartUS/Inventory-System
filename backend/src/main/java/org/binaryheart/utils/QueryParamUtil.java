@@ -1,6 +1,8 @@
 package org.binaryheart.utils;
 
 import io.javalin.http.Context;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import org.binaryheart.exceptions.BadArgumentException;
 
 public final class QueryParamUtil {
@@ -38,6 +40,16 @@ public final class QueryParamUtil {
 	 * Parses an optional boolean query parameter, defaulting to
 	 * {@code defaultValue} when absent.
 	 */
+	public static LocalDate dateParam(Context ctx, String name) throws BadArgumentException {
+		String raw = stringParam(ctx, name);
+		if (raw == null) return null;
+		try {
+			return LocalDate.parse(raw);
+		} catch (DateTimeParseException e) {
+			throw new BadArgumentException(name + " must be a valid date in YYYY-MM-DD format");
+		}
+	}
+
 	public static boolean boolParam(Context ctx, String name, boolean defaultValue) {
 		String raw = ctx.queryParam(name);
 		if (raw == null || raw.isBlank()) {

@@ -701,6 +701,8 @@ public class DeviceController {
 					required = false,
 					type = Integer.class,
 					description = "Maximum model year (inclusive)."),
+				@OpenApiParam(name = "acquiredFrom", required = false, description = "Earliest acquisition date (inclusive), YYYY-MM-DD."),
+				@OpenApiParam(name = "acquiredTo", required = false, description = "Latest acquisition date (inclusive), YYYY-MM-DD."),
 				@OpenApiParam(
 					name = "sort",
 					required = false,
@@ -734,12 +736,17 @@ public class DeviceController {
 			if (yearFrom != null && yearTo != null && yearFrom > yearTo) {
 				throw new BadArgumentException("yearFrom must be less than or equal to yearTo");
 			}
+			LocalDate acquiredFrom = QueryParamUtil.dateParam(ctx, "acquiredFrom");
+			LocalDate acquiredTo = QueryParamUtil.dateParam(ctx, "acquiredTo");
+			if (acquiredFrom != null && acquiredTo != null && acquiredFrom.isAfter(acquiredTo)) {
+				throw new BadArgumentException("acquiredFrom must be on or before acquiredTo");
+			}
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
 				parseDeviceTypes(ctx), parseDeviceStatuses(ctx), parseOperatingSystems(ctx),
 				QueryParamUtil.boolParam(ctx, "includeUnspecifiedOperatingSystem", false),
 				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
 				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
-				QueryParamUtil.stringParam(ctx, "dir"), yearFrom, yearTo, pageSize, pageKey * pageSize);
+				QueryParamUtil.stringParam(ctx, "dir"), yearFrom, yearTo, acquiredFrom, acquiredTo, pageSize, pageKey * pageSize);
 			List<GetDeviceResponse> devices = service.getDevices(userChapterIds, chapterId, q);
 			ctx.status(200).json(devices.toArray(new GetDeviceResponse[0]));
 		} catch (BadArgumentException e) {
