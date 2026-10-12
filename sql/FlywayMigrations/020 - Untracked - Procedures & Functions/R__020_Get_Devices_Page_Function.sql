@@ -9,6 +9,8 @@ CREATE OR REPLACE FUNCTION Get_Devices_Page(
     p_search TEXT DEFAULT NULL,
     p_types TEXT[] DEFAULT NULL,
     p_statuses STATUS[] DEFAULT NULL,
+    p_operating_systems TEXT[] DEFAULT NULL,
+    p_include_unspecified_operating_system BOOLEAN DEFAULT FALSE,
     p_stuck_only BOOLEAN DEFAULT FALSE,
     p_donor_id INTEGER DEFAULT NULL,
     p_recipient_id INTEGER DEFAULT NULL,
@@ -79,6 +81,11 @@ BEGIN
     WHERE (p_chapter_ids IS NULL OR gd.chapter_id = ANY(p_chapter_ids))
       AND (p_types IS NULL OR gd.type = ANY(p_types))
       AND (p_statuses IS NULL OR gd.status = ANY(p_statuses))
+      AND (
+        (p_operating_systems IS NULL AND NOT p_include_unspecified_operating_system)
+        OR gd.operating_system = ANY(p_operating_systems)
+        OR (p_include_unspecified_operating_system AND gd.operating_system IS NULL)
+      )
       AND (NOT p_stuck_only OR gd.device_stuck)
       AND (p_donor_id IS NULL OR gd.donor_id = p_donor_id)
       AND (p_recipient_id IS NULL OR gd.recipient_id = p_recipient_id)

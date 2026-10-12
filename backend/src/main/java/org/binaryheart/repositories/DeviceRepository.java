@@ -215,18 +215,21 @@ public class DeviceRepository {
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
-				"SELECT * FROM Get_Devices_Page(?, ?, CAST(? AS TEXT[]), CAST(? AS Status[]), ?, ?, ?, ?, ?, ?, ?)")) {
+				"SELECT * FROM Get_Devices_Page(?, ?, CAST(? AS TEXT[]), CAST(? AS Status[]), "
+					+ "CAST(? AS TEXT[]), ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
 			stmt.setArray(3, toTextSqlArray(q.types(), conn));
 			stmt.setArray(4, toStatusSqlArray(q.statuses(), conn));
-			stmt.setBoolean(5, q.stuckOnly());
-			setIntegerOrNull(stmt, 6, q.donorId());
-			setIntegerOrNull(stmt, 7, q.recipientId());
-			stmt.setString(8, q.sort() == null ? "id" : q.sort());
-			stmt.setString(9, q.dir() == null ? "asc" : q.dir());
-			setIntegerOrNull(stmt, 10, q.limit());
-			stmt.setInt(11, q.offset() == null ? 0 : q.offset());
+			stmt.setArray(5, toTextSqlArray(q.operatingSystems(), conn));
+			stmt.setBoolean(6, q.includeUnspecifiedOperatingSystem());
+			stmt.setBoolean(7, q.stuckOnly());
+			setIntegerOrNull(stmt, 8, q.donorId());
+			setIntegerOrNull(stmt, 9, q.recipientId());
+			stmt.setString(10, q.sort() == null ? "id" : q.sort());
+			stmt.setString(11, q.dir() == null ? "asc" : q.dir());
+			setIntegerOrNull(stmt, 12, q.limit());
+			stmt.setInt(13, q.offset() == null ? 0 : q.offset());
 			ResultSet rs = stmt.executeQuery();
 			List<GetDeviceResponse> devices = new ArrayList<>();
 			while (rs.next()) {

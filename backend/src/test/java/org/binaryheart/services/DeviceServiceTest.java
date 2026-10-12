@@ -193,7 +193,8 @@ class DeviceServiceTest {
 	void getDevicesDelegatesWithResolvedChapter() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		DeviceListRequest query = new DeviceListRequest(null, null, null, false, null, null, null, null, 25, 0);
+		DeviceListRequest query = new DeviceListRequest(null, null, null, null, false, false, null, null, null, null, 25,
+			0);
 		List<GetDeviceResponse> response = List.of(device());
 		expect(chapters.resolveChapterIds(2, List.of(2))).andReturn(List.of(2));
 		expect(repository.getDevices(List.of(2), query)).andReturn(response);
@@ -208,7 +209,8 @@ class DeviceServiceTest {
 	void getDevicesShortCircuitsEmptyAccess() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		DeviceListRequest query = new DeviceListRequest(null, null, null, false, null, null, null, null, 25, 0);
+		DeviceListRequest query = new DeviceListRequest(null, null, null, null, false, false, null, null, null, null, 25,
+			0);
 		replay(repository, chapters);
 
 		assertEquals(List.of(), new DeviceService(repository, chapters).getDevices(List.of(), null, query));

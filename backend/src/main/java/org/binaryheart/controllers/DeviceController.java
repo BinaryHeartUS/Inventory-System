@@ -663,6 +663,15 @@ public class DeviceController {
 					required = false,
 					description = "Comma-separated exact statuses, e.g. 'Not Started,Ready To Donate'."),
 				@OpenApiParam(
+					name = "operatingSystems",
+					required = false,
+					description = "Comma-separated exact operating systems from GET /api/lookup."),
+				@OpenApiParam(
+					name = "includeUnspecifiedOperatingSystem",
+					required = false,
+					type = Boolean.class,
+					description = "Include devices whose operating system is not specified."),
+				@OpenApiParam(
 					name = "chapter",
 					required = false,
 					type = Integer.class,
@@ -711,10 +720,11 @@ public class DeviceController {
 			int pageKey = PaginationUtil.parsePageKey(ctx);
 			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
-				parseDeviceTypes(ctx), parseDeviceStatuses(ctx), QueryParamUtil.boolParam(ctx, "stuckOnly", false),
-				QueryParamUtil.intParam(ctx, "donorId"), QueryParamUtil.intParam(ctx, "recipientId"),
-				QueryParamUtil.stringParam(ctx, "sort"), QueryParamUtil.stringParam(ctx, "dir"), pageSize,
-				pageKey * pageSize);
+				parseDeviceTypes(ctx), parseDeviceStatuses(ctx), parseOperatingSystems(ctx),
+				QueryParamUtil.boolParam(ctx, "includeUnspecifiedOperatingSystem", false),
+				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
+				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
+				QueryParamUtil.stringParam(ctx, "dir"), pageSize, pageKey * pageSize);
 			List<GetDeviceResponse> devices = service.getDevices(userChapterIds, chapterId, q);
 			ctx.status(200).json(devices.toArray(new GetDeviceResponse[0]));
 		} catch (BadArgumentException e) {
@@ -761,6 +771,24 @@ public class DeviceController {
 		} catch (IllegalArgumentException e) {
 			throw new BadArgumentException("statuses contains an invalid device status: " + value);
 		}
+	}
+
+	private static List<String> parseOperatingSystems(Context ctx) throws BadArgumentException {
+		String value = QueryParamUtil.stringParam(ctx, "operatingSystems");
+		if (value == null) {
+			return null;
+		}
+		List<String> operatingSystems = new ArrayList<>();
+		for (String operatingSystemValue : value.split(",")) {
+			String operatingSystem = operatingSystemValue.trim();
+			if (operatingSystem.isEmpty()) {
+				throw new BadArgumentException("operatingSystems contains an empty value");
+			}
+			if (!operatingSystems.contains(operatingSystem)) {
+				operatingSystems.add(operatingSystem);
+			}
+		}
+		return operatingSystems;
 	}
 
 	@OpenApi(
