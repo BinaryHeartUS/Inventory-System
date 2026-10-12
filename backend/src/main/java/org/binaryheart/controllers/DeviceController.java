@@ -19,10 +19,12 @@ import io.javalin.openapi.OpenApiSecurity;
 import java.security.InvalidParameterException;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.binaryheart.auth.AppRole;
+import org.binaryheart.enums.Status;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.binaryheart.exceptions.DeviceNotFoundException;
 import org.binaryheart.exceptions.DuplicateKeyException;
@@ -656,29 +658,14 @@ public class DeviceController {
 					required = false,
 					description = "Filter by device type: Desktop, Laptop or Tablet."),
 				@OpenApiParam(
-					name = "status",
+					name = "statuses",
 					required = false,
-					description = "Filter by exact status, e.g. 'Not Started', 'Ready To Donate', 'Donated'."),
+					description = "Comma-separated exact statuses, e.g. 'Not Started,Ready To Donate'."),
 				@OpenApiParam(
 					name = "chapter",
 					required = false,
 					type = Integer.class,
 					description = "Restrict to a single chapter id (must be within the user's access)."),
-				@OpenApiParam(
-					name = "includeDonated",
-					required = false,
-					type = Boolean.class,
-					description = "Whether to include Donated devices. Defaults to true."),
-				@OpenApiParam(
-					name = "includeSold",
-					required = false,
-					type = Boolean.class,
-					description = "Whether to include Sold devices. Defaults to true."),
-				@OpenApiParam(
-					name = "includeScrapped",
-					required = false,
-					type = Boolean.class,
-					description = "Whether to include Scrapped devices. Defaults to true."),
 				@OpenApiParam(
 					name = "stuckOnly",
 					required = false,
@@ -723,10 +710,7 @@ public class DeviceController {
 			int pageKey = PaginationUtil.parsePageKey(ctx);
 			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
-				QueryParamUtil.stringParam(ctx, "type"), QueryParamUtil.stringParam(ctx, "status"),
-				QueryParamUtil.boolParam(ctx, "includeDonated", true),
-				QueryParamUtil.boolParam(ctx, "includeSold", true),
-				QueryParamUtil.boolParam(ctx, "includeScrapped", true),
+				QueryParamUtil.stringParam(ctx, "type"), parseDeviceStatuses(ctx),
 				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
 				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
 				QueryParamUtil.stringParam(ctx, "dir"), pageSize, pageKey * pageSize);
@@ -738,6 +722,25 @@ public class DeviceController {
 			ctx.status(403).result(e.getMessage());
 		} catch (SQLException e) {
 			ctx.status(500).result("Database error: " + e.getMessage());
+		}
+	}
+
+	private static List<String> parseDeviceStatuses(Context ctx) throws BadArgumentException {
+		String value = QueryParamUtil.stringParam(ctx, "statuses");
+		if (value == null) {
+			return null;
+		}
+		List<String> statuses = new ArrayList<>();
+		try {
+			for (String statusValue : value.split(",")) {
+				String status = Status.fromDatabaseValue(statusValue.trim()).getDatabaseValue();
+				if (!statuses.contains(status)) {
+					statuses.add(status);
+				}
+			}
+			return statuses;
+		} catch (IllegalArgumentException e) {
+			throw new BadArgumentException("statuses contains an invalid device status: " + value);
 		}
 	}
 

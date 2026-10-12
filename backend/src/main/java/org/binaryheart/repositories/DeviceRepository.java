@@ -173,6 +173,10 @@ public class DeviceRepository {
 		return conn.createArrayOf("integer", ids.toArray());
 	}
 
+	private static Array toStatusSqlArray(List<String> statuses, Connection conn) throws SQLException {
+		return statuses == null ? null : conn.createArrayOf("status", statuses.toArray());
+	}
+
 	public GetDeviceResponse getDevice(int id) throws SQLException, DeviceNotFoundException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Device(?)")) {
@@ -207,21 +211,18 @@ public class DeviceRepository {
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement(
-				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status[]), ?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
 			setStringOrNull(stmt, 3, q.type());
-			setStringOrNull(stmt, 4, q.status());
-			stmt.setBoolean(5, q.includeDonated());
-			stmt.setBoolean(6, q.includeSold());
-			stmt.setBoolean(7, q.includeScrapped());
-			stmt.setBoolean(8, q.stuckOnly());
-			setIntegerOrNull(stmt, 9, q.donorId());
-			setIntegerOrNull(stmt, 10, q.recipientId());
-			stmt.setString(11, q.sort() == null ? "id" : q.sort());
-			stmt.setString(12, q.dir() == null ? "asc" : q.dir());
-			setIntegerOrNull(stmt, 13, q.limit());
-			stmt.setInt(14, q.offset() == null ? 0 : q.offset());
+			stmt.setArray(4, toStatusSqlArray(q.statuses(), conn));
+			stmt.setBoolean(5, q.stuckOnly());
+			setIntegerOrNull(stmt, 6, q.donorId());
+			setIntegerOrNull(stmt, 7, q.recipientId());
+			stmt.setString(8, q.sort() == null ? "id" : q.sort());
+			stmt.setString(9, q.dir() == null ? "asc" : q.dir());
+			setIntegerOrNull(stmt, 10, q.limit());
+			stmt.setInt(11, q.offset() == null ? 0 : q.offset());
 			ResultSet rs = stmt.executeQuery();
 			List<GetDeviceResponse> devices = new ArrayList<>();
 			while (rs.next()) {
