@@ -92,11 +92,7 @@ export default function DevicesView({
             />
           </div>
 
-          <StatusFilterMenu
-            selected={selectedStatuses}
-            onChange={onSelectedStatusesChange}
-            disabled={showStuck}
-          />
+          <StatusFilterMenu selected={selectedStatuses} onChange={onSelectedStatusesChange} />
 
           <label
             className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${

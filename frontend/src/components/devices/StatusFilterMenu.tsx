@@ -5,10 +5,9 @@ import { DEVICE_STATUS_OPTIONS } from "./deviceFilters";
 interface StatusFilterMenuProps {
   selected: DeviceStatus[];
   onChange: (statuses: DeviceStatus[]) => void;
-  disabled?: boolean;
 }
 
-export function StatusFilterMenu({ selected, onChange, disabled = false }: StatusFilterMenuProps) {
+export function StatusFilterMenu({ selected, onChange }: StatusFilterMenuProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(selected);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -32,10 +31,6 @@ export function StatusFilterMenu({ selected, onChange, disabled = false }: Statu
     };
   }, [open]);
 
-  useEffect(() => {
-    if (disabled) Promise.resolve().then(() => setOpen(false));
-  }, [disabled]);
-
   function toggleStatus(status: DeviceStatus, checked: boolean) {
     const next = new Set(draft);
     if (checked) next.add(status);
@@ -49,18 +44,13 @@ export function StatusFilterMenu({ selected, onChange, disabled = false }: Statu
     <div ref={menuRef} className="relative w-full sm:w-auto">
       <button
         type="button"
-        disabled={disabled}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => {
           if (!open) setDraft(selected);
           setOpen((current) => !current);
         }}
-        className={`flex w-full sm:w-auto items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border transition-all ${
-          disabled
-            ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-            : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
-        }`}
+        className="flex w-full sm:w-auto items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border transition-all bg-white border-slate-200 text-slate-600 hover:border-slate-300"
       >
         Statuses
         <span className="min-w-5 h-5 px-1 rounded-full bg-heart-blue text-white text-[11px] font-semibold flex items-center justify-center">

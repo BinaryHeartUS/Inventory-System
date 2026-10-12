@@ -185,7 +185,6 @@ export default function DevicesContainer() {
   function handleShowStuckChange(value: boolean) {
     updateFilters({
       stuckOnly: value,
-      statuses: null,
     });
   }
 

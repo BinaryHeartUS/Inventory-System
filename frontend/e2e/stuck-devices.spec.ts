@@ -60,27 +60,29 @@ test("keeps the stuck pill beside the model in the mobile layout", async ({ page
   expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
 });
 
-test("stuck filter clears a conflicting status filter", async ({ page }) => {
+test("stuck filter combines with the selected statuses", async ({ page }) => {
   await page.goto("/devices");
 
   const statusesButton = page.getByRole("button", { name: /^Statuses/ });
   await statusesButton.click();
-  await page.getByRole("checkbox", { name: "Donated" }).check();
   await page.getByRole("checkbox", { name: "Not Started" }).uncheck();
-  await page.getByRole("checkbox", { name: "In Progress" }).uncheck();
   await page.getByRole("checkbox", { name: "Ready To Donate" }).uncheck();
-  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("Donated");
-  await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
-  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("In Progress");
 
   await page.getByText("Stuck Devices Only", { exact: true }).click();
 
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
-  await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
   await expect(page.getByLabel("Device stuck")).toBeVisible();
-  await expect(statusesButton).toBeDisabled();
-  await expect(statusesButton).toContainText("3");
-  await expect.poll(() => new URL(page.url()).searchParams.has("statuses")).toBe(false);
+  await expect(statusesButton).toBeEnabled();
+  await expect(statusesButton).toContainText("1");
+  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("In Progress");
+
+  await statusesButton.click();
+  await page.getByRole("checkbox", { name: "Not Started" }).check();
+  await page.getByRole("checkbox", { name: "In Progress" }).uncheck();
+  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("Not Started");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect(page.getByText("No devices match the current filters.")).toBeVisible();
 });
 
 test("adding a note clears the stuck flag", async ({ page }) => {
