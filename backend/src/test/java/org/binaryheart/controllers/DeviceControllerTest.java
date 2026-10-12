@@ -164,8 +164,8 @@ class DeviceControllerTest {
 		expect(context.queryParam("sort")).andReturn("id");
 		expect(context.queryParam("dir")).andReturn("desc");
 		DeviceListRequest query = new DeviceListRequest("Dell", List.of("Desktop", "Laptop"),
-			List.of("Not Started", "Ready To Donate"), List.of("Windows 11", "Ubuntu"), true, true, 9, 10, "id",
-			"desc", 25, 50);
+			List.of("Not Started", "Ready To Donate"), List.of("Windows 11", "Ubuntu"), true, true, 9, 10, "id", "desc",
+			25, 50);
 		expect(service.getDevices(List.of(2), 2, query)).andReturn(List.of());
 		expectJson(context, 200, new GetDeviceResponse[0]);
 		replay(service, chapters, authorization, context);

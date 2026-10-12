@@ -214,8 +214,8 @@ public class DeviceRepository {
 
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
-			PreparedStatement stmt = conn.prepareStatement(
-				"SELECT * FROM Get_Devices_Page(?, ?, CAST(? AS TEXT[]), CAST(? AS Status[]), "
+			PreparedStatement stmt = conn
+				.prepareStatement("SELECT * FROM Get_Devices_Page(?, ?, CAST(? AS TEXT[]), CAST(? AS Status[]), "
 					+ "CAST(? AS TEXT[]), ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
