@@ -54,7 +54,7 @@ audit-web: ## Scan frontend production dependencies for vulnerabilities (npm aud
 	cd frontend && npm audit --omit=dev --audit-level=high
 
 test-java: ## Run backend unit tests
-	cd backend && mvn -ntp test
+	cd backend && mvn -B -ntp -U test
 
 test-web: ## Run frontend unit tests
 	cd frontend && npm test
