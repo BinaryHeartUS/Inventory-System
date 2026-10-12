@@ -100,6 +100,9 @@ test("model years can be filtered with inclusive open-ended bounds", async ({ pa
 
   const yearFrom = page.getByLabel("Model year from");
   const yearTo = page.getByLabel("Model year to");
+  const yearButton = page.getByRole("button", { name: "Year", exact: true });
+  await expect(yearFrom).toBeHidden();
+  await yearButton.click();
   await yearFrom.fill("2023");
 
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
@@ -108,6 +111,8 @@ test("model years can be filtered with inclusive open-ended bounds", async ({ pa
   await expect(page).toHaveURL(/\/devices$/);
 
   await page.reload();
+  await expect(yearFrom).toBeHidden();
+  await yearButton.click();
   await expect(yearFrom).toHaveValue("2023");
   await yearTo.fill("2023");
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
@@ -119,6 +124,13 @@ test("model years can be filtered with inclusive open-ended bounds", async ({ pa
   ).toBeVisible();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(yearFrom).toBeHidden();
+  await expect(yearButton).toBeFocused();
+  await yearButton.click();
+  await expect(yearFrom).toHaveValue("2024");
+  await page.getByRole("heading", { name: "Devices", exact: true }).click();
+  await expect(yearFrom).toBeHidden();
 });
 
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {

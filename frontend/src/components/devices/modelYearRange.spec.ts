@@ -17,9 +17,23 @@ describe("parseModelYearRange", () => {
     });
   });
 
+  it("accepts empty, equal, and boundary years", () => {
+    expect(parseModelYearRange("", "", 2026)).toEqual({
+      range: { yearFrom: null, yearTo: null },
+      error: null,
+    });
+    expect(parseModelYearRange("2024", "2024", 2026).range).toEqual({
+      yearFrom: 2024,
+      yearTo: 2024,
+    });
+    expect(parseModelYearRange("1980", "2026", 2026).error).toBeNull();
+  });
+
   it("rejects invalid and reversed ranges", () => {
     expect(parseModelYearRange("1979", "", 2026).range).toBeNull();
     expect(parseModelYearRange("", "2027", 2026).range).toBeNull();
     expect(parseModelYearRange("2025", "2024", 2026).range).toBeNull();
+    expect(parseModelYearRange("invalid", "", 2026).range).toBeNull();
+    expect(parseModelYearRange("2024.5", "", 2026).range).toBeNull();
   });
 });
