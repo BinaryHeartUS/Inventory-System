@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { formatBool, formatDate, formatId, formatMoney, formatNumber, formatPercent, formatText } from "./format";
+import {
+  formatBool,
+  formatDate,
+  formatId,
+  formatMoney,
+  formatNumber,
+  formatPercent,
+  formatText,
+} from "./format";
 
 describe("display formatters", () => {
   it("handles zero, true, null, and undefined consistently", () => {
