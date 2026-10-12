@@ -46,6 +46,33 @@ p {
   margin: 0;
 }
 
+@media (min-width: 640px) {
+  .device-list-scroll {
+    scrollbar-width: auto;
+  }
+
+  @supports (-moz-appearance: none) {
+    .device-list-scroll {
+      scrollbar-color: #94a3b8 #f1f5f9;
+    }
+  }
+
+  .device-list-scroll::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .device-list-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  .device-list-scroll::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border: 2px solid #f1f5f9;
+    border-radius: 6px;
+  }
+}
+
 /* ─── Prevent iOS auto-zoom on input focus ────────────────────────────────
  * Mobile Safari zooms the viewport in whenever a focused form control has a
  * font-size below 16px, and that zoom then persists after blur. Forcing a

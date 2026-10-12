@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import { saveDeviceFilterPreset } from "../devices/deviceFilterStorage";
 import type { ChapterInventorySummary, ChapterSummary } from "../../types/inventory";
 import PageHeading from "../PageHeading";
 
@@ -186,7 +187,8 @@ export default function ChaptersView({
                   <td className="px-4 py-5 text-right" data-label="">
                     <div className="flex items-center justify-end gap-4">
                       <Link
-                        to={`/devices?chapter=${encodeURIComponent(ch.name)}`}
+                        to="/devices"
+                        onClick={() => saveDeviceFilterPreset({ chapter: ch.id })}
                         className="text-sm font-semibold text-brand-red hover:text-brand-red-dark transition-colors"
                       >
                         View →

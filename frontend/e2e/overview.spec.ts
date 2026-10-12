@@ -1,14 +1,11 @@
 import { test, expect } from "./fixtures/test";
 import { authenticate, TEST_CHAPTER } from "./fixtures/real-api";
 import type { Page } from "@playwright/test";
+import { DEVICE_FILTER_STORAGE_KEY } from "../src/components/devices/deviceFilterStorage";
 
 async function selectTestChapter(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: TEST_CHAPTER.name }).click();
-}
-
-async function expectSearchParam(page: Page, name: string, value: string) {
-  await expect.poll(() => new URL(page.url()).searchParams.get(name)).toBe(value);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -35,16 +32,14 @@ test("dashboard pipeline metrics open chapter-filtered device lists", async ({ p
   await selectTestChapter(page);
   await page.getByRole("button").filter({ hasText: "Not Started" }).click();
 
-  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "status", "Not Started");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
 
   await selectTestChapter(page);
   await page.getByRole("button").filter({ hasText: "Donated" }).click();
 
-  await expectSearchParam(page, "status", "Donated");
-  await expectSearchParam(page, "includeDonated", "true");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
 });
 
@@ -52,19 +47,218 @@ test("dashboard device types open chapter-filtered device lists", async ({ page 
   await selectTestChapter(page);
   await page.getByRole("button").filter({ hasText: "Desktops" }).click();
 
-  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "type", "Desktop");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+});
+
+test("device types can be combined from the checklist", async ({ page }) => {
+  await page.goto("/devices");
+
+  const typesButton = page.getByRole("button", { name: /^Device Types/ });
+  await expect(typesButton).toContainText("3");
+  await typesButton.click();
+  await expect(page.getByRole("checkbox", { name: "Desktop" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Laptop" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Mobile Device" })).toBeChecked();
+
+  await page.getByRole("checkbox", { name: "Desktop" }).uncheck();
+  await page.getByRole("checkbox", { name: "Mobile Device" }).uncheck();
+  await expect(typesButton).toContainText("1");
+  await expect(page).toHaveURL(/\/devices$/);
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
+});
+
+test("operating systems can be combined with not specified", async ({ page }) => {
+  await page.goto("/devices");
+
+  const operatingSystemsButton = page.getByRole("button", { name: /^Operating Systems/ });
+  await expect(operatingSystemsButton).toContainText("3");
+  await operatingSystemsButton.click();
+  await expect(page.getByRole("checkbox", { name: "Ubuntu" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Windows 11" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Not specified" })).toBeChecked();
+
+  await page.getByRole("checkbox", { name: "Windows 11" }).uncheck();
+  await page.getByRole("checkbox", { name: "Not specified" }).uncheck();
+  await expect(operatingSystemsButton).toContainText("1");
+  await expect(page).toHaveURL(/\/devices$/);
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
+
+  await page.getByRole("checkbox", { name: "Not specified" }).check();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+
+  await page.getByRole("checkbox", { name: "Ubuntu" }).uncheck();
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+});
+
+test("model years can be filtered with inclusive open-ended bounds", async ({ page }) => {
+  await page.goto("/devices");
+
+  const yearFrom = page.getByLabel("Model year from");
+  const yearTo = page.getByLabel("Model year to");
+  const yearButton = page.getByRole("button", { name: "Year", exact: true });
+  await expect(yearFrom).toBeHidden();
+  await yearButton.click();
+  await yearFrom.fill("2023");
+
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
+  await expect(page).toHaveURL(/\/devices$/);
+
+  await page.reload();
+  await expect(yearFrom).toBeHidden();
+  await yearButton.click();
+  await expect(yearFrom).toHaveValue("2023");
+  await yearTo.fill("2023");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+
+  await yearFrom.fill("2024");
+  await expect(
+    page.getByText("The starting year cannot be later than the ending year.")
+  ).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(yearFrom).toBeHidden();
+  await expect(yearButton).toBeFocused();
+  await yearButton.click();
+  await expect(yearFrom).toHaveValue("2024");
+  await page.getByRole("heading", { name: "Devices", exact: true }).click();
+  await expect(yearFrom).toBeHidden();
+});
+
+test("acquisition dates support calendar selection, open bounds and persistence", async ({
+  page,
+}) => {
+  await page.goto("/devices");
+  const button = page.getByRole("button", { name: "Acquisition date", exact: true });
+  const from = page.getByLabel("Acquired from", { exact: true });
+  const to = page.getByLabel("Acquired to", { exact: true });
+  await expect(from).toBeHidden();
+  await button.click();
+  await from.fill("2025-12-01");
+  await to.fill("2026-01-15");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("2 matching devices", { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/devices$/);
+
+  await page.reload();
+  await button.click();
+  await expect(from).toHaveValue("2025-12-01");
+  await expect(to).toHaveValue("2026-01-15");
+  await to.fill("2025-12-01");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await from.fill("2026-01-15");
+  await expect(
+    page.getByText("The starting date cannot be later than the ending date.")
+  ).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await to.fill("");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
+
+  await from.fill("");
+  const dialog = page.getByRole("dialog", { name: "Acquisition date range" });
+  await dialog.getByRole("combobox", { name: /month/i }).selectOption("0");
+  await dialog.getByRole("combobox", { name: /year/i }).selectOption("2026");
+  await dialog.getByRole("button", { name: /January 15th, 2026/ }).click();
+  await dialog.getByRole("button", { name: /January 16th, 2026/ }).click();
+  await expect(from).toHaveValue("2026-01-15");
+  await expect(to).toHaveValue("2026-01-16");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
+  await page.screenshot({ path: "test-results/acquisition-date-desktop.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const box = await dialog.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(844 - 64);
+  const [scrollWidth, clientWidth] = await page
+    .locator("html")
+    .evaluate((element) => [element.scrollWidth, element.clientWidth]);
+  expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+  await page.screenshot({ path: "test-results/acquisition-date-mobile.png" });
+  await page.keyboard.press("Escape");
+  await expect(from).toBeHidden();
+  await page.getByRole("button", { name: "Clear filters" }).first().click();
+  await button.click();
+  await expect(from).toHaveValue("");
+  await expect(to).toHaveValue("");
+});
+
+test("range resets clear invalid drafts without clearing other filters", async ({ page }) => {
+  await page.goto("/devices");
+  const search = page.getByPlaceholder("ID, manufacturer, model, CPU…");
+  await search.fill("Framework");
+  const yearButton = page.getByRole("button", { name: "Year", exact: true });
+  const dateButton = page.getByRole("button", { name: "Acquisition date", exact: true });
+  const yearFrom = page.getByLabel("Model year from");
+  const yearTo = page.getByLabel("Model year to");
+  const from = page.getByLabel("Acquired from", { exact: true });
+  const to = page.getByLabel("Acquired to", { exact: true });
+
+  await dateButton.click();
+  await from.fill("2026-01-15");
+  await to.fill("2026-01-15");
+  await yearButton.click();
+  const yearReset = page
+    .getByRole("dialog", { name: "Year range" })
+    .getByRole("button", { name: "Reset range" });
+  await expect(yearReset).toBeDisabled();
+  await yearFrom.fill("2024");
+  await yearTo.fill("2024");
+  await yearFrom.fill("2025");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await yearReset.click();
+  await expect(yearFrom).toHaveValue("");
+  await expect(yearTo).toHaveValue("");
+  await expect(page.getByRole("alert")).toBeHidden();
+  await expect(yearReset).toBeDisabled();
+  await expect(search).toHaveValue("Framework");
+
+  await yearFrom.fill("2024");
+  await dateButton.click();
+  await expect(from).toHaveValue("2026-01-15");
+  await expect(to).toHaveValue("2026-01-15");
+  await from.fill("2026-01-16");
+  await expect(page.getByRole("alert")).toBeVisible();
+  const dateReset = page
+    .getByRole("dialog", { name: "Acquisition date range" })
+    .getByRole("button", { name: "Reset range" });
+  await dateReset.click();
+  await expect(from).toHaveValue("");
+  await expect(to).toHaveValue("");
+  await expect(page.getByRole("alert")).toBeHidden();
+  await expect(dateReset).toBeDisabled();
+  await expect(search).toHaveValue("Framework");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(search).toHaveValue("Framework");
+  await dateButton.click();
+  await expect(from).toHaveValue("");
+  await expect(to).toHaveValue("");
+  await yearButton.click();
+  await expect(yearFrom).toHaveValue("2024");
+  await expect(yearTo).toHaveValue("");
 });
 
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {
   await selectTestChapter(page);
   await page.getByRole("button", { name: /Stuck Devices/ }).click();
 
-  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "stuckOnly", "true");
-  await expect(page.getByRole("checkbox", { name: "Stuck Devices Only" })).toBeChecked();
+  await expect(page).toHaveURL(/\/devices$/);
+  await page.getByRole("button", { name: /^Statuses/ }).click();
+  await expect(page.getByRole("checkbox", { name: "Stuck only" })).toBeChecked();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
 });
@@ -75,12 +269,27 @@ test("devices can be filtered and opened", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Devices" })).toBeVisible();
   await expect(page.getByText("Framework", { exact: true })).toBeVisible();
   await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("Framework");
-  await expectSearchParam(page, "search", "Framework");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
 
   await page.getByText("Laptop 13", { exact: true }).click();
-  await expect(page).toHaveURL(/\/devices\/1001\?search=Framework$/);
+  await expect(page).toHaveURL(/\/devices\/1001$/);
+
+  await page.getByRole("main").getByRole("link", { name: "Devices" }).click();
+  await expect(page.getByPlaceholder("ID, manufacturer, model, CPU…")).toHaveValue("Framework");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
+
+  await page.reload();
+  await expect(page.getByPlaceholder("ID, manufacturer, model, CPU…")).toHaveValue("Framework");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Clear filters" }).first().click();
+  await expect(page.getByPlaceholder("ID, manufacturer, model, CPU…")).toHaveValue("");
+  await expect
+    .poll(() => page.evaluate((key) => sessionStorage.getItem(key), DEVICE_FILTER_STORAGE_KEY))
+    .toBeNull();
 });
 
 test("places the continuation marker after the matching-device count", async ({ page }) => {
@@ -98,9 +307,66 @@ test("places the continuation marker after the matching-device count", async ({ 
     await route.fulfill({ response, json: devices });
   });
 
-  await page.goto("/devices?search=bulk");
+  await page.goto("/devices");
+  await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("bulk");
 
   await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
+});
+
+test("device list keeps scrolling accessible while loading more rows", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.route(/\/api\/devices\?.*search=scroll-test/, async (route) => {
+    const requestUrl = new URL(route.request().url());
+    const pageKey = Number(requestUrl.searchParams.get("pageKey"));
+    requestUrl.searchParams.delete("search");
+    requestUrl.searchParams.set("pageKey", "0");
+    requestUrl.searchParams.set("pageSize", "1");
+    const response = await route.fetch({ url: requestUrl.toString() });
+    const [template] = (await response.json()) as Array<Record<string, unknown>>;
+    const devices = Array.from({ length: pageKey === 0 ? 50 : 1 }, (_, index) => ({
+      ...template,
+      id: 2000 + pageKey * 50 + index,
+      model: `Scroll Device ${pageKey * 50 + index + 1}`,
+    }));
+    await route.fulfill({ response, json: devices });
+  });
+  await page.goto("/devices");
+  await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("scroll-test");
+  await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
+  const list = page.getByRole("region", { name: "Device list", exact: true });
+  await list.scrollIntoViewIfNeeded();
+  const dimensions = await list.evaluate((element) => ({
+    width: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    height: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+  expect(dimensions.scrollWidth).toBeGreaterThan(dimensions.width);
+  expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.height);
+  expect(dimensions.height).toBeLessThanOrEqual(Math.ceil(768 * 0.6));
+  await list.focus();
+  await list.press("ArrowRight");
+  await expect.poll(() => list.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  await list.evaluate((element) => {
+    element.scrollLeft = 0;
+    element.scrollIntoView({ block: "end" });
+  });
+  const box = await list.boundingBox();
+  expect(box).not.toBeNull();
+  const thumbWidth = (dimensions.width * dimensions.width) / dimensions.scrollWidth;
+  await page.mouse.move(box!.x + thumbWidth / 2, box!.y + box!.height - 6);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + thumbWidth / 2 + 150, box!.y + box!.height - 6, { steps: 10 });
+  await page.mouse.up();
+  await expect.poll(() => list.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  await list.evaluate((element) => {
+    element.scrollLeft = element.scrollWidth;
+    element.scrollTop = element.scrollHeight;
+  });
+  await expect(page.getByText("51 matching devices", { exact: true })).toBeVisible();
+  await expect(page.getByText("Scroll Device 51", { exact: true })).toBeVisible();
+  await expect(list.getByRole("columnheader", { name: "Acquired" })).toBeVisible();
+  await page.screenshot({ path: "test-results/device-list-scroll-desktop.png" });
 });
 
 test("parts are grouped by type and open from an expanded group", async ({ page }) => {
