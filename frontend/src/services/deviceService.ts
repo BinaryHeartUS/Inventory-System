@@ -33,18 +33,23 @@ export interface DeviceListParams {
   pageKey: number;
   pageSize: number;
   search?: string;
-  /** "Desktop" | "Laptop" | "Tablet" */
-  type?: string;
-  /** Exact device status, e.g. "Not Started". */
-  status?: string;
+  /** Comma-separated device types: "Desktop", "Laptop", and "Tablet". */
+  types?: string;
+  /** Comma-separated exact device statuses. */
+  statuses?: string;
+  /** Comma-separated exact operating systems from the lookup endpoint. */
+  operatingSystems?: string;
+  includeUnspecifiedOperatingSystem?: boolean;
   /** Chapter id to restrict to (within the user's access). */
   chapter?: number;
-  includeDonated?: boolean;
-  includeSold?: boolean;
-  includeScrapped?: boolean;
   stuckOnly?: boolean;
   donorId?: number;
   recipientId?: number;
+  /** Inclusive model-year bounds. */
+  yearFrom?: number;
+  yearTo?: number;
+  acquiredFrom?: string;
+  acquiredTo?: string;
   /** Sort key matching DeviceList columns, e.g. "manufacturer". */
   sort?: string;
   dir?: "asc" | "desc";

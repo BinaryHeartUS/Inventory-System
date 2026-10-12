@@ -38,8 +38,6 @@ export default function PartyDetailContainer({ id }: PartyDetailContainerProps) 
           pageKey,
           pageSize,
           donorId: numId,
-          includeDonated: true,
-          includeScrapped: true,
         })
       ),
       fetchAllPages((pageKey, pageSize) =>
@@ -47,8 +45,6 @@ export default function PartyDetailContainer({ id }: PartyDetailContainerProps) 
           pageKey,
           pageSize,
           recipientId: numId,
-          includeDonated: true,
-          includeScrapped: true,
         })
       ),
       fetchAllPages((pageKey, pageSize) => getParts({ pageKey, pageSize, donorId: numId })),

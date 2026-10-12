@@ -154,24 +154,68 @@ class DeviceControllerTest {
 		expect(context.queryParam("pageKey")).andReturn("2");
 		expect(context.queryParam("chapter")).andReturn("2");
 		expect(context.queryParam("search")).andReturn("Dell");
-		expect(context.queryParam("type")).andReturn("desktop");
-		expect(context.queryParam("status")).andReturn("active");
-		expect(context.queryParam("includeDonated")).andReturn("true");
-		expect(context.queryParam("includeSold")).andReturn("false");
-		expect(context.queryParam("includeScrapped")).andReturn("false");
+		expect(context.queryParam("types")).andReturn("Desktop,Laptop");
+		expect(context.queryParam("statuses")).andReturn("Not Started,Ready To Donate");
+		expect(context.queryParam("operatingSystems")).andReturn("Windows 11, Ubuntu,Windows 11");
+		expect(context.queryParam("includeUnspecifiedOperatingSystem")).andReturn("true");
 		expect(context.queryParam("stuckOnly")).andReturn("true");
 		expect(context.queryParam("donorId")).andReturn("9");
 		expect(context.queryParam("recipientId")).andReturn("10");
+		expect(context.queryParam("yearFrom")).andReturn("2020");
+		expect(context.queryParam("yearTo")).andReturn("2024");
+		expect(context.queryParam("acquiredFrom")).andReturn("2025-01-01");
+		expect(context.queryParam("acquiredTo")).andReturn("2026-01-15");
 		expect(context.queryParam("sort")).andReturn("id");
 		expect(context.queryParam("dir")).andReturn("desc");
-		DeviceListRequest query = new DeviceListRequest("Dell", "desktop", "active", true, false, false, true, 9, 10,
-			"id", "desc", 25, 50);
+		DeviceListRequest query = new DeviceListRequest("Dell", List.of("Desktop", "Laptop"),
+			List.of("Not Started", "Ready To Donate"), List.of("Windows 11", "Ubuntu"), true, true, 9, 10, "id", "desc",
+			2020, 2024, LocalDate.of(2025, 1, 1), LocalDate.of(2026, 1, 15), 25, 50);
 		expect(service.getDevices(List.of(2), 2, query)).andReturn(List.of());
 		expectJson(context, 200, new GetDeviceResponse[0]);
 		replay(service, chapters, authorization, context);
 
 		new DeviceController(service, chapters, authorization).getAllDevices(context);
 
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deviceListRejectsReversedYearRange() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.queryParam("pageSize")).andReturn("25");
+		expect(context.queryParam("pageKey")).andReturn(null);
+		expect(context.queryParam("chapter")).andReturn(null);
+		expect(context.queryParam("yearFrom")).andReturn("2025");
+		expect(context.queryParam("yearTo")).andReturn("2024");
+		expectResult(context, 400, "yearFrom must be less than or equal to yearTo");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getAllDevices(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deviceListRejectsReversedAcquisitionRange() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.queryParam("pageSize")).andReturn("25");
+		expect(context.queryParam("pageKey")).andReturn(null);
+		expect(context.queryParam("chapter")).andReturn(null);
+		expect(context.queryParam("yearFrom")).andReturn(null);
+		expect(context.queryParam("yearTo")).andReturn(null);
+		expect(context.queryParam("acquiredFrom")).andReturn("2026-01-15");
+		expect(context.queryParam("acquiredTo")).andReturn("2025-12-01");
+		expectResult(context, 400, "acquiredFrom must be on or before acquiredTo");
+		replay(service, chapters, authorization, context);
+		new DeviceController(service, chapters, authorization).getAllDevices(context);
 		verify(service, chapters, authorization, context);
 	}
 

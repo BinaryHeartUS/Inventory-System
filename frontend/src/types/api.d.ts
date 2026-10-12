@@ -794,24 +794,30 @@ export interface paths {
                     pageKey?: number;
                     /** @description Free-text search matched against every device field (id, manufacturer, model, cpu, chapter, status, operating system, etc.). */
                     search?: string;
-                    /** @description Filter by device type: Desktop, Laptop or Tablet. */
-                    type?: string;
-                    /** @description Filter by exact status, e.g. 'Not Started', 'Ready To Donate', 'Donated'. */
-                    status?: string;
+                    /** @description Comma-separated device types: Desktop, Laptop and Tablet. */
+                    types?: string;
+                    /** @description Comma-separated exact statuses, e.g. 'Not Started,Ready To Donate'. */
+                    statuses?: string;
+                    /** @description Comma-separated exact operating systems from GET /api/lookup. */
+                    operatingSystems?: string;
+                    /** @description Include devices whose operating system is not specified. */
+                    includeUnspecifiedOperatingSystem?: boolean;
                     /** @description Restrict to a single chapter id (must be within the user's access). */
                     chapter?: number;
-                    /** @description Whether to include Donated devices. Defaults to true. */
-                    includeDonated?: boolean;
-                    /** @description Whether to include Sold devices. Defaults to true. */
-                    includeSold?: boolean;
-                    /** @description Whether to include Scrapped devices. Defaults to true. */
-                    includeScrapped?: boolean;
                     /** @description Return only stuck devices. Other supplied filters still apply. */
                     stuckOnly?: boolean;
                     /** @description Restrict to devices donated by this party id. */
                     donorId?: number;
                     /** @description Restrict to devices received by this party id. */
                     recipientId?: number;
+                    /** @description Minimum model year (inclusive). */
+                    yearFrom?: number;
+                    /** @description Maximum model year (inclusive). */
+                    yearTo?: number;
+                    /** @description Earliest acquisition date (inclusive), YYYY-MM-DD. */
+                    acquiredFrom?: string;
+                    /** @description Latest acquisition date (inclusive), YYYY-MM-DD. */
+                    acquiredTo?: string;
                     /** @description Sort column: id, type, manufacturer, model, year, cpu, operatingSystem, ram, storage, status, chapter or acquisitionDate. Defaults to id. */
                     sort?: string;
                     /** @description Sort direction: asc (default) or desc. */

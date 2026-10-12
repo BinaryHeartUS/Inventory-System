@@ -173,6 +173,14 @@ public class DeviceRepository {
 		return conn.createArrayOf("integer", ids.toArray());
 	}
 
+	private static Array toStatusSqlArray(List<String> statuses, Connection conn) throws SQLException {
+		return statuses == null ? null : conn.createArrayOf("status", statuses.toArray());
+	}
+
+	private static Array toTextSqlArray(List<String> values, Connection conn) throws SQLException {
+		return values == null ? null : conn.createArrayOf("text", values.toArray());
+	}
+
 	public GetDeviceResponse getDevice(int id) throws SQLException, DeviceNotFoundException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM Get_Device(?)")) {
@@ -206,22 +214,26 @@ public class DeviceRepository {
 
 	public List<GetDeviceResponse> getDevices(List<Integer> chapterIds, DeviceListRequest q) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
-			PreparedStatement stmt = conn.prepareStatement(
-				"SELECT * FROM Get_Devices_Page(?, ?, ?, CAST(? AS Status), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+			PreparedStatement stmt = conn
+				.prepareStatement("SELECT * FROM Get_Devices_Page(?, ?, CAST(? AS TEXT[]), CAST(? AS Status[]), "
+					+ "CAST(? AS TEXT[]), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS DATE), CAST(? AS DATE))")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
-			setStringOrNull(stmt, 3, q.type());
-			setStringOrNull(stmt, 4, q.status());
-			stmt.setBoolean(5, q.includeDonated());
-			stmt.setBoolean(6, q.includeSold());
-			stmt.setBoolean(7, q.includeScrapped());
-			stmt.setBoolean(8, q.stuckOnly());
-			setIntegerOrNull(stmt, 9, q.donorId());
-			setIntegerOrNull(stmt, 10, q.recipientId());
-			stmt.setString(11, q.sort() == null ? "id" : q.sort());
-			stmt.setString(12, q.dir() == null ? "asc" : q.dir());
-			setIntegerOrNull(stmt, 13, q.limit());
-			stmt.setInt(14, q.offset() == null ? 0 : q.offset());
+			stmt.setArray(3, toTextSqlArray(q.types(), conn));
+			stmt.setArray(4, toStatusSqlArray(q.statuses(), conn));
+			stmt.setArray(5, toTextSqlArray(q.operatingSystems(), conn));
+			stmt.setBoolean(6, q.includeUnspecifiedOperatingSystem());
+			stmt.setBoolean(7, q.stuckOnly());
+			setIntegerOrNull(stmt, 8, q.donorId());
+			setIntegerOrNull(stmt, 9, q.recipientId());
+			stmt.setString(10, q.sort() == null ? "id" : q.sort());
+			stmt.setString(11, q.dir() == null ? "asc" : q.dir());
+			setIntegerOrNull(stmt, 12, q.yearFrom());
+			setIntegerOrNull(stmt, 13, q.yearTo());
+			setIntegerOrNull(stmt, 14, q.limit());
+			stmt.setInt(15, q.offset() == null ? 0 : q.offset());
+			stmt.setObject(16, q.acquiredFrom());
+			stmt.setObject(17, q.acquiredTo());
 			ResultSet rs = stmt.executeQuery();
 			List<GetDeviceResponse> devices = new ArrayList<>();
 			while (rs.next()) {
