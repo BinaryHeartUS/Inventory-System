@@ -798,6 +798,10 @@ export interface paths {
                     types?: string;
                     /** @description Comma-separated exact statuses, e.g. 'Not Started,Ready To Donate'. */
                     statuses?: string;
+                    /** @description Comma-separated exact operating systems from GET /api/lookup. */
+                    operatingSystems?: string;
+                    /** @description Include devices whose operating system is not specified. */
+                    includeUnspecifiedOperatingSystem?: boolean;
                     /** @description Restrict to a single chapter id (must be within the user's access). */
                     chapter?: number;
                     /** @description Return only stuck devices. Other supplied filters still apply. */

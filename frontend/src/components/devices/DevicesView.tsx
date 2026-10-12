@@ -8,6 +8,7 @@ import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
 import type { DeviceType } from "./deviceFilters";
 import { StatusFilterMenu } from "./StatusFilterMenu";
 import { DeviceTypeFilterMenu } from "./DeviceTypeFilterMenu";
+import { OperatingSystemFilterMenu } from "./OperatingSystemFilterMenu";
 
 export interface DevicesViewProps {
   search: string;
@@ -16,6 +17,9 @@ export interface DevicesViewProps {
   onSelectedTypesChange: (types: DeviceType[]) => void;
   selectedStatuses: DeviceStatus[];
   onSelectedStatusesChange: (statuses: DeviceStatus[]) => void;
+  operatingSystemOptions: string[];
+  selectedOperatingSystems: string[];
+  onSelectedOperatingSystemsChange: (operatingSystems: string[]) => void;
   chapterFilter: number | "All";
   onChapterFilterChange: (value: number | "All") => void;
   showStuck: boolean;
@@ -38,6 +42,9 @@ export default function DevicesView({
   onSelectedTypesChange,
   selectedStatuses,
   onSelectedStatusesChange,
+  operatingSystemOptions,
+  selectedOperatingSystems,
+  onSelectedOperatingSystemsChange,
   chapterFilter,
   onChapterFilterChange,
   showStuck,
@@ -100,6 +107,12 @@ export default function DevicesView({
           />
 
           <DeviceTypeFilterMenu selected={selectedTypes} onChange={onSelectedTypesChange} />
+
+          <OperatingSystemFilterMenu
+            options={operatingSystemOptions}
+            selected={selectedOperatingSystems}
+            onChange={onSelectedOperatingSystemsChange}
+          />
 
           {hasFilters && (
             <button

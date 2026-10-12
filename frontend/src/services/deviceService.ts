@@ -37,6 +37,9 @@ export interface DeviceListParams {
   types?: string;
   /** Comma-separated exact device statuses. */
   statuses?: string;
+  /** Comma-separated exact operating systems from the lookup endpoint. */
+  operatingSystems?: string;
+  includeUnspecifiedOperatingSystem?: boolean;
   /** Chapter id to restrict to (within the user's access). */
   chapter?: number;
   stuckOnly?: boolean;

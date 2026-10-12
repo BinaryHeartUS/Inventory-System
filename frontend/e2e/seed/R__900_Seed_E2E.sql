@@ -80,7 +80,7 @@ INSERT INTO Device (
 VALUES
     (1001, 2, 'Laptop 13', 2024, 'Ryzen 7 7840U', 16, 2, 512, 2, 'In Progress', NULL, NULL, 1),
     (1002, 1, 'OptiPlex 7090', 2022, 'Core i5', 8, 1, 256, 1, 'Donated', 302, '2026-02-15', 2),
-    (1003, 3, 'ThinkCentre M90q', 2023, 'Core i5', 8, 1, 256, 1, 'Not Started', NULL, NULL, 2)
+    (1003, 3, 'ThinkCentre M90q', 2023, 'Core i5', 8, 1, 256, 1, 'Not Started', NULL, NULL, NULL)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO Laptop (ID, Includes_Charger)

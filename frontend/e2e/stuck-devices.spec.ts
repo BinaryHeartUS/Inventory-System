@@ -69,7 +69,7 @@ test("stuck filter combines with the selected statuses", async ({ page }) => {
   await page.getByRole("checkbox", { name: "Ready To Donate" }).uncheck();
   await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("In Progress");
 
-  await page.getByText("Stuck Devices Only", { exact: true }).click();
+  await page.getByRole("checkbox", { name: "Stuck only" }).check();
 
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Device stuck")).toBeVisible();

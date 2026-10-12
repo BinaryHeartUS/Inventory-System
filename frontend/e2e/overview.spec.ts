@@ -74,13 +74,40 @@ test("device types can be combined from the checklist", async ({ page }) => {
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
 });
 
+test("operating systems can be combined with not specified", async ({ page }) => {
+  await page.goto("/devices");
+
+  const operatingSystemsButton = page.getByRole("button", { name: /^Operating Systems/ });
+  await expect(operatingSystemsButton).toContainText("3");
+  await operatingSystemsButton.click();
+  await expect(page.getByRole("checkbox", { name: "Ubuntu" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Windows 11" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Not specified" })).toBeChecked();
+
+  await page.getByRole("checkbox", { name: "Windows 11" }).uncheck();
+  await page.getByRole("checkbox", { name: "Not specified" }).uncheck();
+  await expectSearchParam(page, "operatingSystems", "Ubuntu");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
+
+  await page.getByRole("checkbox", { name: "Not specified" }).check();
+  await expectSearchParam(page, "includeUnspecifiedOperatingSystem", "true");
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+
+  await page.getByRole("checkbox", { name: "Ubuntu" }).uncheck();
+  await expect.poll(() => new URL(page.url()).searchParams.get("operatingSystems")).toBeNull();
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+});
+
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {
   await selectTestChapter(page);
   await page.getByRole("button", { name: /Stuck Devices/ }).click();
 
   await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
   await expectSearchParam(page, "stuckOnly", "true");
-  await expect(page.getByRole("checkbox", { name: "Stuck Devices Only" })).toBeChecked();
+  await page.getByRole("button", { name: /^Statuses/ }).click();
+  await expect(page.getByRole("checkbox", { name: "Stuck only" })).toBeChecked();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
 });
