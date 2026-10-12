@@ -1,8 +1,5 @@
 import { FilterChecklistMenu } from "./FilterChecklistMenu";
-import {
-  hasDefaultOperatingSystems,
-  UNSPECIFIED_OPERATING_SYSTEM,
-} from "./operatingSystemFilters";
+import { hasDefaultOperatingSystems, UNSPECIFIED_OPERATING_SYSTEM } from "./operatingSystemFilters";
 
 interface OperatingSystemFilterMenuProps {
   options: string[];
