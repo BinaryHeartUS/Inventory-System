@@ -53,6 +53,31 @@ Before pushing, make sure the CI gate passes:
 npm run lint && npm run build && npm run format:check
 ```
 
+## Component Stories And Tests
+
+```bash
+npm run storybook          # interactive catalog at http://localhost:6006
+npm run build-storybook    # static catalog in storybook-static/
+npm run test:storybook     # Chromium story render and play-function tests
+npm test                  # unit specs and story tests together
+npm test -- --coverage    # component and pure-utility coverage in coverage/
+```
+
+Install Chromium with `npx playwright install chromium` when the browser runner is not available.
+Application components have a colocated `Component.stories.tsx` file. Export separate stories for
+display branches, empty/loading/error states, permissions, and interactions. Use typed fixture
+props and callback spies; do not mock services or intercept API requests. Router-dependent stories
+use a real `MemoryRouter`. Controlled form stories own local state so inputs remain interactive.
+
+Views that embed containers expose optional content or renderer props. Stories supply real
+presentational children through those props; application callers retain the existing container
+defaults. Shared fixtures, decorators, and interaction helpers live in `src/stories/`.
+
+`componentCoverage.spec.ts` fails when a component is missing its colocated story file.
+File presence is not a guarantee of complete branch coverage: use `play` assertions for callbacks
+and `*.spec.ts` for pure calculations, and inspect the coverage report for unexercised paths.
+The report covers components and their pure utilities, not backend code or container integration.
+
 ## Architecture: Container / Presentational / Page
 
 This codebase follows a strict three-layer separation. Every piece of UI belongs to exactly one
