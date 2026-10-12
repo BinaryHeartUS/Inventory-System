@@ -25,6 +25,17 @@ const meta = {
 } satisfies Meta<typeof SearchView>;
 export default meta;
 type Story = StoryObj<typeof meta>;
+export const SearchControls: Story = {
+  args: { query: "ThinkPad" },
+  play: async ({ canvas, args }) => {
+    await userEvent.type(canvas.getByRole("spinbutton"), "1");
+    await expect(args.onAssetIdChange).toHaveBeenCalledWith("1");
+    await userEvent.type(canvas.getByRole("textbox"), "A");
+    await expect(args.onQueryChange).toHaveBeenCalledWith("ThinkPadA");
+    await userEvent.click(canvas.getByRole("button", { name: "" }));
+    await expect(args.onQueryChange).toHaveBeenLastCalledWith("");
+  },
+};
 export const Empty: Story = {
   play: async ({ canvas }) => {
     await expect(canvas.getByText("Start typing to search across all inventory")).toBeVisible();
