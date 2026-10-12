@@ -43,6 +43,7 @@ export default defineConfig({
         ],
         test: {
           name: "storybook",
+          maxWorkers: 2,
           browser: {
             enabled: true,
             headless: true,
