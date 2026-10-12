@@ -52,9 +52,26 @@ test("dashboard device types open chapter-filtered device lists", async ({ page 
   await page.getByRole("button").filter({ hasText: "Desktops" }).click();
 
   await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "type", "Desktop");
+  await expectSearchParam(page, "types", "Desktop");
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+});
+
+test("device types can be combined from the checklist", async ({ page }) => {
+  await page.goto("/devices");
+
+  const typesButton = page.getByRole("button", { name: /^Device Types/ });
+  await expect(typesButton).toContainText("3");
+  await typesButton.click();
+  await expect(page.getByRole("checkbox", { name: "Desktop" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Laptop" })).toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Mobile Device" })).toBeChecked();
+
+  await page.getByRole("checkbox", { name: "Desktop" }).uncheck();
+  await page.getByRole("checkbox", { name: "Mobile Device" }).uncheck();
+  await expect.poll(() => new URL(page.url()).searchParams.get("types")).toBe("Laptop");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
 });
 
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {

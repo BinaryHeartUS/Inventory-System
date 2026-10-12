@@ -11,11 +11,14 @@ import {
   DEVICE_SORT_KEYS,
   DEFAULT_DEVICE_STATUSES,
   DEVICE_STATUS_OPTIONS,
-  type DeviceTypeFilter,
+  type DeviceType,
 } from "../components/devices/deviceFilters";
 
-function getTypeFilter(value: string | null): DeviceTypeFilter {
-  return DEVICE_TYPES.includes(value as DeviceTypeFilter) ? (value as DeviceTypeFilter) : "All";
+function getSelectedTypes(types: string | null): DeviceType[] {
+  if (types === null) return [...DEVICE_TYPES];
+  const requested = new Set(types.split(","));
+  const selected = DEVICE_TYPES.filter((type) => requested.has(type));
+  return selected.length > 0 ? selected : [...DEVICE_TYPES];
 }
 
 function getSelectedStatuses(statuses: string | null): DeviceStatus[] {
@@ -32,6 +35,10 @@ function hasDefaultStatuses(statuses: DeviceStatus[]): boolean {
   );
 }
 
+function hasDefaultTypes(types: DeviceType[]): boolean {
+  return types.length === DEVICE_TYPES.length && DEVICE_TYPES.every((type) => types.includes(type));
+}
+
 function getSortKey(value: string | null): SortKey {
   return DEVICE_SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : "id";
 }
@@ -44,7 +51,8 @@ export default function DevicesContainer() {
   const [searchParams, setSearchParams] = useSearchParams();
   const chapters = useVisibleChapters();
   const search = searchParams.get("search") ?? "";
-  const typeFilter = getTypeFilter(searchParams.get("type"));
+  const typesParam = searchParams.get("types");
+  const selectedTypes = useMemo(() => getSelectedTypes(typesParam), [typesParam]);
   const statusesParam = searchParams.get("statuses");
   const selectedStatuses = useMemo(() => getSelectedStatuses(statusesParam), [statusesParam]);
   const chapterParam = searchParams.get("chapter");
@@ -106,14 +114,14 @@ export default function DevicesContainer() {
         pageKey,
         pageSize,
         search: debouncedSearch || undefined,
-        type: typeFilter === "All" ? undefined : typeFilter,
+        types: selectedTypes.join(","),
         statuses: selectedStatuses.join(","),
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
         stuckOnly: showStuck,
         sort: sortKey,
         dir: sortDir,
       }),
-    [debouncedSearch, typeFilter, selectedStatuses, chapterFilter, showStuck, sortKey, sortDir]
+    [debouncedSearch, selectedTypes, selectedStatuses, chapterFilter, showStuck, sortKey, sortDir]
   );
 
   const {
@@ -123,7 +131,7 @@ export default function DevicesContainer() {
     sentinelRef,
   } = useInfiniteScroll<AnyDevice>(fetchPage, [
     debouncedSearch,
-    typeFilter,
+    selectedTypes,
     selectedStatuses,
     chapterFilter,
     showStuck,
@@ -133,14 +141,19 @@ export default function DevicesContainer() {
 
   const hasFilters =
     search !== "" ||
-    typeFilter !== "All" ||
+    !hasDefaultTypes(selectedTypes) ||
     !hasDefaultStatuses(selectedStatuses) ||
     chapterFilter !== "All" ||
     showStuck;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
-    if (showStuck || selectedStatuses.includes("Sold") || debouncedSearch || typeFilter !== "All")
+    if (
+      showStuck ||
+      selectedStatuses.includes("Sold") ||
+      debouncedSearch ||
+      !hasDefaultTypes(selectedTypes)
+    )
       return null;
     const rows =
       chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
@@ -158,7 +171,7 @@ export default function DevicesContainer() {
     summaryLoaded,
     summary,
     debouncedSearch,
-    typeFilter,
+    selectedTypes,
     selectedStatuses,
     chapterFilter,
     showStuck,
@@ -194,12 +207,18 @@ export default function DevicesContainer() {
     });
   }
 
+  function handleSelectedTypesChange(types: DeviceType[]) {
+    updateFilters({
+      types: hasDefaultTypes(types) ? null : types.join(","),
+    });
+  }
+
   return (
     <DevicesView
       search={search}
       onSearchChange={(value) => updateFilters({ search: value })}
-      typeFilter={typeFilter}
-      onTypeFilterChange={(value) => updateFilters({ type: value })}
+      selectedTypes={selectedTypes}
+      onSelectedTypesChange={handleSelectedTypesChange}
       selectedStatuses={selectedStatuses}
       onSelectedStatusesChange={handleSelectedStatusesChange}
       chapterFilter={chapterFilter}

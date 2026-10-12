@@ -1,7 +1,7 @@
 import type { DeviceStatus } from "../../types/inventory";
 
-export const DEVICE_TYPES = ["All", "Desktop", "Laptop", "Tablet"] as const;
-export type DeviceTypeFilter = (typeof DEVICE_TYPES)[number];
+export const DEVICE_TYPES = ["Desktop", "Laptop", "Tablet"] as const;
+export type DeviceType = (typeof DEVICE_TYPES)[number];
 
 export const DEVICE_SORT_KEYS = [
   "id",

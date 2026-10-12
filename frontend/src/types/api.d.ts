@@ -794,8 +794,8 @@ export interface paths {
                     pageKey?: number;
                     /** @description Free-text search matched against every device field (id, manufacturer, model, cpu, chapter, status, operating system, etc.). */
                     search?: string;
-                    /** @description Filter by device type: Desktop, Laptop or Tablet. */
-                    type?: string;
+                    /** @description Comma-separated device types: Desktop, Laptop and Tablet. */
+                    types?: string;
                     /** @description Comma-separated exact statuses, e.g. 'Not Started,Ready To Donate'. */
                     statuses?: string;
                     /** @description Restrict to a single chapter id (must be within the user's access). */

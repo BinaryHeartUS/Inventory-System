@@ -5,15 +5,15 @@ import { DeviceListContainer } from "../../containers/DeviceListContainer";
 import type { SortKey, SortDir } from "./DeviceList";
 import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
-import { DEVICE_TYPES, type DeviceTypeFilter } from "./deviceFilters";
-import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
+import type { DeviceType } from "./deviceFilters";
 import { StatusFilterMenu } from "./StatusFilterMenu";
+import { DeviceTypeFilterMenu } from "./DeviceTypeFilterMenu";
 
 export interface DevicesViewProps {
   search: string;
   onSearchChange: (value: string) => void;
-  typeFilter: DeviceTypeFilter;
-  onTypeFilterChange: (value: DeviceTypeFilter) => void;
+  selectedTypes: DeviceType[];
+  onSelectedTypesChange: (types: DeviceType[]) => void;
   selectedStatuses: DeviceStatus[];
   onSelectedStatusesChange: (statuses: DeviceStatus[]) => void;
   chapterFilter: number | "All";
@@ -34,8 +34,8 @@ export interface DevicesViewProps {
 export default function DevicesView({
   search,
   onSearchChange,
-  typeFilter,
-  onTypeFilterChange,
+  selectedTypes,
+  onSelectedTypesChange,
   selectedStatuses,
   onSelectedStatusesChange,
   chapterFilter,
@@ -94,6 +94,8 @@ export default function DevicesView({
 
           <StatusFilterMenu selected={selectedStatuses} onChange={onSelectedStatusesChange} />
 
+          <DeviceTypeFilterMenu selected={selectedTypes} onChange={onSelectedTypesChange} />
+
           <label
             className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
               showStuck
@@ -135,23 +137,6 @@ export default function DevicesView({
               Clear filters
             </button>
           )}
-        </div>
-
-        {/* Type pills */}
-        <div className="flex gap-1.5">
-          {DEVICE_TYPES.map((t) => (
-            <button
-              key={t}
-              onClick={() => onTypeFilterChange(t)}
-              className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
-                typeFilter === t
-                  ? "bg-brand-red text-white"
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700"
-              }`}
-            >
-              {t === "All" ? "All Types" : deviceTypeLabel(t)}
-            </button>
-          ))}
         </div>
       </div>
 

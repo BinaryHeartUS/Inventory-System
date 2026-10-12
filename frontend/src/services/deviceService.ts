@@ -33,8 +33,8 @@ export interface DeviceListParams {
   pageKey: number;
   pageSize: number;
   search?: string;
-  /** "Desktop" | "Laptop" | "Tablet" */
-  type?: string;
+  /** Comma-separated device types: "Desktop", "Laptop", and "Tablet". */
+  types?: string;
   /** Comma-separated exact device statuses. */
   statuses?: string;
   /** Chapter id to restrict to (within the user's access). */

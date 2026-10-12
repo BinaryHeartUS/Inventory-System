@@ -34,7 +34,7 @@ export default function DashboardContainer() {
       chartMonths={chartMonths}
       data={data}
       onStatusSelect={(status) => navigateToDevices({ statuses: status })}
-      onTypeSelect={(type) => navigateToDevices({ type })}
+      onTypeSelect={(type) => navigateToDevices({ types: type })}
       onStuckSelect={() => navigateToDevices({ stuckOnly: true })}
     />
   );
