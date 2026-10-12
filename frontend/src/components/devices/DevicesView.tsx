@@ -160,6 +160,15 @@ export default function DevicesView({
       {/* Device table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <DeviceListContainer
+          bounded
+          scrollFooter={
+            <>
+              <div ref={sentinelRef} className="h-1" aria-hidden="true" />
+              {loading && devices.length > 0 && (
+                <p className="py-4 text-center text-sm text-slate-400">Loading more devices…</p>
+              )}
+            </>
+          }
           devices={devices}
           sortKey={sortKey}
           sortDir={sortDir}
@@ -180,12 +189,6 @@ export default function DevicesView({
           }
         />
       </div>
-
-      {/* Infinite scroll sentinel */}
-      <div ref={sentinelRef} className="h-1" aria-hidden="true" />
-      {loading && devices.length > 0 && (
-        <p className="text-center text-sm text-slate-400 py-4">Loading more devices…</p>
-      )}
     </div>
   );
 }

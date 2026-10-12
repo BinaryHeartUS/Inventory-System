@@ -10,6 +10,8 @@ export function DeviceListContainer({
   sortKey,
   sortDir,
   onSort,
+  bounded,
+  scrollFooter,
 }: {
   devices: AnyDevice[];
   exclude?: string[];
@@ -18,6 +20,8 @@ export function DeviceListContainer({
   sortKey?: SortKey;
   sortDir?: SortDir;
   onSort?: (key: SortKey, dir: SortDir) => void;
+  bounded?: boolean;
+  scrollFooter?: React.ReactNode;
 }) {
   const navigate = useNavigate();
   return (
@@ -29,6 +33,8 @@ export function DeviceListContainer({
       sortKey={sortKey}
       sortDir={sortDir}
       onSort={onSort}
+      bounded={bounded}
+      scrollFooter={scrollFooter}
     />
   );
 }

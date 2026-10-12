@@ -313,6 +313,62 @@ test("places the continuation marker after the matching-device count", async ({ 
   await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
 });
 
+test("device list keeps scrolling accessible while loading more rows", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.route(/\/api\/devices\?.*search=scroll-test/, async (route) => {
+    const requestUrl = new URL(route.request().url());
+    const pageKey = Number(requestUrl.searchParams.get("pageKey"));
+    requestUrl.searchParams.delete("search");
+    requestUrl.searchParams.set("pageKey", "0");
+    requestUrl.searchParams.set("pageSize", "1");
+    const response = await route.fetch({ url: requestUrl.toString() });
+    const [template] = (await response.json()) as Array<Record<string, unknown>>;
+    const devices = Array.from({ length: pageKey === 0 ? 50 : 1 }, (_, index) => ({
+      ...template,
+      id: 2000 + pageKey * 50 + index,
+      model: `Scroll Device ${pageKey * 50 + index + 1}`,
+    }));
+    await route.fulfill({ response, json: devices });
+  });
+  await page.goto("/devices");
+  await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("scroll-test");
+  await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
+  const list = page.getByRole("region", { name: "Device list", exact: true });
+  await list.scrollIntoViewIfNeeded();
+  const dimensions = await list.evaluate((element) => ({
+    width: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    height: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+  expect(dimensions.scrollWidth).toBeGreaterThan(dimensions.width);
+  expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.height);
+  expect(dimensions.height).toBeLessThanOrEqual(Math.ceil(768 * 0.6));
+  await list.focus();
+  await list.press("ArrowRight");
+  await expect.poll(() => list.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  await list.evaluate((element) => {
+    element.scrollLeft = 0;
+    element.scrollIntoView({ block: "end" });
+  });
+  const box = await list.boundingBox();
+  expect(box).not.toBeNull();
+  const thumbWidth = (dimensions.width * dimensions.width) / dimensions.scrollWidth;
+  await page.mouse.move(box!.x + thumbWidth / 2, box!.y + box!.height - 6);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + thumbWidth / 2 + 150, box!.y + box!.height - 6, { steps: 10 });
+  await page.mouse.up();
+  await expect.poll(() => list.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  await list.evaluate((element) => {
+    element.scrollLeft = element.scrollWidth;
+    element.scrollTop = element.scrollHeight;
+  });
+  await expect(page.getByText("51 matching devices", { exact: true })).toBeVisible();
+  await expect(page.getByText("Scroll Device 51", { exact: true })).toBeVisible();
+  await expect(list.getByRole("columnheader", { name: "Acquired" })).toBeVisible();
+  await page.screenshot({ path: "test-results/device-list-scroll-desktop.png" });
+});
+
 test("parts are grouped by type and open from an expanded group", async ({ page }) => {
   await page.goto("/parts");
 
