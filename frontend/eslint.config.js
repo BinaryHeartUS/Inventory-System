@@ -29,5 +29,9 @@ export default defineConfig([
       globals: globals.node,
     },
   },
+  {
+    files: ["src/stories/**/*.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
+  },
   ...storybook.configs["flat/recommended"],
 ]);

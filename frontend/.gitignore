@@ -26,3 +26,4 @@ src/types/api.generated.ts
 
 *storybook.log
 storybook-static
+coverage
