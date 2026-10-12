@@ -118,8 +118,7 @@ public class AccountService {
 		}
 		// Chapter Admins can manage local Chapter Admins, but never global Admins.
 		return repository.getVolunteersForChapters(requesterChapterIds).stream()
-			.filter(a -> a.chapterRoles().stream().noneMatch(cr -> "Admin".equals(cr.role())))
-			.toList();
+			.filter(a -> a.chapterRoles().stream().noneMatch(cr -> "Admin".equals(cr.role()))).toList();
 	}
 
 	/**

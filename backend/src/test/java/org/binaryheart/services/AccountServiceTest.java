@@ -72,8 +72,9 @@ class AccountServiceTest {
 		replay(repository, authRepository, chapters, passwords);
 		AccountService service = new AccountService(repository, authRepository, chapters, passwords);
 
-		AccountSummary created = service.createAccount(new CreateAccountRequest("Name", "user", "password", 2, "Chapter Admin"),
-			"Chapter Admin", List.of(new ChapterRole(2, "Chapter Admin")));
+		AccountSummary created = service.createAccount(
+			new CreateAccountRequest("Name", "user", "password", 2, "Chapter Admin"), "Chapter Admin",
+			List.of(new ChapterRole(2, "Chapter Admin")));
 
 		assertEquals(List.of(new ChapterRole(2, "Chapter Admin")), created.chapterRoles());
 
@@ -243,8 +244,7 @@ class AccountServiceTest {
 		AccountService service = new AccountService(repository, authRepository, chapters, passwords);
 		List<ChapterRole> adminRoles = List.of(new ChapterRole(2, "Chapter Admin"));
 
-		service.updateAffiliation(8, 2, new UpdateAffiliationRequest("Chapter Admin"), 7, "Chapter Admin",
-			adminRoles);
+		service.updateAffiliation(8, 2, new UpdateAffiliationRequest("Chapter Admin"), 7, "Chapter Admin", adminRoles);
 
 		verify(repository, authRepository, chapters, passwords);
 	}
