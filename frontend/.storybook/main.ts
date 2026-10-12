@@ -9,7 +9,7 @@ const config: StorybookConfig = {
     ...config,
     optimizeDeps: {
       ...config.optimizeDeps,
-      include: [...(config.optimizeDeps?.include ?? []), "react-router", "recharts", "react-day-picker"],
+      include: [...(config.optimizeDeps?.include ?? []), "react-router", "recharts", "react-day-picker", "jsbarcode", "jspdf", "@mmote/niimbluelib"],
     },
   }),
 };

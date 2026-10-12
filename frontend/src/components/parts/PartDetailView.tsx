@@ -1,5 +1,6 @@
 import type { AnyDevice, Part, PartySummary, ChapterSummary } from "../../types/inventory";
 import type { PartChangelogEntry } from "../../types/changelog";
+import type { DetailViewContent } from "../DetailViewContent";
 import NotesPaneContainer from "../../containers/NotesPaneContainer";
 import { PrintLabelModalContainer } from "../../containers/PrintLabelModalContainer";
 import { DevicePickerModalContainer } from "../../containers/DevicePickerModalContainer";
@@ -18,6 +19,7 @@ import { ModificationModal } from "../ModificationModal";
 import { buildPartFields } from "../../utils/changelogFields";
 
 export interface PartDetailViewProps {
+  content?: DetailViewContent;
   part: Part;
   editing: boolean;
   form: Part | null;
@@ -59,6 +61,7 @@ export interface PartDetailViewProps {
 }
 
 export default function PartDetailView({
+  content,
   part,
   editing,
   form,
@@ -102,19 +105,19 @@ export default function PartDetailView({
 
   return (
     <>
-      <UnsavedChangesGuard when={isDirty} />
-      {printId !== null && <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />}
+      {content?.unsavedChangesGuard ?? <UnsavedChangesGuard when={isDirty} />}
+      {printId !== null && (content?.printModal ?? <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />)}
       {partyPickerOpen && (
-        <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
+        content?.partyPicker ?? <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
       )}
       {devicePickerOpen && (
-        <DevicePickerModalContainer onSelect={onSelectDevice} onCancel={onCancelDevicePicker} />
+        content?.devicePicker ?? <DevicePickerModalContainer onSelect={onSelectDevice} onCancel={onCancelDevicePicker} />
       )}
       <div className="space-y-5">
         {/* Breadcrumb + Add Asset */}
         <div className="flex items-center justify-between">
           <Breadcrumb backHref="/parts" backLabel="Parts" current={part.type} />
-          <AddAssetButtonContainer />
+          {content?.addAssetButton ?? <AddAssetButtonContainer />}
         </div>
 
         {/* Header */}
@@ -424,7 +427,7 @@ export default function PartDetailView({
           </div>
 
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
-            <NotesPaneContainer assetId={part.id} />
+            {content?.notesPane ?? <NotesPaneContainer assetId={part.id} />}
           </div>
         </div>
 

@@ -2,6 +2,8 @@ import PageHeading from "../PageHeading";
 import PartySectionContainer from "../../containers/PartySectionContainer";
 
 export interface ManagePartiesViewProps {
+  individualsSection?: React.ReactNode;
+  organizationsSection?: React.ReactNode;
   individualsKey: number;
   orgsKey: number;
   onRefreshIndividuals: () => void;
@@ -9,6 +11,8 @@ export interface ManagePartiesViewProps {
 }
 
 export default function ManagePartiesView({
+  individualsSection,
+  organizationsSection,
   individualsKey,
   orgsKey,
   onRefreshIndividuals,
@@ -20,12 +24,12 @@ export default function ManagePartiesView({
         title="Manage Parties"
         subtitle="Create and edit individuals and organizations that serve as donors or recipients."
       />
-      <PartySectionContainer
+      {individualsSection ?? <PartySectionContainer
         kind="individuals"
         refreshKey={individualsKey}
         onRefresh={onRefreshIndividuals}
-      />
-      <PartySectionContainer kind="organizations" refreshKey={orgsKey} onRefresh={onRefreshOrgs} />
+      />}
+      {organizationsSection ?? <PartySectionContainer kind="organizations" refreshKey={orgsKey} onRefresh={onRefreshOrgs} />}
     </div>
   );
 }
