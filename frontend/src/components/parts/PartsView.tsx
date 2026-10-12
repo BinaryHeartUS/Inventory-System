@@ -67,7 +67,9 @@ export default function PartsView({
       </div>
 
       {/* Chapter filter */}
-      {chapterFilterControl ?? <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />}
+      {chapterFilterControl ?? (
+        <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />
+      )}
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
@@ -192,7 +194,11 @@ export default function PartsView({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {renderTypeRows ? renderTypeRows(type, filters) : <PartTypeRowsContainer type={type} filters={filters} />}
+                        {renderTypeRows ? (
+                          renderTypeRows(type, filters)
+                        ) : (
+                          <PartTypeRowsContainer type={type} filters={filters} />
+                        )}
                       </tbody>
                     </table>
                   </div>

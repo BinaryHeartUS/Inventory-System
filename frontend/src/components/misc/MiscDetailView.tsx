@@ -70,9 +70,10 @@ export default function MiscDetailView({
   return (
     <>
       {content?.unsavedChangesGuard ?? <UnsavedChangesGuard when={isDirty} />}
-      {partyPickerOpen && (
-        content?.partyPicker ?? <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
-      )}
+      {partyPickerOpen &&
+        (content?.partyPicker ?? (
+          <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
+        ))}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <Breadcrumb backHref="/search" backLabel="Search" current={asset.description} />

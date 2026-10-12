@@ -48,7 +48,9 @@ export default function ReportsView({
       <PageHeading title="Reports" subtitle="Export inventory data and view summary statistics" />
 
       {/* Chapter filter */}
-      {chapterFilter ?? <ChapterFilterContainer selected={selectedChapter} onChange={onChapterChange} />}
+      {chapterFilter ?? (
+        <ChapterFilterContainer selected={selectedChapter} onChange={onChapterChange} />
+      )}
 
       {/* Summary stats */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">

@@ -24,12 +24,20 @@ export default function ManagePartiesView({
         title="Manage Parties"
         subtitle="Create and edit individuals and organizations that serve as donors or recipients."
       />
-      {individualsSection ?? <PartySectionContainer
-        kind="individuals"
-        refreshKey={individualsKey}
-        onRefresh={onRefreshIndividuals}
-      />}
-      {organizationsSection ?? <PartySectionContainer kind="organizations" refreshKey={orgsKey} onRefresh={onRefreshOrgs} />}
+      {individualsSection ?? (
+        <PartySectionContainer
+          kind="individuals"
+          refreshKey={individualsKey}
+          onRefresh={onRefreshIndividuals}
+        />
+      )}
+      {organizationsSection ?? (
+        <PartySectionContainer
+          kind="organizations"
+          refreshKey={orgsKey}
+          onRefresh={onRefreshOrgs}
+        />
+      )}
     </div>
   );
 }
