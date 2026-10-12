@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.javalin.http.Context;
+import java.time.LocalDate;
 import org.binaryheart.exceptions.BadArgumentException;
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +66,27 @@ class QueryParamUtilTest {
 
 		assertEquals(false, QueryParamUtil.boolParam(context, "flag", true));
 
+		verify(context);
+	}
+
+	@Test
+	void dateParamParsesDateOnlyValue() throws Exception {
+		Context context = queryContext("date", "2024-02-29");
+		assertEquals(LocalDate.of(2024, 2, 29), QueryParamUtil.dateParam(context, "date"));
+		verify(context);
+	}
+
+	@Test
+	void dateParamAcceptsBlankEndpoint() throws Exception {
+		Context context = queryContext("date", "");
+		assertNull(QueryParamUtil.dateParam(context, "date"));
+		verify(context);
+	}
+
+	@Test
+	void dateParamRejectsImpossibleDate() {
+		Context context = queryContext("date", "2025-02-29");
+		assertThrows(BadArgumentException.class, () -> QueryParamUtil.dateParam(context, "date"));
 		verify(context);
 	}
 

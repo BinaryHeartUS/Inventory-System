@@ -1,55 +1,72 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router";
 import type { AnyDevice, DeviceStatus, ChapterInventorySummary } from "../types/inventory";
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
-import { useVisibleChapters } from "../context/ChapterContext";
 import type { SortKey, SortDir } from "../components/devices/DeviceList";
 import DevicesView from "../components/devices/DevicesView";
+import { useLookups } from "../hooks/useLookups";
+import {
+  getOperatingSystemFilterParams,
+  hasDefaultOperatingSystems,
+  UNSPECIFIED_OPERATING_SYSTEM,
+} from "../components/devices/operatingSystemFilters";
 import {
   DEVICE_TYPES,
-  DEVICE_SORT_KEYS,
-  STATUS_OPTIONS,
-  type DeviceTypeFilter,
+  DEFAULT_DEVICE_STATUSES,
+  type DeviceType,
 } from "../components/devices/deviceFilters";
+import {
+  clearDeviceFilters,
+  createDeviceFilters,
+  loadDeviceFilters,
+  saveDeviceFilters,
+  type DeviceFilters,
+} from "../components/devices/deviceFilterStorage";
+import { parseModelYearRange } from "../components/devices/modelYearRange";
+import { parseAcquisitionDateRange } from "../components/devices/acquisitionDateRange";
 
-function getTypeFilter(value: string | null): DeviceTypeFilter {
-  return DEVICE_TYPES.includes(value as DeviceTypeFilter) ? (value as DeviceTypeFilter) : "All";
+function hasDefaultStatuses(statuses: DeviceStatus[]): boolean {
+  return (
+    statuses.length === DEFAULT_DEVICE_STATUSES.length &&
+    DEFAULT_DEVICE_STATUSES.every((status) => statuses.includes(status))
+  );
 }
 
-function getStatusFilter(value: string | null): DeviceStatus | "All" {
-  return STATUS_OPTIONS.includes(value as DeviceStatus | "All")
-    ? (value as DeviceStatus | "All")
-    : "All";
-}
-
-function getSortKey(value: string | null): SortKey {
-  return DEVICE_SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : "id";
-}
-
-function getSortDir(value: string | null): SortDir {
-  return value === "desc" ? "desc" : "asc";
+function hasDefaultTypes(types: DeviceType[]): boolean {
+  return types.length === DEVICE_TYPES.length && DEVICE_TYPES.every((type) => types.includes(type));
 }
 
 export default function DevicesContainer() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const chapters = useVisibleChapters();
-  const search = searchParams.get("search") ?? "";
-  const typeFilter = getTypeFilter(searchParams.get("type"));
-  const statusFilter = getStatusFilter(searchParams.get("status"));
-  const chapterParam = searchParams.get("chapter");
-  const chapterId = Number(chapterParam);
-  const chapterFilter: number | "All" = chapterParam
-    ? Number.isInteger(chapterId) && chapterId > 0
-      ? chapterId
-      : (chapters.find((chapter) => chapter.name === chapterParam)?.id ?? "All")
-    : "All";
-  const showDonated = searchParams.get("includeDonated") === "true";
-  const showSold = searchParams.get("includeSold") === "true";
-  const showScrapped = searchParams.get("includeScrapped") === "true";
-  const showStuck = searchParams.get("stuckOnly") === "true";
-  const sortKey = getSortKey(searchParams.get("sort"));
-  const sortDir = getSortDir(searchParams.get("dir"));
+  const lookups = useLookups();
+  const [filters, setFilters] = useState(loadDeviceFilters);
+  const {
+    search,
+    types: selectedTypes,
+    statuses: selectedStatuses,
+    chapter: chapterFilter,
+    stuckOnly: showStuck,
+    yearFrom,
+    yearTo,
+    acquiredFrom,
+    acquiredTo,
+    sort: sortKey,
+    dir: sortDir,
+  } = filters;
+  const selectedOperatingSystems = useMemo(
+    () => filters.operatingSystems ?? [...lookups.operatingSystems, UNSPECIFIED_OPERATING_SYSTEM],
+    [filters.operatingSystems, lookups.operatingSystems]
+  );
+  const operatingSystemParams = useMemo(
+    () => getOperatingSystemFilterParams(selectedOperatingSystems, lookups.operatingSystems),
+    [selectedOperatingSystems, lookups.operatingSystems]
+  );
+  const hasOperatingSystemFilter = filters.operatingSystems !== null;
+  const [yearFromInput, setYearFromInput] = useState(yearFrom?.toString() ?? "");
+  const [yearToInput, setYearToInput] = useState(yearTo?.toString() ?? "");
+  const [yearError, setYearError] = useState<string | null>(null);
+  const [acquiredFromInput, setAcquiredFromInput] = useState(acquiredFrom ?? "");
+  const [acquiredToInput, setAcquiredToInput] = useState(acquiredTo ?? "");
+  const [acquisitionError, setAcquisitionError] = useState<string | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [summaryLoaded, setSummaryLoaded] = useState(false);
@@ -73,25 +90,13 @@ export default function DevicesContainer() {
     };
   }, []);
 
-  const updateFilters = useCallback(
-    (updates: Record<string, string | number | boolean | null>) => {
-      setSearchParams(
-        (current) => {
-          const next = new URLSearchParams(current);
-          for (const [key, value] of Object.entries(updates)) {
-            if (value === null || value === false || value === "" || value === "All") {
-              next.delete(key);
-            } else {
-              next.set(key, String(value));
-            }
-          }
-          return next;
-        },
-        { replace: true }
-      );
-    },
-    [setSearchParams]
-  );
+  const updateFilters = useCallback((updates: Partial<DeviceFilters>) => {
+    setFilters((current) => {
+      const next = { ...current, ...updates };
+      saveDeviceFilters(next);
+      return next;
+    });
+  }, []);
 
   const fetchPage = useCallback(
     (pageKey: number, pageSize: number) =>
@@ -99,25 +104,30 @@ export default function DevicesContainer() {
         pageKey,
         pageSize,
         search: debouncedSearch || undefined,
-        type: typeFilter === "All" ? undefined : typeFilter,
-        status: statusFilter === "All" ? undefined : statusFilter,
+        types: selectedTypes.join(","),
+        statuses: selectedStatuses.join(","),
+        operatingSystems: operatingSystemParams.operatingSystems,
+        includeUnspecifiedOperatingSystem: operatingSystemParams.includeUnspecifiedOperatingSystem,
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
-        includeDonated: showDonated || statusFilter === "Donated",
-        includeSold: showSold || statusFilter === "Sold",
-        includeScrapped: showScrapped || statusFilter === "Scrapped",
         stuckOnly: showStuck,
+        yearFrom: yearFrom ?? undefined,
+        yearTo: yearTo ?? undefined,
+        acquiredFrom: acquiredFrom ?? undefined,
+        acquiredTo: acquiredTo ?? undefined,
         sort: sortKey,
         dir: sortDir,
       }),
     [
       debouncedSearch,
-      typeFilter,
-      statusFilter,
+      selectedTypes,
+      selectedStatuses,
+      operatingSystemParams,
       chapterFilter,
-      showDonated,
-      showSold,
-      showScrapped,
       showStuck,
+      yearFrom,
+      yearTo,
+      acquiredFrom,
+      acquiredTo,
       sortKey,
       sortDir,
     ]
@@ -130,48 +140,70 @@ export default function DevicesContainer() {
     sentinelRef,
   } = useInfiniteScroll<AnyDevice>(fetchPage, [
     debouncedSearch,
-    typeFilter,
-    statusFilter,
+    selectedTypes,
+    selectedStatuses,
+    operatingSystemParams,
     chapterFilter,
-    showDonated,
-    showSold,
-    showScrapped,
     showStuck,
+    yearFrom,
+    yearTo,
+    acquiredFrom,
+    acquiredTo,
     sortKey,
     sortDir,
   ]);
 
   const hasFilters =
     search !== "" ||
-    typeFilter !== "All" ||
-    statusFilter !== "All" ||
+    !hasDefaultTypes(selectedTypes) ||
+    !hasDefaultStatuses(selectedStatuses) ||
+    hasOperatingSystemFilter ||
     chapterFilter !== "All" ||
-    showDonated ||
-    showSold ||
-    showScrapped ||
-    showStuck;
+    showStuck ||
+    yearFrom !== null ||
+    yearTo !== null ||
+    acquiredFrom !== null ||
+    acquiredTo !== null;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
-    if (showStuck || showSold || debouncedSearch || typeFilter !== "All" || statusFilter !== "All")
+    if (
+      showStuck ||
+      yearFrom !== null ||
+      yearTo !== null ||
+      acquiredFrom !== null ||
+      acquiredTo !== null ||
+      hasOperatingSystemFilter ||
+      selectedStatuses.includes("Sold") ||
+      debouncedSearch ||
+      !hasDefaultTypes(selectedTypes)
+    )
       return null;
     const rows =
       chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
-    let total = rows.reduce((sum, r) => sum + r.notStarted + r.inProgress + r.readyToDonate, 0);
-    if (showDonated) total += rows.reduce((sum, r) => sum + r.donated, 0);
-    if (showScrapped) total += rows.reduce((sum, r) => sum + r.scrapped, 0);
-    return total;
+    return rows.reduce(
+      (sum, row) =>
+        sum +
+        (selectedStatuses.includes("Not Started") ? row.notStarted : 0) +
+        (selectedStatuses.includes("In Progress") ? row.inProgress : 0) +
+        (selectedStatuses.includes("Ready To Donate") ? row.readyToDonate : 0) +
+        (selectedStatuses.includes("Donated") ? row.donated : 0) +
+        (selectedStatuses.includes("Scrapped") ? row.scrapped : 0),
+      0
+    );
   }, [
     summaryLoaded,
     summary,
     debouncedSearch,
-    typeFilter,
-    statusFilter,
+    selectedTypes,
+    selectedStatuses,
+    hasOperatingSystemFilter,
     chapterFilter,
-    showDonated,
-    showSold,
-    showScrapped,
     showStuck,
+    yearFrom,
+    yearTo,
+    acquiredFrom,
+    acquiredTo,
   ]);
 
   const deviceSubtitle =
@@ -182,44 +214,81 @@ export default function DevicesContainer() {
         : `${devices.length} device${devices.length !== 1 ? "s" : ""}`;
 
   function clearFilters() {
-    setSearchParams({}, { replace: true });
+    clearDeviceFilters();
+    setFilters(createDeviceFilters());
+    setYearFromInput("");
+    setYearToInput("");
+    setYearError(null);
+    setAcquiredFromInput("");
+    setAcquiredToInput("");
+    setAcquisitionError(null);
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
-    updateFilters({
-      sort: key === "id" ? null : key,
-      dir: dir === "asc" ? null : dir,
-    });
+    updateFilters({ sort: key, dir });
   }
 
   function handleShowStuckChange(value: boolean) {
     updateFilters({
       stuckOnly: value,
-      status: value ? null : statusFilter,
-      includeDonated: value ? null : showDonated,
-      includeSold: value ? null : showSold,
-      includeScrapped: value ? null : showScrapped,
     });
+  }
+
+  function handleSelectedStatusesChange(statuses: DeviceStatus[]) {
+    updateFilters({ statuses });
+  }
+
+  function handleSelectedTypesChange(types: DeviceType[]) {
+    updateFilters({ types });
+  }
+
+  function handleSelectedOperatingSystemsChange(operatingSystems: string[]) {
+    updateFilters({
+      operatingSystems: hasDefaultOperatingSystems(operatingSystems, lookups.operatingSystems)
+        ? null
+        : operatingSystems,
+    });
+  }
+
+  function handleYearRangeChange(from: string, to: string) {
+    setYearFromInput(from);
+    setYearToInput(to);
+    const result = parseModelYearRange(from, to);
+    setYearError(result.error);
+    if (result.range) updateFilters(result.range);
+  }
+
+  function handleAcquisitionRangeChange(from: string, to: string) {
+    setAcquiredFromInput(from);
+    setAcquiredToInput(to);
+    const result = parseAcquisitionDateRange(from, to);
+    setAcquisitionError(result.error);
+    if (result.range) updateFilters(result.range);
   }
 
   return (
     <DevicesView
       search={search}
       onSearchChange={(value) => updateFilters({ search: value })}
-      typeFilter={typeFilter}
-      onTypeFilterChange={(value) => updateFilters({ type: value })}
-      statusFilter={statusFilter}
-      onStatusFilterChange={(value) => updateFilters({ status: value })}
+      selectedTypes={selectedTypes}
+      onSelectedTypesChange={handleSelectedTypesChange}
+      selectedStatuses={selectedStatuses}
+      onSelectedStatusesChange={handleSelectedStatusesChange}
+      operatingSystemOptions={lookups.operatingSystems}
+      selectedOperatingSystems={selectedOperatingSystems}
+      onSelectedOperatingSystemsChange={handleSelectedOperatingSystemsChange}
       chapterFilter={chapterFilter}
       onChapterFilterChange={(value) => updateFilters({ chapter: value })}
-      showDonated={showDonated}
-      onShowDonatedChange={(value) => updateFilters({ includeDonated: value })}
-      showSold={showSold}
-      onShowSoldChange={(value) => updateFilters({ includeSold: value })}
-      showScrapped={showScrapped}
-      onShowScrappedChange={(value) => updateFilters({ includeScrapped: value })}
       showStuck={showStuck}
       onShowStuckChange={handleShowStuckChange}
+      yearFrom={yearFromInput}
+      yearTo={yearToInput}
+      yearError={yearError}
+      onYearRangeChange={handleYearRangeChange}
+      acquiredFrom={acquiredFromInput}
+      acquiredTo={acquiredToInput}
+      acquisitionError={acquisitionError}
+      onAcquisitionRangeChange={handleAcquisitionRangeChange}
       sortKey={sortKey}
       sortDir={sortDir}
       onSort={handleSort}

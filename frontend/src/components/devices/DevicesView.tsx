@@ -4,29 +4,36 @@ import PageHeading from "../PageHeading";
 import { DeviceListContainer } from "../../containers/DeviceListContainer";
 import type { SortKey, SortDir } from "./DeviceList";
 import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
-import FilterSelect from "../FilterSelect";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
-import { DEVICE_TYPES, STATUS_OPTIONS, type DeviceTypeFilter } from "./deviceFilters";
-import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
-import { ArchivedDevicesMenu } from "./ArchivedDevicesMenu";
+import type { DeviceType } from "./deviceFilters";
+import { StatusFilterMenu } from "./StatusFilterMenu";
+import { DeviceTypeFilterMenu } from "./DeviceTypeFilterMenu";
+import { OperatingSystemFilterMenu } from "./OperatingSystemFilterMenu";
+import { ModelYearFilter } from "./ModelYearFilter";
+import { AcquisitionDateFilter } from "./AcquisitionDateFilter";
 
 export interface DevicesViewProps {
   search: string;
   onSearchChange: (value: string) => void;
-  typeFilter: DeviceTypeFilter;
-  onTypeFilterChange: (value: DeviceTypeFilter) => void;
-  statusFilter: DeviceStatus | "All";
-  onStatusFilterChange: (value: DeviceStatus | "All") => void;
+  selectedTypes: DeviceType[];
+  onSelectedTypesChange: (types: DeviceType[]) => void;
+  selectedStatuses: DeviceStatus[];
+  onSelectedStatusesChange: (statuses: DeviceStatus[]) => void;
+  operatingSystemOptions: string[];
+  selectedOperatingSystems: string[];
+  onSelectedOperatingSystemsChange: (operatingSystems: string[]) => void;
   chapterFilter: number | "All";
   onChapterFilterChange: (value: number | "All") => void;
-  showDonated: boolean;
-  onShowDonatedChange: (value: boolean) => void;
-  showSold: boolean;
-  onShowSoldChange: (value: boolean) => void;
-  showScrapped: boolean;
-  onShowScrappedChange: (value: boolean) => void;
   showStuck: boolean;
   onShowStuckChange: (value: boolean) => void;
+  yearFrom: string;
+  yearTo: string;
+  yearError: string | null;
+  onYearRangeChange: (from: string, to: string) => void;
+  acquiredFrom: string;
+  acquiredTo: string;
+  acquisitionError: string | null;
+  onAcquisitionRangeChange: (from: string, to: string) => void;
   sortKey: SortKey;
   sortDir: SortDir;
   onSort: (key: SortKey, dir: SortDir) => void;
@@ -41,20 +48,25 @@ export interface DevicesViewProps {
 export default function DevicesView({
   search,
   onSearchChange,
-  typeFilter,
-  onTypeFilterChange,
-  statusFilter,
-  onStatusFilterChange,
+  selectedTypes,
+  onSelectedTypesChange,
+  selectedStatuses,
+  onSelectedStatusesChange,
+  operatingSystemOptions,
+  selectedOperatingSystems,
+  onSelectedOperatingSystemsChange,
   chapterFilter,
   onChapterFilterChange,
-  showDonated,
-  onShowDonatedChange,
-  showSold,
-  onShowSoldChange,
-  showScrapped,
-  onShowScrappedChange,
   showStuck,
   onShowStuckChange,
+  yearFrom,
+  yearTo,
+  yearError,
+  onYearRangeChange,
+  acquiredFrom,
+  acquiredTo,
+  acquisitionError,
+  onAcquisitionRangeChange,
   sortKey,
   sortDir,
   onSort,
@@ -105,61 +117,34 @@ export default function DevicesView({
             />
           </div>
 
-          <FilterSelect
-            value={statusFilter}
-            disabled={showStuck}
-            className={showStuck ? "opacity-50 cursor-not-allowed" : ""}
-            onChange={(e) => onStatusFilterChange(e.target.value as DeviceStatus | "All")}
-          >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s === "All" ? "All Statuses" : s}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <ArchivedDevicesMenu
-            includeDonated={showDonated}
-            onIncludeDonatedChange={onShowDonatedChange}
-            includeSold={showSold}
-            onIncludeSoldChange={onShowSoldChange}
-            includeScrapped={showScrapped}
-            onIncludeScrappedChange={onShowScrappedChange}
-            disabled={showStuck}
+          <StatusFilterMenu
+            selected={selectedStatuses}
+            onChange={onSelectedStatusesChange}
+            showStuck={showStuck}
+            onShowStuckChange={onShowStuckChange}
           />
 
-          <label
-            className={`flex w-full sm:w-auto items-center gap-2 text-sm px-3 py-2 rounded-lg border cursor-pointer select-none transition-all ${
-              showStuck
-                ? "bg-amber-50 border-amber-300 text-amber-800 font-medium"
-                : "bg-white border-slate-200 text-slate-600 hover:border-amber-300"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={showStuck}
-              onChange={(e) => onShowStuckChange(e.target.checked)}
-              className="sr-only"
-            />
-            <span
-              className={`w-4 h-4 rounded flex items-center justify-center border transition-all flex-shrink-0 ${
-                showStuck ? "bg-amber-500 border-amber-500" : "border-slate-300"
-              }`}
-            >
-              {showStuck && (
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M1.5 5l2.5 2.5 4.5-4.5"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </span>
-            Stuck Devices Only
-          </label>
+          <DeviceTypeFilterMenu selected={selectedTypes} onChange={onSelectedTypesChange} />
+
+          <OperatingSystemFilterMenu
+            options={operatingSystemOptions}
+            selected={selectedOperatingSystems}
+            onChange={onSelectedOperatingSystemsChange}
+          />
+
+          <ModelYearFilter
+            from={yearFrom}
+            to={yearTo}
+            error={yearError}
+            onChange={onYearRangeChange}
+          />
+
+          <AcquisitionDateFilter
+            from={acquiredFrom}
+            to={acquiredTo}
+            error={acquisitionError}
+            onChange={onAcquisitionRangeChange}
+          />
 
           {hasFilters && (
             <button
@@ -170,28 +155,20 @@ export default function DevicesView({
             </button>
           )}
         </div>
-
-        {/* Type pills */}
-        <div className="flex gap-1.5">
-          {DEVICE_TYPES.map((t) => (
-            <button
-              key={t}
-              onClick={() => onTypeFilterChange(t)}
-              className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all ${
-                typeFilter === t
-                  ? "bg-brand-red text-white"
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700"
-              }`}
-            >
-              {t === "All" ? "All Types" : deviceTypeLabel(t)}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Device table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <DeviceListContainer
+          bounded
+          scrollFooter={
+            <>
+              <div ref={sentinelRef} className="h-1" aria-hidden="true" />
+              {loading && devices.length > 0 && (
+                <p className="py-4 text-center text-sm text-slate-400">Loading more devices…</p>
+              )}
+            </>
+          }
           devices={devices}
           sortKey={sortKey}
           sortDir={sortDir}
@@ -212,12 +189,6 @@ export default function DevicesView({
           }
         />
       </div>
-
-      {/* Infinite scroll sentinel */}
-      <div ref={sentinelRef} className="h-1" aria-hidden="true" />
-      {loading && devices.length > 0 && (
-        <p className="text-center text-sm text-slate-400 py-4">Loading more devices…</p>
-      )}
     </div>
   );
 }

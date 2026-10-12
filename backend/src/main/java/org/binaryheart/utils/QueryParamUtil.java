@@ -1,6 +1,8 @@
 package org.binaryheart.utils;
 
 import io.javalin.http.Context;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import org.binaryheart.exceptions.BadArgumentException;
 
 public final class QueryParamUtil {
@@ -31,6 +33,17 @@ public final class QueryParamUtil {
 			return Integer.parseInt(raw.trim());
 		} catch (NumberFormatException e) {
 			throw new BadArgumentException(name + " must be an integer: " + raw);
+		}
+	}
+
+	public static LocalDate dateParam(Context ctx, String name) throws BadArgumentException {
+		String raw = stringParam(ctx, name);
+		if (raw == null)
+			return null;
+		try {
+			return LocalDate.parse(raw);
+		} catch (DateTimeParseException e) {
+			throw new BadArgumentException(name + " must be a valid date in YYYY-MM-DD format");
 		}
 	}
 

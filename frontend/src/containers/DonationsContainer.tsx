@@ -21,8 +21,7 @@ export default function DonationsContainer() {
       getDevices({
         pageKey,
         pageSize,
-        status: "Donated",
-        includeDonated: true,
+        statuses: "Donated",
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
       }),
     [chapterFilter]

@@ -51,7 +51,7 @@ jobs:
           cache: maven
 
       - name: Run backend unit tests
-        run: mvn -B -ntp test
+        run: mvn -B -ntp -U test
 
   frontend-build:
     name: Frontend Build

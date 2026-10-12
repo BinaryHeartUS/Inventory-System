@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import type { AnyDevice } from "../../types/inventory";
 import { renderDeviceRow, DEVICE_TABLE_HEADERS } from "../../utils/deviceUtils";
 import { DEVICE_SORT_KEYS } from "./deviceFilters";
@@ -114,6 +114,8 @@ export function DeviceList({
   sortKey: sortKeyProp,
   sortDir: sortDirProp,
   onSort,
+  bounded = false,
+  scrollFooter,
 }: {
   devices: AnyDevice[];
   exclude?: string[];
@@ -122,6 +124,8 @@ export function DeviceList({
   sortKey?: SortKey;
   sortDir?: SortDir;
   onSort?: (key: SortKey, dir: SortDir) => void;
+  bounded?: boolean;
+  scrollFooter?: ReactNode;
 }) {
   const controlled = onSort !== undefined;
   const [internalSortKey, setInternalSortKey] = useState<SortKey | null>("id");
@@ -151,9 +155,14 @@ export function DeviceList({
   }, [devices, sortKey, sortDir, controlled]);
 
   return (
-    <div className="overflow-x-auto">
+    <div
+      className={bounded ? "device-list-scroll overflow-auto sm:max-h-[60vh]" : "overflow-x-auto"}
+      role={bounded ? "region" : undefined}
+      aria-label={bounded ? "Device list" : undefined}
+      tabIndex={bounded ? 0 : undefined}
+    >
       <table className="w-full text-sm responsive-cards">
-        <thead>
+        <thead className={bounded ? "sm:sticky sm:top-0 sm:z-10" : undefined}>
           <tr className="bg-slate-50 border-b border-slate-100">
             {visibleHeaders.map((h) => {
               const sortable = !!HEADER_SORT[h];
@@ -191,6 +200,7 @@ export function DeviceList({
           )}
         </tbody>
       </table>
+      {scrollFooter && <div className="sticky left-0">{scrollFooter}</div>}
     </div>
   );
 }

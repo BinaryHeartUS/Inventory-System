@@ -7,18 +7,21 @@ DROP FUNCTION IF EXISTS Get_Devices_Page;
 CREATE OR REPLACE FUNCTION Get_Devices_Page(
     p_chapter_ids INTEGER[] DEFAULT NULL,
     p_search TEXT DEFAULT NULL,
-    p_type TEXT DEFAULT NULL,
-    p_status STATUS DEFAULT NULL,
-    p_include_donated BOOLEAN DEFAULT TRUE,
-    p_include_sold BOOLEAN DEFAULT TRUE,
-    p_include_scrapped BOOLEAN DEFAULT TRUE,
+    p_types TEXT[] DEFAULT NULL,
+    p_statuses STATUS[] DEFAULT NULL,
+    p_operating_systems TEXT[] DEFAULT NULL,
+    p_include_unspecified_operating_system BOOLEAN DEFAULT FALSE,
     p_stuck_only BOOLEAN DEFAULT FALSE,
     p_donor_id INTEGER DEFAULT NULL,
     p_recipient_id INTEGER DEFAULT NULL,
     p_sort TEXT DEFAULT 'id',
     p_dir TEXT DEFAULT 'asc',
+    p_year_from INTEGER DEFAULT NULL,
+    p_year_to INTEGER DEFAULT NULL,
     p_limit INTEGER DEFAULT NULL,
-    p_offset INTEGER DEFAULT 0
+    p_offset INTEGER DEFAULT 0,
+    p_acquired_from DATE DEFAULT NULL,
+    p_acquired_to DATE DEFAULT NULL
 )
 RETURNS TABLE (
     type VARCHAR(10),
@@ -80,14 +83,20 @@ BEGIN
         AS sort_key
     ) AS k
     WHERE (p_chapter_ids IS NULL OR gd.chapter_id = ANY(p_chapter_ids))
-      AND (p_type IS NULL OR gd.type = p_type)
-      AND (p_status IS NULL OR gd.status = p_status)
-      AND (p_status IS NOT NULL OR p_include_donated OR gd.status <> 'Donated')
-      AND (p_status IS NOT NULL OR p_include_sold OR gd.status <> 'Sold')
-      AND (p_status IS NOT NULL OR p_include_scrapped OR gd.status <> 'Scrapped')
+      AND (p_types IS NULL OR gd.type = ANY(p_types))
+      AND (p_statuses IS NULL OR gd.status = ANY(p_statuses))
+      AND (
+        (p_operating_systems IS NULL AND NOT p_include_unspecified_operating_system)
+        OR gd.operating_system = ANY(p_operating_systems)
+        OR (p_include_unspecified_operating_system AND gd.operating_system IS NULL)
+      )
       AND (NOT p_stuck_only OR gd.device_stuck)
       AND (p_donor_id IS NULL OR gd.donor_id = p_donor_id)
       AND (p_recipient_id IS NULL OR gd.recipient_id = p_recipient_id)
+      AND (p_year_from IS NULL OR gd.year >= p_year_from)
+      AND (p_year_to IS NULL OR gd.year <= p_year_to)
+      AND (p_acquired_from IS NULL OR gd.acquisition_date >= p_acquired_from)
+      AND (p_acquired_to IS NULL OR gd.acquisition_date <= p_acquired_to)
       AND (p_search IS NULL OR p_search = '' OR gd::text ILIKE '%' || p_search || '%')
     ORDER BY
       CASE WHEN p_dir <> 'desc' THEN k.sort_key END ASC NULLS LAST,

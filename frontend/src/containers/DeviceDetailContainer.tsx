@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router";
 import type { AnyDevice, DeviceStatus, Part, PartySummary } from "../types/inventory";
 import type { DeviceChangelogEntry } from "../types/changelog";
 import { getDevice, updateDevice, getDeviceChangelog } from "../services/deviceService";
@@ -20,8 +19,7 @@ interface DeviceDetailContainerProps {
 
 export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps) {
   const numId = Number(id);
-  const location = useLocation();
-  const deviceListHref = `/devices${location.search}`;
+  const deviceListHref = "/devices";
   const { auth } = useAuth();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
