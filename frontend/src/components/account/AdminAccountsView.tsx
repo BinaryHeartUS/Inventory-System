@@ -20,6 +20,7 @@ export interface CreateAccountPayload {
 }
 
 export interface AdminAccountsViewProps {
+  renderEditPanel?: (account: AccountSummary, onClose: () => void, onDeleted: () => void) => React.ReactNode;
   isAdmin: boolean;
   canManage: boolean;
   groups: AccountGroup[];
@@ -35,6 +36,7 @@ export interface AdminAccountsViewProps {
 }
 
 export default function AdminAccountsView({
+  renderEditPanel,
   isAdmin,
   canManage,
   groups,
@@ -397,6 +399,10 @@ export default function AdminAccountsView({
                           {expandedId === account.id && canManage && (
                             <tr className="rc-raw">
                               <td colSpan={colCount} className="p-0 rc-raw">
+                                {renderEditPanel ? renderEditPanel(account, () => setExpandedId(null), () => {
+                                  setExpandedId(null);
+                                  onReload();
+                                }) :
                                 <AccountEditPanelContainer
                                   account={account}
                                   assignableRoles={assignableRoles}
@@ -409,7 +415,7 @@ export default function AdminAccountsView({
                                     setExpandedId(null);
                                     onReload();
                                   }}
-                                />
+                                />}
                               </td>
                             </tr>
                           )}

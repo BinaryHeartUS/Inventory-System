@@ -8,6 +8,7 @@ import type {
 } from "../../types/inventory";
 import type { DeviceChangelogEntry } from "../../types/changelog";
 import type { LookupData } from "../../hooks/useLookups";
+import type { DetailViewContent } from "../DetailViewContent";
 import StatusBadge from "../StatusBadge";
 import NotesPaneContainer from "../../containers/NotesPaneContainer";
 import { PrintLabelModalContainer } from "../../containers/PrintLabelModalContainer";
@@ -31,6 +32,8 @@ import { DeviceStuckBadge } from "./DeviceStuckBadge";
 import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
 
 export interface DeviceDetailViewProps {
+  content?: DetailViewContent;
+  renderPartRow?: (part: Part, onUnlink: () => void) => React.ReactNode;
   device: AnyDevice;
   backHref: string;
   editing: boolean;
@@ -77,6 +80,8 @@ export interface DeviceDetailViewProps {
 }
 
 export default function DeviceDetailView({
+  content,
+  renderPartRow,
   device,
   backHref,
   editing,
@@ -125,12 +130,13 @@ export default function DeviceDetailView({
 
   return (
     <>
-      <UnsavedChangesGuard when={isDirty} />
-      {printId !== null && <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />}
+      {content?.unsavedChangesGuard ?? <UnsavedChangesGuard when={isDirty} />}
+      {printId !== null && (content?.printModal ?? <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />)}
       {partyPickerOpen && (
-        <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
+        content?.partyPicker ?? <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
       )}
       {recipientPickerOpen && (
+        content?.recipientPicker ??
         <PartyPickerModalContainer
           onSelect={onSelectRecipient}
           onCancel={onCancelRecipientPicker}
@@ -154,7 +160,7 @@ export default function DeviceDetailView({
             backLabel="Devices"
             current={`${device.manufacturer} ${device.model}`}
           />
-          <AddAssetButtonContainer />
+          {content?.addAssetButton ?? <AddAssetButtonContainer />}
         </div>
 
         {/* Header */}
@@ -669,6 +675,7 @@ export default function DeviceDetailView({
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {linkedParts.map((p) => (
+                        renderPartRow ? renderPartRow(p, () => onUnlinkPart(p)) :
                         <PartRowContainer
                           key={p.id}
                           part={p}
@@ -699,11 +706,11 @@ export default function DeviceDetailView({
 
           {/* Right: sticky notes pane */}
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
-            <NotesPaneContainer
+            {content?.notesPane ?? <NotesPaneContainer
               assetId={device.id}
               readOnly={editLock}
               readOnlyReason={viewerLock ? "viewer" : "donated"}
-            />
+            />}
           </div>
         </div>
 

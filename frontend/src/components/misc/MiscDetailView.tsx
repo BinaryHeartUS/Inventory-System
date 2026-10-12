@@ -1,5 +1,6 @@
 import type { Misc, PartySummary } from "../../types/inventory";
 import type { MiscChangelogEntry } from "../../types/changelog";
+import type { DetailViewContent } from "../DetailViewContent";
 import NotesPaneContainer from "../../containers/NotesPaneContainer";
 import { PartyPickerModalContainer } from "../../containers/PartyPickerModalContainer";
 import UnsavedChangesGuard from "../../containers/UnsavedChangesGuard";
@@ -16,6 +17,7 @@ import { formatDate } from "../../utils/dateUtils";
 import { inputCls, labelCls } from "../../utils/formStyles";
 
 export default function MiscDetailView({
+  content,
   asset,
   editing,
   form,
@@ -39,6 +41,7 @@ export default function MiscDetailView({
   onShowDeleteConfirm,
   onCancelDelete,
 }: {
+  content?: DetailViewContent;
   asset: Misc;
   editing: boolean;
   form: Misc | null;
@@ -66,14 +69,14 @@ export default function MiscDetailView({
 
   return (
     <>
-      <UnsavedChangesGuard when={isDirty} />
+      {content?.unsavedChangesGuard ?? <UnsavedChangesGuard when={isDirty} />}
       {partyPickerOpen && (
-        <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
+        content?.partyPicker ?? <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
       )}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <Breadcrumb backHref="/search" backLabel="Search" current={asset.description} />
-          <AddAssetButtonContainer />
+          {content?.addAssetButton ?? <AddAssetButtonContainer />}
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl px-5 py-5 sm:px-8 sm:py-6">
@@ -201,7 +204,7 @@ export default function MiscDetailView({
             />
           </div>
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
-            <NotesPaneContainer assetId={asset.id} />
+            {content?.notesPane ?? <NotesPaneContainer assetId={asset.id} />}
           </div>
         </div>
 

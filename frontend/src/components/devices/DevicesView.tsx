@@ -13,6 +13,8 @@ import { ModelYearFilter } from "./ModelYearFilter";
 import { AcquisitionDateFilter } from "./AcquisitionDateFilter";
 
 export interface DevicesViewProps {
+  chapterFilterControl?: React.ReactNode;
+  addAssetButton?: React.ReactNode;
   search: string;
   onSearchChange: (value: string) => void;
   selectedTypes: DeviceType[];
@@ -46,6 +48,8 @@ export interface DevicesViewProps {
 }
 
 export default function DevicesView({
+  chapterFilterControl,
+  addAssetButton,
   search,
   onSearchChange,
   selectedTypes,
@@ -82,12 +86,12 @@ export default function DevicesView({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading title="Devices" subtitle={deviceSubtitle} />
         <div className="flex justify-end">
-          <AddAssetButtonContainer className="w-full sm:w-auto" />
+          {addAssetButton ?? <AddAssetButtonContainer className="w-full sm:w-auto" />}
         </div>
       </div>
 
       {/* Chapter filter */}
-      <ChapterFilterContainer selected={chapterFilter} onChange={onChapterFilterChange} />
+      {chapterFilterControl ?? <ChapterFilterContainer selected={chapterFilter} onChange={onChapterFilterChange} />}
 
       {/* Filter bar */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">

@@ -6,6 +6,9 @@ import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
 
 export interface ToolsViewProps {
+  chapterFilterControl?: React.ReactNode;
+  addAssetButton?: React.ReactNode;
+  renderRow?: (tool: Tool) => React.ReactNode;
   tools: Tool[];
   loading: boolean;
   sentinelRef: RefObject<HTMLDivElement | null>;
@@ -18,6 +21,9 @@ export interface ToolsViewProps {
 }
 
 export default function ToolsView({
+  chapterFilterControl,
+  addAssetButton,
+  renderRow,
   tools,
   loading,
   sentinelRef,
@@ -40,12 +46,12 @@ export default function ToolsView({
           }
         />
         <div className="flex justify-end">
-          <AddAssetButtonContainer className="w-full sm:w-auto" />
+          {addAssetButton ?? <AddAssetButtonContainer className="w-full sm:w-auto" />}
         </div>
       </div>
 
       {/* Chapter filter */}
-      <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />
+      {chapterFilterControl ?? <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />}
 
       {/* Table */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -76,7 +82,7 @@ export default function ToolsView({
                   </td>
                 </tr>
               ) : (
-                tools.map((t) => <ToolRowContainer key={t.id} tool={t} />)
+                tools.map((t) => renderRow ? renderRow(t) : <ToolRowContainer key={t.id} tool={t} />)
               )}
             </tbody>
           </table>
