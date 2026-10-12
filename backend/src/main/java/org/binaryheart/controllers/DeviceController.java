@@ -657,7 +657,7 @@ public class DeviceController {
 				@OpenApiParam(
 					name = "types",
 					required = false,
-					description = "Comma-separated device types: Desktop, Laptop and Tablet."),
+					description = "Comma-separated device types: Desktop, Laptop, and Tablet."),
 				@OpenApiParam(
 					name = "statuses",
 					required = false,
