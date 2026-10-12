@@ -35,13 +35,10 @@ export interface DeviceListParams {
   search?: string;
   /** "Desktop" | "Laptop" | "Tablet" */
   type?: string;
-  /** Exact device status, e.g. "Not Started". */
-  status?: string;
+  /** Comma-separated exact device statuses. */
+  statuses?: string;
   /** Chapter id to restrict to (within the user's access). */
   chapter?: number;
-  includeDonated?: boolean;
-  includeSold?: boolean;
-  includeScrapped?: boolean;
   stuckOnly?: boolean;
   donorId?: number;
   recipientId?: number;

@@ -18,12 +18,17 @@ export const DEVICE_SORT_KEYS = [
   "acquisitionDate",
 ] as const;
 
-export const STATUS_OPTIONS: Array<DeviceStatus | "All"> = [
-  "All",
+export const DEVICE_STATUS_OPTIONS: DeviceStatus[] = [
   "Not Started",
   "In Progress",
   "Ready To Donate",
   "Donated",
   "Sold",
   "Scrapped",
+];
+
+export const DEFAULT_DEVICE_STATUSES: DeviceStatus[] = [
+  "Not Started",
+  "In Progress",
+  "Ready To Donate",
 ];

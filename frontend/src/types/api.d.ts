@@ -796,16 +796,10 @@ export interface paths {
                     search?: string;
                     /** @description Filter by device type: Desktop, Laptop or Tablet. */
                     type?: string;
-                    /** @description Filter by exact status, e.g. 'Not Started', 'Ready To Donate', 'Donated'. */
-                    status?: string;
+                    /** @description Comma-separated exact statuses, e.g. 'Not Started,Ready To Donate'. */
+                    statuses?: string;
                     /** @description Restrict to a single chapter id (must be within the user's access). */
                     chapter?: number;
-                    /** @description Whether to include Donated devices. Defaults to true. */
-                    includeDonated?: boolean;
-                    /** @description Whether to include Sold devices. Defaults to true. */
-                    includeSold?: boolean;
-                    /** @description Whether to include Scrapped devices. Defaults to true. */
-                    includeScrapped?: boolean;
                     /** @description Return only stuck devices. Other supplied filters still apply. */
                     stuckOnly?: boolean;
                     /** @description Restrict to devices donated by this party id. */

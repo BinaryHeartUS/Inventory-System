@@ -89,8 +89,6 @@ export default function ReportsContainer() {
         pageKey,
         pageSize,
         chapter: selectedChapterId,
-        includeDonated: true,
-        includeScrapped: true,
       })
     );
   const loadParts = () =>

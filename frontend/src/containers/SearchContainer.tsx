@@ -48,8 +48,6 @@ export default function SearchContainer() {
               pageKey,
               pageSize,
               search: q,
-              includeDonated: true,
-              includeScrapped: true,
             }),
           SEARCH_RESULT_CAP,
           SEARCH_RESULT_CAP

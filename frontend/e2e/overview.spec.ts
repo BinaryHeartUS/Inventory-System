@@ -36,15 +36,14 @@ test("dashboard pipeline metrics open chapter-filtered device lists", async ({ p
   await page.getByRole("button").filter({ hasText: "Not Started" }).click();
 
   await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "status", "Not Started");
+  await expectSearchParam(page, "statuses", "Not Started");
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
 
   await selectTestChapter(page);
   await page.getByRole("button").filter({ hasText: "Donated" }).click();
 
-  await expectSearchParam(page, "status", "Donated");
-  await expectSearchParam(page, "includeDonated", "true");
+  await expectSearchParam(page, "statuses", "Donated");
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
 });
 

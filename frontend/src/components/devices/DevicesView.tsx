@@ -4,27 +4,20 @@ import PageHeading from "../PageHeading";
 import { DeviceListContainer } from "../../containers/DeviceListContainer";
 import type { SortKey, SortDir } from "./DeviceList";
 import AddAssetButtonContainer from "../../containers/AddAssetButtonContainer";
-import FilterSelect from "../FilterSelect";
 import ChapterFilterContainer from "../../containers/ChapterFilterContainer";
-import { DEVICE_TYPES, STATUS_OPTIONS, type DeviceTypeFilter } from "./deviceFilters";
+import { DEVICE_TYPES, type DeviceTypeFilter } from "./deviceFilters";
 import { deviceTypeLabel } from "../../utils/deviceTypeLabel";
-import { ArchivedDevicesMenu } from "./ArchivedDevicesMenu";
+import { StatusFilterMenu } from "./StatusFilterMenu";
 
 export interface DevicesViewProps {
   search: string;
   onSearchChange: (value: string) => void;
   typeFilter: DeviceTypeFilter;
   onTypeFilterChange: (value: DeviceTypeFilter) => void;
-  statusFilter: DeviceStatus | "All";
-  onStatusFilterChange: (value: DeviceStatus | "All") => void;
+  selectedStatuses: DeviceStatus[];
+  onSelectedStatusesChange: (statuses: DeviceStatus[]) => void;
   chapterFilter: number | "All";
   onChapterFilterChange: (value: number | "All") => void;
-  showDonated: boolean;
-  onShowDonatedChange: (value: boolean) => void;
-  showSold: boolean;
-  onShowSoldChange: (value: boolean) => void;
-  showScrapped: boolean;
-  onShowScrappedChange: (value: boolean) => void;
   showStuck: boolean;
   onShowStuckChange: (value: boolean) => void;
   sortKey: SortKey;
@@ -43,16 +36,10 @@ export default function DevicesView({
   onSearchChange,
   typeFilter,
   onTypeFilterChange,
-  statusFilter,
-  onStatusFilterChange,
+  selectedStatuses,
+  onSelectedStatusesChange,
   chapterFilter,
   onChapterFilterChange,
-  showDonated,
-  onShowDonatedChange,
-  showSold,
-  onShowSoldChange,
-  showScrapped,
-  onShowScrappedChange,
   showStuck,
   onShowStuckChange,
   sortKey,
@@ -105,26 +92,9 @@ export default function DevicesView({
             />
           </div>
 
-          <FilterSelect
-            value={statusFilter}
-            disabled={showStuck}
-            className={showStuck ? "opacity-50 cursor-not-allowed" : ""}
-            onChange={(e) => onStatusFilterChange(e.target.value as DeviceStatus | "All")}
-          >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s === "All" ? "All Statuses" : s}
-              </option>
-            ))}
-          </FilterSelect>
-
-          <ArchivedDevicesMenu
-            includeDonated={showDonated}
-            onIncludeDonatedChange={onShowDonatedChange}
-            includeSold={showSold}
-            onIncludeSoldChange={onShowSoldChange}
-            includeScrapped={showScrapped}
-            onIncludeScrappedChange={onShowScrappedChange}
+          <StatusFilterMenu
+            selected={selectedStatuses}
+            onChange={onSelectedStatusesChange}
             disabled={showStuck}
           />
 

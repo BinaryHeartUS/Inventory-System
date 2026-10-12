@@ -63,11 +63,13 @@ test("keeps the stuck pill beside the model in the mobile layout", async ({ page
 test("stuck filter clears a conflicting status filter", async ({ page }) => {
   await page.goto("/devices");
 
-  await page.locator("select").selectOption("Donated");
-  const archivedButton = page.getByRole("button", { name: /^Archived/ });
-  await archivedButton.click();
-  await page.getByRole("checkbox", { name: "Include Donated" }).click();
-  await expect.poll(() => new URL(page.url()).searchParams.has("includeDonated")).toBe(true);
+  const statusesButton = page.getByRole("button", { name: /^Statuses/ });
+  await statusesButton.click();
+  await page.getByRole("checkbox", { name: "Donated" }).check();
+  await page.getByRole("checkbox", { name: "Not Started" }).uncheck();
+  await page.getByRole("checkbox", { name: "In Progress" }).uncheck();
+  await page.getByRole("checkbox", { name: "Ready To Donate" }).uncheck();
+  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("Donated");
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
 
@@ -76,10 +78,9 @@ test("stuck filter clears a conflicting status filter", async ({ page }) => {
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
   await expect(page.getByLabel("Device stuck")).toBeVisible();
-  await expect(page.locator("select")).toBeDisabled();
-  await expect(page.locator("select")).toHaveValue("All");
-  await expect(archivedButton).toBeDisabled();
-  await expect.poll(() => new URL(page.url()).searchParams.has("includeDonated")).toBe(false);
+  await expect(statusesButton).toBeDisabled();
+  await expect(statusesButton).toContainText("3");
+  await expect.poll(() => new URL(page.url()).searchParams.has("statuses")).toBe(false);
 });
 
 test("adding a note clears the stuck flag", async ({ page }) => {

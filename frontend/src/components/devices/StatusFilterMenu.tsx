@@ -1,27 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import type { DeviceStatus } from "../../types/inventory";
+import { DEVICE_STATUS_OPTIONS } from "./deviceFilters";
 
-interface ArchivedDevicesMenuProps {
-  includeDonated: boolean;
-  onIncludeDonatedChange: (value: boolean) => void;
-  includeSold: boolean;
-  onIncludeSoldChange: (value: boolean) => void;
-  includeScrapped: boolean;
-  onIncludeScrappedChange: (value: boolean) => void;
+interface StatusFilterMenuProps {
+  selected: DeviceStatus[];
+  onChange: (statuses: DeviceStatus[]) => void;
   disabled?: boolean;
 }
 
-export function ArchivedDevicesMenu({
-  includeDonated,
-  onIncludeDonatedChange,
-  includeSold,
-  onIncludeSoldChange,
-  includeScrapped,
-  onIncludeScrappedChange,
-  disabled = false,
-}: ArchivedDevicesMenuProps) {
+export function StatusFilterMenu({ selected, onChange, disabled = false }: StatusFilterMenuProps) {
   const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(selected);
   const menuRef = useRef<HTMLDivElement>(null);
-  const selectedCount = [includeDonated, includeSold, includeScrapped].filter(Boolean).length;
 
   useEffect(() => {
     if (!open) return;
@@ -46,19 +36,14 @@ export function ArchivedDevicesMenu({
     if (disabled) Promise.resolve().then(() => setOpen(false));
   }, [disabled]);
 
-  const options = [
-    {
-      label: "Include Donated",
-      checked: includeDonated,
-      onChange: onIncludeDonatedChange,
-    },
-    { label: "Include Sold", checked: includeSold, onChange: onIncludeSoldChange },
-    {
-      label: "Include Scrapped",
-      checked: includeScrapped,
-      onChange: onIncludeScrappedChange,
-    },
-  ];
+  function toggleStatus(status: DeviceStatus, checked: boolean) {
+    const next = new Set(draft);
+    if (checked) next.add(status);
+    else if (next.size > 1) next.delete(status);
+    const statuses = DEVICE_STATUS_OPTIONS.filter((option) => next.has(option));
+    setDraft(statuses);
+    onChange(statuses);
+  }
 
   return (
     <div ref={menuRef} className="relative w-full sm:w-auto">
@@ -67,36 +52,20 @@ export function ArchivedDevicesMenu({
         disabled={disabled}
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          if (!open) setDraft(selected);
+          setOpen((current) => !current);
+        }}
         className={`flex w-full sm:w-auto items-center justify-center gap-2 text-sm px-3 py-2 rounded-lg border transition-all ${
           disabled
             ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-            : selectedCount > 0
-              ? "bg-heart-blue/10 border-heart-blue text-heart-blue font-medium"
-              : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+            : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
         }`}
       >
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M21 8v13H3V8" />
-          <path d="M1 3h22v5H1z" />
-          <path d="M10 12h4" />
-        </svg>
-        Archived
-        {selectedCount > 0 && (
-          <span className="min-w-5 h-5 px-1 rounded-full bg-heart-blue text-white text-[11px] font-semibold flex items-center justify-center">
-            {selectedCount}
-          </span>
-        )}
+        Statuses
+        <span className="min-w-5 h-5 px-1 rounded-full bg-heart-blue text-white text-[11px] font-semibold flex items-center justify-center">
+          {selected.length}
+        </span>
         <svg
           width="12"
           height="12"
@@ -118,18 +87,19 @@ export function ArchivedDevicesMenu({
           role="menu"
           className="absolute left-0 top-full z-30 mt-2 w-52 rounded-lg border border-slate-200 bg-white p-2 shadow-lg"
         >
-          {options.map((option) => (
+          {DEVICE_STATUS_OPTIONS.map((status) => (
             <label
-              key={option.label}
+              key={status}
               className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
             >
               <input
                 type="checkbox"
-                checked={option.checked}
-                onChange={(event) => option.onChange(event.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 accent-heart-blue"
+                checked={draft.includes(status)}
+                disabled={draft.length === 1 && draft.includes(status)}
+                onChange={(event) => toggleStatus(status, event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 accent-heart-blue disabled:cursor-not-allowed"
               />
-              {option.label}
+              {status}
             </label>
           ))}
         </div>

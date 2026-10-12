@@ -33,12 +33,7 @@ export default function DashboardContainer() {
       onChapterChange={setSelectedChapter}
       chartMonths={chartMonths}
       data={data}
-      onStatusSelect={(status) =>
-        navigateToDevices({
-          status,
-          ...(status === "Donated" ? { includeDonated: true } : {}),
-        })
-      }
+      onStatusSelect={(status) => navigateToDevices({ statuses: status })}
       onTypeSelect={(type) => navigateToDevices({ type })}
       onStuckSelect={() => navigateToDevices({ stuckOnly: true })}
     />

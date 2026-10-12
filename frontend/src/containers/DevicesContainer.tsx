@@ -9,7 +9,8 @@ import DevicesView from "../components/devices/DevicesView";
 import {
   DEVICE_TYPES,
   DEVICE_SORT_KEYS,
-  STATUS_OPTIONS,
+  DEFAULT_DEVICE_STATUSES,
+  DEVICE_STATUS_OPTIONS,
   type DeviceTypeFilter,
 } from "../components/devices/deviceFilters";
 
@@ -17,10 +18,18 @@ function getTypeFilter(value: string | null): DeviceTypeFilter {
   return DEVICE_TYPES.includes(value as DeviceTypeFilter) ? (value as DeviceTypeFilter) : "All";
 }
 
-function getStatusFilter(value: string | null): DeviceStatus | "All" {
-  return STATUS_OPTIONS.includes(value as DeviceStatus | "All")
-    ? (value as DeviceStatus | "All")
-    : "All";
+function getSelectedStatuses(statuses: string | null): DeviceStatus[] {
+  if (statuses === null) return DEFAULT_DEVICE_STATUSES;
+  const requested = new Set(statuses.split(","));
+  const selected = DEVICE_STATUS_OPTIONS.filter((status) => requested.has(status));
+  return selected.length > 0 ? selected : DEFAULT_DEVICE_STATUSES;
+}
+
+function hasDefaultStatuses(statuses: DeviceStatus[]): boolean {
+  return (
+    statuses.length === DEFAULT_DEVICE_STATUSES.length &&
+    DEFAULT_DEVICE_STATUSES.every((status) => statuses.includes(status))
+  );
 }
 
 function getSortKey(value: string | null): SortKey {
@@ -36,7 +45,8 @@ export default function DevicesContainer() {
   const chapters = useVisibleChapters();
   const search = searchParams.get("search") ?? "";
   const typeFilter = getTypeFilter(searchParams.get("type"));
-  const statusFilter = getStatusFilter(searchParams.get("status"));
+  const statusesParam = searchParams.get("statuses");
+  const selectedStatuses = useMemo(() => getSelectedStatuses(statusesParam), [statusesParam]);
   const chapterParam = searchParams.get("chapter");
   const chapterId = Number(chapterParam);
   const chapterFilter: number | "All" = chapterParam
@@ -44,9 +54,6 @@ export default function DevicesContainer() {
       ? chapterId
       : (chapters.find((chapter) => chapter.name === chapterParam)?.id ?? "All")
     : "All";
-  const showDonated = searchParams.get("includeDonated") === "true";
-  const showSold = searchParams.get("includeSold") === "true";
-  const showScrapped = searchParams.get("includeScrapped") === "true";
   const showStuck = searchParams.get("stuckOnly") === "true";
   const sortKey = getSortKey(searchParams.get("sort"));
   const sortDir = getSortDir(searchParams.get("dir"));
@@ -100,27 +107,13 @@ export default function DevicesContainer() {
         pageSize,
         search: debouncedSearch || undefined,
         type: typeFilter === "All" ? undefined : typeFilter,
-        status: statusFilter === "All" ? undefined : statusFilter,
+        statuses: selectedStatuses.join(","),
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
-        includeDonated: showDonated || statusFilter === "Donated",
-        includeSold: showSold || statusFilter === "Sold",
-        includeScrapped: showScrapped || statusFilter === "Scrapped",
         stuckOnly: showStuck,
         sort: sortKey,
         dir: sortDir,
       }),
-    [
-      debouncedSearch,
-      typeFilter,
-      statusFilter,
-      chapterFilter,
-      showDonated,
-      showSold,
-      showScrapped,
-      showStuck,
-      sortKey,
-      sortDir,
-    ]
+    [debouncedSearch, typeFilter, selectedStatuses, chapterFilter, showStuck, sortKey, sortDir]
   );
 
   const {
@@ -131,11 +124,8 @@ export default function DevicesContainer() {
   } = useInfiniteScroll<AnyDevice>(fetchPage, [
     debouncedSearch,
     typeFilter,
-    statusFilter,
+    selectedStatuses,
     chapterFilter,
-    showDonated,
-    showSold,
-    showScrapped,
     showStuck,
     sortKey,
     sortDir,
@@ -144,33 +134,33 @@ export default function DevicesContainer() {
   const hasFilters =
     search !== "" ||
     typeFilter !== "All" ||
-    statusFilter !== "All" ||
+    !hasDefaultStatuses(selectedStatuses) ||
     chapterFilter !== "All" ||
-    showDonated ||
-    showSold ||
-    showScrapped ||
     showStuck;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
-    if (showStuck || showSold || debouncedSearch || typeFilter !== "All" || statusFilter !== "All")
+    if (showStuck || selectedStatuses.includes("Sold") || debouncedSearch || typeFilter !== "All")
       return null;
     const rows =
       chapterFilter === "All" ? summary : summary.filter((s) => s.chapterId === chapterFilter);
-    let total = rows.reduce((sum, r) => sum + r.notStarted + r.inProgress + r.readyToDonate, 0);
-    if (showDonated) total += rows.reduce((sum, r) => sum + r.donated, 0);
-    if (showScrapped) total += rows.reduce((sum, r) => sum + r.scrapped, 0);
-    return total;
+    return rows.reduce(
+      (sum, row) =>
+        sum +
+        (selectedStatuses.includes("Not Started") ? row.notStarted : 0) +
+        (selectedStatuses.includes("In Progress") ? row.inProgress : 0) +
+        (selectedStatuses.includes("Ready To Donate") ? row.readyToDonate : 0) +
+        (selectedStatuses.includes("Donated") ? row.donated : 0) +
+        (selectedStatuses.includes("Scrapped") ? row.scrapped : 0),
+      0
+    );
   }, [
     summaryLoaded,
     summary,
     debouncedSearch,
     typeFilter,
-    statusFilter,
+    selectedStatuses,
     chapterFilter,
-    showDonated,
-    showSold,
-    showScrapped,
     showStuck,
   ]);
 
@@ -195,10 +185,13 @@ export default function DevicesContainer() {
   function handleShowStuckChange(value: boolean) {
     updateFilters({
       stuckOnly: value,
-      status: value ? null : statusFilter,
-      includeDonated: value ? null : showDonated,
-      includeSold: value ? null : showSold,
-      includeScrapped: value ? null : showScrapped,
+      statuses: null,
+    });
+  }
+
+  function handleSelectedStatusesChange(statuses: DeviceStatus[]) {
+    updateFilters({
+      statuses: hasDefaultStatuses(statuses) ? null : statuses.join(","),
     });
   }
 
@@ -208,16 +201,10 @@ export default function DevicesContainer() {
       onSearchChange={(value) => updateFilters({ search: value })}
       typeFilter={typeFilter}
       onTypeFilterChange={(value) => updateFilters({ type: value })}
-      statusFilter={statusFilter}
-      onStatusFilterChange={(value) => updateFilters({ status: value })}
+      selectedStatuses={selectedStatuses}
+      onSelectedStatusesChange={handleSelectedStatusesChange}
       chapterFilter={chapterFilter}
       onChapterFilterChange={(value) => updateFilters({ chapter: value })}
-      showDonated={showDonated}
-      onShowDonatedChange={(value) => updateFilters({ includeDonated: value })}
-      showSold={showSold}
-      onShowSoldChange={(value) => updateFilters({ includeSold: value })}
-      showScrapped={showScrapped}
-      onShowScrappedChange={(value) => updateFilters({ includeScrapped: value })}
       showStuck={showStuck}
       onShowStuckChange={handleShowStuckChange}
       sortKey={sortKey}
