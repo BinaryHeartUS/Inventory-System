@@ -209,7 +209,8 @@ export default function AdminAccountsView({
                 <button
                   type="button"
                   onClick={addAffiliationRow}
-                  className="flex items-center gap-1 text-xs font-semibold text-heart-blue hover:opacity-80 transition-opacity"
+                  disabled={assignableChapters.length === 0}
+                  className="flex items-center gap-1 text-xs font-semibold text-heart-blue hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                 >
                   <svg
                     width="11"

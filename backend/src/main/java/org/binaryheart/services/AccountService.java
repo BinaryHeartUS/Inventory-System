@@ -22,7 +22,7 @@ import org.binaryheart.responses.AccountSummary;
 public class AccountService {
 
 	private static final Set<String> ADMIN_CREATABLE_ROLES = Set.of("Admin", "Chapter Admin", "Editor", "Viewer");
-	private static final Set<String> CHAPTER_ADMIN_CREATABLE_ROLES = Set.of("Editor", "Viewer");
+	private static final Set<String> CHAPTER_ADMIN_CREATABLE_ROLES = Set.of("Chapter Admin", "Editor", "Viewer");
 	private final ChapterService chapterService;
 	private final AccountRepository repository;
 	private final AuthRepository authRepository;
@@ -108,19 +108,17 @@ public class AccountService {
 
 	/**
 	 * Returns accounts visible to the requesting volunteer. Admins see all; Chapter
-	 * Admins see only accounts in their chapters, excluding accounts whose
-	 * effective role is higher than Editor.
+	 * Admins see accounts in their chapters, excluding accounts with the global
+	 * Admin role.
 	 */
 	public List<AccountSummary> getAccounts(String requesterRole, List<Integer> requesterChapterIds)
 		throws SQLException {
 		if ("Admin".equals(requesterRole)) {
 			return repository.getAllVolunteers();
 		}
-		// Chapter Admins only see Editor/Viewer accounts in their chapters
+		// Chapter Admins can manage local Chapter Admins, but never global Admins.
 		return repository.getVolunteersForChapters(requesterChapterIds).stream()
-			.filter(
-				a -> a.chapterRoles().stream().allMatch(cr -> "Editor".equals(cr.role()) || "Viewer".equals(cr.role())))
-			.toList();
+			.filter(a -> a.chapterRoles().stream().noneMatch(cr -> "Admin".equals(cr.role()))).toList();
 	}
 
 	/**

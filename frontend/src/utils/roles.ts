@@ -33,7 +33,11 @@ export function canManageAccounts(role: string | undefined | null): boolean {
 
 /** Which roles a user of the given role is allowed to assign to others. */
 export function assignableRoles(role: string | undefined | null): string[] {
-  return role === "Admin" ? ["Admin", "Chapter Admin", "Editor", "Viewer"] : ["Editor", "Viewer"];
+  return role === "Admin"
+    ? ["Admin", "Chapter Admin", "Editor", "Viewer"]
+    : role === "Chapter Admin"
+      ? ["Chapter Admin", "Editor", "Viewer"]
+      : ["Editor", "Viewer"];
 }
 
 interface ChapterRoleLike {

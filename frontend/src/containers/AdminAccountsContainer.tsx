@@ -65,10 +65,21 @@ export default function AdminAccountsContainer() {
   const groups = useMemo<AccountGroup[]>(() => {
     const byChapter = new Map<number, AccountSummary[]>();
     for (const account of accounts) {
-      const pid = primaryChapterId(account.chapterRoles, nationalChapterId, chapterName) ?? -1; // -1 = no chapter access
-      const bucket = byChapter.get(pid);
-      if (bucket) bucket.push(account);
-      else byChapter.set(pid, [account]);
+      const chapterIds = isAdmin
+        ? [primaryChapterId(account.chapterRoles, nationalChapterId, chapterName) ?? -1]
+        : account.chapterRoles
+            .filter((cr) =>
+              auth?.chapterRoles.some(
+                (requesterRole) =>
+                  requesterRole.chapterId === cr.chapterId && requesterRole.role === "Chapter Admin"
+              )
+            )
+            .map((cr) => cr.chapterId);
+      for (const chapterId of chapterIds) {
+        const bucket = byChapter.get(chapterId);
+        if (bucket) bucket.push(account);
+        else byChapter.set(chapterId, [account]);
+      }
     }
 
     return Array.from(byChapter.entries())
@@ -84,7 +95,7 @@ export default function AdminAccountsContainer() {
         if (b.chapterId === -1) return -1;
         return a.name.localeCompare(b.name);
       });
-  }, [accounts, nationalChapterId, chapterName]);
+  }, [accounts, nationalChapterId, chapterName, isAdmin, auth?.chapterRoles]);
 
   async function handleCreate(payload: CreateAccountPayload): Promise<string | null> {
     try {

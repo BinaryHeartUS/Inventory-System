@@ -31,7 +31,7 @@ describe("role permissions", () => {
     expect(canManageAccounts("Editor")).toBe(false);
     expect(canManageAccounts("Chapter Admin")).toBe(true);
     expect(assignableRoles("Admin")).toEqual(["Admin", "Chapter Admin", "Editor", "Viewer"]);
-    expect(assignableRoles("Chapter Admin")).toEqual(["Editor", "Viewer"]);
+    expect(assignableRoles("Chapter Admin")).toEqual(["Chapter Admin", "Editor", "Viewer"]);
   });
 
   it("selects the highest-ranking chapter and prefers National on ties", () => {

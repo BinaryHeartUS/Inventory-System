@@ -44,7 +44,7 @@ public class AccountController {
 			name = "BearerAuth")},
 		summary = "Create a new account",
 		description = "Admins can create Chapter Admin / Editor / Viewer accounts for any chapter. "
-			+ "Chapter Admins can create Editor / Viewer accounts for their own chapters.",
+			+ "Chapter Admins can create Chapter Admin / Editor / Viewer accounts for their own chapters.",
 		requestBody = @OpenApiRequestBody(
 			required = true,
 			content = {@OpenApiContent(
@@ -92,7 +92,7 @@ public class AccountController {
 		security = {@OpenApiSecurity(
 			name = "BearerAuth")},
 		summary = "List accounts",
-		description = "Admins see all accounts. Chapter Admins see only accounts in their chapters.",
+		description = "Admins see all accounts. Chapter Admins see accounts in their chapters, excluding global Admin accounts.",
 		responses = {@OpenApiResponse(
 			status = "200",
 			description = "Account list returned",
