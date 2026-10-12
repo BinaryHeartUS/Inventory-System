@@ -36,13 +36,10 @@ public final class QueryParamUtil {
 		}
 	}
 
-	/**
-	 * Parses an optional boolean query parameter, defaulting to
-	 * {@code defaultValue} when absent.
-	 */
 	public static LocalDate dateParam(Context ctx, String name) throws BadArgumentException {
 		String raw = stringParam(ctx, name);
-		if (raw == null) return null;
+		if (raw == null)
+			return null;
 		try {
 			return LocalDate.parse(raw);
 		} catch (DateTimeParseException e) {
@@ -50,6 +47,10 @@ public final class QueryParamUtil {
 		}
 	}
 
+	/**
+	 * Parses an optional boolean query parameter, defaulting to
+	 * {@code defaultValue} when absent.
+	 */
 	public static boolean boolParam(Context ctx, String name, boolean defaultValue) {
 		String raw = ctx.queryParam(name);
 		if (raw == null || raw.isBlank()) {

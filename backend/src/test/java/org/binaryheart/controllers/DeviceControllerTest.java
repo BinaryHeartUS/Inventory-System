@@ -200,6 +200,26 @@ class DeviceControllerTest {
 	}
 
 	@Test
+	void deviceListRejectsReversedAcquisitionRange() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.queryParam("pageSize")).andReturn("25");
+		expect(context.queryParam("pageKey")).andReturn(null);
+		expect(context.queryParam("chapter")).andReturn(null);
+		expect(context.queryParam("yearFrom")).andReturn(null);
+		expect(context.queryParam("yearTo")).andReturn(null);
+		expect(context.queryParam("acquiredFrom")).andReturn("2026-01-15");
+		expect(context.queryParam("acquiredTo")).andReturn("2025-12-01");
+		expectResult(context, 400, "acquiredFrom must be on or before acquiredTo");
+		replay(service, chapters, authorization, context);
+		new DeviceController(service, chapters, authorization).getAllDevices(context);
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
 	void dashboardCountsDelegate() throws Exception {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);
