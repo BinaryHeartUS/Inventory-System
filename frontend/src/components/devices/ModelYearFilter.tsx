@@ -53,6 +53,14 @@ export function ModelYearFilter({ from, to, error, onChange }: ModelYearFilterPr
           {error}
         </p>
       )}
+      <button
+        type="button"
+        onClick={() => onChange("", "")}
+        disabled={!from && !to}
+        className="mt-3 text-xs font-medium text-brand-red underline underline-offset-2 hover:text-brand-red-dark disabled:cursor-not-allowed disabled:text-slate-400"
+      >
+        Reset range
+      </button>
     </FilterPopover>
   );
 }

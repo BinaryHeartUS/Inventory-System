@@ -195,6 +195,63 @@ test("acquisition dates support calendar selection, open bounds and persistence"
   await expect(to).toHaveValue("");
 });
 
+test("range resets clear invalid drafts without clearing other filters", async ({ page }) => {
+  await page.goto("/devices");
+  const search = page.getByPlaceholder("ID, manufacturer, model, CPU…");
+  await search.fill("Framework");
+  const yearButton = page.getByRole("button", { name: "Year", exact: true });
+  const dateButton = page.getByRole("button", { name: "Acquisition date", exact: true });
+  const yearFrom = page.getByLabel("Model year from");
+  const yearTo = page.getByLabel("Model year to");
+  const from = page.getByLabel("Acquired from", { exact: true });
+  const to = page.getByLabel("Acquired to", { exact: true });
+
+  await dateButton.click();
+  await from.fill("2026-01-15");
+  await to.fill("2026-01-15");
+  await yearButton.click();
+  const yearReset = page
+    .getByRole("dialog", { name: "Year range" })
+    .getByRole("button", { name: "Reset range" });
+  await expect(yearReset).toBeDisabled();
+  await yearFrom.fill("2024");
+  await yearTo.fill("2024");
+  await yearFrom.fill("2025");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await yearReset.click();
+  await expect(yearFrom).toHaveValue("");
+  await expect(yearTo).toHaveValue("");
+  await expect(page.getByRole("alert")).toBeHidden();
+  await expect(yearReset).toBeDisabled();
+  await expect(search).toHaveValue("Framework");
+
+  await yearFrom.fill("2024");
+  await dateButton.click();
+  await expect(from).toHaveValue("2026-01-15");
+  await expect(to).toHaveValue("2026-01-15");
+  await from.fill("2026-01-16");
+  await expect(page.getByRole("alert")).toBeVisible();
+  const dateReset = page
+    .getByRole("dialog", { name: "Acquisition date range" })
+    .getByRole("button", { name: "Reset range" });
+  await dateReset.click();
+  await expect(from).toHaveValue("");
+  await expect(to).toHaveValue("");
+  await expect(page.getByRole("alert")).toBeHidden();
+  await expect(dateReset).toBeDisabled();
+  await expect(search).toHaveValue("Framework");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(search).toHaveValue("Framework");
+  await dateButton.click();
+  await expect(from).toHaveValue("");
+  await expect(to).toHaveValue("");
+  await yearButton.click();
+  await expect(yearFrom).toHaveValue("2024");
+  await expect(yearTo).toHaveValue("");
+});
+
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {
   await selectTestChapter(page);
   await page.getByRole("button", { name: /Stuck Devices/ }).click();
