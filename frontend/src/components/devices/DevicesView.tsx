@@ -139,8 +139,12 @@ export default function DevicesView({
             onChange={onYearRangeChange}
           />
 
-          <AcquisitionDateFilter from={acquiredFrom} to={acquiredTo}
-            error={acquisitionError} onChange={onAcquisitionRangeChange} />
+          <AcquisitionDateFilter
+            from={acquiredFrom}
+            to={acquiredTo}
+            error={acquisitionError}
+            onChange={onAcquisitionRangeChange}
+          />
 
           {hasFilters && (
             <button

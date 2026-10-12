@@ -65,7 +65,15 @@ describe("device filter storage", () => {
 
   it("discards invalid acquisition bounds while retaining other filters", () => {
     const storage = createStorage();
-    saveDeviceFilters(createDeviceFilters({ search: "Framework", acquiredFrom: "2026-01-15", acquiredTo: "2025-12-01" }), storage, 1_000);
+    saveDeviceFilters(
+      createDeviceFilters({
+        search: "Framework",
+        acquiredFrom: "2026-01-15",
+        acquiredTo: "2025-12-01",
+      }),
+      storage,
+      1_000
+    );
     const restored = loadDeviceFilters(storage, 2_000);
     expect(restored.search).toBe("Framework");
     expect(restored.acquiredFrom).toBeNull();

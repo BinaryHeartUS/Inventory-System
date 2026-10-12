@@ -133,7 +133,9 @@ test("model years can be filtered with inclusive open-ended bounds", async ({ pa
   await expect(yearFrom).toBeHidden();
 });
 
-test("acquisition dates support calendar selection, open bounds and persistence", async ({ page }) => {
+test("acquisition dates support calendar selection, open bounds and persistence", async ({
+  page,
+}) => {
   await page.goto("/devices");
   const button = page.getByRole("button", { name: "Acquisition date", exact: true });
   const from = page.getByLabel("Acquired from", { exact: true });
@@ -155,7 +157,9 @@ test("acquisition dates support calendar selection, open bounds and persistence"
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await from.fill("2026-01-15");
-  await expect(page.getByText("The starting date cannot be later than the ending date.")).toBeVisible();
+  await expect(
+    page.getByText("The starting date cannot be later than the ending date.")
+  ).toBeVisible();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await to.fill("");
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
@@ -178,7 +182,9 @@ test("acquisition dates support calendar selection, open bounds and persistence"
   expect(box!.x).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(390);
   expect(box!.y + box!.height).toBeLessThanOrEqual(844 - 64);
-  const [scrollWidth, clientWidth] = await page.locator("html").evaluate((element) => [element.scrollWidth, element.clientWidth]);
+  const [scrollWidth, clientWidth] = await page
+    .locator("html")
+    .evaluate((element) => [element.scrollWidth, element.clientWidth]);
   expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
   await page.screenshot({ path: "test-results/acquisition-date-mobile.png" });
   await page.keyboard.press("Escape");
