@@ -10,7 +10,9 @@ const componentFiles = readdirSync(componentsDirectory, { recursive: true })
 describe("component story coverage", () => {
   it.each(["pages", "containers"])("%s do not have stories", (directory) => {
     const files = readdirSync(new URL(`../${directory}/`, import.meta.url), { recursive: true });
-    expect(files.filter((file) => typeof file === "string" && /\.stories\.[jt]sx?$/.test(file))).toEqual([]);
+    expect(
+      files.filter((file) => typeof file === "string" && /\.stories\.[jt]sx?$/.test(file))
+    ).toEqual([]);
   });
 
   it("discovers application components", () => {
