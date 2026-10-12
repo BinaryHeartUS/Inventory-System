@@ -178,6 +178,26 @@ class DeviceControllerTest {
 	}
 
 	@Test
+	void deviceListRejectsReversedYearRange() {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		expect(context.<List<Integer>>attribute("chapterIds")).andReturn(List.of(2));
+		expect(context.queryParam("pageSize")).andReturn("25");
+		expect(context.queryParam("pageKey")).andReturn(null);
+		expect(context.queryParam("chapter")).andReturn(null);
+		expect(context.queryParam("yearFrom")).andReturn("2025");
+		expect(context.queryParam("yearTo")).andReturn("2024");
+		expectResult(context, 400, "yearFrom must be less than or equal to yearTo");
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).getAllDevices(context);
+
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
 	void dashboardCountsDelegate() throws Exception {
 		DeviceService service = mock(DeviceService.class);
 		ChapterService chapters = mock(ChapterService.class);

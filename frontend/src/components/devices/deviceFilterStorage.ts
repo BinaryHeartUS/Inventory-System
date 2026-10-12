@@ -19,6 +19,8 @@ export interface DeviceFilters {
   operatingSystems: string[] | null;
   chapter: number | "All";
   stuckOnly: boolean;
+  yearFrom: number | null;
+  yearTo: number | null;
   sort: DeviceFilterSortKey;
   dir: "asc" | "desc";
 }
@@ -39,6 +41,8 @@ export function createDeviceFilters(overrides: Partial<DeviceFilters> = {}): Dev
     operatingSystems: null,
     chapter: "All",
     stuckOnly: false,
+    yearFrom: null,
+    yearTo: null,
     sort: "id",
     dir: "asc",
     ...overrides,
@@ -75,6 +79,14 @@ function normalizeFilters(value: unknown): DeviceFilters | null {
         ? filters.chapter
         : "All",
     stuckOnly: filters.stuckOnly === true,
+    yearFrom:
+      typeof filters.yearFrom === "number" && Number.isInteger(filters.yearFrom)
+        ? filters.yearFrom
+        : null,
+    yearTo:
+      typeof filters.yearTo === "number" && Number.isInteger(filters.yearTo)
+        ? filters.yearTo
+        : null,
     sort: DEVICE_SORT_KEYS.includes(filters.sort as DeviceFilterSortKey)
       ? (filters.sort as DeviceFilterSortKey)
       : "id",

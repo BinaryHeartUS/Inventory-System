@@ -28,6 +28,8 @@ describe("device filter storage", () => {
       operatingSystems: ["Ubuntu"],
       chapter: 101,
       stuckOnly: true,
+      yearFrom: 2020,
+      yearTo: 2024,
       sort: "model",
       dir: "desc",
     });

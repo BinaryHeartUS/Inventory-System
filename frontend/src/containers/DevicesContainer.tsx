@@ -22,6 +22,7 @@ import {
   saveDeviceFilters,
   type DeviceFilters,
 } from "../components/devices/deviceFilterStorage";
+import { parseModelYearRange } from "../components/devices/modelYearRange";
 
 function hasDefaultStatuses(statuses: DeviceStatus[]): boolean {
   return (
@@ -43,6 +44,8 @@ export default function DevicesContainer() {
     statuses: selectedStatuses,
     chapter: chapterFilter,
     stuckOnly: showStuck,
+    yearFrom,
+    yearTo,
     sort: sortKey,
     dir: sortDir,
   } = filters;
@@ -55,6 +58,9 @@ export default function DevicesContainer() {
     [selectedOperatingSystems, lookups.operatingSystems]
   );
   const hasOperatingSystemFilter = filters.operatingSystems !== null;
+  const [yearFromInput, setYearFromInput] = useState(yearFrom?.toString() ?? "");
+  const [yearToInput, setYearToInput] = useState(yearTo?.toString() ?? "");
+  const [yearError, setYearError] = useState<string | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [summaryLoaded, setSummaryLoaded] = useState(false);
@@ -98,6 +104,8 @@ export default function DevicesContainer() {
         includeUnspecifiedOperatingSystem: operatingSystemParams.includeUnspecifiedOperatingSystem,
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
         stuckOnly: showStuck,
+        yearFrom: yearFrom ?? undefined,
+        yearTo: yearTo ?? undefined,
         sort: sortKey,
         dir: sortDir,
       }),
@@ -108,6 +116,8 @@ export default function DevicesContainer() {
       operatingSystemParams,
       chapterFilter,
       showStuck,
+      yearFrom,
+      yearTo,
       sortKey,
       sortDir,
     ]
@@ -125,6 +135,8 @@ export default function DevicesContainer() {
     operatingSystemParams,
     chapterFilter,
     showStuck,
+    yearFrom,
+    yearTo,
     sortKey,
     sortDir,
   ]);
@@ -135,12 +147,16 @@ export default function DevicesContainer() {
     !hasDefaultStatuses(selectedStatuses) ||
     hasOperatingSystemFilter ||
     chapterFilter !== "All" ||
-    showStuck;
+    showStuck ||
+    yearFrom !== null ||
+    yearTo !== null;
 
   const exactTotal = useMemo(() => {
     if (!summaryLoaded) return null;
     if (
       showStuck ||
+      yearFrom !== null ||
+      yearTo !== null ||
       hasOperatingSystemFilter ||
       selectedStatuses.includes("Sold") ||
       debouncedSearch ||
@@ -168,6 +184,8 @@ export default function DevicesContainer() {
     hasOperatingSystemFilter,
     chapterFilter,
     showStuck,
+    yearFrom,
+    yearTo,
   ]);
 
   const deviceSubtitle =
@@ -180,6 +198,9 @@ export default function DevicesContainer() {
   function clearFilters() {
     clearDeviceFilters();
     setFilters(createDeviceFilters());
+    setYearFromInput("");
+    setYearToInput("");
+    setYearError(null);
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
@@ -208,6 +229,14 @@ export default function DevicesContainer() {
     });
   }
 
+  function handleYearRangeChange(from: string, to: string) {
+    setYearFromInput(from);
+    setYearToInput(to);
+    const result = parseModelYearRange(from, to);
+    setYearError(result.error);
+    if (result.range) updateFilters(result.range);
+  }
+
   return (
     <DevicesView
       search={search}
@@ -223,6 +252,10 @@ export default function DevicesContainer() {
       onChapterFilterChange={(value) => updateFilters({ chapter: value })}
       showStuck={showStuck}
       onShowStuckChange={handleShowStuckChange}
+      yearFrom={yearFromInput}
+      yearTo={yearToInput}
+      yearError={yearError}
+      onYearRangeChange={handleYearRangeChange}
       sortKey={sortKey}
       sortDir={sortDir}
       onSort={handleSort}

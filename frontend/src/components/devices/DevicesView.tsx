@@ -9,6 +9,7 @@ import type { DeviceType } from "./deviceFilters";
 import { StatusFilterMenu } from "./StatusFilterMenu";
 import { DeviceTypeFilterMenu } from "./DeviceTypeFilterMenu";
 import { OperatingSystemFilterMenu } from "./OperatingSystemFilterMenu";
+import { ModelYearFilter } from "./ModelYearFilter";
 
 export interface DevicesViewProps {
   search: string;
@@ -24,6 +25,10 @@ export interface DevicesViewProps {
   onChapterFilterChange: (value: number | "All") => void;
   showStuck: boolean;
   onShowStuckChange: (value: boolean) => void;
+  yearFrom: string;
+  yearTo: string;
+  yearError: string | null;
+  onYearRangeChange: (from: string, to: string) => void;
   sortKey: SortKey;
   sortDir: SortDir;
   onSort: (key: SortKey, dir: SortDir) => void;
@@ -49,6 +54,10 @@ export default function DevicesView({
   onChapterFilterChange,
   showStuck,
   onShowStuckChange,
+  yearFrom,
+  yearTo,
+  yearError,
+  onYearRangeChange,
   sortKey,
   sortDir,
   onSort,
@@ -112,6 +121,13 @@ export default function DevicesView({
             options={operatingSystemOptions}
             selected={selectedOperatingSystems}
             onChange={onSelectedOperatingSystemsChange}
+          />
+
+          <ModelYearFilter
+            from={yearFrom}
+            to={yearTo}
+            error={yearError}
+            onChange={onYearRangeChange}
           />
 
           {hasFilters && (

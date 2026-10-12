@@ -810,6 +810,10 @@ export interface paths {
                     donorId?: number;
                     /** @description Restrict to devices received by this party id. */
                     recipientId?: number;
+                    /** @description Minimum model year (inclusive). */
+                    yearFrom?: number;
+                    /** @description Maximum model year (inclusive). */
+                    yearTo?: number;
                     /** @description Sort column: id, type, manufacturer, model, year, cpu, operatingSystem, ram, storage, status, chapter or acquisitionDate. Defaults to id. */
                     sort?: string;
                     /** @description Sort direction: asc (default) or desc. */

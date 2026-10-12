@@ -45,6 +45,9 @@ export interface DeviceListParams {
   stuckOnly?: boolean;
   donorId?: number;
   recipientId?: number;
+  /** Inclusive model-year bounds. */
+  yearFrom?: number;
+  yearTo?: number;
   /** Sort key matching DeviceList columns, e.g. "manufacturer". */
   sort?: string;
   dir?: "asc" | "desc";

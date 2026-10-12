@@ -95,6 +95,32 @@ test("operating systems can be combined with not specified", async ({ page }) =>
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
 });
 
+test("model years can be filtered with inclusive open-ended bounds", async ({ page }) => {
+  await page.goto("/devices");
+
+  const yearFrom = page.getByLabel("Model year from");
+  const yearTo = page.getByLabel("Model year to");
+  await yearFrom.fill("2023");
+
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
+  await expect(page).toHaveURL(/\/devices$/);
+
+  await page.reload();
+  await expect(yearFrom).toHaveValue("2023");
+  await yearTo.fill("2023");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+
+  await yearFrom.fill("2024");
+  await expect(
+    page.getByText("The starting year cannot be later than the ending year.")
+  ).toBeVisible();
+  await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
+});
+
 test("dashboard stuck items opens the chapter-filtered stuck list", async ({ page }) => {
   await selectTestChapter(page);
   await page.getByRole("button", { name: /Stuck Devices/ }).click();
