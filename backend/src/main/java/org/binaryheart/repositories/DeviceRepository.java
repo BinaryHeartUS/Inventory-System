@@ -216,7 +216,7 @@ public class DeviceRepository {
 		try (Connection conn = DatabaseConnectionService.getConnection();
 			PreparedStatement stmt = conn
 				.prepareStatement("SELECT * FROM Get_Devices_Page(?, ?, CAST(? AS TEXT[]), CAST(? AS Status[]), "
-					+ "CAST(? AS TEXT[]), ?, ?, ?, ?, ?, ?, ?, ?)")) {
+					+ "CAST(? AS TEXT[]), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 			stmt.setArray(1, toSqlArray(chapterIds, conn));
 			setStringOrNull(stmt, 2, q.search());
 			stmt.setArray(3, toTextSqlArray(q.types(), conn));
@@ -228,8 +228,10 @@ public class DeviceRepository {
 			setIntegerOrNull(stmt, 9, q.recipientId());
 			stmt.setString(10, q.sort() == null ? "id" : q.sort());
 			stmt.setString(11, q.dir() == null ? "asc" : q.dir());
-			setIntegerOrNull(stmt, 12, q.limit());
-			stmt.setInt(13, q.offset() == null ? 0 : q.offset());
+			setIntegerOrNull(stmt, 12, q.yearFrom());
+			setIntegerOrNull(stmt, 13, q.yearTo());
+			setIntegerOrNull(stmt, 14, q.limit());
+			stmt.setInt(15, q.offset() == null ? 0 : q.offset());
 			ResultSet rs = stmt.executeQuery();
 			List<GetDeviceResponse> devices = new ArrayList<>();
 			while (rs.next()) {

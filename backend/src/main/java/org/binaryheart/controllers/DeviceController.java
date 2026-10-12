@@ -692,6 +692,16 @@ public class DeviceController {
 					type = Integer.class,
 					description = "Restrict to devices received by this party id."),
 				@OpenApiParam(
+					name = "yearFrom",
+					required = false,
+					type = Integer.class,
+					description = "Minimum model year (inclusive)."),
+				@OpenApiParam(
+					name = "yearTo",
+					required = false,
+					type = Integer.class,
+					description = "Maximum model year (inclusive)."),
+				@OpenApiParam(
 					name = "sort",
 					required = false,
 					description = "Sort column: id, type, manufacturer, model, year, cpu, operatingSystem, "
@@ -719,12 +729,17 @@ public class DeviceController {
 			int pageSize = PaginationUtil.parsePageSize(ctx);
 			int pageKey = PaginationUtil.parsePageKey(ctx);
 			Integer chapterId = QueryParamUtil.intParam(ctx, "chapter");
+			Integer yearFrom = QueryParamUtil.intParam(ctx, "yearFrom");
+			Integer yearTo = QueryParamUtil.intParam(ctx, "yearTo");
+			if (yearFrom != null && yearTo != null && yearFrom > yearTo) {
+				throw new BadArgumentException("yearFrom must be less than or equal to yearTo");
+			}
 			DeviceListRequest q = new DeviceListRequest(QueryParamUtil.stringParam(ctx, "search"),
 				parseDeviceTypes(ctx), parseDeviceStatuses(ctx), parseOperatingSystems(ctx),
 				QueryParamUtil.boolParam(ctx, "includeUnspecifiedOperatingSystem", false),
 				QueryParamUtil.boolParam(ctx, "stuckOnly", false), QueryParamUtil.intParam(ctx, "donorId"),
 				QueryParamUtil.intParam(ctx, "recipientId"), QueryParamUtil.stringParam(ctx, "sort"),
-				QueryParamUtil.stringParam(ctx, "dir"), pageSize, pageKey * pageSize);
+				QueryParamUtil.stringParam(ctx, "dir"), yearFrom, yearTo, pageSize, pageKey * pageSize);
 			List<GetDeviceResponse> devices = service.getDevices(userChapterIds, chapterId, q);
 			ctx.status(200).json(devices.toArray(new GetDeviceResponse[0]));
 		} catch (BadArgumentException e) {

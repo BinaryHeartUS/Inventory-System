@@ -16,6 +16,8 @@ CREATE OR REPLACE FUNCTION Get_Devices_Page(
     p_recipient_id INTEGER DEFAULT NULL,
     p_sort TEXT DEFAULT 'id',
     p_dir TEXT DEFAULT 'asc',
+    p_year_from INTEGER DEFAULT NULL,
+    p_year_to INTEGER DEFAULT NULL,
     p_limit INTEGER DEFAULT NULL,
     p_offset INTEGER DEFAULT 0
 )
@@ -89,6 +91,8 @@ BEGIN
       AND (NOT p_stuck_only OR gd.device_stuck)
       AND (p_donor_id IS NULL OR gd.donor_id = p_donor_id)
       AND (p_recipient_id IS NULL OR gd.recipient_id = p_recipient_id)
+      AND (p_year_from IS NULL OR gd.year >= p_year_from)
+      AND (p_year_to IS NULL OR gd.year <= p_year_to)
       AND (p_search IS NULL OR p_search = '' OR gd::text ILIKE '%' || p_search || '%')
     ORDER BY
       CASE WHEN p_dir <> 'desc' THEN k.sort_key END ASC NULLS LAST,
