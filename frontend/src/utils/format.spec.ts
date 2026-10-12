@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { formatBool, formatDate, formatId, formatMoney, formatPercent, formatText } from "./format";
+import { formatBool, formatDate, formatId, formatMoney, formatNumber, formatPercent, formatText } from "./format";
 
 describe("display formatters", () => {
+  it("handles zero, true, null, and undefined consistently", () => {
+    expect(formatNumber(0)).toBe("0");
+    expect(formatNumber(null)).toBeNull();
+    expect(formatId(null)).toBeNull();
+    expect(formatBool(true)).toBe("Yes");
+    expect(formatBool(undefined)).toBeNull();
+    expect(formatPercent(null)).toBeNull();
+    expect(formatMoney(0)).toBe("$0.00");
+  });
   it("formats display values and preserves missing values", () => {
     expect(formatText("")).toBe("");
     expect(formatText(undefined)).toBeNull();
