@@ -63,17 +63,23 @@ npm test                  # unit specs and story tests together
 npm test -- --coverage    # component and pure-utility coverage in coverage/
 ```
 
+From the repository root, run `make coverage-web` for the same coverage run. The HTML report is
+written to `frontend/coverage/index.html`.
+
 Install Chromium with `npx playwright install chromium` when the browser runner is not available.
 Application components have a colocated `Component.stories.tsx` file. Export separate stories for
 display branches, empty/loading/error states, permissions, and interactions. Use typed fixture
 props and callback spies; do not mock services or intercept API requests. Router-dependent stories
 use a real `MemoryRouter`. Controlled form stories own local state so inputs remain interactive.
+Pages and containers do not have stories: their application logic should be tested without mocking
+it into a presentational component. Storybook discovers only component and example stories.
 
 Views that embed containers expose optional content or renderer props. Stories supply real
 presentational children through those props; application callers retain the existing container
 defaults. Shared fixtures, decorators, and interaction helpers live in `src/stories/`.
 
-`componentCoverage.spec.ts` fails when a component is missing its colocated story file.
+`componentCoverage.spec.ts` fails when a component is missing its colocated story file or a page
+or container has a story file.
 File presence is not a guarantee of complete branch coverage: use `play` assertions for callbacks
 and `*.spec.ts` for pure calculations, and inspect the coverage report for unexercised paths.
 The report covers components and their pure utilities, not backend code or container integration.
