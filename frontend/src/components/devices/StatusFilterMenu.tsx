@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { DeviceStatus } from "../../types/inventory";
 import { DEFAULT_DEVICE_STATUSES, DEVICE_STATUS_OPTIONS } from "./deviceFilters";
 import { FilterChecklistMenu } from "./FilterChecklistMenu";
@@ -15,6 +16,10 @@ export function StatusFilterMenu({
   showStuck,
   onShowStuckChange,
 }: StatusFilterMenuProps) {
+  const [draftShowStuck, setDraftShowStuck] = useState(showStuck);
+
+  useEffect(() => setDraftShowStuck(showStuck), [showStuck]);
+
   const isDefault =
     !showStuck &&
     selected.length === DEFAULT_DEVICE_STATUSES.length &&
@@ -31,8 +36,11 @@ export function StatusFilterMenu({
         <label className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
           <input
             type="checkbox"
-            checked={showStuck}
-            onChange={(event) => onShowStuckChange(event.target.checked)}
+            checked={draftShowStuck}
+            onChange={(event) => {
+              setDraftShowStuck(event.target.checked);
+              onShowStuckChange(event.target.checked);
+            }}
             className="h-4 w-4 rounded border-slate-300 accent-amber-500"
           />
           Stuck only

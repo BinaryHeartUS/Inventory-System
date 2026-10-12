@@ -77,7 +77,6 @@ test("stuck filter combines with the selected statuses", async ({ page }) => {
   await expect(statusesButton).toContainText("1");
   await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("In Progress");
 
-  await statusesButton.click();
   await page.getByRole("checkbox", { name: "Not Started" }).check();
   await page.getByRole("checkbox", { name: "In Progress" }).uncheck();
   await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("Not Started");
