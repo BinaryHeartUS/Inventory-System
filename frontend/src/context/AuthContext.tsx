@@ -9,6 +9,7 @@ import {
   getTokenExpiration,
 } from "../services/authService";
 import { setTokenProvider, setUnauthorizedHandler } from "../services/api";
+import { clearDeviceFilters } from "../components/devices/deviceFilterStorage";
 
 // Register the token provider at module load time so API calls have auth headers
 // immediately — including on page refresh before any useEffect fires.
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearStoredAuth();
+    clearDeviceFilters();
     setAuth(null);
   }, []);
 

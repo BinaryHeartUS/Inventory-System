@@ -1,14 +1,11 @@
 import { test, expect } from "./fixtures/test";
 import { authenticate, TEST_CHAPTER } from "./fixtures/real-api";
 import type { Page } from "@playwright/test";
+import { DEVICE_FILTER_STORAGE_KEY } from "../src/components/devices/deviceFilterStorage";
 
 async function selectTestChapter(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: TEST_CHAPTER.name }).click();
-}
-
-async function expectSearchParam(page: Page, name: string, value: string) {
-  await expect.poll(() => new URL(page.url()).searchParams.get(name)).toBe(value);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -35,15 +32,14 @@ test("dashboard pipeline metrics open chapter-filtered device lists", async ({ p
   await selectTestChapter(page);
   await page.getByRole("button").filter({ hasText: "Not Started" }).click();
 
-  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "statuses", "Not Started");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
 
   await selectTestChapter(page);
   await page.getByRole("button").filter({ hasText: "Donated" }).click();
 
-  await expectSearchParam(page, "statuses", "Donated");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
 });
 
@@ -51,8 +47,7 @@ test("dashboard device types open chapter-filtered device lists", async ({ page 
   await selectTestChapter(page);
   await page.getByRole("button").filter({ hasText: "Desktops" }).click();
 
-  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "types", "Desktop");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
 });
@@ -69,7 +64,8 @@ test("device types can be combined from the checklist", async ({ page }) => {
 
   await page.getByRole("checkbox", { name: "Desktop" }).uncheck();
   await page.getByRole("checkbox", { name: "Mobile Device" }).uncheck();
-  await expect.poll(() => new URL(page.url()).searchParams.get("types")).toBe("Laptop");
+  await expect(typesButton).toContainText("1");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
 });
@@ -86,16 +82,15 @@ test("operating systems can be combined with not specified", async ({ page }) =>
 
   await page.getByRole("checkbox", { name: "Windows 11" }).uncheck();
   await page.getByRole("checkbox", { name: "Not specified" }).uncheck();
-  await expectSearchParam(page, "operatingSystems", "Ubuntu");
+  await expect(operatingSystemsButton).toContainText("1");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeHidden();
 
   await page.getByRole("checkbox", { name: "Not specified" }).check();
-  await expectSearchParam(page, "includeUnspecifiedOperatingSystem", "true");
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
 
   await page.getByRole("checkbox", { name: "Ubuntu" }).uncheck();
-  await expect.poll(() => new URL(page.url()).searchParams.get("operatingSystems")).toBeNull();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
   await expect(page.getByText("ThinkCentre M90q", { exact: true })).toBeVisible();
 });
@@ -104,8 +99,7 @@ test("dashboard stuck items opens the chapter-filtered stuck list", async ({ pag
   await selectTestChapter(page);
   await page.getByRole("button", { name: /Stuck Devices/ }).click();
 
-  await expectSearchParam(page, "chapter", String(TEST_CHAPTER.id));
-  await expectSearchParam(page, "stuckOnly", "true");
+  await expect(page).toHaveURL(/\/devices$/);
   await page.getByRole("button", { name: /^Statuses/ }).click();
   await expect(page.getByRole("checkbox", { name: "Stuck only" })).toBeChecked();
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
@@ -118,12 +112,27 @@ test("devices can be filtered and opened", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Devices" })).toBeVisible();
   await expect(page.getByText("Framework", { exact: true })).toBeVisible();
   await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("Framework");
-  await expectSearchParam(page, "search", "Framework");
+  await expect(page).toHaveURL(/\/devices$/);
   await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
 
   await page.getByText("Laptop 13", { exact: true }).click();
-  await expect(page).toHaveURL(/\/devices\/1001\?search=Framework$/);
+  await expect(page).toHaveURL(/\/devices\/1001$/);
+
+  await page.getByRole("main").getByRole("link", { name: "Devices" }).click();
+  await expect(page.getByPlaceholder("ID, manufacturer, model, CPU…")).toHaveValue("Framework");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+  await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeHidden();
+
+  await page.reload();
+  await expect(page.getByPlaceholder("ID, manufacturer, model, CPU…")).toHaveValue("Framework");
+  await expect(page.getByText("Laptop 13", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Clear filters" }).first().click();
+  await expect(page.getByPlaceholder("ID, manufacturer, model, CPU…")).toHaveValue("");
+  await expect
+    .poll(() => page.evaluate((key) => sessionStorage.getItem(key), DEVICE_FILTER_STORAGE_KEY))
+    .toBeNull();
 });
 
 test("places the continuation marker after the matching-device count", async ({ page }) => {
@@ -141,7 +150,8 @@ test("places the continuation marker after the matching-device count", async ({ 
     await route.fulfill({ response, json: devices });
   });
 
-  await page.goto("/devices?search=bulk");
+  await page.goto("/devices");
+  await page.getByPlaceholder("ID, manufacturer, model, CPU…").fill("bulk");
 
   await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
 });

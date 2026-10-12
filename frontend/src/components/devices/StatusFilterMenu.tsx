@@ -30,9 +30,8 @@ export function StatusFilterMenu({
       footer={
         <label className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
           <input
-            key={String(showStuck)}
             type="checkbox"
-            defaultChecked={showStuck}
+            checked={showStuck}
             onChange={(event) => onShowStuckChange(event.target.checked)}
             className="h-4 w-4 rounded border-slate-300 accent-amber-500"
           />

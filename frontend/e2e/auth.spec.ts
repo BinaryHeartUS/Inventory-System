@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures/test";
 import { authenticate, E2E_PASSWORD } from "./fixtures/real-api";
+import { DEVICE_FILTER_STORAGE_KEY } from "../src/components/devices/deviceFilterStorage";
 
 async function getStoredTokenExpiration(page: Page): Promise<number> {
   return page.evaluate(() => {
@@ -80,12 +81,19 @@ test.describe("authentication", () => {
 
   test("signs out and clears access to protected pages", async ({ page }) => {
     await authenticate(page);
+    await page.evaluate(
+      ([key, value]) => sessionStorage.setItem(key, value),
+      [DEVICE_FILTER_STORAGE_KEY, "saved-filters"]
+    );
     await page.goto("/account");
     await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
 
     await page.getByRole("button", { name: "Sign out" }).click();
 
     await expect(page).toHaveURL(/\/login$/);
+    await expect
+      .poll(() => page.evaluate((key) => sessionStorage.getItem(key), DEVICE_FILTER_STORAGE_KEY))
+      .toBeNull();
     await page.goto("/devices");
     await expect(page).toHaveURL(/\/login$/);
   });

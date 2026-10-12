@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import type { AnyDevice } from "../types/inventory";
 import { DeviceList, type SortKey, type SortDir } from "../components/devices/DeviceList";
 
@@ -20,12 +20,11 @@ export function DeviceListContainer({
   onSort?: (key: SortKey, dir: SortDir) => void;
 }) {
   const navigate = useNavigate();
-  const location = useLocation();
   return (
     <DeviceList
       devices={devices}
       exclude={exclude}
-      onSelect={onSelect ?? ((id) => navigate(`/devices/${id}${location.search}`))}
+      onSelect={onSelect ?? ((id) => navigate(`/devices/${id}`))}
       emptyMessage={emptyMessage}
       sortKey={sortKey}
       sortDir={sortDir}

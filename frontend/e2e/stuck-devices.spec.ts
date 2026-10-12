@@ -67,7 +67,7 @@ test("stuck filter combines with the selected statuses", async ({ page }) => {
   await statusesButton.click();
   await page.getByRole("checkbox", { name: "Not Started" }).uncheck();
   await page.getByRole("checkbox", { name: "Ready To Donate" }).uncheck();
-  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("In Progress");
+  await expect(statusesButton).toContainText("1");
 
   await page.getByRole("checkbox", { name: "Stuck only" }).check();
 
@@ -75,11 +75,11 @@ test("stuck filter combines with the selected statuses", async ({ page }) => {
   await expect(page.getByLabel("Device stuck")).toBeVisible();
   await expect(statusesButton).toBeEnabled();
   await expect(statusesButton).toContainText("1");
-  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("In Progress");
+  await expect(page).toHaveURL(/\/devices$/);
 
   await page.getByRole("checkbox", { name: "Not Started" }).check();
   await page.getByRole("checkbox", { name: "In Progress" }).uncheck();
-  await expect.poll(() => new URL(page.url()).searchParams.get("statuses")).toBe("Not Started");
+  await expect(statusesButton).toContainText("1");
   await expect(page.getByText("Laptop 13", { exact: true })).toBeHidden();
   await expect(page.getByText("No devices match the current filters.")).toBeVisible();
 });

@@ -1,37 +1,27 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router";
 import type { AnyDevice, DeviceStatus, ChapterInventorySummary } from "../types/inventory";
 import { getDevices, getChapterInventorySummary } from "../services/deviceService";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
-import { useVisibleChapters } from "../context/ChapterContext";
 import type { SortKey, SortDir } from "../components/devices/DeviceList";
 import DevicesView from "../components/devices/DevicesView";
 import { useLookups } from "../hooks/useLookups";
 import {
   getOperatingSystemFilterParams,
-  getSelectedOperatingSystems,
+  hasDefaultOperatingSystems,
+  UNSPECIFIED_OPERATING_SYSTEM,
 } from "../components/devices/operatingSystemFilters";
 import {
   DEVICE_TYPES,
-  DEVICE_SORT_KEYS,
   DEFAULT_DEVICE_STATUSES,
-  DEVICE_STATUS_OPTIONS,
   type DeviceType,
 } from "../components/devices/deviceFilters";
-
-function getSelectedTypes(types: string | null): DeviceType[] {
-  if (types === null) return [...DEVICE_TYPES];
-  const requested = new Set(types.split(","));
-  const selected = DEVICE_TYPES.filter((type) => requested.has(type));
-  return selected.length > 0 ? selected : [...DEVICE_TYPES];
-}
-
-function getSelectedStatuses(statuses: string | null): DeviceStatus[] {
-  if (statuses === null) return DEFAULT_DEVICE_STATUSES;
-  const requested = new Set(statuses.split(","));
-  const selected = DEVICE_STATUS_OPTIONS.filter((status) => requested.has(status));
-  return selected.length > 0 ? selected : DEFAULT_DEVICE_STATUSES;
-}
+import {
+  clearDeviceFilters,
+  createDeviceFilters,
+  loadDeviceFilters,
+  saveDeviceFilters,
+  type DeviceFilters,
+} from "../components/devices/deviceFilterStorage";
 
 function hasDefaultStatuses(statuses: DeviceStatus[]): boolean {
   return (
@@ -44,47 +34,27 @@ function hasDefaultTypes(types: DeviceType[]): boolean {
   return types.length === DEVICE_TYPES.length && DEVICE_TYPES.every((type) => types.includes(type));
 }
 
-function getSortKey(value: string | null): SortKey {
-  return DEVICE_SORT_KEYS.includes(value as SortKey) ? (value as SortKey) : "id";
-}
-
-function getSortDir(value: string | null): SortDir {
-  return value === "desc" ? "desc" : "asc";
-}
-
 export default function DevicesContainer() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const chapters = useVisibleChapters();
   const lookups = useLookups();
-  const search = searchParams.get("search") ?? "";
-  const typesParam = searchParams.get("types");
-  const selectedTypes = useMemo(() => getSelectedTypes(typesParam), [typesParam]);
-  const statusesParam = searchParams.get("statuses");
-  const selectedStatuses = useMemo(() => getSelectedStatuses(statusesParam), [statusesParam]);
-  const operatingSystemsParam = searchParams.get("operatingSystems");
-  const includeUnspecifiedOperatingSystem =
-    searchParams.get("includeUnspecifiedOperatingSystem") === "true";
+  const [filters, setFilters] = useState(loadDeviceFilters);
+  const {
+    search,
+    types: selectedTypes,
+    statuses: selectedStatuses,
+    chapter: chapterFilter,
+    stuckOnly: showStuck,
+    sort: sortKey,
+    dir: sortDir,
+  } = filters;
   const selectedOperatingSystems = useMemo(
-    () =>
-      getSelectedOperatingSystems(
-        operatingSystemsParam,
-        includeUnspecifiedOperatingSystem,
-        lookups.operatingSystems
-      ),
-    [operatingSystemsParam, includeUnspecifiedOperatingSystem, lookups.operatingSystems]
+    () => filters.operatingSystems ?? [...lookups.operatingSystems, UNSPECIFIED_OPERATING_SYSTEM],
+    [filters.operatingSystems, lookups.operatingSystems]
   );
-  const hasOperatingSystemFilter =
-    operatingSystemsParam !== null || includeUnspecifiedOperatingSystem;
-  const chapterParam = searchParams.get("chapter");
-  const chapterId = Number(chapterParam);
-  const chapterFilter: number | "All" = chapterParam
-    ? Number.isInteger(chapterId) && chapterId > 0
-      ? chapterId
-      : (chapters.find((chapter) => chapter.name === chapterParam)?.id ?? "All")
-    : "All";
-  const showStuck = searchParams.get("stuckOnly") === "true";
-  const sortKey = getSortKey(searchParams.get("sort"));
-  const sortDir = getSortDir(searchParams.get("dir"));
+  const operatingSystemParams = useMemo(
+    () => getOperatingSystemFilterParams(selectedOperatingSystems, lookups.operatingSystems),
+    [selectedOperatingSystems, lookups.operatingSystems]
+  );
+  const hasOperatingSystemFilter = filters.operatingSystems !== null;
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [summary, setSummary] = useState<ChapterInventorySummary[]>([]);
   const [summaryLoaded, setSummaryLoaded] = useState(false);
@@ -108,25 +78,13 @@ export default function DevicesContainer() {
     };
   }, []);
 
-  const updateFilters = useCallback(
-    (updates: Record<string, string | number | boolean | null>) => {
-      setSearchParams(
-        (current) => {
-          const next = new URLSearchParams(current);
-          for (const [key, value] of Object.entries(updates)) {
-            if (value === null || value === false || value === "" || value === "All") {
-              next.delete(key);
-            } else {
-              next.set(key, String(value));
-            }
-          }
-          return next;
-        },
-        { replace: true }
-      );
-    },
-    [setSearchParams]
-  );
+  const updateFilters = useCallback((updates: Partial<DeviceFilters>) => {
+    setFilters((current) => {
+      const next = { ...current, ...updates };
+      saveDeviceFilters(next);
+      return next;
+    });
+  }, []);
 
   const fetchPage = useCallback(
     (pageKey: number, pageSize: number) =>
@@ -136,8 +94,8 @@ export default function DevicesContainer() {
         search: debouncedSearch || undefined,
         types: selectedTypes.join(","),
         statuses: selectedStatuses.join(","),
-        operatingSystems: operatingSystemsParam ?? undefined,
-        includeUnspecifiedOperatingSystem: includeUnspecifiedOperatingSystem || undefined,
+        operatingSystems: operatingSystemParams.operatingSystems,
+        includeUnspecifiedOperatingSystem: operatingSystemParams.includeUnspecifiedOperatingSystem,
         chapter: chapterFilter === "All" ? undefined : chapterFilter,
         stuckOnly: showStuck,
         sort: sortKey,
@@ -147,8 +105,7 @@ export default function DevicesContainer() {
       debouncedSearch,
       selectedTypes,
       selectedStatuses,
-      operatingSystemsParam,
-      includeUnspecifiedOperatingSystem,
+      operatingSystemParams,
       chapterFilter,
       showStuck,
       sortKey,
@@ -165,8 +122,7 @@ export default function DevicesContainer() {
     debouncedSearch,
     selectedTypes,
     selectedStatuses,
-    operatingSystemsParam,
-    includeUnspecifiedOperatingSystem,
+    operatingSystemParams,
     chapterFilter,
     showStuck,
     sortKey,
@@ -222,14 +178,12 @@ export default function DevicesContainer() {
         : `${devices.length} device${devices.length !== 1 ? "s" : ""}`;
 
   function clearFilters() {
-    setSearchParams({}, { replace: true });
+    clearDeviceFilters();
+    setFilters(createDeviceFilters());
   }
 
   function handleSort(key: SortKey, dir: SortDir) {
-    updateFilters({
-      sort: key === "id" ? null : key,
-      dir: dir === "asc" ? null : dir,
-    });
+    updateFilters({ sort: key, dir });
   }
 
   function handleShowStuckChange(value: boolean) {
@@ -239,22 +193,18 @@ export default function DevicesContainer() {
   }
 
   function handleSelectedStatusesChange(statuses: DeviceStatus[]) {
-    updateFilters({
-      statuses: hasDefaultStatuses(statuses) ? null : statuses.join(","),
-    });
+    updateFilters({ statuses });
   }
 
   function handleSelectedTypesChange(types: DeviceType[]) {
-    updateFilters({
-      types: hasDefaultTypes(types) ? null : types.join(","),
-    });
+    updateFilters({ types });
   }
 
   function handleSelectedOperatingSystemsChange(operatingSystems: string[]) {
-    const params = getOperatingSystemFilterParams(operatingSystems, lookups.operatingSystems);
     updateFilters({
-      operatingSystems: params.operatingSystems ?? null,
-      includeUnspecifiedOperatingSystem: params.includeUnspecifiedOperatingSystem ?? false,
+      operatingSystems: hasDefaultOperatingSystems(operatingSystems, lookups.operatingSystems)
+        ? null
+        : operatingSystems,
     });
   }
 
