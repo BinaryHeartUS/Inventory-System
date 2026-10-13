@@ -57,12 +57,9 @@ describe("AddAssetButtonContainer", () => {
     expect(renderButton([{ chapterId: 1, role: "Viewer" }])).toBe("");
   });
 
-  it.each(["Editor", "Chapter Admin", "Admin"])(
-    "shows the button for a chapter %s",
-    (role) => {
-      expect(renderButton([{ chapterId: 2, role }])).toContain("Add Asset");
-    }
-  );
+  it.each(["Editor", "Chapter Admin", "Admin"])("shows the button for a chapter %s", (role) => {
+    expect(renderButton([{ chapterId: 2, role }])).toContain("Add Asset");
+  });
 
   it("shows the button for a National viewer with write access to another chapter", () => {
     expect(
