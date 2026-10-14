@@ -25,10 +25,21 @@ export default defineConfig({
     },
   },
   test: {
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html", "json-summary", "json"],
+      include: [
+        "src/components/**/*.{ts,tsx}",
+        "src/utils/**/*.{ts,tsx}",
+        "src/types/inventory.ts",
+      ],
+      exclude: ["**/*.stories.*", "**/*.spec.*", "src/components/DetailViewContent.ts"],
+    },
     projects: [
       {
         extends: true,
         test: {
+          maxWorkers: 2,
           include: ["src/**/*.spec.ts"],
         },
       },
@@ -43,6 +54,7 @@ export default defineConfig({
         ],
         test: {
           name: "storybook",
+          maxWorkers: 2,
           browser: {
             enabled: true,
             headless: true,

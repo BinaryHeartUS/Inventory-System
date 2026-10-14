@@ -1,5 +1,6 @@
 import type { Tool, PartySummary, ChapterSummary } from "../../types/inventory";
 import type { ToolChangelogEntry } from "../../types/changelog";
+import type { DetailViewContent } from "../DetailViewContent";
 import NotesPaneContainer from "../../containers/NotesPaneContainer";
 import { PrintLabelModalContainer } from "../../containers/PrintLabelModalContainer";
 import { PartyPickerModalContainer } from "../../containers/PartyPickerModalContainer";
@@ -17,6 +18,7 @@ import { ModificationModal } from "../ModificationModal";
 import { buildToolFields } from "../../utils/changelogFields";
 
 export interface ToolDetailViewProps {
+  content?: DetailViewContent;
   tool: Tool;
   editing: boolean;
   form: Tool | null;
@@ -48,6 +50,7 @@ export interface ToolDetailViewProps {
 }
 
 export default function ToolDetailView({
+  content,
   tool,
   editing,
   form,
@@ -81,16 +84,20 @@ export default function ToolDetailView({
 
   return (
     <>
-      <UnsavedChangesGuard when={isDirty} />
-      {printId !== null && <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />}
-      {partyPickerOpen && (
-        <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
-      )}
+      {content?.unsavedChangesGuard ?? <UnsavedChangesGuard when={isDirty} />}
+      {printId !== null &&
+        (content?.printModal ?? (
+          <PrintLabelModalContainer assetId={printId} onClose={onClosePrint} />
+        ))}
+      {partyPickerOpen &&
+        (content?.partyPicker ?? (
+          <PartyPickerModalContainer onSelect={onSelectParty} onCancel={onCancelPartyPicker} />
+        ))}
       <div className="space-y-5">
         {/* Breadcrumb + Add Asset */}
         <div className="flex items-center justify-between">
           <Breadcrumb backHref="/tools" backLabel="Tools" current={tool.description} />
-          <AddAssetButtonContainer />
+          {content?.addAssetButton ?? <AddAssetButtonContainer />}
         </div>
 
         {/* Header */}
@@ -297,7 +304,7 @@ export default function ToolDetailView({
           </div>
 
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
-            <NotesPaneContainer assetId={tool.id} />
+            {content?.notesPane ?? <NotesPaneContainer assetId={tool.id} />}
           </div>
         </div>
 

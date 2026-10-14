@@ -8,6 +8,9 @@ import { Chevron } from "../Chevron";
 import { PartTypeRowsContainer } from "../../containers/PartTypeRowsContainer";
 
 export interface PartsViewProps {
+  chapterFilterControl?: React.ReactNode;
+  addAssetButton?: React.ReactNode;
+  renderTypeRows?: (type: string, filters: PartTypeCountParams) => React.ReactNode;
   partTypes: string[];
   filters: PartTypeCountParams;
   sortedTypes: PartTypeCountResponse[];
@@ -29,6 +32,9 @@ export interface PartsViewProps {
 }
 
 export default function PartsView({
+  chapterFilterControl,
+  addAssetButton,
+  renderTypeRows,
   partTypes,
   filters,
   sortedTypes,
@@ -56,12 +62,14 @@ export default function PartsView({
           subtitle={`${totalTypes} type${totalTypes !== 1 ? "s" : ""}, ${totalParts} part${totalParts !== 1 ? "s" : ""}`}
         />
         <div className="flex justify-end">
-          <AddAssetButtonContainer className="w-full sm:w-auto" />
+          {addAssetButton ?? <AddAssetButtonContainer className="w-full sm:w-auto" />}
         </div>
       </div>
 
       {/* Chapter filter */}
-      <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />
+      {chapterFilterControl ?? (
+        <ChapterFilterContainer selected={chapterFilter} onChange={onChapterChange} />
+      )}
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
@@ -186,7 +194,11 @@ export default function PartsView({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        <PartTypeRowsContainer type={type} filters={filters} />
+                        {renderTypeRows ? (
+                          renderTypeRows(type, filters)
+                        ) : (
+                          <PartTypeRowsContainer type={type} filters={filters} />
+                        )}
                       </tbody>
                     </table>
                   </div>
