@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseLocation } from "./inventory";
+import { formatLocation, parseLocation } from "./inventory";
 
 describe("parseLocation", () => {
   it("removes PostgreSQL composite quotes from street and country", () => {
@@ -16,7 +16,8 @@ describe("parseLocation", () => {
     expect(parseLocation('("12, Main St",Chicago,Illinois,60604,"United States")')?.street).toBe(
       "12, Main St"
     );
-import { formatLocation, parseLocation } from "./inventory";
+  })
+})
 
 describe("party location serialization", () => {
   it("round-trips a complete address", () => {

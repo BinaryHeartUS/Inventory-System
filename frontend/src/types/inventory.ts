@@ -205,7 +205,7 @@ export function parseLocation(raw: string | null | undefined): AddressForm | nul
   parts.push(field.trim());
   if (parts.length < 5) return null;
   const [street, city, state, zipCode, ...rest] = parts;
-  const country = rest.join(","); // country may contain a comma theoretically
+  const country = rest.join(", "); // country may contain a comma theoretically
   const result: AddressForm = {
     street: street.trim(),
     city: city.trim(),
