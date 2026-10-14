@@ -16,8 +16,8 @@ describe("parseLocation", () => {
     expect(parseLocation('("12, Main St",Chicago,Illinois,60604,"United States")')?.street).toBe(
       "12, Main St"
     );
-  })
-})
+  });
+});
 
 describe("party location serialization", () => {
   it("round-trips a complete address", () => {
