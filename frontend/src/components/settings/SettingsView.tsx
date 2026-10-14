@@ -4,9 +4,10 @@ import type { LookupSection } from "./LookupEditor";
 
 export interface SettingsViewProps {
   sections: LookupSection[];
+  renderEditor?: (section: LookupSection) => React.ReactNode;
 }
 
-export default function SettingsView({ sections }: SettingsViewProps) {
+export default function SettingsView({ sections, renderEditor }: SettingsViewProps) {
   return (
     <div className="space-y-8">
       <PageHeading
@@ -24,7 +25,9 @@ export default function SettingsView({ sections }: SettingsViewProps) {
           </p>
         </div>
         {sections.map((section) => (
-          <LookupEditorContainer key={section.title} section={section} />
+          <div key={section.title}>
+            {renderEditor ? renderEditor(section) : <LookupEditorContainer section={section} />}
+          </div>
         ))}
       </section>
     </div>

@@ -9,7 +9,7 @@ import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores(["dist"]),
+  globalIgnores(["dist", "storybook-static", "coverage"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -28,6 +28,10 @@ export default defineConfig([
     languageOptions: {
       globals: globals.node,
     },
+  },
+  {
+    files: ["src/stories/**/*.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
   },
   ...storybook.configs["flat/recommended"],
 ]);

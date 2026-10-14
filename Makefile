@@ -4,7 +4,7 @@
 
 .PHONY: help format format-check format-java format-web format-check-java format-check-web \
 	build build-java build-web build-importer lint lint-web audit-web test test-java test-e2e \
-	test-web test-storybook test-e2e-headed storybook build-storybook ci generate-types check-types
+	test-web coverage-web test-storybook test-e2e-headed storybook build-storybook ci generate-types check-types
 
 help: ## List available commands
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -58,6 +58,9 @@ test-java: ## Run backend unit tests
 
 test-web: ## Run frontend unit tests
 	cd frontend && npm test
+
+coverage-web: ## Run frontend specs and Storybook tests with code coverage
+	cd frontend && npm test -- --coverage
 
 test-storybook: ## Run Storybook component tests in headless Chromium
 	cd frontend && npm run test:storybook

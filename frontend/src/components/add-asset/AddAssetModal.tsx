@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ComponentType, type ComponentProps } from "react";
 import type {
   AnyDevice,
   DeviceStatus,
@@ -28,6 +28,8 @@ import {
 // ─── Main modal ───────────────────────────────────────────────────────────────
 
 export function AddAssetModal({
+  devicePickerComponent: DevicePicker = DevicePickerModalContainer,
+  partyPickerComponent: PartyPicker = PartyPickerModalContainer,
   scanId,
   lookups,
   chapterList,
@@ -36,6 +38,8 @@ export function AddAssetModal({
   onBulkAdd,
   onCancel,
 }: {
+  devicePickerComponent?: ComponentType<ComponentProps<typeof DevicePickerModalContainer>>;
+  partyPickerComponent?: ComponentType<ComponentProps<typeof PartyPickerModalContainer>>;
   scanId?: number;
   lookups: LookupData;
   chapterList: { id: number; name: string }[];
@@ -431,7 +435,7 @@ export function AddAssetModal({
 
         {/* Device picker (rendered above the modal layer) */}
         {devicePickerOpen && (
-          <DevicePickerModalContainer
+          <DevicePicker
             chapterName={form.chapter || undefined}
             onSelect={(device) => {
               setSelectedDevice(device);
@@ -444,7 +448,7 @@ export function AddAssetModal({
 
         {/* Party picker — donor */}
         {partyPickerOpen && (
-          <PartyPickerModalContainer
+          <PartyPicker
             onSelect={(party) => {
               setSelectedParty(party);
               setPartyPickerOpen(false);
@@ -455,7 +459,7 @@ export function AddAssetModal({
 
         {/* Party picker — recipient */}
         {recipientPickerOpen && (
-          <PartyPickerModalContainer
+          <PartyPicker
             onSelect={(party) => {
               setSelectedRecipient(party);
               setRecipientPickerOpen(false);

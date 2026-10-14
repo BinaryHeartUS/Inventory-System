@@ -5,6 +5,11 @@ import { PersonPanelContainer } from "../../containers/PersonPanelContainer";
 import { OrgPanelContainer } from "../../containers/OrgPanelContainer";
 
 export interface PartySectionViewProps {
+  renderPanel?: (
+    partyId: number | "new",
+    onClose: () => void,
+    onSaved: () => void
+  ) => React.ReactNode;
   isPerson: boolean;
   items: PartySummary[];
   loading: boolean;
@@ -13,6 +18,7 @@ export interface PartySectionViewProps {
 }
 
 export default function PartySectionView({
+  renderPanel,
   isPerson,
   items,
   loading,
@@ -128,7 +134,9 @@ export default function PartySectionView({
       {/* "New" panel */}
       {expandedId === "new" && (
         <div className="mb-3 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {isPerson ? (
+          {renderPanel ? (
+            renderPanel("new", () => setExpandedId(null), handleSaved)
+          ) : isPerson ? (
             <PersonPanelContainer
               partyId="new"
               onClose={() => setExpandedId(null)}
@@ -197,7 +205,9 @@ export default function PartySectionView({
                   {expandedId === p.id && (
                     <tr className="rc-raw">
                       <td colSpan={2} className="p-0 rc-raw">
-                        {isPerson ? (
+                        {renderPanel ? (
+                          renderPanel(p.id, () => setExpandedId(null), handleSaved)
+                        ) : isPerson ? (
                           <PersonPanelContainer
                             partyId={p.id}
                             onClose={() => setExpandedId(null)}

@@ -8,6 +8,8 @@ import type { DeviceStatus } from "../../types/inventory";
 import { deviceTypePluralLabel } from "../../utils/deviceTypeLabel";
 
 export interface DashboardViewProps {
+  chapterFilter?: React.ReactNode;
+  addAssetButton?: React.ReactNode;
   selectedChapter: number | "All";
   onChapterChange: (value: number | "All") => void;
   chartMonths: number;
@@ -18,6 +20,8 @@ export interface DashboardViewProps {
 }
 
 export default function DashboardView({
+  chapterFilter,
+  addAssetButton,
   selectedChapter,
   onChapterChange,
   chartMonths,
@@ -60,12 +64,14 @@ export default function DashboardView({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeading title="Dashboard" subtitle="Inventory overview by chapter" />
         <div className="flex justify-end">
-          <AddAssetButtonContainer className="w-full sm:w-auto" />
+          {addAssetButton ?? <AddAssetButtonContainer className="w-full sm:w-auto" />}
         </div>
       </div>
 
       {/* Chapter tabs */}
-      <ChapterFilterContainer selected={selectedChapter} onChange={onChapterChange} />
+      {chapterFilter ?? (
+        <ChapterFilterContainer selected={selectedChapter} onChange={onChapterChange} />
+      )}
 
       {/* Pipeline card */}
       <div className="bg-white border border-slate-200 rounded-xl p-5">
