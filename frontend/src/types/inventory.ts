@@ -173,12 +173,39 @@ export function formatLocation(a: Partial<AddressForm>): string {
  *  Returns null if the string is empty, null, or malformed. */
 export function parseLocation(raw: string | null | undefined): AddressForm | null {
   if (!raw) return null;
-  // Strip surrounding parens
-  const inner = raw.replace(/^\(/, "").replace(/\)$/, "");
-  const parts = inner.split(",");
+  if (!raw.startsWith("(") || !raw.endsWith(")")) return null;
+
+  const inner = raw.slice(1, -1);
+  const parts: string[] = [];
+  let field = "";
+  let quoted = false;
+  let escaped = false;
+  for (const char of inner) {
+    if (quoted) {
+      if (escaped) {
+        field += char;
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        quoted = false;
+      } else {
+        field += char;
+      }
+    } else if (char === '"' && field.length === 0) {
+      quoted = true;
+    } else if (char === ",") {
+      parts.push(field.trim());
+      field = "";
+    } else {
+      field += char;
+    }
+  }
+  if (quoted || escaped) return null;
+  parts.push(field.trim());
   if (parts.length < 5) return null;
   const [street, city, state, zipCode, ...rest] = parts;
-  const country = rest.join(","); // country may contain a comma theoretically
+  const country = rest.join(", "); // country may contain a comma theoretically
   const result: AddressForm = {
     street: street.trim(),
     city: city.trim(),
