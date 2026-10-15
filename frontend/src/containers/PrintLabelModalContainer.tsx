@@ -46,7 +46,7 @@ export function PrintLabelModalContainer({
         const canvas = document.createElement("canvas");
         await drawAssetLabel(canvas, id);
         const encoded = ImageEncoder.encodeCanvas(canvas, "top");
-        await task.printPage(encoded, index + 1);
+        await task.printPage(encoded, 1);
         await task.waitForPageFinished();
       }
       await task.waitForFinished();
