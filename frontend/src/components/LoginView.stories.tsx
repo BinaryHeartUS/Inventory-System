@@ -13,6 +13,10 @@ export const SignIn: Story = {
   play: async ({ canvas, args }) => {
     await userEvent.type(canvas.getByTestId("login-username"), "alex");
     await userEvent.type(canvas.getByTestId("login-password"), "example-password");
+    await userEvent.click(canvas.getByRole("button", { name: "Show password" }));
+    await expect(canvas.getByTestId("login-password")).toHaveAttribute("type", "text");
+    await userEvent.click(canvas.getByRole("button", { name: "Hide password" }));
+    await expect(canvas.getByTestId("login-password")).toHaveAttribute("type", "password");
     await userEvent.click(canvas.getByRole("button", { name: "Sign in" }));
     await expect(args.onLogin).toHaveBeenCalledWith("alex", "example-password");
   },
@@ -26,7 +30,7 @@ export const RequiredFields: Story = {
 export const Loading: Story = {
   args: { loading: true },
   play: async ({ canvas }) => {
-    await expect(canvas.getByRole("button")).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: "Signing in…" })).toBeDisabled();
   },
 };
 export const Error: Story = {
