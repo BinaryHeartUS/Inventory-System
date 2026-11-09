@@ -1,48 +1,67 @@
 // Role/permission business logic. Roles form a strict seniority ladder:
-// Admin > Chapter Admin > Editor > Viewer. "National" is a special meta-chapter.
+// Admin > Inventory Admin > Chapter Admin > Editor > Viewer. "National" is a special meta-chapter.
 // Keep all role semantics here so pages ask questions instead of re-deriving them.
 
-export type Role = "Admin" | "Chapter Admin" | "Editor" | "Viewer";
+export type Role = "Admin" | "Chapter Admin" | "Inventory Admin" | "Editor" | "Viewer";
 
 /** All roles, most-privileged first. */
-export const ROLES: Role[] = ["Admin", "Chapter Admin", "Editor", "Viewer"];
+export const ROLES: Role[] = ["Admin", "Inventory Admin", "Chapter Admin", "Editor", "Viewer"];
 
 /** Numeric rank for comparing role seniority (higher = more privileged). */
 export const ROLE_RANK: Record<string, number> = {
-  Admin: 3,
+  Admin: 4,
+  "Inventory Admin": 3,
   "Chapter Admin": 2,
   Editor: 1,
   Viewer: 0,
 };
 
 /** Roles that grant write (create/edit) access to a chapter's inventory. */
-export const WRITE_ROLES = new Set<string>(["Admin", "Chapter Admin", "Editor"]);
+export const WRITE_ROLES = new Set<string>(["Admin", "Chapter Admin", "Inventory Admin", "Editor"]);
 
 /** Tailwind badge classes per role. */
 export const ROLE_BADGE_CLASS: Record<string, string> = {
   Admin: "bg-red-100 text-red-700",
   "Chapter Admin": "bg-blue-100 text-blue-700",
+  "Inventory Admin": "bg-blue-100 text-blue-700",
   Editor: "bg-green-100 text-green-700",
   Viewer: "bg-slate-100 text-slate-600",
 };
 
 /** Can this role reach the account-management screens at all? */
 export function canManageAccounts(role: string | undefined | null): boolean {
-  return role === "Admin" || role === "Chapter Admin";
+  return role === "Admin" || role === "Chapter Admin" || role === "Inventory Admin";
 }
 
 /** Which roles a user of the given role is allowed to assign to others. */
 export function assignableRoles(role: string | undefined | null): string[] {
   return role === "Admin"
-    ? ["Admin", "Chapter Admin", "Editor", "Viewer"]
+    ? ["Admin", "Chapter Admin", "Inventory Admin", "Editor", "Viewer"]
     : role === "Chapter Admin"
-      ? ["Chapter Admin", "Editor", "Viewer"]
-      : ["Editor", "Viewer"];
+      ? ["Chapter Admin", "Inventory Admin", "Editor", "Viewer"]
+      : role === "Inventory Admin"
+        ? ["Inventory Admin", "Editor", "Viewer"]
+        : ["Editor", "Viewer"];
 }
 
 interface ChapterRoleLike {
   chapterId: number;
   role: string;
+}
+
+export function canEditDonatedDevices(
+  chapterRoles: ChapterRoleLike[],
+  chapterId: number | undefined,
+  nationalChapterId: number | undefined
+): boolean {
+  return (
+    chapterId !== undefined &&
+    chapterRoles.some(
+      (assignment) =>
+        canManageAccounts(assignment.role) &&
+        (assignment.chapterId === chapterId || assignment.chapterId === nationalChapterId)
+    )
+  );
 }
 
 /**

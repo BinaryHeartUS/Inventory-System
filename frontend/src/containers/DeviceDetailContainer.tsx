@@ -6,7 +6,8 @@ import { getPartsByDevice, updatePart } from "../services/partService";
 import { useLookups } from "../hooks/useLookups";
 import { canPrintLabels } from "../utils/canPrintLabels";
 import { useAuth } from "../context/AuthContext";
-import { useWritableChapters } from "../context/ChapterContext";
+import { useChapters, useWritableChapters } from "../context/ChapterContext";
+import { canEditDonatedDevices } from "../utils/roles";
 import { useToast } from "../context/ToastContext";
 import { useLinkedParty } from "../hooks/useLinkedParty";
 import { LoadingSpinner } from "../components/LoadingSpinner";
@@ -22,6 +23,7 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   const deviceListHref = "/devices";
   const { auth } = useAuth();
   const writableChapters = useWritableChapters();
+  const { chapters } = useChapters();
   const { showToast } = useToast();
   const lookups = useLookups();
 
@@ -155,7 +157,13 @@ export default function DeviceDetailContainer({ id }: DeviceDetailContainerProps
   const canWriteThisChapter = writableChapters.some((c) => c.name === device.chapter);
   const viewerLock = !canWriteThisChapter;
   const donatedLock =
-    canWriteThisChapter && auth?.role?.toLowerCase() === "editor" && device.status === "Donated";
+    canWriteThisChapter &&
+    device.status === "Donated" &&
+    !canEditDonatedDevices(
+      auth?.chapterRoles ?? [],
+      writableChapters.find((chapter) => chapter.name === device.chapter)?.id,
+      chapters.find((chapter) => chapter.name === "National")?.id
+    );
   const editLock = viewerLock || donatedLock;
 
   const isDirty =

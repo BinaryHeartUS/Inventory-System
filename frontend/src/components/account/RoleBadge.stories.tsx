@@ -16,6 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Admin: Story = {};
 export const ChapterAdmin: Story = { args: { role: "Chapter Admin" } };
+export const InventoryAdmin: Story = { args: { role: "Inventory Admin" } };
 export const Editor: Story = { args: { role: "Editor" } };
 export const Viewer: Story = { args: { role: "Viewer" } };
 export const UnknownRole: Story = { args: { role: "Custom role" } };
