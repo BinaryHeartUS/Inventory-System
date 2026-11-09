@@ -65,6 +65,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (isApiRequest(url)) return;
+  if (url.pathname === "/auth/callback") return;
 
   // App navigations: network-first so a fresh index.html is used when online,
   // falling back to the cached shell when offline.

@@ -9,12 +9,14 @@
 
 import { API_BASE } from "./api";
 import type { LoginResponse, ChapterRole } from "../types/inventory";
+import { getAuthConfig } from "./authConfig";
 
 const SESSION_KEY = "bh_auth";
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 
 interface StoredAuth {
+  mode?: "central" | "legacy";
   token: string;
   username: string;
   chapterRoles: ChapterRole[];
@@ -43,6 +45,10 @@ export function getStoredAuth(): StoredAuth | null {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const auth = JSON.parse(raw) as StoredAuth;
+    if ((auth.mode === "central") !== getAuthConfig().enabled) {
+      clearStoredAuth();
+      return null;
+    }
     const expiresAt = getTokenExpiration(auth.token);
     if (expiresAt === null || expiresAt <= Date.now()) {
       clearStoredAuth();
@@ -54,7 +60,7 @@ export function getStoredAuth(): StoredAuth | null {
   }
 }
 
-function setStoredAuth(auth: StoredAuth): void {
+export function setStoredAuth(auth: StoredAuth): void {
   sessionStorage.setItem(SESSION_KEY, JSON.stringify(auth));
 }
 
@@ -69,6 +75,7 @@ export function getStoredToken(): string | null {
 // ─── Login ────────────────────────────────────────────────────────────────────
 
 export async function loginRequest(username: string, password: string): Promise<LoginResponse> {
+  if (getAuthConfig().enabled) throw new Error("Please sign in with BinaryHeart.");
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -81,6 +88,7 @@ export async function loginRequest(username: string, password: string): Promise<
 
   const data = (await res.json()) as LoginResponse;
   setStoredAuth({
+    mode: "legacy",
     token: data.token!,
     username: data.username!,
     chapterRoles: data.chapterRoles!,

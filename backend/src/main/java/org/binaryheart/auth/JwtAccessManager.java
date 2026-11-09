@@ -13,10 +13,18 @@ public class JwtAccessManager {
 
 	private static final String[] PUBLIC_PATHS = {"/swagger", "/webjars/", "/openapi"};
 	private final JwtService jwtService;
+	private final CentralTokenVerifier central;
+	private final CentralAuthConfig config;
 
 	@Inject
-	public JwtAccessManager(JwtService jwtService) {
+	public JwtAccessManager(JwtService jwtService, CentralTokenVerifier central, CentralAuthConfig config) {
 		this.jwtService = jwtService;
+		this.central = central;
+		this.config = config;
+	}
+
+	public JwtAccessManager(JwtService jwtService) {
+		this(jwtService, null, new CentralAuthConfig(false, "", "inventory"));
 	}
 
 	public void handle(Context ctx) {
@@ -35,27 +43,43 @@ public class JwtAccessManager {
 			throw new UnauthorizedResponse();
 		}
 
-		DecodedJWT jwt = jwtService.verify(token);
+		if (token.length() > 32768) {
+			throw new UnauthorizedResponse();
+		}
+		DecodedJWT jwt = config.enabled() ? central.verify(token) : jwtService.verify(token);
 		if (jwt == null) {
 			throw new UnauthorizedResponse();
 		}
 
-		// Reconstruct per-chapter roles from parallel arrays stored in JWT
-		List<Integer> chapterIds = jwt.getClaim("chapterIds").asList(Integer.class);
-		List<String> chapterRoleNames = jwt.getClaim("chapterRoles").asList(String.class);
-		List<ChapterRole> chapterRoles = new ArrayList<>();
-		if (chapterIds != null && chapterRoleNames != null) {
-			for (int i = 0; i < Math.min(chapterIds.size(), chapterRoleNames.size()); i++) {
-				chapterRoles.add(new ChapterRole(chapterIds.get(i), chapterRoleNames.get(i)));
+		if (config.enabled()) {
+			try {
+				CentralClaims claims = CentralClaims.from(jwt);
+				ctx.attribute("volunteerId", claims.accountId());
+				ctx.attribute("username", claims.username());
+				ctx.attribute("chapterIds", claims.chapterRoles().stream().map(ChapterRole::chapterId).toList());
+				ctx.attribute("chapterRoles", claims.chapterRoles());
+				ctx.attribute("role", claims.role());
+			} catch (IllegalArgumentException | com.auth0.jwt.exceptions.JWTDecodeException e) {
+				throw new UnauthorizedResponse("Invalid central identity or no Inventory access");
 			}
-		}
+		} else {
+			// Reconstruct per-chapter roles from parallel arrays stored in JWT
+			List<Integer> chapterIds = jwt.getClaim("chapterIds").asList(Integer.class);
+			List<String> chapterRoleNames = jwt.getClaim("chapterRoles").asList(String.class);
+			List<ChapterRole> chapterRoles = new ArrayList<>();
+			if (chapterIds != null && chapterRoleNames != null) {
+				for (int i = 0; i < Math.min(chapterIds.size(), chapterRoleNames.size()); i++) {
+					chapterRoles.add(new ChapterRole(chapterIds.get(i), chapterRoleNames.get(i)));
+				}
+			}
 
-		// Attach claims to context so downstream handlers can use them
-		ctx.attribute("volunteerId", Integer.parseInt(jwt.getSubject()));
-		ctx.attribute("username", jwt.getClaim("username").asString());
-		ctx.attribute("chapterIds", chapterIds != null ? chapterIds : new ArrayList<Integer>());
-		ctx.attribute("chapterRoles", chapterRoles);
-		ctx.attribute("role", jwt.getClaim("role").asString());
+			// Attach claims to context so downstream handlers can use them
+			ctx.attribute("volunteerId", Integer.parseInt(jwt.getSubject()));
+			ctx.attribute("username", jwt.getClaim("username").asString());
+			ctx.attribute("chapterIds", chapterIds != null ? chapterIds : new ArrayList<Integer>());
+			ctx.attribute("chapterRoles", chapterRoles);
+			ctx.attribute("role", jwt.getClaim("role").asString());
+		}
 
 		// Role-based access checks (AUTHENTICATED passes any valid JWT)
 		if (ctx.routeRoles().contains(AppRole.ADMIN)) {
