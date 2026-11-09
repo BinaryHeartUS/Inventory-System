@@ -166,17 +166,18 @@ public class PartRepository {
 		}
 	}
 
-	public void deletePart(Integer partId, String username) throws SQLException {
+	public void deletePart(Integer partId, String username, List<Integer> allowedChapterIds) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection()) {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall("call Delete_Part(?)")) {
+				AssetMutationGuard.requireAccess(conn, partId, null, allowedChapterIds);
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, partId);
 				stmt.execute();
 				conn.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
 				conn.rollback();
 				throw e;
 			} finally {
@@ -239,12 +240,14 @@ public class PartRepository {
 		}
 	}
 
-	public void updatePart(InsertPartRequest request, String username) throws SQLException {
+	public void updatePart(InsertPartRequest request, String username, List<Integer> allowedChapterIds)
+		throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection()) {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn
 					.prepareCall("call Update_Part(?, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?)")) {
+				AssetMutationGuard.requireAccess(conn, request.id(), request.chapterId(), allowedChapterIds);
 				ps.setString(1, username);
 				ps.execute();
 				// required parameters
@@ -281,7 +284,7 @@ public class PartRepository {
 				}
 				stmt.execute();
 				conn.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
 				conn.rollback();
 				throw e;
 			} finally {

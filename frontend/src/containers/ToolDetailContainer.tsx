@@ -5,6 +5,8 @@ import { getTool, updateTool, deleteTool, getToolChangelog } from "../services/t
 import { useChapters, useWritableChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
 import { canPrintLabels } from "../utils/canPrintLabels";
+import { canAdministerChapter } from "../utils/roles";
+import { useAuth } from "../context/AuthContext";
 import { useLinkedParty } from "../hooks/useLinkedParty";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { NotFound } from "../components/NotFound";
@@ -19,7 +21,8 @@ export default function ToolDetailContainer({ id }: ToolDetailContainerProps) {
   const numId = Number(id);
   const navigate = useNavigate();
 
-  const { chapterName } = useChapters();
+  const { chapters, chapterName } = useChapters();
+  const { auth } = useAuth();
   const writableChapters = useWritableChapters();
 
   const [tool, setTool] = useState<Tool | null>(null);
@@ -102,7 +105,14 @@ export default function ToolDetailContainer({ id }: ToolDetailContainerProps) {
     setForm((prev) => (prev ? { ...prev, donorId: null } : prev));
   }
 
-  const canDelete = writableChapters.some((c) => c.id === tool.chapterId);
+  const canEdit = writableChapters.some((c) => c.id === tool.chapterId);
+  const canDelete =
+    canEdit &&
+    canAdministerChapter(
+      auth?.chapterRoles ?? [],
+      tool.chapterId,
+      chapters.find((c) => c.name === "National")?.id
+    );
 
   const isDirty =
     editing &&
@@ -117,6 +127,7 @@ export default function ToolDetailContainer({ id }: ToolDetailContainerProps) {
       form={form}
       saved={saved}
       isDirty={isDirty}
+      canEdit={canEdit}
       canDelete={canDelete}
       canPrint={canPrintLabels()}
       printId={printId}

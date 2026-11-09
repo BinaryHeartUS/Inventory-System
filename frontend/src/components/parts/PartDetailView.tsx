@@ -25,6 +25,7 @@ export interface PartDetailViewProps {
   form: Part | null;
   saved: boolean;
   isDirty: boolean;
+  canEdit: boolean;
   canDelete: boolean;
   deleteBlocked: boolean;
   canPrint: boolean;
@@ -67,6 +68,7 @@ export default function PartDetailView({
   form,
   saved,
   isDirty,
+  canEdit,
   canDelete,
   deleteBlocked,
   canPrint,
@@ -177,7 +179,7 @@ export default function PartDetailView({
                 />
               )}
               {!editing ? (
-                canDelete && (
+                canEdit && (
                   <button
                     onClick={onStartEdit}
                     className="flex items-center gap-2 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark px-4 py-2.5 rounded-lg transition-colors"
@@ -208,7 +210,7 @@ export default function PartDetailView({
                   </button>
                   <button
                     onClick={onSaveEdit}
-                    disabled={!canDelete}
+                    disabled={!canEdit}
                     className="text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark px-4 py-2.5 rounded-lg transition-colors"
                   >
                     Save changes
@@ -436,11 +438,7 @@ export default function PartDetailView({
 
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
             {content?.notesPane ?? (
-              <NotesPaneContainer
-                assetId={part.id}
-                readOnly={!canDelete}
-                readOnlyReason="chapter"
-              />
+              <NotesPaneContainer assetId={part.id} readOnly={!canEdit} readOnlyReason="chapter" />
             )}
           </div>
         </div>

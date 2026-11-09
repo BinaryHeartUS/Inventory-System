@@ -62,9 +62,10 @@ public class ToolService {
 		}
 	}
 
-	public void updateTool(InsertToolRequest request, String username) throws ToolNotFoundException, SQLException {
+	public void updateTool(InsertToolRequest request, String username, List<Integer> allowedChapterIds)
+		throws ToolNotFoundException, SQLException {
 		try {
-			repository.updateTool(request, username);
+			repository.updateTool(request, username, allowedChapterIds);
 		} catch (SQLException e) {
 			if ("02000".equals(e.getSQLState())) {
 				throw new ToolNotFoundException("Could not find tool with specified ID: " + request.assetId());
@@ -85,22 +86,16 @@ public class ToolService {
 		return repository.getToolChangelog(toolId);
 	}
 
-	public void deleteTool(List<Integer> userChapterIDs, Integer toolID)
+	public void deleteTool(List<Integer> allowedChapterIds, Integer toolID)
 		throws SQLException, BadArgumentException, ToolNotFoundException {
-		GetToolResponse tool = repository.getTool(toolID);
-		if ((tool != null && userChapterIDs.contains(tool.chapterId()))
-			|| userChapterIDs.contains(chapterService.getNationalChapterId())) {
-			try {
-				repository.deleteTool(toolID);
-			} catch (SQLException e) {
-				if ("02000".equals(e.getSQLState())) {
-					throw new ToolNotFoundException("Could not find tool with specified ID: " + toolID);
-				} else {
-					throw e;
-				}
+		try {
+			repository.deleteTool(toolID, allowedChapterIds);
+		} catch (SQLException e) {
+			if ("02000".equals(e.getSQLState())) {
+				throw new ToolNotFoundException("Could not find tool with specified ID: " + toolID);
+			} else {
+				throw e;
 			}
-		} else {
-			throw new BadArgumentException("Tool not found in authorized chapters");
 		}
 	}
 }

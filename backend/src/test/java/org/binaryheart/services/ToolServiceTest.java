@@ -97,11 +97,11 @@ class ToolServiceTest {
 	void updateToolDelegates() throws Exception {
 		ToolRepository repository = mock(ToolRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateTool(tool(), "user");
+		repository.updateTool(tool(), "user", List.of(2));
 		replay(repository, chapters);
 		ToolService service = new ToolService(repository, chapters);
 
-		service.updateTool(tool(), "user");
+		service.updateTool(tool(), "user", List.of(2));
 
 		verify(repository, chapters);
 	}
@@ -126,9 +126,7 @@ class ToolServiceTest {
 	void deleteToolDelegatesForAuthorizedTool() throws Exception {
 		ToolRepository repository = mock(ToolRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		GetToolResponse tool = toolResponse();
-		expect(repository.getTool(301)).andReturn(tool);
-		repository.deleteTool(301);
+		repository.deleteTool(301, List.of(2));
 		replay(repository, chapters);
 		ToolService service = new ToolService(repository, chapters);
 
@@ -154,26 +152,26 @@ class ToolServiceTest {
 	void updateToolTranslatesMissingSqlState() throws Exception {
 		ToolRepository repository = mock(ToolRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateTool(tool(), "user");
+		repository.updateTool(tool(), "user", List.of(2));
 		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		ToolService service = new ToolService(repository, chapters);
 
-		assertThrows(ToolNotFoundException.class, () -> service.updateTool(tool(), "user"));
+		assertThrows(ToolNotFoundException.class, () -> service.updateTool(tool(), "user", List.of(2)));
 
 		verify(repository, chapters);
 	}
 
 	@Test
-	void deleteToolRejectsUnauthorizedAccess() throws Exception {
+	void deleteToolTranslatesMissingAsset() throws Exception {
 		ToolRepository repository = mock(ToolRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		expect(repository.getTool(301)).andReturn(null);
-		expect(chapters.getNationalChapterId()).andReturn(1);
+		repository.deleteTool(301, List.of(2));
+		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		ToolService service = new ToolService(repository, chapters);
 
-		assertThrows(BadArgumentException.class, () -> service.deleteTool(List.of(2), 301));
+		assertThrows(ToolNotFoundException.class, () -> service.deleteTool(List.of(2), 301));
 
 		verify(repository, chapters);
 	}

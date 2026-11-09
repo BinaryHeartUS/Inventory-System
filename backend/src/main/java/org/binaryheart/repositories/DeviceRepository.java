@@ -193,17 +193,18 @@ public class DeviceRepository {
 		}
 	}
 
-	public void deleteDevice(int id, String username) throws SQLException {
+	public void deleteDevice(int id, String username, List<Integer> allowedChapterIds) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection()) {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall("call Delete_Device(?)")) {
+				AssetMutationGuard.requireAccess(conn, id, null, allowedChapterIds);
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, id);
 				stmt.execute();
 				conn.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
 				conn.rollback();
 				throw e;
 			} finally {
@@ -679,12 +680,14 @@ public class DeviceRepository {
 		}
 	}
 
-	public void updateDesktop(InsertDesktopRequest request, String username) throws SQLException {
+	public void updateDesktop(InsertDesktopRequest request, String username, List<Integer> allowedChapterIds)
+		throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection()) {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
 					"call Update_Desktop(?, ?, ?, ?, ?::Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?)")) {
+				AssetMutationGuard.requireAccess(conn, request.assetId(), request.chapterId(), allowedChapterIds);
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, request.chapterId());
@@ -752,7 +755,7 @@ public class DeviceRepository {
 				setStringOrNull(stmt, 19, request.serialNumber());
 				stmt.execute();
 				conn.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
 				conn.rollback();
 				throw e;
 			} finally {
@@ -761,12 +764,14 @@ public class DeviceRepository {
 		}
 	}
 
-	public void updateLaptop(InsertLaptopRequest request, String username) throws SQLException {
+	public void updateLaptop(InsertLaptopRequest request, String username, List<Integer> allowedChapterIds)
+		throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection()) {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
 					"call Update_Laptop(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+				AssetMutationGuard.requireAccess(conn, request.assetId(), request.chapterId(), allowedChapterIds);
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, request.chapterId());
@@ -841,7 +846,7 @@ public class DeviceRepository {
 
 				stmt.execute();
 				conn.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
 				conn.rollback();
 				throw e;
 			} finally {
@@ -850,12 +855,14 @@ public class DeviceRepository {
 		}
 	}
 
-	public void updateTablet(InsertTabletRequest request, String username) throws SQLException {
+	public void updateTablet(InsertTabletRequest request, String username, List<Integer> allowedChapterIds)
+		throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection()) {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall(
 					"call Update_Tablet(?, ?, ?, ?, ?::Status, ?::Charger_Status, ?::Working_Battery, ?, ?, ?, ?, ?, ?, ?::Numeric::Money, ?, ?, ?, ?, ?, ?)")) {
+				AssetMutationGuard.requireAccess(conn, request.assetId(), request.chapterId(), allowedChapterIds);
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, request.chapterId());
@@ -921,7 +928,7 @@ public class DeviceRepository {
 
 				stmt.execute();
 				conn.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
 				conn.rollback();
 				throw e;
 			} finally {

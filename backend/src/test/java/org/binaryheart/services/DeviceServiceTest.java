@@ -167,10 +167,10 @@ class DeviceServiceTest {
 	void deleteDeviceDelegates() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.deleteDevice(101, "admin");
+		repository.deleteDevice(101, "admin", List.of(2));
 		replay(repository, chapters);
 
-		new DeviceService(repository, chapters).deleteDevice(101, "admin");
+		new DeviceService(repository, chapters).deleteDevice(101, "admin", List.of(2));
 
 		verify(repository, chapters);
 	}
@@ -179,12 +179,12 @@ class DeviceServiceTest {
 	void deleteDeviceTranslatesMissingSqlState() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.deleteDevice(101, "admin");
+		repository.deleteDevice(101, "admin", List.of(2));
 		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		DeviceService service = new DeviceService(repository, chapters);
 
-		assertThrows(DeviceNotFoundException.class, () -> service.deleteDevice(101, "admin"));
+		assertThrows(DeviceNotFoundException.class, () -> service.deleteDevice(101, "admin", List.of(2)));
 
 		verify(repository, chapters);
 	}
@@ -298,10 +298,10 @@ class DeviceServiceTest {
 	void updateDesktopDelegates() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateDesktop(desktop(), "user");
+		repository.updateDesktop(desktop(), "user", List.of(2));
 		replay(repository, chapters);
 
-		new DeviceService(repository, chapters).updateDesktop(desktop(), "user");
+		new DeviceService(repository, chapters).updateDesktop(desktop(), "user", List.of(2));
 
 		verify(repository, chapters);
 	}
@@ -310,10 +310,10 @@ class DeviceServiceTest {
 	void updateLaptopDelegates() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateLaptop(laptop(), "user");
+		repository.updateLaptop(laptop(), "user", List.of(2));
 		replay(repository, chapters);
 
-		new DeviceService(repository, chapters).updateLaptop(laptop(), "user");
+		new DeviceService(repository, chapters).updateLaptop(laptop(), "user", List.of(2));
 
 		verify(repository, chapters);
 	}
@@ -322,10 +322,10 @@ class DeviceServiceTest {
 	void updateTabletDelegates() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateTablet(tablet(), "user");
+		repository.updateTablet(tablet(), "user", List.of(2));
 		replay(repository, chapters);
 
-		new DeviceService(repository, chapters).updateTablet(tablet(), "user");
+		new DeviceService(repository, chapters).updateTablet(tablet(), "user", List.of(2));
 
 		verify(repository, chapters);
 	}
@@ -373,12 +373,12 @@ class DeviceServiceTest {
 	void updateDesktopTranslatesMissingSqlState() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateDesktop(desktop(), "user");
+		repository.updateDesktop(desktop(), "user", List.of(2));
 		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		DeviceService service = new DeviceService(repository, chapters);
 
-		assertThrows(DeviceNotFoundException.class, () -> service.updateDesktop(desktop(), "user"));
+		assertThrows(DeviceNotFoundException.class, () -> service.updateDesktop(desktop(), "user", List.of(2)));
 
 		verify(repository, chapters);
 	}
@@ -387,12 +387,12 @@ class DeviceServiceTest {
 	void updateLaptopTranslatesMissingSqlState() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateLaptop(laptop(), "user");
+		repository.updateLaptop(laptop(), "user", List.of(2));
 		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		DeviceService service = new DeviceService(repository, chapters);
 
-		assertThrows(DeviceNotFoundException.class, () -> service.updateLaptop(laptop(), "user"));
+		assertThrows(DeviceNotFoundException.class, () -> service.updateLaptop(laptop(), "user", List.of(2)));
 
 		verify(repository, chapters);
 	}
@@ -401,12 +401,12 @@ class DeviceServiceTest {
 	void updateTabletTranslatesMissingSqlState() throws Exception {
 		DeviceRepository repository = mock(DeviceRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updateTablet(tablet(), "user");
+		repository.updateTablet(tablet(), "user", List.of(2));
 		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		DeviceService service = new DeviceService(repository, chapters);
 
-		assertThrows(DeviceNotFoundException.class, () -> service.updateTablet(tablet(), "user"));
+		assertThrows(DeviceNotFoundException.class, () -> service.updateTablet(tablet(), "user", List.of(2)));
 
 		verify(repository, chapters);
 	}
