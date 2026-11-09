@@ -8,9 +8,9 @@ import type { ChapterRole, ChapterSummary } from "../types/inventory";
 import AddAssetButtonContainer from "./AddAssetButtonContainer";
 
 const chapters: ChapterSummary[] = [
-  { id: 1, name: "National" },
-  { id: 2, name: "First Chapter" },
-  { id: 3, name: "Second Chapter" },
+  { id: 1, name: "National", active: true },
+  { id: 2, name: "First Chapter", active: true },
+  { id: 3, name: "Second Chapter", active: true },
 ];
 
 function renderButton(chapterRoles: ChapterRole[], chapterList = chapters) {
@@ -75,6 +75,15 @@ describe("AddAssetButtonContainer", () => {
 
   it("hides the button until a writable chapter is available", () => {
     expect(renderButton([{ chapterId: 2, role: "Editor" }], [])).toBe("");
+  });
+
+  it("hides the button for an inactive chapter even with an existing editor token", () => {
+    expect(
+      renderButton(
+        [{ chapterId: 2, role: "Editor" }],
+        chapters.map((chapter) => ({ ...chapter, active: chapter.id !== 2 }))
+      )
+    ).toBe("");
   });
 
   it("hides the button when only the National meta-chapter exists", () => {

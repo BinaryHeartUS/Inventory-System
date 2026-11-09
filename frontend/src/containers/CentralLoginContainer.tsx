@@ -23,21 +23,27 @@ export default function CentralLoginContainer() {
   }
 
   return (
-    <main className="min-h-dvh bg-slate-50 flex items-center justify-center p-4">
-      <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <img src="/icon.png" alt="BinaryHeart" className="w-12 h-12 self-center" />
-        <h1 className="text-xl font-bold text-slate-900">
+    <main className="flex min-h-dvh items-center justify-center bg-slate-50 p-4">
+      <div className="flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <img src="/icon.png" alt="BinaryHeart" className="h-12 w-12" />
+        <h1 className="text-2xl font-bold leading-tight text-slate-900">
           Sign in to the BinaryHeart Inventory System
         </h1>
+        <p className="text-sm leading-relaxed text-slate-600">
+          Use your BinaryHeart account to access inventory.
+        </p>
         {error && (
-          <p role="alert" className="text-sm text-red-600">
+          <p
+            role="alert"
+            className="w-full rounded-lg border border-red-200 bg-red-50 p-3 text-left text-sm text-red-700"
+          >
             {error}
           </p>
         )}
         <button
           disabled={loading}
           onClick={() => void signIn()}
-          className="w-full rounded-lg bg-heart-blue px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          className="w-full rounded-lg bg-heart-blue px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-heart-blue-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heart-blue disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Opening sign-in..." : "Sign in with BinaryHeart"}
         </button>

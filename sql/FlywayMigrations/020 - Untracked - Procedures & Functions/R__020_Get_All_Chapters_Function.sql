@@ -3,13 +3,14 @@ DROP FUNCTION IF EXISTS Get_All_Chapters;
 CREATE OR REPLACE FUNCTION Get_All_Chapters()
 RETURNS TABLE (
     ID INTEGER,
-    Name Name_Type
+    Name Name_Type,
+    Active BOOLEAN
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT Chapter.ID, Chapter.Name
+    SELECT Chapter.ID, Chapter.Name, Chapter.Active
     FROM Chapter
     ORDER BY Chapter.Name;
 END;

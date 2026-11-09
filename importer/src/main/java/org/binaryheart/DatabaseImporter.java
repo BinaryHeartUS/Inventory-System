@@ -333,19 +333,22 @@ public class DatabaseImporter {
 		}
 	}
 
-	public static int addChapter(String chapterName) {
+	public static int resolveChapter(String chapterName) {
 		if (!DatabaseConnectionService.isConnected()) {
 			DatabaseConnectionService.connect();
 		}
 		Connection conn = DatabaseConnectionService.getConnection();
-		try (CallableStatement stmt = conn.prepareCall("call Insert_Chapter(?, ?)")) {
+		try (java.sql.PreparedStatement stmt = conn.prepareStatement("SELECT id FROM chapter WHERE name = ? AND active")) {
 			stmt.setString(1, chapterName);
-			stmt.registerOutParameter(2, java.sql.Types.INTEGER);
-			stmt.execute();
-			return stmt.getInt(2);
+			try (java.sql.ResultSet result = stmt.executeQuery()) {
+				if (!result.next()) {
+					throw new IllegalStateException(
+						"Create/activate chapter in BinaryHeart auth and wait for synchronization before importing: " + chapterName);
+				}
+				return result.getInt(1);
+			}
 		} catch (SQLException e) {
-			e.printStackTrace();
-			return -1;
+			throw new IllegalStateException("Could not resolve synchronized chapter for import", e);
 		}
 	}
 

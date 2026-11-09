@@ -7,6 +7,15 @@ import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.responses.ChapterSummary;
 
 public class ChapterRepository {
+	public boolean isChapterActive(int chapterId) throws SQLException {
+		try (Connection conn = DatabaseConnectionService.getConnection();
+			PreparedStatement statement = conn.prepareStatement("SELECT Active FROM Chapter WHERE ID = ?")) {
+			statement.setInt(1, chapterId);
+			try (ResultSet result = statement.executeQuery()) {
+				return result.next() && result.getBoolean("Active");
+			}
+		}
+	}
 
 	public List<ChapterSummary> getAllChapters() throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
@@ -14,7 +23,7 @@ public class ChapterRepository {
 			ResultSet rs = ps.executeQuery()) {
 			List<ChapterSummary> results = new ArrayList<>();
 			while (rs.next()) {
-				results.add(new ChapterSummary(rs.getInt("ID"), rs.getString("Name")));
+				results.add(new ChapterSummary(rs.getInt("ID"), rs.getString("Name"), rs.getBoolean("Active")));
 			}
 			return results;
 		}

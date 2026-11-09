@@ -24,7 +24,7 @@ const meta = {
     linkedParty: person,
     changelog: [],
     chapterName: () => "Central",
-    visibleChapters: [{ id: 1, name: "Central" }],
+    visibleChapters: [{ id: 1, name: "Central", active: true }],
     onStartEdit: fn(),
     onCancelEdit: fn(),
     onSaveEdit: fn(),

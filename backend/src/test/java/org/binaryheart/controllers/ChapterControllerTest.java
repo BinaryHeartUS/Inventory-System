@@ -17,7 +17,7 @@ class ChapterControllerTest {
 		expect(service.getAllChapters()).andReturn(chapters);
 		expect(context.json(chapters)).andReturn(context);
 		replay(service, context);
-		new ChapterController(service).getChapters(context);
+		new ChapterController(service, mock(org.binaryheart.jobs.chapters.ChapterSyncJob.class)).getChapters(context);
 		verify(service, context);
 	}
 }

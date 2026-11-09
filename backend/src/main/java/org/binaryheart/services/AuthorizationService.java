@@ -27,6 +27,7 @@ public class AuthorizationService {
 		if (chapterRoles == null || chapterRoles.isEmpty())
 			throw new ForbiddenResponse("Access denied");
 
+		chapterService.requireActive(chapterId);
 		int nationalId = chapterService.getNationalChapterId();
 		for (ChapterRole chapterRole : chapterRoles) {
 			if (!WRITE_ROLES.contains(chapterRole.role()))

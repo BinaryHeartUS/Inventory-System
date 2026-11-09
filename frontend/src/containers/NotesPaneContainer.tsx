@@ -11,7 +11,7 @@ export default function NotesPaneContainer({
 }: {
   assetId: number;
   readOnly?: boolean;
-  readOnlyReason?: "donated" | "viewer";
+  readOnlyReason?: "donated" | "viewer" | "chapter";
 }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const { showToast } = useToast();

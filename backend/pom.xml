@@ -227,6 +227,7 @@
                 <configuration>
                     <environmentVariables>
                         <AUTH_ISSUER>http://localhost:8082</AUTH_ISSUER>
+                        <CHAPTER_SYNC_TOKEN>local-chapter-sync-development-only-token</CHAPTER_SYNC_TOKEN>
                     </environmentVariables>
                 </configuration>
             </plugin>

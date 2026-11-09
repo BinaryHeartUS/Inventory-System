@@ -8,7 +8,7 @@ const meta = {
   component: DonationsView,
   render: (args) => <DonationsView {...args} sentinelRef={createRef<HTMLDivElement>()} />,
   args: {
-    chapters: [{ id: 1, name: "Central" }],
+    chapters: [{ id: 1, name: "Central", active: true }],
     summary: [],
     totalDonated: 1,
     donated: [{ ...device, status: "Donated" }],

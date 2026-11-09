@@ -20,6 +20,10 @@ import org.binaryheart.jobs.stuckdevices.StuckDeviceJob;
 import org.binaryheart.jobs.stuckdevices.StuckDeviceJobConfig;
 import org.binaryheart.jobs.stuckdevices.StuckDeviceJobRepository;
 import org.binaryheart.jobs.stuckdevices.StuckDeviceJobScheduler;
+import org.binaryheart.jobs.chapters.ChapterSyncConfig;
+import org.binaryheart.jobs.chapters.ChapterDirectoryClient;
+import org.binaryheart.jobs.chapters.ChapterSyncRepository;
+import org.binaryheart.jobs.chapters.ChapterSyncJob;
 import org.binaryheart.repositories.AssetRepository;
 import org.binaryheart.repositories.ChapterRepository;
 import org.binaryheart.repositories.DeviceRepository;
@@ -87,6 +91,10 @@ public class ApplicationModule extends AbstractModule {
 		bindSingleton(StuckDeviceJobRepository.class);
 		bindSingleton(StuckDeviceJob.class);
 		bindSingleton(StuckDeviceJobScheduler.class);
+		bind(ChapterSyncConfig.class).toInstance(ChapterSyncConfig.fromEnvironment());
+		bindSingleton(ChapterDirectoryClient.class);
+		bindSingleton(ChapterSyncRepository.class);
+		bindSingleton(ChapterSyncJob.class);
 
 		bindSingleton(JwtAccessManager.class);
 		bind(CentralAuthConfig.class).toInstance(CentralAuthConfig.fromEnvironment());

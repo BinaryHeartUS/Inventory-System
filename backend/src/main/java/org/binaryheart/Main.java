@@ -23,6 +23,7 @@ import org.binaryheart.controllers.PartController;
 import org.binaryheart.controllers.PartyController;
 import org.binaryheart.controllers.ToolController;
 import org.binaryheart.jobs.stuckdevices.StuckDeviceJobScheduler;
+import org.binaryheart.jobs.chapters.ChapterSyncJob;
 
 public class Main {
 	public static void main(String[] args) {
@@ -42,6 +43,7 @@ public class Main {
 		ToolController toolController = injector.getInstance(ToolController.class);
 		JwtAccessManager accessManager = injector.getInstance(JwtAccessManager.class);
 		StuckDeviceJobScheduler stuckDeviceJobScheduler = injector.getInstance(StuckDeviceJobScheduler.class);
+		ChapterSyncJob chapterSync = injector.getInstance(ChapterSyncJob.class);
 
 		Javalin app = Javalin.create(config -> {
 			config.jsonMapper(new JavalinJackson().updateMapper(mapper -> mapper.registerModule(new JavaTimeModule())
@@ -74,6 +76,8 @@ public class Main {
 		}).start(8080);
 
 		stuckDeviceJobScheduler.start();
+		chapterSync.start();
+		Runtime.getRuntime().addShutdownHook(new Thread(chapterSync::close, "chapter-sync-shutdown"));
 		Runtime.getRuntime().addShutdownHook(new Thread(stuckDeviceJobScheduler::close, "stuck-device-job-shutdown"));
 	}
 }

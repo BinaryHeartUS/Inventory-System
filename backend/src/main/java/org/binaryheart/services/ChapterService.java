@@ -28,6 +28,12 @@ public class ChapterService {
 		return repository.getChapterIdByName(name);
 	}
 
+	public void requireActive(int id) throws SQLException {
+		if (!repository.isChapterActive(id)) {
+			throw new io.javalin.http.ForbiddenResponse("Chapter is inactive or has not synchronized from BinaryHeart");
+		}
+	}
+
 	/**
 	 * Resolves the effective set of chapter ids a request may read, enforcing
 	 * access control.

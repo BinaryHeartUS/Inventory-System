@@ -32,9 +32,10 @@ http://localhost:8080/swagger.
 
 The backend uses public issuer `http://localhost:8082` and fetches verification
 keys via `host.docker.internal:8082` (a host-gateway mapping is included for
-Linux). Keep account chapter IDs in auth aligned with Inventory's chapter IDs;
-fresh local databases both seed National as ID 1. Chapter mutation is disabled
-pending cross-service synchronization.
+Linux). Chapters are managed in auth; Inventory automatically imports the full
+directory at startup and every 60 seconds. Fresh local databases both seed
+National as ID 1. Local Compose configures the same development-only
+`CHAPTER_SYNC_TOKEN` in both services; never use that value on a server.
 
 For frontend hot reload:
 
@@ -46,7 +47,8 @@ npm run dev
 
 Use http://localhost:5173 (also registered in local auth). Vite proxies `/api`
 to the Inventory backend. A backend launched directly by an IDE needs
-`AUTH_ISSUER=http://localhost:8082` and its normal database settings; an internal
+`AUTH_ISSUER=http://localhost:8082`,
+`CHAPTER_SYNC_TOKEN=local-chapter-sync-development-only-token` and its normal database settings; an internal
 JWKS override is unnecessary when the backend runs on the host.
 
 ## Authentication and authorization
@@ -93,8 +95,12 @@ Inventory still owns its existing Postgres instance and volume; auth uses the
 infrastructure-managed database. Inventory deploys do not access auth's database
 or require migration receipts.
 
-Set `DB_PASSWORD`, `API_USER_PASSWORD` and `IMPORTER_PASSWORD` on the appropriate
-GitHub Environment and run **Sync Secrets**, then **Deploy Dev** or **Deploy Prod**.
+Set `DB_PASSWORD`, `API_USER_PASSWORD`, `IMPORTER_PASSWORD` and
+`CHAPTER_SYNC_TOKEN` on the appropriate GitHub Environment and run **Sync Secrets**,
+then **Deploy Dev** or **Deploy Prod**. Generate the synchronization credential
+with `openssl rand -hex 32`, configure the **same value** on auth's matching
+GitHub Environment and run its **Sync Secrets** too. Use different dev/prod
+credentials. Deploy auth's chapter API before this Inventory release.
 The obsolete `JWT_SECRET` GitHub secret can be deleted; run Sync Secrets to remove
 it from the deployed secrets file. Verify `/api/health/ready` returns `OK` and
 `/api/auth/config` reports the expected issuer after deployment.
@@ -105,6 +111,35 @@ but preserves chapters and inventory data. Take a normal database backup before
 deploying schema changes. Old Inventory builds requiring those tables are no
 longer compatible; fix forward rather than attempting an auth-mode rollback.
 Previously stored browser sessions are cleared once and users sign in again.
+
+## Chapter management and synchronization
+
+National admins create, rename, deactivate and reactivate chapters in the
+BinaryHeart account portal. National cannot be renamed or deactivated. Chapters
+are never deleted, and IDs remain stable across services.
+
+Inventory's `Chapter` table is a read-only application projection, not a
+PostgreSQL replica or a separate source of truth. A dedicated service credential
+fetches auth's full directory from `GET /api/service/chapters`; reconciliation
+updates IDs, names and active states atomically. Optional `CHAPTER_DIRECTORY_URL`
+overrides the fetch URL (HTTPS required outside local development).
+
+Successful changes normally reach the backend within about a minute. Open
+Inventory pages refresh their directory every 15 seconds and on window focus, so an
+already-open selector may take another 15 seconds to update. Inactive chapters stay
+visible for authorized historical reads, but cannot receive inventory writes,
+including from previously issued tokens. Existing asset foreign keys are preserved.
+The importer resolves an existing **active** synchronized chapter by name; create
+it in auth first rather than attempting to create it locally.
+
+Auth failures retain the last committed projection and are logged explicitly;
+outages can extend synchronization lag. National admins can inspect
+`GET /api/chapters/sync` for this backend process's last successful poll,
+health and error state. `Chapter_Sync_State` records the committed synchronization
+timestamp across restarts. Synchronization refuses snapshots that omit existing
+local IDs or remap National: investigate ID mismatches instead of deleting rows
+or silently associating inventory with a different chapter. During an outage,
+recent auth changes are not enforced until a successful poll.
 
 ## Tests
 

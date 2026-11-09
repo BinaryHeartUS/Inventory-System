@@ -146,25 +146,27 @@ export default function ToolDetailView({
                 />
               )}
               {!editing ? (
-                <button
-                  onClick={onStartEdit}
-                  className="flex items-center gap-2 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark px-4 py-2.5 rounded-lg transition-colors"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                canDelete && (
+                  <button
+                    onClick={onStartEdit}
+                    className="flex items-center gap-2 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark px-4 py-2.5 rounded-lg transition-colors"
                   >
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Edit
-                </button>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit
+                  </button>
+                )
               ) : (
                 <>
                   <button
@@ -175,6 +177,7 @@ export default function ToolDetailView({
                   </button>
                   <button
                     onClick={onSaveEdit}
+                    disabled={!canDelete}
                     className="text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark px-4 py-2.5 rounded-lg transition-colors"
                   >
                     Save changes
@@ -304,7 +307,13 @@ export default function ToolDetailView({
           </div>
 
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
-            {content?.notesPane ?? <NotesPaneContainer assetId={tool.id} />}
+            {content?.notesPane ?? (
+              <NotesPaneContainer
+                assetId={tool.id}
+                readOnly={!canDelete}
+                readOnlyReason="chapter"
+              />
+            )}
           </div>
         </div>
 

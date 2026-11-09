@@ -20,7 +20,7 @@ export default function NotesPane({
 }: {
   notes: Note[];
   readOnly?: boolean;
-  readOnlyReason?: "donated" | "viewer";
+  readOnlyReason?: "donated" | "viewer" | "chapter";
   onAddNote: (text: string) => void;
   onEditNote: (id: number, text: string) => void;
 }) {
@@ -68,9 +68,11 @@ export default function NotesPane({
       {readOnly ? (
         <div className="px-5 py-3 border-b border-slate-100 bg-amber-50 shrink-0">
           <p className="text-xs text-amber-700 font-medium">
-            {readOnlyReason === "viewer"
-              ? "Viewer accounts cannot edit notes."
-              : "This device has been donated. Notes are read-only."}
+            {readOnlyReason === "chapter"
+              ? "You do not have write access to this chapter. Notes are read-only."
+              : readOnlyReason === "viewer"
+                ? "Viewer accounts cannot edit notes."
+                : "This device has been donated. Notes are read-only."}
           </p>
         </div>
       ) : (

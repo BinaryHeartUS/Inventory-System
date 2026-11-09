@@ -39,6 +39,7 @@ class AuthorizationServiceTest {
 	@Test
 	void editAccessAllowsLocalWriter() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
+		chapters.requireActive(2);
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		replay(chapters);
 		AuthorizationService service = new AuthorizationService(chapters);
@@ -51,6 +52,7 @@ class AuthorizationServiceTest {
 	@Test
 	void editAccessAllowsNationalWriter() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
+		chapters.requireActive(9);
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		replay(chapters);
 		AuthorizationService service = new AuthorizationService(chapters);
@@ -74,6 +76,7 @@ class AuthorizationServiceTest {
 	@Test
 	void editAccessRejectsViewer() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
+		chapters.requireActive(2);
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		replay(chapters);
 		AuthorizationService service = new AuthorizationService(chapters);
@@ -87,6 +90,7 @@ class AuthorizationServiceTest {
 	@Test
 	void editAccessRejectsWrongChapter() throws Exception {
 		ChapterService chapters = mock(ChapterService.class);
+		chapters.requireActive(2);
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		replay(chapters);
 		AuthorizationService service = new AuthorizationService(chapters);

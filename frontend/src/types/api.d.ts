@@ -307,7 +307,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Inventory chapters */
+        /**
+         * List Inventory chapters
+         * @description Includes inactive chapters retained for historical inventory. Auth is the source of truth.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -332,6 +335,42 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/chapters/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inspect this backend's chapter synchronization (National admins only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ChapterSyncStatus"];
+                    };
                 };
             };
         };
@@ -3987,6 +4026,12 @@ export interface components {
             /** Format: int32 */
             id: number;
             name?: string;
+            active: boolean;
+        };
+        ChapterSyncStatus: {
+            lastSuccessAt?: string;
+            healthy: boolean;
+            error?: string;
         };
         CompletionRateResponse: {
             /** Format: int32 */
