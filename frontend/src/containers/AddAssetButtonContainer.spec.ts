@@ -27,6 +27,7 @@ function renderButton(chapterRoles: ChapterRole[], chapterList = chapters) {
             role: chapterRoles[0]?.role ?? "Viewer",
           },
           logout: vi.fn(),
+          refreshAuth: vi.fn(),
         },
       },
       createElement(

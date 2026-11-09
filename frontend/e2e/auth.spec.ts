@@ -80,6 +80,16 @@ test.describe("authentication", () => {
     expect(authorize.searchParams.get("code_challenge_method")).toBe("S256");
     expect(authorize.searchParams.get("code_challenge")).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(authorize.searchParams.get("state")).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    const inventoryDocuments: string[] = [];
+    page.on("request", (request) => {
+      if (
+        request.isNavigationRequest() &&
+        request.frame() === page.mainFrame() &&
+        new URL(request.url()).origin !== AUTH_ISSUER
+      ) {
+        inventoryDocuments.push(new URL(request.url()).pathname);
+      }
+    });
     await page.getByRole("button", { name: "Continue" }).click();
 
     await expect(page).toHaveURL(/\/devices$/);
@@ -88,6 +98,7 @@ test.describe("authentication", () => {
     expect(auth).toMatchObject({ issuer: AUTH_ISSUER, username: "e2e-admin", role: "Admin" });
     expect(auth.chapterIds).toEqual(expect.arrayContaining([1, 101]));
     expect(auth.mode).toBeUndefined();
+    expect(inventoryDocuments).toEqual(["/auth/callback"]);
   });
 
   test("rejects a callback with a modified state", async ({ page }) => {

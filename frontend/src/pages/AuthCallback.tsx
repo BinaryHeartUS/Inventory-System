@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { finishCentralLogin } from "../services/centralAuthService";
+import { useAuth } from "../context/AuthContext";
+import SignInProgress from "../components/SignInProgress";
 
 export default function AuthCallback() {
+  const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
   const request = useRef<Promise<string> | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -14,7 +18,10 @@ export default function AuthCallback() {
     }
     request.current
       .then((path) => {
-        if (active) window.location.replace(path);
+        if (active) {
+          refreshAuth();
+          void navigate(path, { replace: true });
+        }
       })
       .catch((cause: unknown) => {
         if (active) setError(cause instanceof Error ? cause.message : "Sign-in failed.");
@@ -22,10 +29,9 @@ export default function AuthCallback() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [navigate, refreshAuth]);
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-xl font-bold mb-4">Signing in to Inventory</h1>
+    <SignInProgress>
       {error ? (
         <div role="alert">
           <p>{error}</p>
@@ -33,9 +39,7 @@ export default function AuthCallback() {
             Return to sign-in
           </Link>
         </div>
-      ) : (
-        <p role="status">Verifying your account...</p>
-      )}
-    </main>
+      ) : undefined}
+    </SignInProgress>
   );
 }
