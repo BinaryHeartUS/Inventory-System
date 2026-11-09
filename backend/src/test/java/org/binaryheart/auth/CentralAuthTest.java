@@ -111,6 +111,16 @@ class CentralAuthTest {
 	}
 
 	@Test
+	void inventoryAdminIsNotASharedAdminAndKeepsChapterScope() {
+		var jwt = JWT.decode(sign(builder().withClaim("chapters",
+			List.of(Map.of("id", 2, "roles", List.of("chapter_admin"), "app_roles", List.of("admin", "editor")),
+				Map.of("id", 3, "roles", List.of(), "app_roles", List.of("viewer"))))));
+		assertEquals("Inventory Admin", CentralClaims.from(jwt).role());
+		assertEquals(List.of(new ChapterRole(2, "Inventory Admin"), new ChapterRole(3, "Viewer")),
+			CentralClaims.from(jwt).chapterRoles());
+	}
+
+	@Test
 	void rejectsMalformedClaimsAndAccountsWithoutInventoryAccess() {
 		for (Object chapterId : List.of(1.5, 0, -1, "2", 4_294_967_298L)) {
 			var jwt = JWT.decode(sign(builder().withClaim("chapters",
@@ -254,18 +264,20 @@ class CentralAuthTest {
 			c.routes.apiBuilder(() -> {
 				io.javalin.apibuilder.ApiBuilder.get("/admin", ctx -> ctx.result("OK"), AppRole.ADMIN);
 				io.javalin.apibuilder.ApiBuilder.get("/chapter-admin", ctx -> ctx.result("OK"), AppRole.CHAPTER_ADMIN);
+				io.javalin.apibuilder.ApiBuilder.get("/inventory-admin", ctx -> ctx.result("OK"),
+					AppRole.INVENTORY_ADMIN);
 			});
 		}).start(0);
 		try {
 			var http = HttpClient.newHttpClient();
-			for (String role : List.of("viewer", "editor", "chapter_admin", "national_admin")) {
-				boolean shared = role.endsWith("admin");
+			for (String role : List.of("viewer", "editor", "admin", "chapter_admin", "national_admin")) {
+				boolean shared = role.equals("chapter_admin") || role.equals("national_admin");
 				String token = sign(builder().withClaim("chapters", List.of(Map.of("id", 1, "roles",
 					shared ? List.of(role) : List.of(), "app_roles", shared ? List.of() : List.of(role)))));
-				for (String route : List.of("/admin", "/chapter-admin")) {
-					int expected = role.equals("national_admin") || (route.equals("/chapter-admin") && shared)
-						? 200
-						: 403;
+				for (String route : List.of("/admin", "/chapter-admin", "/inventory-admin")) {
+					int expected = role.equals("national_admin")
+						|| route.equals("/chapter-admin") && (shared || role.equals("admin"))
+						|| route.equals("/inventory-admin") && role.equals("admin") ? 200 : 403;
 					assertEquals(expected,
 						http.send(
 							HttpRequest.newBuilder(URI.create("http://localhost:" + app.port() + route))

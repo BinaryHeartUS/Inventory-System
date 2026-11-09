@@ -85,7 +85,7 @@ public class DeviceController {
 		get("/{id}", this::getDevice, AppRole.AUTHENTICATED);
 		get("/{id}/changelog", this::getDeviceChangelog, AppRole.AUTHENTICATED);
 		get("", this::getAllDevices, AppRole.AUTHENTICATED);
-		delete("/{id}", this::deleteDevice, AppRole.ADMIN);
+		delete("/{id}", this::deleteDevice, AppRole.INVENTORY_ADMIN);
 		post("/desktop", this::insertDesktop, AppRole.AUTHENTICATED);
 		post("/laptop", this::insertLaptop, AppRole.AUTHENTICATED);
 		post("/tablet", this::insertTablet, AppRole.AUTHENTICATED);
@@ -575,8 +575,8 @@ public class DeviceController {
 		security = {@OpenApiSecurity(
 			name = "BearerAuth")},
 		summary = "Delete a device",
-		description = "Permanently deletes a device. Restricted to national admins: users with the Admin role "
-			+ "who are affiliated with the National chapter.",
+		description = "Permanently deletes a device. National Admins may delete any device. Inventory Admins "
+			+ "may delete devices within their administered chapters; an Inventory Admin at National covers all chapters.",
 		pathParams = {@OpenApiParam(
 			name = "id",
 			required = true,
@@ -589,7 +589,7 @@ public class DeviceController {
 					description = "Non-numeric or non-positive device ID"),
 				@OpenApiResponse(
 					status = "403",
-					description = "Caller is not a national admin"),
+					description = "Caller is not an Inventory Admin for this chapter or a National Admin"),
 				@OpenApiResponse(
 					status = "404",
 					description = "Device does not exist"),
@@ -612,7 +612,17 @@ public class DeviceController {
 			int nationalId = chapterService.getNationalChapterId();
 			if (chapterRoles == null || chapterRoles.stream()
 				.noneMatch(role -> role.chapterId() == nationalId && "Admin".equals(role.role()))) {
-				throw new ForbiddenResponse("Only national admins may delete devices");
+				if (chapterRoles == null
+					|| chapterRoles.stream().noneMatch(role -> "Inventory Admin".equals(role.role()))) {
+					throw new ForbiddenResponse("Only National Admins or Inventory Admins may delete devices");
+				}
+				GetDeviceResponse device = service.getDevice(id);
+				Integer chapterId = chapterService.getChapterIdByName(device.chapter());
+				if (chapterId == null || chapterRoles.stream().noneMatch(role -> "Inventory Admin".equals(role.role())
+					&& (role.chapterId() == nationalId || role.chapterId() == chapterId))) {
+					throw new ForbiddenResponse("Inventory Admin access is required for this chapter");
+				}
+				chapterService.requireActive(chapterId);
 			}
 
 			service.deleteDevice(id, ctx.attribute("username"));

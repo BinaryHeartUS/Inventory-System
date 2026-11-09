@@ -14,6 +14,23 @@ import org.junit.jupiter.api.Test;
 class AuthorizationServiceTest {
 
 	@Test
+	void inventoryAdminsWriteOnlyTheirChapterOrAllChaptersWhenNational() throws Exception {
+		ChapterService chapters = mock(ChapterService.class);
+		chapters.requireActive(2);
+		org.easymock.EasyMock.expectLastCall().times(3);
+		expect(chapters.getNationalChapterId()).andReturn(1).times(3);
+		replay(chapters);
+		AuthorizationService service = new AuthorizationService(chapters);
+
+		service.requireInventoryEditAccess(List.of(new ChapterRole(2, "Inventory Admin")));
+		service.requireChapterEditAccess(List.of(new ChapterRole(2, "Inventory Admin")), 2);
+		service.requireChapterEditAccess(List.of(new ChapterRole(1, "Inventory Admin")), 2);
+		assertThrows(ForbiddenResponse.class,
+			() -> service.requireChapterEditAccess(List.of(new ChapterRole(3, "Inventory Admin")), 2));
+		verify(chapters);
+	}
+
+	@Test
 	void inventoryEditAccessAllowsWriterFromAnyChapter() {
 		ChapterService chapters = mock(ChapterService.class);
 		replay(chapters);

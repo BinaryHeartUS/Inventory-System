@@ -432,6 +432,51 @@ class DeviceControllerTest {
 		verify(service, chapters, authorization, context);
 	}
 
+	@ParameterizedTest
+	@org.junit.jupiter.params.provider.ValueSource(
+		ints = {1, 2})
+	void deleteDeviceAllowsInventoryAdminWithinChapterScope(int adminChapter) throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		GetDeviceResponse device = device();
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(adminChapter, "Inventory Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		expect(service.getDevice(101)).andReturn(device);
+		expect(chapters.getChapterIdByName(device.chapter())).andReturn(2);
+		chapters.requireActive(2);
+		expect(context.<String>attribute("username")).andReturn("inventory-admin");
+		service.deleteDevice(101, "inventory-admin");
+		expect(context.status(204)).andReturn(context);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).deleteDevice(context);
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deleteDeviceRejectsInventoryAdminOfAnotherChapterEvenWithEditorAccess() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		GetDeviceResponse device = device();
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(3, "Inventory Admin"), new ChapterRole(2, "Editor")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		expect(service.getDevice(101)).andReturn(device);
+		expect(chapters.getChapterIdByName(device.chapter())).andReturn(2);
+		replay(service, chapters, authorization, context);
+
+		assertThrows(ForbiddenResponse.class,
+			() -> new DeviceController(service, chapters, authorization).deleteDevice(context));
+		verify(service, chapters, authorization, context);
+	}
+
 	@Test
 	void deleteDeviceRejectsNationalMemberWithoutAdminRole() throws Exception {
 		DeviceService service = mock(DeviceService.class);

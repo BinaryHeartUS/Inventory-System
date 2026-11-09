@@ -33,9 +33,11 @@ public record CentralClaims(int accountId, String username, List<ChapterRole> ch
 			List<String> app = strings(chapter.path("app_roles"));
 			String role = shared.contains("national_admin")
 				? "Admin"
-				: shared.contains("chapter_admin")
-					? "Chapter Admin"
-					: app.contains("editor") ? "Editor" : app.contains("viewer") ? "Viewer" : null;
+				: app.contains("admin")
+					? "Inventory Admin"
+					: shared.contains("chapter_admin")
+						? "Chapter Admin"
+						: app.contains("editor") ? "Editor" : app.contains("viewer") ? "Viewer" : null;
 			if (role != null) {
 				assignments.add(new ChapterRole(chapterId, role));
 			}
@@ -62,9 +64,10 @@ public record CentralClaims(int accountId, String username, List<ChapterRole> ch
 	private static int priority(String role) {
 		return switch (role) {
 			case "Admin" -> 0;
-			case "Chapter Admin" -> 1;
-			case "Editor" -> 2;
-			default -> 3;
+			case "Inventory Admin" -> 1;
+			case "Chapter Admin" -> 2;
+			case "Editor" -> 3;
+			default -> 4;
 		};
 	}
 }

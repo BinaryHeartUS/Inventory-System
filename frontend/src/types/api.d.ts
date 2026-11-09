@@ -1643,7 +1643,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a device
-         * @description Permanently deletes a device. Restricted to national admins: users with the Admin role who are affiliated with the National chapter.
+         * @description Permanently deletes a device. National Admins may delete any device. Inventory Admins may delete devices within their administered chapters; an Inventory Admin at National covers all chapters.
          */
         delete: {
             parameters: {
@@ -1671,7 +1671,7 @@ export interface paths {
                     };
                     content?: never;
                 };
-                /** @description Caller is not a national admin */
+                /** @description Caller is not an Inventory Admin for this chapter or a National Admin */
                 403: {
                     headers: {
                         [name: string]: unknown;

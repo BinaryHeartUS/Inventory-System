@@ -9,7 +9,7 @@ import org.binaryheart.models.ChapterRole;
 
 public class AuthorizationService {
 
-	private static final Set<String> WRITE_ROLES = Set.of("Admin", "Chapter Admin", "Editor");
+	private static final Set<String> WRITE_ROLES = Set.of("Admin", "Chapter Admin", "Inventory Admin", "Editor");
 	private final ChapterService chapterService;
 
 	@Inject
