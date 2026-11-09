@@ -61,7 +61,7 @@ can deploy/test any branch on dev without touching prod. Only the frontends join
 the shared `web` network; Caddy routes `inventory.binaryheart.org` → prod and
 `inventory.binaryheart.dev` → dev.
 
-## Central authentication on dev
+## Central authentication
 
 Dev Inventory now signs in through `https://auth.binaryheart.dev` using an
 authorization code with PKCE. Inventory verifies the RS256 signature, issuer,
@@ -69,10 +69,18 @@ audience, token type and expiry, then maps shared and Inventory-specific roles
 to its existing chapter permissions. It never accepts legacy Inventory JWTs
 when central authentication is enabled.
 
-Production and the default local stack **still use legacy authentication**.
+The next production deploy also enables central auth, using
+`https://auth.binaryheart.org`. **Before Deploy Prod**, complete the
+[production cutover runbook](https://github.com/BinaryHeartUS/binaryheart-auth/blob/main/deploy/production-cutover.md):
+new production infrastructure/auth, a provisioned signing key, stopped legacy
+writers and a verified one-time identity import. Inventory deployment refuses
+activation without the production import receipt, callback, National Admin and
+healthy public auth/JWKS. Its database stays where it is.
+
+The default local stack still uses legacy authentication.
 No Inventory account/chapter tables are dropped or rewritten by this change.
 
-### Deploy order
+### Dev deploy order
 
 1. Make sure the identity transfer to auth dev is complete and chapter/account
    IDs still match Inventory dev. If legacy identities changed since the copy,
@@ -94,7 +102,7 @@ No Inventory account/chapter tables are dropped or rewritten by this change.
 
    The frontend reads the backend's runtime configuration; there are no new
    frontend build arguments, client secrets or server secrets to synchronize.
-   Keep the existing `JWT_SECRET` for legacy production and possible rollback.
+   Keep the existing `JWT_SECRET` for possible legacy rollback.
    No infrastructure redeploy or Inventory database migration is needed.
 4. Verify the mode:
 
@@ -104,9 +112,9 @@ No Inventory account/chapter tables are dropped or rewritten by this change.
    ```
 
    Dev should report `"enabled":true`, issuer `https://auth.binaryheart.dev`
-   and client ID `inventory`. Production should report `"enabled":false` if
-   this revision has also been deployed there; an older production revision
-   will not have this endpoint.
+   and client ID `inventory`. After the production cutover, production should
+   report `"enabled":true` with issuer `https://auth.binaryheart.org`.
+   An older production revision may not have this endpoint.
 
 ### Acceptance checks
 
@@ -163,4 +171,8 @@ and redeploy the **same revision**. No schema rollback is required. Existing
 central sessions are discarded by Inventory when the mode changes. Legacy
 accounts/roles reflect the last state in Inventory, **not** changes made in
 auth after cutover, so reconcile identities before treating rollback as an
-operational recovery. Production's `deploy/prod.env` remains explicitly legacy.
+operational recovery. Production defaults to central auth; use the production
+runbook's configuration-only rollback, not an arbitrary older code revision.
+
+Run `bash scripts/tests/production-auth.sh` to test production preflight
+fail-closed behavior without contacting live services.

@@ -50,8 +50,36 @@ compose() {
     -f docker-compose.app.yml "$@"
 }
 
+auth_mode="$(compose config --environment | sed -n 's/^AUTH_MODE=//p')"
+if [ "$ENV" = prod ] && [ "$auth_mode" = central ]; then
+  issuer="$(compose config --environment | sed -n 's/^AUTH_ISSUER=//p')"
+  [ "$issuer" = https://auth.binaryheart.org ] || {
+    echo "ERROR: production central auth requires https://auth.binaryheart.org."
+    exit 1
+  }
+  bash "$REPO_DIR/scripts/check-production-auth.sh"
+fi
+
 echo "=== Deploying $ENV app at tag $TAG ==="
 compose pull db backend frontend
 compose up -d --remove-orphans db backend frontend
+if [ "$auth_mode" = central ]; then
+  echo "Waiting for Inventory with central authentication..."
+  deadline=$((SECONDS + ${HEALTH_TIMEOUT:-180}))
+  until [ "$(compose exec -T frontend wget -qO- http://127.0.0.1/api/health/ready 2>/dev/null || true)" = OK ]; do
+    if [ "$SECONDS" -ge "$deadline" ]; then
+      echo "ERROR: Inventory did not become ready; inspect backend/frontend logs."
+      compose logs --tail 100 backend frontend
+      exit 1
+    fi
+    sleep 3
+    compose exec -T frontend nginx -s reload >/dev/null 2>&1 || true
+  done
+  config="$(compose exec -T frontend wget -qO- http://127.0.0.1/api/auth/config)"
+  printf '%s' "$config" | grep -Eq '"enabled"[[:space:]]*:[[:space:]]*true' || {
+    echo "ERROR: deployed Inventory did not enable central authentication."
+    exit 1
+  }
+fi
 docker image prune -f
 echo "=== Deploy of $ENV app complete (tag $TAG) ==="
