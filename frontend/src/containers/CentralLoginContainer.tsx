@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navigate, useLocation } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { beginCentralLogin, safeInventoryPath } from "../services/centralAuthService";
+import SignInProgress from "../components/SignInProgress";
 
 export default function CentralLoginContainer() {
   const { auth } = useAuth();
@@ -10,6 +11,7 @@ export default function CentralLoginContainer() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   if (auth) return <Navigate to={from} replace />;
+  if (loading) return <SignInProgress />;
 
   async function signIn() {
     setLoading(true);

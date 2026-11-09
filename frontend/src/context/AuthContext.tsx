@@ -27,6 +27,7 @@ interface AuthState {
 interface AuthContextValue {
   auth: AuthState | null;
   logout: () => void;
+  refreshAuth: () => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -62,6 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuth(null);
   }, []);
 
+  const refreshAuth = useCallback(() => setAuth(getStoredAuth()), []);
+
   useEffect(() => {
     if (!auth) return;
 
@@ -83,5 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Register with the api layer so any 401 (expired token) auto-logs out
   setUnauthorizedHandler(logout);
 
-  return <AuthContext.Provider value={{ auth, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ auth, logout, refreshAuth }}>{children}</AuthContext.Provider>
+  );
 }
