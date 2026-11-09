@@ -22,7 +22,7 @@ vi.mock("./api", () => ({
 }));
 
 import { checkAssetIdExists, getAssetPath } from "./assetService";
-import { createChapter, deleteChapter } from "./chapterService";
+import { getChapters } from "./chapterService";
 import { addManufacturer, deleteManufacturer } from "./lookupService";
 import { createNote, updateNote } from "./noteService";
 import { createBulkDevices, createDevice } from "./deviceService";
@@ -49,13 +49,10 @@ describe("service endpoint delegation", () => {
     expect(api.apiGetOrNull).toHaveBeenCalledWith("/assets/401/type");
   });
 
-  it("creates and deletes chapters with their expected payloads", async () => {
-    api.apiPost.mockResolvedValue({ id: 8, name: "National" });
-
-    await expect(createChapter("National")).resolves.toEqual({ id: 8, name: "National" });
-    await deleteChapter(8);
-    expect(api.apiPost).toHaveBeenCalledWith("/chapters", { name: "National" });
-    expect(api.apiDelete).toHaveBeenCalledWith("/chapters/8");
+  it("reads the Inventory chapter directory", async () => {
+    api.apiGet.mockResolvedValue([{ id: 8, name: "National" }]);
+    await expect(getChapters()).resolves.toEqual([{ id: 8, name: "National" }]);
+    expect(api.apiGet).toHaveBeenCalledWith("/chapters");
   });
 
   it("encodes lookup values in delete paths", async () => {

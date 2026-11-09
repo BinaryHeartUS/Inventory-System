@@ -4,362 +4,6 @@
  */
 
 export interface paths {
-    "/api/accounts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List accounts
-         * @description Admins see all accounts. Chapter Admins see accounts in their chapters, excluding global Admin accounts.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Account list returned */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["AccountSummary"][];
-                    };
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Create a new account
-         * @description Admins can create Chapter Admin / Editor / Viewer accounts for any chapter. Chapter Admins can create Chapter Admin / Editor / Viewer accounts for their own chapters.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateAccountRequest"];
-                };
-            };
-            responses: {
-                /** @description Account created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["AccountSummary"];
-                    };
-                };
-                /** @description Invalid request or forbidden role */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Username already taken */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update account password
-         * @description Allows a logged-in user to update their own password.
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description The ID of the account whose password to change */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    /**
-                     * @example {
-                     *         "currentPassword": "oldPassword123",
-                     *         "newPassword": "12345678"
-                     *     }
-                     */
-                    "application/json": components["schemas"]["UpdatePasswordRequest"];
-                };
-            };
-            responses: {
-                /** @description Password updated */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid request or wrong current password */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Cannot change another user's password */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        post?: never;
-        /** Delete an account (admin only) */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Volunteer ID to delete */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Account deleted */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Cannot delete own account */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{id}/roles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Add a chapter/role affiliation to an existing account */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Volunteer ID */
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["AddAffiliationRequest"];
-                };
-            };
-            responses: {
-                /** @description Affiliation added */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid role or missing chapter access */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Affiliation already exists */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{id}/roles/{chapterId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Update the role for a chapter affiliation */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Volunteer ID */
-                    id: string;
-                    /** @description Chapter ID */
-                    chapterId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateAffiliationRequest"];
-                };
-            };
-            responses: {
-                /** @description Role updated */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid role or missing chapter access */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        post?: never;
-        /** Remove a chapter affiliation from an account */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Volunteer ID */
-                    id: string;
-                    /** @description Chapter ID to remove */
-                    chapterId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Affiliation removed */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Validation error */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/assets/{id}/exists": {
         parameters: {
             query?: never;
@@ -613,39 +257,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/auth/login": {
+    "/api/auth/session": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        /**
-         * Login
-         * @description Authenticate a volunteer and receive a JWT token
-         */
-        post: {
+        /** Get the verified BinaryHeart session */
+        get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path?: never;
                 cookie?: never;
             };
-            requestBody: {
-                content: {
-                    /**
-                     * @example {
-                     *         "username": "user123",
-                     *         "password": "pass123"
-                     *     }
-                     */
-                    "application/json": components["schemas"]["LoginRequest"];
-                };
-            };
+            requestBody?: never;
             responses: {
-                /** @description Login successful */
+                /** @description OK */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -654,22 +283,8 @@ export interface paths {
                         "application/json": components["schemas"]["LoginResponse"];
                     };
                 };
-                /** @description Missing username or password */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid credentials */
+                /** @description Invalid access token */
                 401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -677,6 +292,8 @@ export interface paths {
                 };
             };
         };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -690,7 +307,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all chapters */
+        /** List Inventory chapters */
         get: {
             parameters: {
                 query?: never;
@@ -700,7 +317,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Chapter list */
+                /** @description OK */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -719,55 +336,7 @@ export interface paths {
             };
         };
         put?: never;
-        /**
-         * Create a new chapter
-         * @description Creates a new chapter. Restricted to national admins: users with the Admin role who are affiliated with the National chapter.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateChapterRequest"];
-                };
-            };
-            responses: {
-                /** @description Chapter created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ChapterSummary"];
-                    };
-                };
-                /** @description Missing or blank chapter name */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Caller is not an admin of the National chapter */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Database error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4192,11 +3761,6 @@ export interface components {
             chapterId: number;
             role?: string;
         };
-        AddAffiliationRequest: {
-            /** Format: int32 */
-            chapterId: number;
-            role?: string;
-        };
         AddLookupRequest: {
             name?: string;
         };
@@ -4214,17 +3778,6 @@ export interface components {
             donorId?: number;
             /** Format: date */
             acquisitionDate?: string;
-        };
-        CreateAccountRequest: {
-            name?: string;
-            username?: string;
-            password?: string;
-            /** Format: int32 */
-            chapterId: number;
-            role?: string;
-        };
-        CreateChapterRequest: {
-            name?: string;
         };
         InsertDesktopRequest: {
             /** Format: int32 */
@@ -4370,16 +3923,8 @@ export interface components {
             /** Format: int32 */
             donorId?: number;
         };
-        LoginRequest: {
-            username?: string;
-            password?: string;
-            salt?: string;
-        };
         PostNoteRequest: {
             text?: string;
-        };
-        UpdateAffiliationRequest: {
-            role?: string;
         };
         UpdateOrganizationRequest: {
             name?: string;
@@ -4387,21 +3932,10 @@ export interface components {
             contactName?: string;
             contactEmail?: string;
         };
-        UpdatePasswordRequest: {
-            currentPassword?: string;
-            newPassword?: string;
-        };
         UpdatePersonRequest: {
             name?: string;
             location?: string;
             email?: string;
-        };
-        AccountSummary: {
-            /** Format: int32 */
-            id: number;
-            username?: string;
-            name?: string;
-            chapterRoles?: components["schemas"]["ChapterRole"][];
         };
         AssetTypeResponse: {
             type?: string;

@@ -2,14 +2,9 @@ package org.binaryheart;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
-import org.binaryheart.auth.EncryptionHelper;
 import org.binaryheart.auth.JwtAccessManager;
-import org.binaryheart.auth.JwtService;
-import org.binaryheart.auth.PasswordService;
-import org.binaryheart.auth.TokenService;
 import org.binaryheart.auth.CentralAuthConfig;
 import org.binaryheart.auth.CentralTokenVerifier;
-import org.binaryheart.controllers.AccountController;
 import org.binaryheart.controllers.AssetController;
 import org.binaryheart.controllers.AuthController;
 import org.binaryheart.controllers.ChapterController;
@@ -25,9 +20,7 @@ import org.binaryheart.jobs.stuckdevices.StuckDeviceJob;
 import org.binaryheart.jobs.stuckdevices.StuckDeviceJobConfig;
 import org.binaryheart.jobs.stuckdevices.StuckDeviceJobRepository;
 import org.binaryheart.jobs.stuckdevices.StuckDeviceJobScheduler;
-import org.binaryheart.repositories.AccountRepository;
 import org.binaryheart.repositories.AssetRepository;
-import org.binaryheart.repositories.AuthRepository;
 import org.binaryheart.repositories.ChapterRepository;
 import org.binaryheart.repositories.DeviceRepository;
 import org.binaryheart.repositories.HealthRepository;
@@ -37,9 +30,7 @@ import org.binaryheart.repositories.NoteRepository;
 import org.binaryheart.repositories.PartRepository;
 import org.binaryheart.repositories.PartyRepository;
 import org.binaryheart.repositories.ToolRepository;
-import org.binaryheart.services.AccountService;
 import org.binaryheart.services.AssetService;
-import org.binaryheart.services.AuthenticationService;
 import org.binaryheart.services.AuthorizationService;
 import org.binaryheart.services.ChapterService;
 import org.binaryheart.services.DeviceService;
@@ -57,7 +48,6 @@ public class ApplicationModule extends AbstractModule {
 	protected void configure() {
 		binder().requireExplicitBindings();
 
-		bindSingleton(AccountController.class);
 		bindSingleton(AssetController.class);
 		bindSingleton(AuthController.class);
 		bindSingleton(ChapterController.class);
@@ -70,9 +60,7 @@ public class ApplicationModule extends AbstractModule {
 		bindSingleton(PartyController.class);
 		bindSingleton(ToolController.class);
 
-		bindSingleton(AccountService.class);
 		bindSingleton(AssetService.class);
-		bindSingleton(AuthenticationService.class);
 		bindSingleton(AuthorizationService.class);
 		bindSingleton(ChapterService.class);
 		bindSingleton(DeviceService.class);
@@ -84,9 +72,7 @@ public class ApplicationModule extends AbstractModule {
 		bindSingleton(PartyService.class);
 		bindSingleton(ToolService.class);
 
-		bindSingleton(AccountRepository.class);
 		bindSingleton(AssetRepository.class);
-		bindSingleton(AuthRepository.class);
 		bindSingleton(ChapterRepository.class);
 		bindSingleton(DeviceRepository.class);
 		bindSingleton(HealthRepository.class);
@@ -102,11 +88,7 @@ public class ApplicationModule extends AbstractModule {
 		bindSingleton(StuckDeviceJob.class);
 		bindSingleton(StuckDeviceJobScheduler.class);
 
-		bindSingleton(EncryptionHelper.class);
 		bindSingleton(JwtAccessManager.class);
-		bindSingleton(JwtService.class);
-		bindSingleton(PasswordService.class);
-		bindSingleton(TokenService.class);
 		bind(CentralAuthConfig.class).toInstance(CentralAuthConfig.fromEnvironment());
 		bindSingleton(CentralTokenVerifier.class);
 	}

@@ -55,31 +55,6 @@ class ChapterServiceTest {
 	}
 
 	@Test
-	void createChapterTrimsNameAndDelegates() throws Exception {
-		ChapterRepository repository = mock(ChapterRepository.class);
-		ChapterSummary created = new ChapterSummary(2, "Chapter Two");
-		expect(repository.createChapter("Chapter Two")).andReturn(created);
-		replay(repository);
-		ChapterService service = new ChapterService(repository);
-
-		assertSame(created, service.createChapter(" Chapter Two "));
-
-		verify(repository);
-	}
-
-	@Test
-	void deleteChapterDelegates() throws Exception {
-		ChapterRepository repository = mock(ChapterRepository.class);
-		repository.deleteChapter(2);
-		replay(repository);
-		ChapterService service = new ChapterService(repository);
-
-		service.deleteChapter(2, 1, List.of(1));
-
-		verify(repository);
-	}
-
-	@Test
 	void resolveChapterIdsReturnsNullForNationalAccess() throws Exception {
 		ChapterRepository repository = mock(ChapterRepository.class);
 		expect(repository.getNationalChapterId()).andReturn(1);
@@ -139,25 +114,4 @@ class ChapterServiceTest {
 		verify(repository);
 	}
 
-	@Test
-	void deleteChapterRejectsNationalChapter() {
-		ChapterRepository repository = mock(ChapterRepository.class);
-		replay(repository);
-		ChapterService service = new ChapterService(repository);
-
-		assertThrows(IllegalArgumentException.class, () -> service.deleteChapter(1, 1, List.of(1)));
-
-		verify(repository);
-	}
-
-	@Test
-	void deleteChapterRejectsNonNationalRequester() {
-		ChapterRepository repository = mock(ChapterRepository.class);
-		replay(repository);
-		ChapterService service = new ChapterService(repository);
-
-		assertThrows(IllegalArgumentException.class, () -> service.deleteChapter(2, 1, List.of(2)));
-
-		verify(repository);
-	}
 }

@@ -26,7 +26,6 @@ function renderButton(chapterRoles: ChapterRole[], chapterList = chapters) {
             chapterIds: chapterRoles.map((chapterRole) => chapterRole.chapterId),
             role: chapterRoles[0]?.role ?? "Viewer",
           },
-          login: vi.fn(),
           logout: vi.fn(),
         },
       },

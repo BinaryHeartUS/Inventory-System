@@ -7,7 +7,7 @@ import {
   finishCentralLogin,
   safeInventoryPath,
 } from "./centralAuthService";
-import { getStoredAuth, loginRequest } from "./authService";
+import { getStoredAuth } from "./authService";
 
 const issuer = "https://auth.binaryheart.dev";
 const origin = "https://inventory.binaryheart.dev";
@@ -25,7 +25,7 @@ beforeEach(async () => {
   });
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue(Response.json({ enabled: true, issuer, clientId: "inventory" }))
+    vi.fn().mockResolvedValue(Response.json({ issuer, clientId: "inventory" }))
   );
   await loadAuthConfig();
   assign.mockClear();
@@ -51,6 +51,17 @@ function token() {
 }
 
 describe("central authentication", () => {
+  it.each([
+    {},
+    { issuer: "", clientId: "inventory" },
+    { issuer: "http://auth.binaryheart.org", clientId: "inventory" },
+    { issuer: "https://auth.binaryheart.org/", clientId: "inventory" },
+    { issuer, clientId: "another-service" },
+  ])("rejects invalid authentication configuration %j", async (config) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(config)));
+    await expect(loadAuthConfig()).rejects.toThrow();
+  });
+
   it("uses random state and an S256 challenge, with an exact callback", async () => {
     await callback();
     const url = new URL(assign.mock.calls[0][0]);
@@ -90,7 +101,7 @@ describe("central authentication", () => {
     expect(options.credentials).toBe("omit");
     expect((options.body as URLSearchParams).get("code_verifier")).toHaveLength(43);
     expect(fetch.mock.calls[1][0]).toBe("/api/auth/session");
-    expect(getStoredAuth()).toMatchObject({ mode: "central", role: "Viewer", chapterIds: [3] });
+    expect(getStoredAuth()).toMatchObject({ issuer, role: "Viewer", chapterIds: [3] });
     expect(storage.has("bh_oauth")).toBe(false);
     await expect(finishCentralLogin(url)).rejects.toThrow("expired");
   });
@@ -144,13 +155,12 @@ describe("central authentication", () => {
     expect(storage.has("bh_auth")).toBe(false);
   });
 
-  it("discards legacy sessions and does not send passwords in central mode", async () => {
+  it("discards old sessions and sessions from a different issuer", () => {
     storage.set("bh_auth", JSON.stringify({ token: token(), role: "Admin" }));
     expect(getStoredAuth()).toBeNull();
-    const fetch = vi.fn();
-    vi.stubGlobal("fetch", fetch);
-    await expect(loginRequest("person", "password")).rejects.toThrow("BinaryHeart");
-    expect(fetch).not.toHaveBeenCalled();
+    storage.set("bh_auth", JSON.stringify({ token: token(), issuer: "https://other.invalid" }));
+    expect(getStoredAuth()).toBeNull();
+    expect(storage.has("bh_auth")).toBe(false);
   });
 
   it("clears local tokens and ends the central session on explicit sign-out", () => {

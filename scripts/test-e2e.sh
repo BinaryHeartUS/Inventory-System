@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_NAME="${E2E_COMPOSE_PROJECT:-inventory-e2e}"
 E2E_PORT="${E2E_PORT:-4173}"
+E2E_AUTH_PORT="${E2E_AUTH_PORT:-4174}"
 COMPOSE=(docker compose -p "$PROJECT_NAME" -f "$ROOT_DIR/docker-compose.e2e.yml")
 
 cleanup() {
@@ -13,12 +14,13 @@ cleanup() {
 trap cleanup EXIT INT TERM
 cleanup
 
-E2E_PORT="$E2E_PORT" "${COMPOSE[@]}" up -d --build --wait
+E2E_PORT="$E2E_PORT" E2E_AUTH_PORT="$E2E_AUTH_PORT" "${COMPOSE[@]}" up -d --build --wait
 
 set +e
 (
   cd "$ROOT_DIR/frontend"
   E2E_BASE_URL="http://127.0.0.1:$E2E_PORT" \
+    E2E_AUTH_ISSUER="http://127.0.0.1:$E2E_AUTH_PORT" \
     E2E_COMPOSE_PROJECT="$PROJECT_NAME" \
     npx playwright test "$@"
 )

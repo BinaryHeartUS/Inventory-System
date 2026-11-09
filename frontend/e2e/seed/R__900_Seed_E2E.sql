@@ -4,14 +4,6 @@ VALUES
     (101, 'E2E Test Chapter')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO Role (ID, Name, Priority) OVERRIDING SYSTEM VALUE
-VALUES
-    (1, 'Admin', 100),
-    (2, 'Chapter Admin', 200),
-    (3, 'Editor', 300),
-    (4, 'Viewer', 400)
-ON CONFLICT DO NOTHING;
-
 INSERT INTO Manufacturer (ID, Name) OVERRIDING SYSTEM VALUE
 VALUES (1, 'Dell'), (2, 'Framework'), (3, 'Lenovo')
 ON CONFLICT DO NOTHING;
@@ -44,23 +36,6 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO Organization (ID, ContactName, ContactEmail)
 VALUES (302, 'Case Worker', 'recipient@example.test')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO Volunteer (ID, Name, Username, Password_Hash, Password_Salt) OVERRIDING SYSTEM VALUE
-VALUES
-    (42, 'E2E Administrator', 'e2e-admin', '6XNkS7xePE2YYK3IVZVr/Q==', 'ABEiM0RVZneImaq7zN3u/w=='),
-    (43, 'E2E Chapter Administrator', 'e2e-chapter-admin', 'AgG20od5vl9x/9R0DnDRkA==', 'ECEyQ1RldoeYqbrL3O3+Dw=='),
-    (44, 'E2E Editor', 'e2e-editor', '49DnZ6xwNJDe7mPFflD5PA==', 'IDFCU2R1hpeoucrb7P0OHw=='),
-    (45, 'E2E Viewer', 'e2e-viewer', '/TfqXmfkcRbphOzclepI4g==', 'MEFSY3SFlqe4ydrr/A0eLw==')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO Affiliated_With (Volunteer_ID, Chapter_ID, Role_ID)
-VALUES
-    (42, 1, 1),
-    (42, 101, 1),
-    (43, 101, 2),
-    (44, 101, 3),
-    (45, 101, 4)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO Asset (ID, Acquisition_Date, Value, Chapter_ID, Donor_ID)
@@ -127,8 +102,6 @@ VALUES (1201, 'Precision screwdriver kit')
 ON CONFLICT DO NOTHING;
 
 SELECT setval(pg_get_serial_sequence('chapter', 'id'), 101, TRUE);
-SELECT setval(pg_get_serial_sequence('role', 'id'), 4, TRUE);
-SELECT setval(pg_get_serial_sequence('volunteer', 'id'), 45, TRUE);
 SELECT setval(pg_get_serial_sequence('party', 'id'), 302, TRUE);
 SELECT setval(pg_get_serial_sequence('manufacturer', 'id'), 3, TRUE);
 SELECT setval(pg_get_serial_sequence('ram_generation', 'id'), 2, TRUE);

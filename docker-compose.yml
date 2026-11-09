@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: binaryheart
       POSTGRES_PASSWORD: changeme
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -69,6 +69,10 @@ services:
       DB_URL: jdbc:postgresql://db:5432/inventory
       DB_USER: api_user
       DB_PASSWORD: changeme_api_user
+      AUTH_ISSUER: http://localhost:8082
+      AUTH_JWKS_URL: http://host.docker.internal:8082/.well-known/jwks.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8080:8080"
 
