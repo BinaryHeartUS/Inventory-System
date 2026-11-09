@@ -25,11 +25,10 @@ export default function CentralLoginContainer() {
   return (
     <main className="min-h-dvh bg-slate-50 flex items-center justify-center p-4">
       <div className="flex w-full max-w-sm flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <img src="/icon.png" alt="BinaryHeart" className="w-12 h-12" />
-        <div className="flex flex-col gap-4">
-          <h1 className="text-xl font-bold text-slate-900">Sign in to Inventory</h1>
-          <p className="text-sm text-slate-500">Use your BinaryHeart account to continue.</p>
-        </div>
+        <img src="/icon.png" alt="BinaryHeart" className="w-12 h-12 self-center" />
+        <h1 className="text-xl font-bold text-slate-900">
+          Sign in to the BinaryHeart Inventory System
+        </h1>
         {error && (
           <p role="alert" className="text-sm text-red-600">
             {error}

@@ -18,7 +18,9 @@ test.describe("authentication", () => {
     await page.goto("/devices");
 
     await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByRole("heading", { name: "Sign in to Inventory" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Sign in to the BinaryHeart Inventory System" })
+    ).toBeVisible();
   });
 
   test("logs out when the API rejects an expired session", async ({ page }) => {
@@ -26,12 +28,17 @@ test.describe("authentication", () => {
     await page.evaluate(() => {
       const auth = JSON.parse(sessionStorage.getItem("bh_auth") ?? "{}");
       const [header, payload] = auth.token.split(".");
-      sessionStorage.setItem("bh_auth", JSON.stringify({ ...auth, token: `${header}.${payload}.invalid` }));
+      sessionStorage.setItem(
+        "bh_auth",
+        JSON.stringify({ ...auth, token: `${header}.${payload}.invalid` })
+      );
     });
     await page.goto("/devices");
 
     await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByRole("heading", { name: "Sign in to Inventory" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Sign in to the BinaryHeart Inventory System" })
+    ).toBeVisible();
     await expect.poll(() => page.evaluate(() => sessionStorage.getItem("bh_auth"))).toBeNull();
   });
 
@@ -43,7 +50,9 @@ test.describe("authentication", () => {
     await page.goto("/devices");
 
     await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByRole("heading", { name: "Sign in to Inventory" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Sign in to the BinaryHeart Inventory System" })
+    ).toBeVisible();
     await expect.poll(() => page.evaluate(() => sessionStorage.getItem("bh_auth"))).toBeNull();
   });
 
@@ -57,7 +66,9 @@ test.describe("authentication", () => {
     await page.clock.fastForward(1_001);
 
     await expect(page).toHaveURL(/\/login$/);
-    await expect(page.getByRole("heading", { name: "Sign in to Inventory" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Sign in to the BinaryHeart Inventory System" })
+    ).toBeVisible();
     await expect.poll(() => page.evaluate(() => sessionStorage.getItem("bh_auth"))).toBeNull();
   });
 
@@ -80,13 +91,15 @@ test.describe("authentication", () => {
   });
 
   test("rejects a callback with a modified state", async ({ page }) => {
-    await page.addInitScript({ content: `
+    await page.addInitScript({
+      content: `
       if (location.pathname === "/auth/callback") {
         const flow = JSON.parse(sessionStorage.getItem("bh_oauth") ?? "{}");
         flow.state = "wrong-state";
         sessionStorage.setItem("bh_oauth", JSON.stringify(flow));
       }
-    ` });
+    `,
+    });
     await page.goto("/devices");
     await page.getByRole("button", { name: "Sign in with BinaryHeart" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
@@ -138,11 +151,15 @@ test.describe("authentication", () => {
     await page.goto("/devices");
     await expect(page.getByRole("heading", { name: "Devices" })).toBeVisible();
 
-    const logout = page.waitForRequest((request) => request.url().startsWith(`${AUTH_ISSUER}/api/oauth/logout`));
+    const logout = page.waitForRequest((request) =>
+      request.url().startsWith(`${AUTH_ISSUER}/api/oauth/logout`)
+    );
     await page.getByRole("button", { name: "Sign out" }).click();
     const logoutUrl = new URL((await logout).url());
     expect(logoutUrl.searchParams.get("client_id")).toBe("inventory");
-    expect(logoutUrl.searchParams.get("post_logout_redirect_uri")).toBe(`${new URL(page.url()).origin}/login`);
+    expect(logoutUrl.searchParams.get("post_logout_redirect_uri")).toBe(
+      `${new URL(page.url()).origin}/login`
+    );
 
     await expect(page).toHaveURL(/\/login$/);
     await expect
