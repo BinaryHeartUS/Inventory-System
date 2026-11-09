@@ -22,7 +22,7 @@ export default function PartDetailContainer({ id }: PartDetailContainerProps) {
   const navigate = useNavigate();
 
   const lookups = useLookups();
-  const { chapters, chapterName } = useChapters();
+  const { chapterName } = useChapters();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
 
@@ -161,7 +161,7 @@ export default function PartDetailContainer({ id }: PartDetailContainerProps) {
       partyPickerOpen={partyPickerOpen}
       changelog={changelog}
       chapterName={chapterName}
-      chapters={chapters}
+      chapters={writableChapters}
       partTypes={lookups.partTypes}
       onStartEdit={startEdit}
       onCancelEdit={cancelEdit}

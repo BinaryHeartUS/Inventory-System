@@ -71,6 +71,8 @@ services:
       DB_PASSWORD: changeme_api_user
       AUTH_ISSUER: http://localhost:8082
       AUTH_JWKS_URL: http://host.docker.internal:8082/.well-known/jwks.json
+      CHAPTER_DIRECTORY_URL: http://host.docker.internal:8082/api/service/chapters
+      CHAPTER_SYNC_TOKEN: local-chapter-sync-development-only-token
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

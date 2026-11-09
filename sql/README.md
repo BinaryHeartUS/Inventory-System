@@ -23,6 +23,20 @@ Inventory uses BinaryHeart auth exclusively. The forward-only
 `Affiliated_With`, `Role` and the obsolete account/chapter-mutation routines.
 `Chapter` and all inventory tables/foreign keys remain.
 
+`V20261109.04__Create_Chapter_Projection.sql` adds the chapter active state and
+durable synchronization timestamp, and revokes direct chapter writes from runtime
+roles. The backend applies complete auth snapshots through
+`Apply_Chapter_Directory(JSONB)`, a restricted, fixed-search-path function.
+Missing IDs, duplicates and National remapping are rejected transactionally.
+Deferred name uniqueness permits rename swaps without changing foreign keys.
+Asset and note write triggers protect inactive chapters, including importer
+writes and synchronization races; historical rows are never removed.
+
+On a disposable, freshly migrated database, run
+`psql -v ON_ERROR_STOP=1 -f tests/chapter_projection.sql` as the migration owner
+to verify reconciliation, rollback, permissions and inactive write protection.
+The test transaction rolls back its fixture data.
+
 Historical versioned migrations (including dev identity seeds) are retained
 unchanged for Flyway validation and clean-database replay; the later removal
 migration deletes those identities on a fresh install too. Retired repeatable

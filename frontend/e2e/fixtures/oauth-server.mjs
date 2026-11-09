@@ -69,6 +69,20 @@ createServer(async (req, res) => {
   if (req.method === "OPTIONS") return send(res, 204, "");
   if (req.method === "GET" && url.pathname === "/.well-known/jwks.json")
     return send(res, 200, JSON.stringify({ keys: [jwk] }));
+  if (req.method === "GET" && url.pathname === "/api/service/chapters") {
+    if (req.headers.authorization !== "Bearer e2e-chapter-sync-only-synthetic-token")
+      return send(res, 401, "{}");
+    return send(
+      res,
+      200,
+      JSON.stringify({
+        chapters: [
+          { id: 1, name: "National", active: true },
+          { id: 101, name: "E2E Test Chapter", active: true },
+        ],
+      })
+    );
+  }
   if (req.method === "GET" && url.pathname === "/fixture/token") {
     const role = url.searchParams.get("role");
     if (!Object.hasOwn(roles, role)) return send(res, 400, "{}");

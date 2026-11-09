@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { Tool, PartySummary } from "../types/inventory";
 import { getTool, updateTool, deleteTool, getToolChangelog } from "../services/toolService";
-import { useChapters, useVisibleChapters, useWritableChapters } from "../context/ChapterContext";
+import { useChapters, useWritableChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
 import { canPrintLabels } from "../utils/canPrintLabels";
 import { useLinkedParty } from "../hooks/useLinkedParty";
@@ -20,7 +20,6 @@ export default function ToolDetailContainer({ id }: ToolDetailContainerProps) {
   const navigate = useNavigate();
 
   const { chapterName } = useChapters();
-  const visibleChapters = useVisibleChapters();
   const writableChapters = useWritableChapters();
 
   const [tool, setTool] = useState<Tool | null>(null);
@@ -127,7 +126,7 @@ export default function ToolDetailContainer({ id }: ToolDetailContainerProps) {
       linkedParty={linkedParty}
       changelog={changelog}
       chapterName={chapterName}
-      visibleChapters={visibleChapters}
+      visibleChapters={writableChapters}
       onStartEdit={startEdit}
       onCancelEdit={cancelEdit}
       onSaveEdit={saveEdit}

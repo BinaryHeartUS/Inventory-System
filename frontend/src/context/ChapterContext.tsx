@@ -46,7 +46,7 @@ export function useWritableChapters(): ChapterSummary[] {
   const { chapters } = useChapters();
   const { auth } = useAuth();
 
-  const real = chapters.filter((c) => c.name !== "National");
+  const real = chapters.filter((c) => c.name !== "National" && c.active);
 
   if (!auth) return [];
 
@@ -90,29 +90,60 @@ export function useChapters(): ChapterContextValue {
 export function ChapterProvider({ children }: { children: ReactNode }) {
   const { auth } = useAuth();
   const [chapters, setChapters] = useState<ChapterSummary[]>([]);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    const load = auth
-      ? getChapters().catch((): ChapterSummary[] => [])
-      : Promise.resolve<ChapterSummary[]>([]);
-    load.then((data) => {
-      if (!cancelled) setChapters(data);
-    });
+    let refreshing = false;
+    const load = async () => {
+      if (refreshing) return;
+      if (!auth) {
+        setChapters([]);
+        setRefreshFailed(false);
+        return;
+      }
+      refreshing = true;
+      try {
+        const data = await getChapters();
+        if (!cancelled) {
+          setChapters(data);
+          setRefreshFailed(false);
+        }
+      } catch (error) {
+        console.error("Could not refresh the synchronized chapter directory", error);
+        if (!cancelled) setRefreshFailed(true);
+      } finally {
+        refreshing = false;
+      }
+    };
+    void load();
+    const interval = window.setInterval(() => void load(), 15000);
+    const refresh = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    window.addEventListener("focus", refresh);
     return () => {
       cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
     };
   }, [auth, refreshToken]);
 
   const refreshChapters = useCallback(() => setRefreshToken((t) => t + 1), []);
 
   function chapterName(id: number): string {
-    return chapters.find((c) => c.id === id)?.name ?? `Chapter ${id}`;
+    const chapter = chapters.find((c) => c.id === id);
+    return chapter ? chapter.name + (chapter.active ? "" : " (inactive)") : `Chapter ${id}`;
   }
 
   return (
     <ChapterContext.Provider value={{ chapters, chapterName, refreshChapters }}>
+      {refreshFailed && (
+        <div role="alert" className="bg-red-50 p-3 text-center text-sm text-red-700">
+          Could not refresh chapters. Showing the last loaded directory; retrying automatically.
+        </div>
+      )}
       {children}
     </ChapterContext.Provider>
   );

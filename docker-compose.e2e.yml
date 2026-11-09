@@ -39,6 +39,8 @@ services:
   backend:
     build: ./backend
     depends_on:
+      auth:
+        condition: service_healthy
       db:
         condition: service_healthy
       db-migrate:
@@ -49,6 +51,8 @@ services:
       DB_PASSWORD: e2e_api_password
       AUTH_ISSUER: http://127.0.0.1:${E2E_AUTH_PORT:-4174}
       AUTH_JWKS_URL: http://auth:8080/.well-known/jwks.json
+      CHAPTER_DIRECTORY_URL: http://auth:8080/api/service/chapters
+      CHAPTER_SYNC_TOKEN: e2e-chapter-sync-only-synthetic-token
       STUCK_DEVICE_THRESHOLD_DAYS: 14
       STUCK_DEVICE_SCAN_INTERVAL_HOURS: 24
 

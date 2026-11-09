@@ -717,7 +717,7 @@ export default function DeviceDetailView({
               <NotesPaneContainer
                 assetId={device.id}
                 readOnly={editLock}
-                readOnlyReason={viewerLock ? "viewer" : "donated"}
+                readOnlyReason={viewerLock ? "chapter" : "donated"}
               />
             )}
           </div>

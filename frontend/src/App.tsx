@@ -517,7 +517,7 @@ function AccountLabel({ isActive }: { isActive: boolean }) {
     <span
       className={`text-sm font-medium truncate block ${isActive ? "text-white" : "text-slate-700"}`}
     >
-      Account Management
+      Account
     </span>
   );
 }

@@ -29,8 +29,8 @@ const meta = {
     changelog: [],
     chapterName: () => "Central",
     chapters: [
-      { id: 1, name: "Central" },
-      { id: 0, name: "National" },
+      { id: 1, name: "Central", active: true },
+      { id: 0, name: "National", active: true },
     ],
     partTypes: ["RAM", "Charger"],
     onStartEdit: fn(),

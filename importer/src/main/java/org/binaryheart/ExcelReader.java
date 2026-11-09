@@ -28,11 +28,7 @@ public class ExcelReader {
 				DatabaseConnectionService.connect();
 			}
 
-			int chapterId = DatabaseImporter.addChapter(getChapterName());
-			if (chapterId == -1) {
-				System.err.println("Failed to insert/resolve chapter — aborting import.");
-				return;
-			}
+			int chapterId = DatabaseImporter.resolveChapter(getChapterName());
 
 			importDesktops(workbook, chapterId);
 			importLaptops(workbook, chapterId);

@@ -16,6 +16,17 @@ import org.binaryheart.responses.ChapterSummary;
 import org.junit.jupiter.api.Test;
 
 class ChapterServiceTest {
+	@Test
+	void inactiveOrUnsynchronizedChaptersRejectWrites() throws Exception {
+		ChapterRepository repository = mock(ChapterRepository.class);
+		expect(repository.isChapterActive(2)).andReturn(false);
+		expect(repository.isChapterActive(3)).andReturn(false);
+		replay(repository);
+		ChapterService service = new ChapterService(repository);
+		assertThrows(io.javalin.http.ForbiddenResponse.class, () -> service.requireActive(2));
+		assertThrows(io.javalin.http.ForbiddenResponse.class, () -> service.requireActive(3));
+		verify(repository);
+	}
 
 	@Test
 	void getAllChaptersDelegates() throws Exception {

@@ -2,7 +2,7 @@ INSERT INTO Chapter (ID, Name) OVERRIDING SYSTEM VALUE
 VALUES
     (1, 'National'),
     (101, 'E2E Test Chapter')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (ID) DO NOTHING;
 
 INSERT INTO Manufacturer (ID, Name) OVERRIDING SYSTEM VALUE
 VALUES (1, 'Dell'), (2, 'Framework'), (3, 'Lenovo')

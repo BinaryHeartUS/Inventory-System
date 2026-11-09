@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, fn, userEvent } from "storybook/test";
+import { expect, fn, userEvent, waitFor } from "storybook/test";
 import { DonationReceiptModal } from "./DonationReceiptModal";
 
 const meta = {
@@ -42,6 +42,6 @@ export const Download: Story = {
     await userEvent.type(canvas.getByPlaceholderText("Full name"), "Alex");
     await userEvent.type(canvas.getByPlaceholderText("e.g. Director of Technology"), "Director");
     await userEvent.click(canvas.getByRole("button", { name: "Download PDF" }));
-    await expect(args.onClose).toHaveBeenCalledOnce();
+    await waitFor(() => expect(args.onClose).toHaveBeenCalledOnce());
   },
 };

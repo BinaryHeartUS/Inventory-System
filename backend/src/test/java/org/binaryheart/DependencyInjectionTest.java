@@ -8,6 +8,10 @@ import com.google.inject.Injector;
 import org.binaryheart.auth.JwtAccessManager;
 import org.binaryheart.auth.CentralAuthConfig;
 import org.binaryheart.auth.CentralTokenVerifier;
+import org.binaryheart.jobs.chapters.ChapterSyncConfig;
+import org.binaryheart.jobs.chapters.ChapterDirectoryClient;
+import org.binaryheart.jobs.chapters.ChapterSyncRepository;
+import org.binaryheart.jobs.chapters.ChapterSyncJob;
 import org.binaryheart.controllers.AssetController;
 import org.binaryheart.controllers.AuthController;
 import org.binaryheart.controllers.ChapterController;
@@ -60,7 +64,9 @@ class DependencyInjectionTest {
 				DeviceRepository.class, HealthRepository.class, LookupRepository.class, MiscRepository.class,
 				NoteRepository.class, PartRepository.class, PartyRepository.class, ToolRepository.class,
 				JwtAccessManager.class, CentralAuthConfig.class, CentralTokenVerifier.class, StuckDeviceJobConfig.class,
-				StuckDeviceJobRepository.class, StuckDeviceJob.class, StuckDeviceJobScheduler.class};
+				StuckDeviceJobRepository.class, StuckDeviceJob.class, StuckDeviceJobScheduler.class,
+				ChapterSyncConfig.class, ChapterDirectoryClient.class, ChapterSyncRepository.class,
+				ChapterSyncJob.class};
 
 		for (Class<?> type : types) {
 			Object instance = injector.getInstance(type);
