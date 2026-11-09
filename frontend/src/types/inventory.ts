@@ -3,9 +3,6 @@ import type { components } from "./api";
 // Re-export every generated schema so the rest of the app imports from one place.
 // Run `npm run gen-types` to regenerate api.d.ts when the backend changes.
 export type { components };
-export type AddAffiliationRequest = components["schemas"]["AddAffiliationRequest"];
-export type CreateAccountRequest = components["schemas"]["CreateAccountRequest"];
-export type CreateChapterRequest = components["schemas"]["CreateChapterRequest"];
 export type BulkInsertDevicesRequest = components["schemas"]["BulkInsertDevicesRequest"];
 export type InsertDesktopRequest = components["schemas"]["InsertDesktopRequest"];
 export type InsertLaptopRequest = components["schemas"]["InsertLaptopRequest"];
@@ -13,9 +10,7 @@ export type InsertTabletRequest = components["schemas"]["InsertTabletRequest"];
 export type InsertToolRequest = components["schemas"]["InsertToolRequest"];
 export type InsertPartRequest = components["schemas"]["InsertPartRequest"];
 export type InsertMiscRequest = components["schemas"]["InsertMiscRequest"];
-export type LoginRequest = components["schemas"]["LoginRequest"];
 export type PostNoteRequest = components["schemas"]["PostNoteRequest"];
-export type UpdateAffiliationRequest = components["schemas"]["UpdateAffiliationRequest"];
 export type PartChangelogResponse = components["schemas"]["PartChangelogResponse"];
 export type ToolChangelogResponse = components["schemas"]["ToolChangelogResponse"];
 export type MiscChangelogResponse = components["schemas"]["MiscChangelogResponse"];
@@ -52,9 +47,6 @@ export type LookupResponse = Omit<
 // the optionality introduced by the Java -> OpenAPI -> TypeScript conversion.
 export type ChapterRole = Required<components["schemas"]["ChapterRole"]>;
 export type ChapterSummary = Required<components["schemas"]["ChapterSummary"]>;
-export type AccountSummary = Required<
-  Omit<components["schemas"]["AccountSummary"], "chapterRoles">
-> & { chapterRoles: ChapterRole[] };
 export type LoginResponse = Required<
   Omit<components["schemas"]["LoginResponse"], "chapterRoles">
 > & { chapterRoles: ChapterRole[] };
@@ -63,13 +55,7 @@ export type LoginResponse = Required<
 // The backend returns these as plain `string`; these unions let the UI render
 // them safely without widening the generated wire types.
 export type DeviceStatus =
-  | "Not Started"
-  | "In Progress"
-  | "Ready To Donate"
-  | "Donated"
-  | "Sold"
-  | "Scrapped"
-  | "Unknown";
+  "Not Started" | "In Progress" | "Ready To Donate" | "Donated" | "Sold" | "Scrapped" | "Unknown";
 export type ChargerStatus = "Included" | "Not Included" | "Unknown";
 export type WorkingBattery = "Yes" | "No" | "Unknown";
 

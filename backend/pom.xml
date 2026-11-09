@@ -224,6 +224,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+                <configuration>
+                    <environmentVariables>
+                        <AUTH_ISSUER>http://localhost:8082</AUTH_ISSUER>
+                    </environmentVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

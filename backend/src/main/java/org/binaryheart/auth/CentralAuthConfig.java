@@ -3,13 +3,9 @@ package org.binaryheart.auth;
 import java.net.URI;
 import java.util.Map;
 
-/**
- * Runtime flag: production keeps legacy authentication unless explicitly
- * enabled.
- */
-public record CentralAuthConfig(boolean enabled, String issuer, String clientId, String jwksUrl) {
-	public CentralAuthConfig(boolean enabled, String issuer, String clientId) {
-		this(enabled, issuer, clientId, enabled ? issuer + "/.well-known/jwks.json" : "");
+public record CentralAuthConfig(String issuer, String clientId, String jwksUrl) {
+	public CentralAuthConfig(String issuer, String clientId) {
+		this(issuer, clientId, issuer + "/.well-known/jwks.json");
 	}
 
 	public static CentralAuthConfig fromEnvironment() {
@@ -17,13 +13,6 @@ public record CentralAuthConfig(boolean enabled, String issuer, String clientId,
 	}
 
 	public static CentralAuthConfig from(Map<String, String> env) {
-		String mode = env.getOrDefault("AUTH_MODE", "legacy");
-		if (!mode.equals("legacy") && !mode.equals("central")) {
-			throw new IllegalArgumentException("AUTH_MODE must be legacy or central");
-		}
-		if (mode.equals("legacy")) {
-			return new CentralAuthConfig(false, "", "inventory");
-		}
 		String issuer = env.getOrDefault("AUTH_ISSUER", "");
 		URI uri = URI.create(issuer);
 		boolean local = "http".equals(uri.getScheme())
@@ -41,6 +30,6 @@ public record CentralAuthConfig(boolean enabled, String issuer, String clientId,
 			throw new IllegalArgumentException(
 				"AUTH_JWKS_URL must be an HTTP(S) URL without credentials or query parameters");
 		}
-		return new CentralAuthConfig(true, issuer, "inventory", jwksUrl);
+		return new CentralAuthConfig(issuer, "inventory", jwksUrl);
 	}
 }

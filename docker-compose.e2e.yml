@@ -47,9 +47,26 @@ services:
       DB_URL: jdbc:postgresql://db:5432/inventory
       DB_USER: api_user
       DB_PASSWORD: e2e_api_password
-      JWT_SECRET: e2e-only-jwt-secret
+      AUTH_ISSUER: http://127.0.0.1:${E2E_AUTH_PORT:-4174}
+      AUTH_JWKS_URL: http://auth:8080/.well-known/jwks.json
       STUCK_DEVICE_THRESHOLD_DAYS: 14
       STUCK_DEVICE_SCAN_INTERVAL_HOURS: 24
+
+  auth:
+    image: node:22-alpine
+    environment:
+      AUTH_ISSUER: http://127.0.0.1:${E2E_AUTH_PORT:-4174}
+      INVENTORY_ORIGIN: http://127.0.0.1:${E2E_PORT:-4173}
+    volumes:
+      - ./frontend/e2e/fixtures/oauth-server.mjs:/app/oauth-server.mjs:ro
+    command: ["node", "/app/oauth-server.mjs"]
+    ports:
+      - "127.0.0.1:${E2E_AUTH_PORT:-4174}:8080"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/.well-known/jwks.json').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
 
   frontend:
     build:

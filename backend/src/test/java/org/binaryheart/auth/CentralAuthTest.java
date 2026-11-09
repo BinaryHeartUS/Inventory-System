@@ -29,14 +29,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.binaryheart.controllers.AuthController;
 import org.binaryheart.models.ChapterRole;
-import org.binaryheart.services.AuthenticationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import static io.javalin.apibuilder.ApiBuilder.path;
-import static org.easymock.EasyMock.*;
 
 class CentralAuthTest {
 	private HttpServer jwks;
@@ -65,7 +63,7 @@ class CentralAuthTest {
 			}
 		});
 		jwks.start();
-		config = new CentralAuthConfig(true, "http://127.0.0.1:" + jwks.getAddress().getPort(), "inventory");
+		config = new CentralAuthConfig("http://127.0.0.1:" + jwks.getAddress().getPort(), "inventory");
 		verifier = new CentralTokenVerifier(config);
 	}
 
@@ -75,17 +73,16 @@ class CentralAuthTest {
 	}
 
 	@Test
-	void legacyIsDefaultAndInvalidCentralConfigFailsClosed() {
-		assertFalse(CentralAuthConfig.from(Map.of()).enabled());
-		assertTrue(CentralAuthConfig.from(Map.of("AUTH_MODE", "central", "AUTH_ISSUER", "https://auth.binaryheart.dev"))
-			.enabled());
-		assertThrows(IllegalArgumentException.class, () -> CentralAuthConfig.from(Map.of("AUTH_MODE", "oops")));
-		assertThrows(IllegalArgumentException.class, () -> CentralAuthConfig.from(Map.of("AUTH_MODE", "central")));
+	void issuerIsRequiredAndInvalidConfigFailsClosed() {
+		assertThrows(IllegalArgumentException.class, () -> CentralAuthConfig.from(Map.of()));
+		assertEquals("https://auth.binaryheart.dev",
+			CentralAuthConfig.from(Map.of("AUTH_ISSUER", "https://auth.binaryheart.dev")).issuer());
 		for (String issuer : List.of("http://auth.binaryheart.dev", "https://auth.binaryheart.dev/",
 			"https://user@auth.binaryheart.dev", "https://auth.binaryheart.dev?x=1")) {
-			assertThrows(IllegalArgumentException.class,
-				() -> CentralAuthConfig.from(Map.of("AUTH_MODE", "central", "AUTH_ISSUER", issuer)));
+			assertThrows(IllegalArgumentException.class, () -> CentralAuthConfig.from(Map.of("AUTH_ISSUER", issuer)));
 		}
+		assertEquals("http://auth-api:8081/.well-known/jwks.json", CentralAuthConfig.from(Map.of("AUTH_ISSUER",
+			"http://localhost:8082", "AUTH_JWKS_URL", "http://auth-api:8081/.well-known/jwks.json")).jwksUrl());
 	}
 
 	@Test
@@ -204,16 +201,22 @@ class CentralAuthTest {
 
 	@Test
 	void centralSessionUsesVerifiedClaimsAndNeverCallsLocalLogin() throws Exception {
-		AuthenticationService legacy = mock(AuthenticationService.class);
-		replay(legacy);
-		JwtAccessManager access = new JwtAccessManager(new JwtService(), verifier, config);
+		JwtAccessManager access = new JwtAccessManager(verifier);
 		Javalin app = Javalin.create(c -> {
 			c.routes.beforeMatched(access::handle);
-			c.routes.apiBuilder(() -> path("/api/auth", new AuthController(legacy, config)::registerRoutes));
+			c.routes.apiBuilder(() -> path("/api/auth", new AuthController(config)::registerRoutes));
 		}).start(0);
 		try {
 			var http = HttpClient.newHttpClient();
 			String origin = "http://localhost:" + app.port();
+			var settings = http.send(HttpRequest.newBuilder(URI.create(origin + "/api/auth/config")).GET().build(),
+				HttpResponse.BodyHandlers.ofString());
+			assertEquals(200, settings.statusCode());
+			var publicConfig = new ObjectMapper().readTree(settings.body());
+			assertEquals(config.issuer(), publicConfig.path("issuer").asText());
+			assertEquals("inventory", publicConfig.path("clientId").asText());
+			assertFalse(publicConfig.has("enabled"));
+			assertFalse(publicConfig.has("jwksUrl"));
 			var response = http.send(
 				HttpRequest.newBuilder(URI.create(origin + "/api/auth/session"))
 					.header("Authorization", "Bearer " + sign(builder())).GET().build(),
@@ -226,7 +229,7 @@ class CentralAuthTest {
 			assertEquals("no-store", response.headers().firstValue("Cache-Control").orElseThrow());
 			assertEquals(401, http.send(HttpRequest.newBuilder(URI.create(origin + "/api/auth/session")).GET().build(),
 				HttpResponse.BodyHandlers.ofString()).statusCode());
-			var oldToken = new JwtService().create(42, "person", List.of(new ChapterRole(2, "Admin")), "Admin");
+			var oldToken = builder().sign(Algorithm.HMAC256("old-inventory-secret"));
 			assertEquals(401,
 				http.send(
 					HttpRequest.newBuilder(URI.create(origin + "/api/auth/session"))
@@ -241,7 +244,39 @@ class CentralAuthTest {
 		} finally {
 			app.stop();
 		}
-		verify(legacy);
+	}
+
+	@Test
+	void roleGatesUseOnlyVerifiedSharedAndInventoryRoles() throws Exception {
+		JwtAccessManager access = new JwtAccessManager(verifier);
+		Javalin app = Javalin.create(c -> {
+			c.routes.beforeMatched(access::handle);
+			c.routes.apiBuilder(() -> {
+				io.javalin.apibuilder.ApiBuilder.get("/admin", ctx -> ctx.result("OK"), AppRole.ADMIN);
+				io.javalin.apibuilder.ApiBuilder.get("/chapter-admin", ctx -> ctx.result("OK"), AppRole.CHAPTER_ADMIN);
+			});
+		}).start(0);
+		try {
+			var http = HttpClient.newHttpClient();
+			for (String role : List.of("viewer", "editor", "chapter_admin", "national_admin")) {
+				boolean shared = role.endsWith("admin");
+				String token = sign(builder().withClaim("chapters", List.of(Map.of("id", 1, "roles",
+					shared ? List.of(role) : List.of(), "app_roles", shared ? List.of() : List.of(role)))));
+				for (String route : List.of("/admin", "/chapter-admin")) {
+					int expected = role.equals("national_admin") || (route.equals("/chapter-admin") && shared)
+						? 200
+						: 403;
+					assertEquals(expected,
+						http.send(
+							HttpRequest.newBuilder(URI.create("http://localhost:" + app.port() + route))
+								.header("Authorization", "Bearer " + token).GET().build(),
+							HttpResponse.BodyHandlers.ofString()).statusCode(),
+						role + route);
+				}
+			}
+		} finally {
+			app.stop();
+		}
 	}
 
 	private JWTCreator.Builder builder() {

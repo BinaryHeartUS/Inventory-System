@@ -1,14 +1,12 @@
 /**
- * Auth service — login, token persistence, and logout.
+ * Inventory's verified BinaryHeart session persistence.
  *
  * The JWT is stored in sessionStorage (not localStorage) so it is
  * automatically cleared when the browser tab is closed.
  *
- * Endpoint: POST /api/auth/login → LoginResponse
  */
 
-import { API_BASE } from "./api";
-import type { LoginResponse, ChapterRole } from "../types/inventory";
+import type { ChapterRole } from "../types/inventory";
 import { getAuthConfig } from "./authConfig";
 
 const SESSION_KEY = "bh_auth";
@@ -16,7 +14,7 @@ const SESSION_KEY = "bh_auth";
 // ─── Storage helpers ──────────────────────────────────────────────────────────
 
 interface StoredAuth {
-  mode?: "central" | "legacy";
+  issuer: string;
   token: string;
   username: string;
   chapterRoles: ChapterRole[];
@@ -45,7 +43,7 @@ export function getStoredAuth(): StoredAuth | null {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const auth = JSON.parse(raw) as StoredAuth;
-    if ((auth.mode === "central") !== getAuthConfig().enabled) {
+    if (auth.issuer !== getAuthConfig().issuer) {
       clearStoredAuth();
       return null;
     }
@@ -70,30 +68,4 @@ export function clearStoredAuth(): void {
 
 export function getStoredToken(): string | null {
   return getStoredAuth()?.token ?? null;
-}
-
-// ─── Login ────────────────────────────────────────────────────────────────────
-
-export async function loginRequest(username: string, password: string): Promise<LoginResponse> {
-  if (getAuthConfig().enabled) throw new Error("Please sign in with BinaryHeart.");
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-
-  if (res.status === 401) throw new Error("Invalid username or password");
-  if (res.status === 400) throw new Error("Username and password are required");
-  if (!res.ok) throw new Error("Login failed — please try again");
-
-  const data = (await res.json()) as LoginResponse;
-  setStoredAuth({
-    mode: "legacy",
-    token: data.token!,
-    username: data.username!,
-    chapterRoles: data.chapterRoles!,
-    chapterIds: data.chapterRoles!.map((cr) => cr.chapterId),
-    role: data.role!,
-  });
-  return data;
 }

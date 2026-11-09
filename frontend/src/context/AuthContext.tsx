@@ -1,8 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-import type { LoginResponse, ChapterRole } from "../types/inventory";
+import type { ChapterRole } from "../types/inventory";
 import {
-  loginRequest,
   clearStoredAuth,
   getStoredAuth,
   getStoredToken,
@@ -27,7 +26,6 @@ interface AuthState {
 
 interface AuthContextValue {
   auth: AuthState | null;
-  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -58,18 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   });
 
-  const login = useCallback(async (username: string, password: string) => {
-    const response: LoginResponse = await loginRequest(username, password);
-    const state: AuthState = {
-      token: response.token,
-      username: response.username,
-      chapterRoles: response.chapterRoles,
-      chapterIds: response.chapterRoles.map((cr) => cr.chapterId),
-      role: response.role,
-    };
-    setAuth(state);
-  }, []);
-
   const logout = useCallback(() => {
     clearStoredAuth();
     clearDeviceFilters();
@@ -97,5 +83,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Register with the api layer so any 401 (expired token) auto-logs out
   setUnauthorizedHandler(logout);
 
-  return <AuthContext.Provider value={{ auth, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ auth, logout }}>{children}</AuthContext.Provider>;
 }

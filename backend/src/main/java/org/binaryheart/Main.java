@@ -11,8 +11,6 @@ import io.javalin.json.JavalinJackson;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
 import org.binaryheart.auth.JwtAccessManager;
-import org.binaryheart.auth.CentralAuthConfig;
-import org.binaryheart.controllers.AccountController;
 import org.binaryheart.controllers.AssetController;
 import org.binaryheart.controllers.AuthController;
 import org.binaryheart.controllers.ChapterController;
@@ -31,8 +29,6 @@ public class Main {
 		DatabaseConnectionService.init();
 
 		Injector injector = Guice.createInjector(new ApplicationModule());
-		CentralAuthConfig centralAuth = injector.getInstance(CentralAuthConfig.class);
-		AccountController accountController = injector.getInstance(AccountController.class);
 		AssetController assetController = injector.getInstance(AssetController.class);
 		AuthController authController = injector.getInstance(AuthController.class);
 		ChapterController chapterController = injector.getInstance(ChapterController.class);
@@ -64,10 +60,7 @@ public class Main {
 				path("/api", healthController::registerRoutes);
 				path("/api/devices", deviceController::registerRoutes);
 				path("/api/auth", authController::registerRoutes);
-				if (!centralAuth.enabled()) {
-					path("/api/accounts", accountController::registerRoutes);
-				}
-				path("/api/chapters", () -> chapterController.registerRoutes(centralAuth.enabled()));
+				path("/api/chapters", chapterController::registerRoutes);
 				path("/api/lookup", lookupController::registerRoutes);
 				path("/api/misc", miscController::registerRoutes);
 				path("/api/assets", () -> {

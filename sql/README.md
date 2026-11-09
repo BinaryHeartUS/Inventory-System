@@ -9,12 +9,26 @@ Database migrations are managed with **Flyway**. All scripts live under
 | `020 - Untracked - Procedures & Functions` | Repeatable (`R…`) | all envs      | Stored procedures and functions                       |
 | `030 - Untracked - Triggers`               | Repeatable (`R…`) | all envs      | Triggers (and their inline trigger functions)         |
 | `040 - Untracked - Views`                  | Repeatable (`R…`) | all envs      | Views                                                 |
-| `090 - Dev Only - Tracked`                 | Versioned (`V…`)  | **dev only**  | Non-production seed data (e.g. the `developer`/`viewer` accounts) |
+| `090 - Dev Only - Tracked`                 | Versioned (`V…`)  | **dev only**  | Historical development seed migrations |
 | `callbacks`                                | Callback          | all envs      | Flyway lifecycle hooks (e.g. app-user password sync)  |
 
 `010 - Tracked` is further split into sub-folders so the tree stays small:
 `Initialization/` holds the original schema, and later changes go in a folder
 named for the **year** they were authored (`2026/`, `2027/`, …).
+
+## Identity storage
+
+Inventory uses BinaryHeart auth exclusively. The forward-only
+`V20261109.03__Remove_Local_Identity_Store.sql` migration drops `Volunteer`,
+`Affiliated_With`, `Role` and the obsolete account/chapter-mutation routines.
+`Chapter` and all inventory tables/foreign keys remain.
+
+Historical versioned migrations (including dev identity seeds) are retained
+unchanged for Flyway validation and clean-database replay; the later removal
+migration deletes those identities on a fresh install too. Retired repeatable
+routine files retain their names as drop-only tombstones, so strict validation
+does not report missing applied migrations and future runs cannot recreate
+retired routines. Do not remove these history entries or use `flyway repair`.
 
 ## Environment-specific migrations
 
@@ -28,7 +42,7 @@ environment therefore lists the folders it wants **explicitly** via
 
 Each listed folder is scanned **recursively**, so a folder picks up its
 sub-folders (e.g. `010 - Tracked/Initialization`, `010 - Tracked/2026`) too.
-Because prod never lists `090`, the `developer`/`viewer` seed never reaches
+Because prod never lists `090`, the historical `developer`/`viewer` seed never reaches
 production (and prod's history simply never contains that version — a
 never-scanned location produces no record and no "missing" warning). To add
 another dev-only fixture, drop a `V…` script in `090 - Dev Only - Tracked`; to

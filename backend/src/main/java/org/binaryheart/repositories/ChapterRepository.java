@@ -30,22 +30,4 @@ public class ChapterRepository {
 			.findFirst().orElse(null);
 	}
 
-	public ChapterSummary createChapter(String name) throws SQLException {
-		try (Connection conn = DatabaseConnectionService.getConnection();
-			CallableStatement stmt = conn.prepareCall("CALL Insert_Chapter(?, ?)")) {
-			stmt.setString(1, name);
-			stmt.registerOutParameter(2, Types.INTEGER);
-			stmt.execute();
-			int id = stmt.getInt(2);
-			return new ChapterSummary(id, name);
-		}
-	}
-
-	public void deleteChapter(int id) throws SQLException {
-		try (Connection conn = DatabaseConnectionService.getConnection();
-			CallableStatement stmt = conn.prepareCall("CALL Delete_Chapter(?)")) {
-			stmt.setInt(1, id);
-			stmt.execute();
-		}
-	}
 }

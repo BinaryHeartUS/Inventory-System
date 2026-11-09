@@ -13,7 +13,6 @@ import Devices from "./pages/Devices";
 import Parts from "./pages/Parts";
 import Tools from "./pages/Tools";
 import Donations from "./pages/Donations";
-import Chapters from "./pages/Chapters";
 import DeviceDetail from "./pages/DeviceDetail";
 import PartDetail from "./pages/PartDetail";
 import ToolDetail from "./pages/ToolDetail";
@@ -24,10 +23,8 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
 import ManagementPage from "./containers/CentralManagementRedirect";
-import { accountPortalUrl, getAuthConfig } from "./services/authConfig";
+import { accountPortalUrl } from "./services/authConfig";
 import { centralLogout } from "./services/centralAuthService";
-import Account from "./pages/Account";
-import AdminAccounts from "./pages/AdminAccounts";
 import ManageParties from "./pages/ManageParties";
 import PartyDetail from "./pages/PartyDetail";
 import Scanner from "./pages/Scanner";
@@ -44,7 +41,7 @@ import { canPrintLabels } from "./utils/canPrintLabels";
 import { canManageAccounts } from "./utils/roles";
 import ProtectedRoute from "./containers/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { ChapterProvider, useIsNationalAdmin } from "./context/ChapterContext";
+import { ChapterProvider } from "./context/ChapterContext";
 import { AddAssetProvider } from "./context/AddAssetContext";
 
 import type { AnyDevice, BulkInsertDevicesRequest, Misc, Part, Tool } from "./types/inventory";
@@ -241,46 +238,6 @@ const bottomNavItems = [
 ];
 
 const adminNavItems = [
-  {
-    to: "/admin/accounts",
-    label: "Manage Accounts",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
-  },
-  {
-    to: "/chapters",
-    label: "Manage Chapters",
-    icon: (
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-        <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
-  },
   { to: "/settings", label: "Manage Options", icon: Icons.settings },
   {
     to: "/admin/parties",
@@ -307,8 +264,6 @@ const adminNavItems = [
 
 function SidebarContent() {
   const { auth, logout } = useAuth();
-  const central = getAuthConfig().enabled;
-  const isNationalAdmin = useIsNationalAdmin();
   const canManage = canManageAccounts(auth?.role);
   return (
     <>
@@ -356,33 +311,27 @@ function SidebarContent() {
               Administrator
             </p>
             <div className="space-y-0.5 mt-2">
-              {adminNavItems
-                .filter((item) =>
-                  central
-                    ? item.to !== "/admin/accounts" && item.to !== "/chapters"
-                    : item.to !== "/chapters" || isNationalAdmin
-                )
-                .map(({ to, label, icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    end
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
-                        isActive
-                          ? "bg-heart-blue"
-                          : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <span className={isActive ? "text-brand-red" : ""}>{icon}</span>
-                        <span className={isActive ? "text-white" : ""}>{label}</span>
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+              {adminNavItems.map(({ to, label, icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                      isActive
+                        ? "bg-heart-blue"
+                        : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span className={isActive ? "text-brand-red" : ""}>{icon}</span>
+                      <span className={isActive ? "text-white" : ""}>{label}</span>
+                    </>
+                  )}
+                </NavLink>
+              ))}
             </div>
           </>
         )}
@@ -390,8 +339,8 @@ function SidebarContent() {
 
       <div className="px-3 py-4 mt-auto border-t border-slate-200">
         <NavLink
-          to={central ? accountPortalUrl("/account") : "/account"}
-          reloadDocument={central}
+          to={accountPortalUrl("/account")}
+          reloadDocument
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
               isActive ? "bg-heart-blue" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
@@ -428,17 +377,15 @@ function SidebarContent() {
             </>
           )}
         </NavLink>
-        {central && (
-          <button
-            className="w-full rounded-lg px-3 py-3 text-left text-sm font-medium text-red-700 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
-            onClick={() => {
-              logout();
-              centralLogout();
-            }}
-          >
-            Sign out
-          </button>
-        )}
+        <button
+          className="w-full rounded-lg px-3 py-3 text-left text-sm font-medium text-red-700 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+          onClick={() => {
+            logout();
+            centralLogout();
+          }}
+        >
+          Sign out
+        </button>
       </div>
     </>
   );
@@ -566,12 +513,11 @@ function BottomTabBar() {
 }
 
 function AccountLabel({ isActive }: { isActive: boolean }) {
-  const { auth } = useAuth();
   return (
     <span
       className={`text-sm font-medium truncate block ${isActive ? "text-white" : "text-slate-700"}`}
     >
-      {getAuthConfig().enabled ? "My account" : (auth?.username ?? "Account")}
+      Account Management
     </span>
   );
 }
@@ -676,9 +622,7 @@ const router = createBrowserRouter([
         path: "chapters",
         element: (
           <ProtectedRoute>
-            <ManagementPage page="/chapters">
-              <Chapters />
-            </ManagementPage>
+            <ManagementPage page="/chapters" />
           </ProtectedRoute>
         ),
       },
@@ -710,9 +654,7 @@ const router = createBrowserRouter([
         path: "account",
         element: (
           <ProtectedRoute>
-            <ManagementPage page="/account">
-              <Account />
-            </ManagementPage>
+            <ManagementPage page="/account" />
           </ProtectedRoute>
         ),
       },
@@ -720,9 +662,7 @@ const router = createBrowserRouter([
         path: "admin/accounts",
         element: (
           <ProtectedRoute>
-            <ManagementPage page="/accounts">
-              <AdminAccounts />
-            </ManagementPage>
+            <ManagementPage page="/accounts" />
           </ProtectedRoute>
         ),
       },

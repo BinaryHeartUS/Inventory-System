@@ -38,8 +38,7 @@ function base64url(bytes: Uint8Array): string {
 }
 
 export async function beginCentralLogin(returnPath: string): Promise<void> {
-  const { enabled, issuer, clientId } = getAuthConfig();
-  if (!enabled) throw new Error("Central authentication is not enabled.");
+  const { issuer, clientId } = getAuthConfig();
   const verifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
   const state = base64url(crypto.getRandomValues(new Uint8Array(32)));
   const challenge = base64url(
@@ -69,8 +68,7 @@ export async function beginCentralLogin(returnPath: string): Promise<void> {
 }
 
 export async function finishCentralLogin(callbackUrl: string): Promise<string> {
-  const { enabled, issuer, clientId } = getAuthConfig();
-  if (!enabled) throw new Error("Central authentication is not enabled.");
+  const { issuer, clientId } = getAuthConfig();
   const raw = sessionStorage.getItem(FLOW_KEY);
   sessionStorage.removeItem(FLOW_KEY);
   if (!raw) throw new Error("This sign-in request has expired. Please start again.");
@@ -133,15 +131,14 @@ export async function finishCentralLogin(callbackUrl: string): Promise<string> {
   const profile = (await session.json()) as LoginResponse;
   setStoredAuth({
     ...profile,
-    mode: "central",
+    issuer,
     chapterIds: profile.chapterRoles.map((assignment) => assignment.chapterId),
   });
   return safeInventoryPath(flow.returnPath);
 }
 
 export function centralLogout(): void {
-  const { enabled, issuer, clientId } = getAuthConfig();
-  if (!enabled) throw new Error("Central authentication is not enabled.");
+  const { issuer, clientId } = getAuthConfig();
   clearStoredAuth();
   sessionStorage.removeItem(FLOW_KEY);
   const url = new URL(issuer + "/api/oauth/logout");

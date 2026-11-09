@@ -313,7 +313,7 @@ test("places the continuation marker after the matching-device count", async ({ 
   await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
 });
 
-test("device list keeps scrolling accessible while loading more rows", async ({ page }) => {
+test("device list keeps scrolling accessible while loading more rows", async ({ page, browserName }) => {
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.route(/\/api\/devices\?.*search=scroll-test/, async (route) => {
     const requestUrl = new URL(route.request().url());
@@ -353,11 +353,17 @@ test("device list keeps scrolling accessible while loading more rows", async ({ 
   });
   const box = await list.boundingBox();
   expect(box).not.toBeNull();
-  const thumbWidth = (dimensions.width * dimensions.width) / dimensions.scrollWidth;
-  await page.mouse.move(box!.x + thumbWidth / 2, box!.y + box!.height - 6);
-  await page.mouse.down();
-  await page.mouse.move(box!.x + thumbWidth / 2 + 150, box!.y + box!.height - 6, { steps: 10 });
-  await page.mouse.up();
+  if (browserName === "firefox") {
+    // Firefox may hide native scrollbars in headless mode; exercise horizontal wheel scrolling.
+    await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+    await page.mouse.wheel(150, 0);
+  } else {
+    const thumbWidth = (dimensions.width * dimensions.width) / dimensions.scrollWidth;
+    await page.mouse.move(box!.x + thumbWidth / 2, box!.y + box!.height - 6);
+    await page.mouse.down();
+    await page.mouse.move(box!.x + thumbWidth / 2 + 150, box!.y + box!.height - 6, { steps: 10 });
+    await page.mouse.up();
+  }
   await expect.poll(() => list.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
   await list.evaluate((element) => {
     element.scrollLeft = element.scrollWidth;
@@ -395,16 +401,6 @@ test("donations shows donated devices and chapter totals", async ({ page }) => {
   await expect(page.getByText("1 device donated all time", { exact: true })).toBeVisible();
   await expect(page.getByText("OptiPlex 7090", { exact: true })).toBeVisible();
   await expect(page.getByText(TEST_CHAPTER.name, { exact: true }).first()).toBeVisible();
-});
-
-test("national admin can create a chapter in isolated state", async ({ page }) => {
-  await page.goto("/chapters");
-
-  await page.getByRole("button", { name: "New Chapter" }).click();
-  await page.getByRole("textbox").fill("Another Test Chapter");
-  await page.getByRole("button", { name: "Create Chapter" }).click();
-
-  await expect(page.getByText("Another Test Chapter", { exact: true })).toBeVisible();
 });
 
 test("global search returns devices, parts, and tools", async ({ page }) => {
