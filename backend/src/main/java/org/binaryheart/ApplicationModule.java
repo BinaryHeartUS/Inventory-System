@@ -7,6 +7,8 @@ import org.binaryheart.auth.JwtAccessManager;
 import org.binaryheart.auth.JwtService;
 import org.binaryheart.auth.PasswordService;
 import org.binaryheart.auth.TokenService;
+import org.binaryheart.auth.CentralAuthConfig;
+import org.binaryheart.auth.CentralTokenVerifier;
 import org.binaryheart.controllers.AccountController;
 import org.binaryheart.controllers.AssetController;
 import org.binaryheart.controllers.AuthController;
@@ -105,6 +107,8 @@ public class ApplicationModule extends AbstractModule {
 		bindSingleton(JwtService.class);
 		bindSingleton(PasswordService.class);
 		bindSingleton(TokenService.class);
+		bind(CentralAuthConfig.class).toInstance(CentralAuthConfig.fromEnvironment());
+		bindSingleton(CentralTokenVerifier.class);
 	}
 
 	private <T> void bindSingleton(Class<T> type) {

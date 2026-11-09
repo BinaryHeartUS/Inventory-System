@@ -22,6 +22,10 @@ import Search from "./pages/Search";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import AuthCallback from "./pages/AuthCallback";
+import ManagementPage from "./containers/CentralManagementRedirect";
+import { accountPortalUrl, getAuthConfig } from "./services/authConfig";
+import { centralLogout } from "./services/centralAuthService";
 import Account from "./pages/Account";
 import AdminAccounts from "./pages/AdminAccounts";
 import ManageParties from "./pages/ManageParties";
@@ -302,7 +306,8 @@ const adminNavItems = [
 ];
 
 function SidebarContent() {
-  const { auth } = useAuth();
+  const { auth, logout } = useAuth();
+  const central = getAuthConfig().enabled;
   const isNationalAdmin = useIsNationalAdmin();
   const canManage = canManageAccounts(auth?.role);
   return (
@@ -352,7 +357,11 @@ function SidebarContent() {
             </p>
             <div className="space-y-0.5 mt-2">
               {adminNavItems
-                .filter((item) => item.to !== "/chapters" || isNationalAdmin)
+                .filter((item) =>
+                  central
+                    ? item.to !== "/admin/accounts" && item.to !== "/chapters"
+                    : item.to !== "/chapters" || isNationalAdmin
+                )
                 .map(({ to, label, icon }) => (
                   <NavLink
                     key={to}
@@ -381,7 +390,8 @@ function SidebarContent() {
 
       <div className="px-3 py-4 mt-auto border-t border-slate-200">
         <NavLink
-          to="/account"
+          to={central ? accountPortalUrl("/account") : "/account"}
+          reloadDocument={central}
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
               isActive ? "bg-heart-blue" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
@@ -418,6 +428,17 @@ function SidebarContent() {
             </>
           )}
         </NavLink>
+        {central && (
+          <button
+            className="w-full rounded-lg px-3 py-3 text-left text-sm font-medium text-red-700 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+            onClick={() => {
+              logout();
+              centralLogout();
+            }}
+          >
+            Sign out
+          </button>
+        )}
       </div>
     </>
   );
@@ -550,7 +571,7 @@ function AccountLabel({ isActive }: { isActive: boolean }) {
     <span
       className={`text-sm font-medium truncate block ${isActive ? "text-white" : "text-slate-700"}`}
     >
-      {auth?.username ?? "Account"}
+      {getAuthConfig().enabled ? "My account" : (auth?.username ?? "Account")}
     </span>
   );
 }
@@ -578,6 +599,7 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { path: "login", element: <Login /> },
+      { path: "auth/callback", element: <AuthCallback /> },
       {
         index: true,
         element: (
@@ -654,7 +676,9 @@ const router = createBrowserRouter([
         path: "chapters",
         element: (
           <ProtectedRoute>
-            <Chapters />
+            <ManagementPage page="/chapters">
+              <Chapters />
+            </ManagementPage>
           </ProtectedRoute>
         ),
       },
@@ -686,7 +710,9 @@ const router = createBrowserRouter([
         path: "account",
         element: (
           <ProtectedRoute>
-            <Account />
+            <ManagementPage page="/account">
+              <Account />
+            </ManagementPage>
           </ProtectedRoute>
         ),
       },
@@ -694,7 +720,9 @@ const router = createBrowserRouter([
         path: "admin/accounts",
         element: (
           <ProtectedRoute>
-            <AdminAccounts />
+            <ManagementPage page="/accounts">
+              <AdminAccounts />
+            </ManagementPage>
           </ProtectedRoute>
         ),
       },

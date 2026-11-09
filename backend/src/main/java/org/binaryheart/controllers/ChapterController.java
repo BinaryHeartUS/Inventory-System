@@ -26,9 +26,15 @@ public class ChapterController {
 	}
 
 	public void registerRoutes() {
+		registerRoutes(false);
+	}
+
+	public void registerRoutes(boolean readOnly) {
 		get("", this::getChapters, AppRole.AUTHENTICATED);
-		post("", this::createChapter, AppRole.ADMIN);
-		delete("/{id}", this::deleteChapter, AppRole.ADMIN);
+		if (!readOnly) {
+			post("", this::createChapter, AppRole.ADMIN);
+			delete("/{id}", this::deleteChapter, AppRole.ADMIN);
+		}
 	}
 
 	@OpenApi(
