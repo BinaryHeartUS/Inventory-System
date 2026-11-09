@@ -55,7 +55,13 @@ export type LoginResponse = Required<
 // The backend returns these as plain `string`; these unions let the UI render
 // them safely without widening the generated wire types.
 export type DeviceStatus =
-  "Not Started" | "In Progress" | "Ready To Donate" | "Donated" | "Sold" | "Scrapped" | "Unknown";
+  | "Not Started"
+  | "In Progress"
+  | "Ready To Donate"
+  | "Donated"
+  | "Sold"
+  | "Scrapped"
+  | "Unknown";
 export type ChargerStatus = "Included" | "Not Included" | "Unknown";
 export type WorkingBattery = "Yes" | "No" | "Unknown";
 

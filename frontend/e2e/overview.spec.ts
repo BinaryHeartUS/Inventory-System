@@ -313,7 +313,10 @@ test("places the continuation marker after the matching-device count", async ({ 
   await expect(page.getByText("50+ matching devices", { exact: true })).toBeVisible();
 });
 
-test("device list keeps scrolling accessible while loading more rows", async ({ page, browserName }) => {
+test("device list keeps scrolling accessible while loading more rows", async ({
+  page,
+  browserName,
+}) => {
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.route(/\/api\/devices\?.*search=scroll-test/, async (route) => {
     const requestUrl = new URL(route.request().url());
