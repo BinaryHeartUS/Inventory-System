@@ -87,9 +87,10 @@ public class DeviceService {
 		return repository.getDevice(id);
 	}
 
-	public void deleteDevice(int id, String username) throws DeviceNotFoundException, SQLException {
+	public void deleteDevice(int id, String username, List<Integer> allowedChapterIds)
+		throws DeviceNotFoundException, SQLException {
 		try {
-			repository.deleteDevice(id, username);
+			repository.deleteDevice(id, username, allowedChapterIds);
 		} catch (SQLException e) {
 			if ("02000".equals(e.getSQLState())) {
 				throw new DeviceNotFoundException("Could not find device with specified ID: " + id);
@@ -159,10 +160,10 @@ public class DeviceService {
 		return repository.insertBulkDevices(request, username);
 	}
 
-	public void updateDesktop(InsertDesktopRequest request, String username)
+	public void updateDesktop(InsertDesktopRequest request, String username, List<Integer> allowedChapterIds)
 		throws DeviceNotFoundException, SQLException {
 		try {
-			repository.updateDesktop(request, username);
+			repository.updateDesktop(request, username, allowedChapterIds);
 		} catch (SQLException e) {
 			if ("02000".equals(e.getSQLState())) {
 				throw new DeviceNotFoundException("Could not find desktop with specified ID: " + request.assetId());
@@ -172,10 +173,10 @@ public class DeviceService {
 		}
 	}
 
-	public void updateLaptop(InsertLaptopRequest request, String username)
+	public void updateLaptop(InsertLaptopRequest request, String username, List<Integer> allowedChapterIds)
 		throws DeviceNotFoundException, SQLException {
 		try {
-			repository.updateLaptop(request, username);
+			repository.updateLaptop(request, username, allowedChapterIds);
 		} catch (SQLException e) {
 			if ("02000".equals(e.getSQLState())) {
 				throw new DeviceNotFoundException("Could not find laptop with specified ID: " + request.assetId());
@@ -185,10 +186,10 @@ public class DeviceService {
 		}
 	}
 
-	public void updateTablet(InsertTabletRequest request, String username)
+	public void updateTablet(InsertTabletRequest request, String username, List<Integer> allowedChapterIds)
 		throws DeviceNotFoundException, SQLException {
 		try {
-			repository.updateTablet(request, username);
+			repository.updateTablet(request, username, allowedChapterIds);
 		} catch (SQLException e) {
 			if ("02000".equals(e.getSQLState())) {
 				throw new DeviceNotFoundException("Could not find tablet with specified ID: " + request.assetId());

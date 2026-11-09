@@ -268,13 +268,14 @@ public class PartController {
 					description = "Database error"),})
 	public void deletePart(Context ctx) {
 		try {
-			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int partId = Integer.parseInt(ctx.pathParam("id"));
 			if (partId <= 0) {
 				ctx.status(400).result("Part ID must be a positive integer");
 				return;
 			}
-			service.deletePart(userChapterIds, partId, ctx.attribute("username"));
+			List<Integer> allowedChapterIds = authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"),
+				true);
+			service.deletePart(allowedChapterIds, partId, ctx.attribute("username"));
 			ctx.status(204);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Part ID must be a positive integer");
@@ -356,7 +357,8 @@ public class PartController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updatePart(request, ctx.attribute("username"));
+			service.updatePart(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(201).result("Part updated successfully");
 		} catch (PartNotFoundException e) {
 			ctx.status(401).result(e.getMessage());

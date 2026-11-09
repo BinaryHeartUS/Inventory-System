@@ -625,7 +625,12 @@ public class DeviceController {
 				chapterService.requireActive(chapterId);
 			}
 
-			service.deleteDevice(id, ctx.attribute("username"));
+			List<Integer> deleteChapterIds = chapterRoles.stream()
+				.filter(role -> "Inventory Admin".equals(role.role())
+					|| ("Admin".equals(role.role()) && role.chapterId() == nationalId))
+				.map(ChapterRole::chapterId).distinct().toList();
+			service.deleteDevice(id, ctx.attribute("username"),
+				deleteChapterIds.contains(nationalId) ? null : deleteChapterIds);
 			ctx.status(204);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric device ID: " + idStr);
@@ -1202,7 +1207,8 @@ public class DeviceController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updateDesktop(request, ctx.attribute("username"));
+			service.updateDesktop(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(201).result("Desktop updated successfully");
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
@@ -1299,7 +1305,8 @@ public class DeviceController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updateLaptop(request, ctx.attribute("username"));
+			service.updateLaptop(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(200).result("Laptop updated successfully");
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
@@ -1387,7 +1394,8 @@ public class DeviceController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updateTablet(request, ctx.attribute("username"));
+			service.updateTablet(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(200).result("Tablet updated successfully");
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());

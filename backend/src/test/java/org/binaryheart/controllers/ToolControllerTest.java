@@ -127,7 +127,10 @@ class ToolControllerTest {
 		ToolService service = mock(ToolService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
-		expectIdContext(context, "id", "301", List.of(2));
+		expect(context.pathParam("id")).andReturn("301");
+		List<ChapterRole> adminRoles = List.of(new ChapterRole(2, "Inventory Admin"));
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(adminRoles);
+		expect(authorization.mutationChapterIds(adminRoles, true)).andReturn(List.of(2));
 		service.deleteTool(List.of(2), 301);
 		expectResult(context, 204, "Tool deleted successfully");
 		replay(service, authorization, context);
@@ -143,10 +146,11 @@ class ToolControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(InsertToolRequest.class)).andReturn(tool());
-		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES).times(2);
 		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(context.<String>attribute("username")).andReturn("user");
-		service.updateTool(tool(), "user");
+		expect(authorization.mutationChapterIds(CHAPTER_ROLES, false)).andReturn(List.of(2));
+		service.updateTool(tool(), "user", List.of(2));
 		expectResult(context, 201, "Tool updated successfully");
 		replay(service, authorization, context);
 

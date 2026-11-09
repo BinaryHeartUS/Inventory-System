@@ -49,7 +49,7 @@ interface ChapterRoleLike {
   role: string;
 }
 
-export function canEditDonatedDevices(
+export function canAdministerChapter(
   chapterRoles: ChapterRoleLike[],
   chapterId: number | undefined,
   nationalChapterId: number | undefined
@@ -62,6 +62,14 @@ export function canEditDonatedDevices(
         (assignment.chapterId === chapterId || assignment.chapterId === nationalChapterId)
     )
   );
+}
+
+export function canEditDonatedDevices(
+  chapterRoles: ChapterRoleLike[],
+  chapterId: number | undefined,
+  nationalChapterId: number | undefined
+): boolean {
+  return canAdministerChapter(chapterRoles, chapterId, nationalChapterId);
 }
 
 /**

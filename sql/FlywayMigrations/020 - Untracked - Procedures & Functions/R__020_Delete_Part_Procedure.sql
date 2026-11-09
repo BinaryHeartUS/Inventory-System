@@ -8,6 +8,11 @@ AS $$
 DECLARE 
     v_contained_in INTEGER;
 BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Part WHERE ID = p_part_id) THEN
+        RAISE SQLSTATE '02000'
+        USING MESSAGE = 'No part found with matching asset ID';
+    END IF;
+
     -- check if the part is contained in a device, reject deletion if so
     SELECT Contained_In INTO v_contained_in FROM Part WHERE ID = p_part_id;
 

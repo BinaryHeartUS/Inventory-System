@@ -10,6 +10,19 @@ describe("CSV utilities", () => {
     expect(escapeCsvCell(null)).toBe('""');
   });
 
+  it.each(["=1+1", "+1+1", "-1+1", "@SUM(A1)", " \t=1+1", "\r\n=1+1"])(
+    "neutralizes spreadsheet formulas in text: %j",
+    (value) => {
+      expect(escapeCsvCell(value)).toBe(`"'${value}"`);
+    }
+  );
+
+  it("preserves numeric values, including negative numbers", () => {
+    expect(escapeCsvCell(-42)).toBe('"-42"');
+    expect(escapeCsvCell(0)).toBe('"0"');
+    expect(escapeCsvCell("ordinary text")).toBe('"ordinary text"');
+  });
+
   it("creates lowercase filename slugs", () => {
     expect(slugify("Rose-Hulman Institute of Technology")).toBe(
       "rose-hulman-institute-of-technology"

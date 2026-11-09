@@ -15,6 +15,7 @@ const meta = {
     form: null,
     saved: false,
     isDirty: false,
+    canEdit: true,
     canDelete: true,
     canPrint: true,
     printId: null,
@@ -56,6 +57,21 @@ export const Details: Story = {
     await expect(args.onOpenPrint).toHaveBeenCalledWith(44);
   },
 };
+export const Editor: Story = {
+  args: { canEdit: true, canDelete: false },
+  play: async ({ canvas, args }) => {
+    await expect(canvas.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+    await userEvent.click(canvas.getByRole("button", { name: "Edit" }));
+    await expect(args.onStartEdit).toHaveBeenCalledOnce();
+  },
+};
+export const Viewer: Story = {
+  args: { canEdit: false, canDelete: false },
+  play: async ({ canvas }) => {
+    await expect(canvas.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+  },
+};
 export const Editing: Story = {
   args: { editing: true, form: tool },
   play: async ({ canvas, canvasElement, args }) => {
@@ -73,6 +89,7 @@ export const MissingValues: Story = {
     tool: { ...tool, value: null, acquisitionDate: null },
     linkedParty: null,
     canPrint: false,
+    canEdit: false,
     canDelete: false,
   },
 };

@@ -144,7 +144,10 @@ class PartControllerTest {
 		PartService service = mock(PartService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
-		expectIdContext(context, "id", "201", List.of(2));
+		expect(context.pathParam("id")).andReturn("201");
+		List<ChapterRole> adminRoles = List.of(new ChapterRole(2, "Inventory Admin"));
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(adminRoles);
+		expect(authorization.mutationChapterIds(adminRoles, true)).andReturn(List.of(2));
 		expect(context.<String>attribute("username")).andReturn("user");
 		service.deletePart(List.of(2), 201, "user");
 		expectStatus(context, 204);
@@ -161,10 +164,11 @@ class PartControllerTest {
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
 		expect(context.bodyAsClass(InsertPartRequest.class)).andReturn(part());
-		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES).times(2);
 		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
 		expect(context.<String>attribute("username")).andReturn("user");
-		service.updatePart(part(), "user");
+		expect(authorization.mutationChapterIds(CHAPTER_ROLES, false)).andReturn(List.of(2));
+		service.updatePart(part(), "user", List.of(2));
 		expectResult(context, 201, "Part updated successfully");
 		replay(service, authorization, context);
 

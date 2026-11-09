@@ -5,6 +5,8 @@ import { getPart, updatePart, deletePart, getPartChangelog } from "../services/p
 import { getDevice } from "../services/deviceService";
 import { useLookups } from "../hooks/useLookups";
 import { canPrintLabels } from "../utils/canPrintLabels";
+import { canAdministerChapter } from "../utils/roles";
+import { useAuth } from "../context/AuthContext";
 import { useChapters, useWritableChapters } from "../context/ChapterContext";
 import { useToast } from "../context/ToastContext";
 import { useLinkedParty } from "../hooks/useLinkedParty";
@@ -22,7 +24,8 @@ export default function PartDetailContainer({ id }: PartDetailContainerProps) {
   const navigate = useNavigate();
 
   const lookups = useLookups();
-  const { chapterName } = useChapters();
+  const { chapters, chapterName } = useChapters();
+  const { auth } = useAuth();
   const writableChapters = useWritableChapters();
   const { showToast } = useToast();
 
@@ -131,7 +134,14 @@ export default function PartDetailContainer({ id }: PartDetailContainerProps) {
     setForm((prev) => (prev ? { ...prev, donorId: null } : prev));
   }
 
-  const canDelete = writableChapters.some((c) => c.id === part.chapterId);
+  const canEdit = writableChapters.some((c) => c.id === part.chapterId);
+  const canDelete =
+    canEdit &&
+    canAdministerChapter(
+      auth?.chapterRoles ?? [],
+      part.chapterId,
+      chapters.find((c) => c.name === "National")?.id
+    );
   const deleteBlocked = part.containedIn != null;
 
   const isDirty =
@@ -148,6 +158,7 @@ export default function PartDetailContainer({ id }: PartDetailContainerProps) {
       form={form}
       saved={saved}
       isDirty={isDirty}
+      canEdit={canEdit}
       canDelete={canDelete}
       deleteBlocked={deleteBlocked}
       canPrint={canPrintLabels()}
