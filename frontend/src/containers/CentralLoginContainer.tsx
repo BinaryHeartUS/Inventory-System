@@ -29,9 +29,6 @@ export default function CentralLoginContainer() {
         <h1 className="text-2xl font-bold leading-tight text-slate-900">
           Sign in to the BinaryHeart Inventory System
         </h1>
-        <p className="text-sm leading-relaxed text-slate-600">
-          Use your BinaryHeart account to access inventory.
-        </p>
         {error && (
           <p
             role="alert"
