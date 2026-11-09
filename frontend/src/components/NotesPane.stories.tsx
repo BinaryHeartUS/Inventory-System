@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn, userEvent } from "storybook/test";
 import NotesPane from "./NotesPane";
+// update w/authors when this works lol
 
 const meta = {
   component: NotesPane,

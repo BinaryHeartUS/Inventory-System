@@ -27,6 +27,7 @@ export type IdsResponse = Required<components["schemas"]["IdsResponse"]>;
 export type Note = Omit<components["schemas"]["NoteResponse"], "text" | "date"> & {
   text: string;
   date: string;
+  authorName?: string | null;
 };
 export type Part = Omit<
   components["schemas"]["PartResponse"],

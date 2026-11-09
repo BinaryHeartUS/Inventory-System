@@ -11,6 +11,10 @@ function formatNoteDate(iso: string) {
   });
 }
 
+function formatAuthor(note: Note) {
+  return note.authorName || "Unknown"; //check if null (and join w/space?)
+}
+
 export default function NotesPane({
   notes,
   readOnly = false,
@@ -146,7 +150,7 @@ export default function NotesPane({
                 <div className="flex-1 min-w-0 pl-2">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <p className="text-xs font-medium text-slate-400">
-                      {formatNoteDate(note.date)}
+                      {formatAuthor(note)} · {formatNoteDate(note.date)}
                     </p>
                     {!readOnly && editingId !== note.id && (
                       <button

@@ -13,8 +13,8 @@ public class NoteService {
 		this.repository = repository;
 	}
 
-	public NoteResponse addNote(int assetId, String text) throws SQLException {
-		return repository.addNote(assetId, text);
+	public NoteResponse addNote(int assetId, int authorID, String text) throws SQLException {
+		return repository.addNote(assetId, authorID, text);
 	}
 
 	public NoteResponse[] getNotes(int assetId) throws SQLException {

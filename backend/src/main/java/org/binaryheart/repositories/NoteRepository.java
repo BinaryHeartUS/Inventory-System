@@ -12,19 +12,21 @@ import org.binaryheart.DatabaseConnectionService;
 import org.binaryheart.responses.NoteResponse;
 
 public class NoteRepository {
-	public NoteResponse addNote(int assetId, String text) throws SQLException {
+	public NoteResponse addNote(int assetId, int authorId, String text) throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection();
-			CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?, ?)")) {
+			CallableStatement stmt = conn.prepareCall("call Insert_Note(?, ?, ?, ?, ?, ?)")) {
 			stmt.setString(1, text);
 			Instant createdAt = Instant.now();
 			stmt.setTimestamp(2, Timestamp.from(createdAt));
 			stmt.setInt(3, assetId);
-			stmt.registerOutParameter(4, java.sql.Types.INTEGER);
+			stmt.setInt(4, authorId);
+			stmt.registerOutParameter(5, java.sql.Types.INTEGER);
+			stmt.registerOutParameter(6, java.sql.Types.VARCHAR);
 			stmt.execute();
 
-			int noteId = stmt.getInt(4);
-
-			return new NoteResponse(noteId, text, createdAt.toString(), assetId);
+			int noteId = stmt.getInt(5);
+			String name = stmt.getString(6);
+			return new NoteResponse(noteId, text, createdAt.toString(), assetId, name);
 		}
 	}
 
@@ -39,7 +41,8 @@ public class NoteRepository {
 					String text = res.getString("Text");
 					Instant createdAt = res.getTimestamp("Date").toInstant();
 					Integer asset_id = res.getInt("Asset_ID");
-					notes.add(new NoteResponse(id, text, createdAt.toString(), asset_id));
+					String name = res.getString("Author_Name");
+					notes.add(new NoteResponse(id, text, createdAt.toString(), asset_id, name));
 				}
 				return notes.toArray(new NoteResponse[0]);
 			}
