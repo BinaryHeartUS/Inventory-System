@@ -340,85 +340,123 @@ export default function PartyDetailView({
 
           {donatedOpen && (
             <div className="space-y-3">
-              {/* Donated devices */}
-              <SectionCard title="Donated Devices" count={donatedDevices.length} icon={deviceIcon}>
-                <DonatedTable
-                  rows={donatedDevices.map((d) => ({
-                    id: d.id,
-                    label: `${d.manufacturer} ${d.model}`,
-                    year: d.year,
-                    detail: `${deviceTypeLabel(d.type)} · ${d.year}`,
-                    value: d.value,
-                    acquired: d.acquisitionDate ?? null,
-                    deviceStuck: d.deviceStuck,
-                  }))}
-                  basePath="/devices"
-                  emptyMessage="No donated devices."
-                  selectMode={selectMode}
-                  selected={selected}
-                  onToggle={toggle}
-                  onToggleAll={toggleAll}
-                />
-              </SectionCard>
-
-              {/* Donated parts */}
-              <SectionCard title="Donated Parts" count={donatedParts.length} icon={partIcon}>
-                <DonatedTable
-                  rows={donatedParts.map((p) => ({
-                    id: p.id,
-                    label: p.type,
-                    year: null,
-                    detail: p.description,
-                    value: p.value,
-                    acquired: p.acquisitionDate,
-                  }))}
-                  basePath="/parts"
-                  emptyMessage="No donated parts."
-                  selectMode={selectMode}
-                  selected={selected}
-                  onToggle={toggle}
-                  onToggleAll={toggleAll}
-                />
-              </SectionCard>
-
-              {/* Donated tools */}
-              <SectionCard title="Donated Tools" count={donatedTools.length} icon={toolIcon}>
-                <DonatedTable
-                  rows={donatedTools.map((t) => ({
-                    id: t.id,
-                    label: t.description,
-                    year: null,
-                    detail: "",
-                    value: t.value,
-                    acquired: t.acquisitionDate,
-                  }))}
-                  basePath="/tools"
-                  emptyMessage="No donated tools."
-                  selectMode={selectMode}
-                  selected={selected}
-                  onToggle={toggle}
-                  onToggleAll={toggleAll}
-                />
-              </SectionCard>
-
-              <SectionCard title="Donated Misc" count={donatedMisc.length} icon={miscIcon}>
-                <DonatedTable
-                  rows={donatedMisc.map((item) => ({
-                    id: item.id,
-                    label: item.description,
-                    year: null,
-                    detail: "",
-                    value: item.value,
-                    acquired: item.acquisitionDate,
-                  }))}
-                  basePath="/misc"
-                  emptyMessage="No donated misc assets."
-                  selectMode={selectMode}
-                  selected={selected}
-                  onToggle={toggle}
-                  onToggleAll={toggleAll}
-                />
-              </SectionCard>
+              {[
+                {
+                  count: donatedDevices.length,
+                  content: (
+                    <SectionCard
+                      key="devices"
+                      title="Donated Devices"
+                      count={donatedDevices.length}
+                      icon={deviceIcon}
+                    >
+                      <DonatedTable
+                        rows={donatedDevices.map((d) => ({
+                          id: d.id,
+                          label: `${d.manufacturer} ${d.model}`,
+                          year: d.year,
+                          detail: `${deviceTypeLabel(d.type)} · ${d.year}`,
+                          value: d.value,
+                          acquired: d.acquisitionDate ?? null,
+                          deviceStuck: d.deviceStuck,
+                        }))}
+                        basePath="/devices"
+                        emptyMessage="No donated devices."
+                        selectMode={selectMode}
+                        selected={selected}
+                        onToggle={toggle}
+                        onToggleAll={toggleAll}
+                      />
+                    </SectionCard>
+                  ),
+                },
+                {
+                  count: donatedParts.length,
+                  content: (
+                    <SectionCard
+                      key="parts"
+                      title="Donated Parts"
+                      count={donatedParts.length}
+                      icon={partIcon}
+                    >
+                      <DonatedTable
+                        rows={donatedParts.map((p) => ({
+                          id: p.id,
+                          label: p.type,
+                          year: null,
+                          detail: p.description,
+                          value: p.value,
+                          acquired: p.acquisitionDate,
+                        }))}
+                        basePath="/parts"
+                        emptyMessage="No donated parts."
+                        selectMode={selectMode}
+                        selected={selected}
+                        onToggle={toggle}
+                        onToggleAll={toggleAll}
+                      />
+                    </SectionCard>
+                  ),
+                },
+                {
+                  count: donatedTools.length,
+                  content: (
+                    <SectionCard
+                      key="tools"
+                      title="Donated Tools"
+                      count={donatedTools.length}
+                      icon={toolIcon}
+                    >
+                      <DonatedTable
+                        rows={donatedTools.map((t) => ({
+                          id: t.id,
+                          label: t.description,
+                          year: null,
+                          detail: "",
+                          value: t.value,
+                          acquired: t.acquisitionDate,
+                        }))}
+                        basePath="/tools"
+                        emptyMessage="No donated tools."
+                        selectMode={selectMode}
+                        selected={selected}
+                        onToggle={toggle}
+                        onToggleAll={toggleAll}
+                      />
+                    </SectionCard>
+                  ),
+                },
+                {
+                  count: donatedMisc.length,
+                  content: (
+                    <SectionCard
+                      key="misc"
+                      title="Donated Misc"
+                      count={donatedMisc.length}
+                      icon={miscIcon}
+                    >
+                      <DonatedTable
+                        rows={donatedMisc.map((item) => ({
+                          id: item.id,
+                          label: item.description,
+                          year: null,
+                          detail: "",
+                          value: item.value,
+                          acquired: item.acquisitionDate,
+                        }))}
+                        basePath="/misc"
+                        emptyMessage="No donated misc assets."
+                        selectMode={selectMode}
+                        selected={selected}
+                        onToggle={toggle}
+                        onToggleAll={toggleAll}
+                      />
+                    </SectionCard>
+                  ),
+                },
+              ]
+                .sort((a, b) => Number(b.count > 0) - Number(a.count > 0))
+                .map(({ content }) => content)}
             </div>
           )}
         </div>

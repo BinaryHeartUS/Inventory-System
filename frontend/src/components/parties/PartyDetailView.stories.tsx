@@ -28,6 +28,34 @@ export const Individual: Story = {
   },
 };
 export const Organization: Story = { args: { party: organization } };
+export const PartsDonor: Story = {
+  args: { donatedDevices: [], donatedTools: [], donatedMisc: [] },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)
+    ).toEqual([
+      "Donated Parts",
+      "Donated Devices",
+      "Donated Tools",
+      "Donated Misc",
+      "Received Devices",
+    ]);
+  },
+};
+export const ToolsAndMiscDonor: Story = {
+  args: { donatedDevices: [], donatedParts: [] },
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent)
+    ).toEqual([
+      "Donated Tools",
+      "Donated Misc",
+      "Donated Devices",
+      "Donated Parts",
+      "Received Devices",
+    ]);
+  },
+};
 export const Empty: Story = {
   args: {
     donatedDevices: [],
