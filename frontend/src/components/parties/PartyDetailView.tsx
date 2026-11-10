@@ -455,7 +455,7 @@ export default function PartyDetailView({
                   ),
                 },
               ]
-                .sort((a, b) => Number(b.count > 0) - Number(a.count > 0))
+                .sort((a, b) => b.count - a.count)
                 .map(({ content }) => content)}
             </div>
           )}
