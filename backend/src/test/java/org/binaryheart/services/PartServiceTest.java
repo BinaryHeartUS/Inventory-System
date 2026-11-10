@@ -143,9 +143,7 @@ class PartServiceTest {
 	void deletePartDelegatesForAuthorizedPart() throws Exception {
 		PartRepository repository = mock(PartRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		PartResponse part = partResponse();
-		expect(repository.getPart(201)).andReturn(part);
-		repository.deletePart(201, "user");
+		repository.deletePart(201, "user", List.of(2));
 		replay(repository, chapters);
 		PartService service = new PartService(repository, chapters);
 
@@ -158,11 +156,11 @@ class PartServiceTest {
 	void updatePartDelegates() throws Exception {
 		PartRepository repository = mock(PartRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updatePart(part(), "user");
+		repository.updatePart(part(), "user", List.of(2));
 		replay(repository, chapters);
 		PartService service = new PartService(repository, chapters);
 
-		service.updatePart(part(), "user");
+		service.updatePart(part(), "user", List.of(2));
 
 		verify(repository, chapters);
 	}
@@ -197,11 +195,11 @@ class PartServiceTest {
 	}
 
 	@Test
-	void deletePartRejectsUnauthorizedAccess() throws Exception {
+	void deletePartTranslatesMissingAsset() throws Exception {
 		PartRepository repository = mock(PartRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		expect(repository.getPart(201)).andReturn(null);
-		expect(chapters.getNationalChapterId()).andReturn(1);
+		repository.deletePart(201, "user", List.of(2));
+		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		PartService service = new PartService(repository, chapters);
 
@@ -214,12 +212,12 @@ class PartServiceTest {
 	void updatePartTranslatesMissingSqlState() throws Exception {
 		PartRepository repository = mock(PartRepository.class);
 		ChapterService chapters = mock(ChapterService.class);
-		repository.updatePart(part(), "user");
+		repository.updatePart(part(), "user", List.of(2));
 		expectLastCall().andThrow(sql("02000"));
 		replay(repository, chapters);
 		PartService service = new PartService(repository, chapters);
 
-		assertThrows(PartNotFoundException.class, () -> service.updatePart(part(), "user"));
+		assertThrows(PartNotFoundException.class, () -> service.updatePart(part(), "user", List.of(2)));
 
 		verify(repository, chapters);
 	}

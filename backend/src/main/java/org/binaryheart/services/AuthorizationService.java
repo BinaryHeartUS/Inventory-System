@@ -9,7 +9,8 @@ import org.binaryheart.models.ChapterRole;
 
 public class AuthorizationService {
 
-	private static final Set<String> WRITE_ROLES = Set.of("Admin", "Chapter Admin", "Editor");
+	private static final Set<String> WRITE_ROLES = Set.of("Admin", "Chapter Admin", "Inventory Admin", "Editor");
+	private static final Set<String> ADMIN_ROLES = Set.of("Admin", "Chapter Admin", "Inventory Admin");
 	private final ChapterService chapterService;
 
 	@Inject
@@ -21,6 +22,20 @@ public class AuthorizationService {
 		if (chapterRoles == null || chapterRoles.stream().noneMatch(role -> WRITE_ROLES.contains(role.role()))) {
 			throw new ForbiddenResponse("Inventory edit access required");
 		}
+	}
+
+	/**
+	 * Null means all chapters, matching the repository chapter-filter convention.
+	 */
+	public List<Integer> mutationChapterIds(List<ChapterRole> chapterRoles, boolean adminOnly) throws SQLException {
+		if (chapterRoles == null || chapterRoles.isEmpty())
+			throw new ForbiddenResponse("Access denied");
+		Set<String> requiredRoles = adminOnly ? ADMIN_ROLES : WRITE_ROLES;
+		List<Integer> allowed = chapterRoles.stream().filter(role -> requiredRoles.contains(role.role()))
+			.map(ChapterRole::chapterId).distinct().toList();
+		if (allowed.isEmpty())
+			throw new ForbiddenResponse("Access denied: insufficient role");
+		return allowed.contains(chapterService.getNationalChapterId()) ? null : allowed;
 	}
 
 	public void requireChapterEditAccess(List<ChapterRole> chapterRoles, int chapterId) throws SQLException {

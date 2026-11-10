@@ -406,7 +406,7 @@ class DeviceControllerTest {
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		expect(context.<String>attribute("username")).andReturn("admin");
-		service.deleteDevice(101, "admin");
+		service.deleteDevice(101, "admin", null);
 		expect(context.status(204)).andReturn(context);
 		replay(service, chapters, authorization, context);
 
@@ -429,6 +429,51 @@ class DeviceControllerTest {
 		assertThrows(ForbiddenResponse.class,
 			() -> new DeviceController(service, chapters, authorization).deleteDevice(context));
 
+		verify(service, chapters, authorization, context);
+	}
+
+	@ParameterizedTest
+	@org.junit.jupiter.params.provider.ValueSource(
+		ints = {1, 2})
+	void deleteDeviceAllowsInventoryAdminWithinChapterScope(int adminChapter) throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		GetDeviceResponse device = device();
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(adminChapter, "Inventory Admin")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		expect(service.getDevice(101)).andReturn(device);
+		expect(chapters.getChapterIdByName(device.chapter())).andReturn(2);
+		chapters.requireActive(2);
+		expect(context.<String>attribute("username")).andReturn("inventory-admin");
+		service.deleteDevice(101, "inventory-admin", adminChapter == 1 ? null : List.of(2));
+		expect(context.status(204)).andReturn(context);
+		replay(service, chapters, authorization, context);
+
+		new DeviceController(service, chapters, authorization).deleteDevice(context);
+		verify(service, chapters, authorization, context);
+	}
+
+	@Test
+	void deleteDeviceRejectsInventoryAdminOfAnotherChapterEvenWithEditorAccess() throws Exception {
+		DeviceService service = mock(DeviceService.class);
+		ChapterService chapters = mock(ChapterService.class);
+		AuthorizationService authorization = mock(AuthorizationService.class);
+		Context context = mock(Context.class);
+		GetDeviceResponse device = device();
+		expect(context.pathParam("id")).andReturn("101");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles"))
+			.andReturn(List.of(new ChapterRole(3, "Inventory Admin"), new ChapterRole(2, "Editor")));
+		expect(chapters.getNationalChapterId()).andReturn(1);
+		expect(service.getDevice(101)).andReturn(device);
+		expect(chapters.getChapterIdByName(device.chapter())).andReturn(2);
+		replay(service, chapters, authorization, context);
+
+		assertThrows(ForbiddenResponse.class,
+			() -> new DeviceController(service, chapters, authorization).deleteDevice(context));
 		verify(service, chapters, authorization, context);
 	}
 
@@ -460,7 +505,7 @@ class DeviceControllerTest {
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(List.of(new ChapterRole(1, "Admin")));
 		expect(chapters.getNationalChapterId()).andReturn(1);
 		expect(context.<String>attribute("username")).andReturn("admin");
-		service.deleteDevice(101, "admin");
+		service.deleteDevice(101, "admin", null);
 		expectLastCall().andThrow(new SQLException("foreign key violation", "23503"));
 		expectResult(context, 409, "Device cannot be deleted while parts are installed");
 		replay(service, chapters, authorization, context);
@@ -641,8 +686,10 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertDesktopRequest.class, desktop(), "user");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
 		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
-		service.updateDesktop(desktop(), "user");
+		expect(authorization.mutationChapterIds(CHAPTER_ROLES, false)).andReturn(List.of(2));
+		service.updateDesktop(desktop(), "user", List.of(2));
 		expectResult(context, 201, "Desktop updated successfully");
 		replay(service, chapters, authorization, context);
 
@@ -657,8 +704,10 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertLaptopRequest.class, laptop(), "user");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
 		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
-		service.updateLaptop(laptop(), "user");
+		expect(authorization.mutationChapterIds(CHAPTER_ROLES, false)).andReturn(List.of(2));
+		service.updateLaptop(laptop(), "user", List.of(2));
 		expectResult(context, 200, "Laptop updated successfully");
 		replay(service, chapters, authorization, context);
 
@@ -673,8 +722,10 @@ class DeviceControllerTest {
 		ChapterService chapters = mock(ChapterService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mutationContext(InsertTabletRequest.class, tablet(), "user");
+		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
 		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
-		service.updateTablet(tablet(), "user");
+		expect(authorization.mutationChapterIds(CHAPTER_ROLES, false)).andReturn(List.of(2));
+		service.updateTablet(tablet(), "user", List.of(2));
 		expectResult(context, 200, "Tablet updated successfully");
 		replay(service, chapters, authorization, context);
 

@@ -2,7 +2,9 @@ export type CsvCell = string | number | null | undefined;
 
 export function escapeCsvCell(value: CsvCell): string {
   const s = String(value ?? "");
-  return `"${s.replace(/"/g, '""')}"`;
+  // CSV quoting alone does not stop spreadsheet applications evaluating formulas.
+  const safe = typeof value === "string" && /^\s*[=+\-@]/.test(s) ? `'${s}` : s;
+  return `"${safe.replace(/"/g, '""')}"`;
 }
 
 export function downloadCsv(filename: string, header: string[], rows: CsvCell[][]) {

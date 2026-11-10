@@ -250,13 +250,14 @@ public class ToolController {
 					description = "Database error")})
 	public void deleteTool(Context ctx) {
 		try {
-			List<Integer> userChapterIds = ctx.attribute("chapterIds");
 			int toolId = Integer.parseInt(ctx.pathParam("id"));
 			if (toolId <= 0) {
 				ctx.status(400).result("Tool ID must be a positive integer");
 				return;
 			}
-			service.deleteTool(userChapterIds, toolId);
+			List<Integer> allowedChapterIds = authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"),
+				true);
+			service.deleteTool(allowedChapterIds, toolId);
 			ctx.status(204).result("Tool deleted successfully");
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Tool ID must be a positive integer");
@@ -329,7 +330,8 @@ public class ToolController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updateTool(request, ctx.attribute("username"));
+			service.updateTool(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(201).result("Tool updated successfully");
 		} catch (ToolNotFoundException e) {
 			ctx.status(404).result(e.getMessage());

@@ -24,6 +24,7 @@ export interface ToolDetailViewProps {
   form: Tool | null;
   saved: boolean;
   isDirty: boolean;
+  canEdit: boolean;
   canDelete: boolean;
   canPrint: boolean;
   printId: number | null;
@@ -56,6 +57,7 @@ export default function ToolDetailView({
   form,
   saved,
   isDirty,
+  canEdit,
   canDelete,
   canPrint,
   printId,
@@ -146,7 +148,7 @@ export default function ToolDetailView({
                 />
               )}
               {!editing ? (
-                canDelete && (
+                canEdit && (
                   <button
                     onClick={onStartEdit}
                     className="flex items-center gap-2 text-sm font-medium text-white bg-heart-blue hover:bg-heart-blue-dark px-4 py-2.5 rounded-lg transition-colors"
@@ -177,7 +179,7 @@ export default function ToolDetailView({
                   </button>
                   <button
                     onClick={onSaveEdit}
-                    disabled={!canDelete}
+                    disabled={!canEdit}
                     className="text-sm font-medium text-white bg-brand-red hover:bg-brand-red-dark px-4 py-2.5 rounded-lg transition-colors"
                   >
                     Save changes
@@ -308,11 +310,7 @@ export default function ToolDetailView({
 
           <div className="flex-[1] min-w-0 lg:min-w-64 lg:sticky lg:top-20">
             {content?.notesPane ?? (
-              <NotesPaneContainer
-                assetId={tool.id}
-                readOnly={!canDelete}
-                readOnlyReason="chapter"
-              />
+              <NotesPaneContainer assetId={tool.id} readOnly={!canEdit} readOnlyReason="chapter" />
             )}
           </div>
         </div>

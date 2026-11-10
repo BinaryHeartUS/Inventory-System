@@ -57,9 +57,14 @@ public class JwtAccessManager {
 			if (!"Admin".equals(ctx.attribute("role"))) {
 				throw new ForbiddenResponse();
 			}
+		} else if (ctx.routeRoles().contains(AppRole.INVENTORY_ADMIN)) {
+			String role = ctx.attribute("role");
+			if (!"Admin".equals(role) && !"Inventory Admin".equals(role)) {
+				throw new ForbiddenResponse();
+			}
 		} else if (ctx.routeRoles().contains(AppRole.CHAPTER_ADMIN)) {
 			String role = ctx.attribute("role");
-			if (!"Admin".equals(role) && !"Chapter Admin".equals(role)) {
+			if (!"Admin".equals(role) && !"Chapter Admin".equals(role) && !"Inventory Admin".equals(role)) {
 				throw new ForbiddenResponse();
 			}
 		}

@@ -85,7 +85,7 @@ public class DeviceController {
 		get("/{id}", this::getDevice, AppRole.AUTHENTICATED);
 		get("/{id}/changelog", this::getDeviceChangelog, AppRole.AUTHENTICATED);
 		get("", this::getAllDevices, AppRole.AUTHENTICATED);
-		delete("/{id}", this::deleteDevice, AppRole.ADMIN);
+		delete("/{id}", this::deleteDevice, AppRole.INVENTORY_ADMIN);
 		post("/desktop", this::insertDesktop, AppRole.AUTHENTICATED);
 		post("/laptop", this::insertLaptop, AppRole.AUTHENTICATED);
 		post("/tablet", this::insertTablet, AppRole.AUTHENTICATED);
@@ -575,8 +575,8 @@ public class DeviceController {
 		security = {@OpenApiSecurity(
 			name = "BearerAuth")},
 		summary = "Delete a device",
-		description = "Permanently deletes a device. Restricted to national admins: users with the Admin role "
-			+ "who are affiliated with the National chapter.",
+		description = "Permanently deletes a device. National Admins may delete any device. Inventory Admins "
+			+ "may delete devices within their administered chapters; an Inventory Admin at National covers all chapters.",
 		pathParams = {@OpenApiParam(
 			name = "id",
 			required = true,
@@ -589,7 +589,7 @@ public class DeviceController {
 					description = "Non-numeric or non-positive device ID"),
 				@OpenApiResponse(
 					status = "403",
-					description = "Caller is not a national admin"),
+					description = "Caller is not an Inventory Admin for this chapter or a National Admin"),
 				@OpenApiResponse(
 					status = "404",
 					description = "Device does not exist"),
@@ -612,10 +612,25 @@ public class DeviceController {
 			int nationalId = chapterService.getNationalChapterId();
 			if (chapterRoles == null || chapterRoles.stream()
 				.noneMatch(role -> role.chapterId() == nationalId && "Admin".equals(role.role()))) {
-				throw new ForbiddenResponse("Only national admins may delete devices");
+				if (chapterRoles == null
+					|| chapterRoles.stream().noneMatch(role -> "Inventory Admin".equals(role.role()))) {
+					throw new ForbiddenResponse("Only National Admins or Inventory Admins may delete devices");
+				}
+				GetDeviceResponse device = service.getDevice(id);
+				Integer chapterId = chapterService.getChapterIdByName(device.chapter());
+				if (chapterId == null || chapterRoles.stream().noneMatch(role -> "Inventory Admin".equals(role.role())
+					&& (role.chapterId() == nationalId || role.chapterId() == chapterId))) {
+					throw new ForbiddenResponse("Inventory Admin access is required for this chapter");
+				}
+				chapterService.requireActive(chapterId);
 			}
 
-			service.deleteDevice(id, ctx.attribute("username"));
+			List<Integer> deleteChapterIds = chapterRoles.stream()
+				.filter(role -> "Inventory Admin".equals(role.role())
+					|| ("Admin".equals(role.role()) && role.chapterId() == nationalId))
+				.map(ChapterRole::chapterId).distinct().toList();
+			service.deleteDevice(id, ctx.attribute("username"),
+				deleteChapterIds.contains(nationalId) ? null : deleteChapterIds);
 			ctx.status(204);
 		} catch (NumberFormatException e) {
 			ctx.status(400).result("Non-numeric device ID: " + idStr);
@@ -1192,7 +1207,8 @@ public class DeviceController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updateDesktop(request, ctx.attribute("username"));
+			service.updateDesktop(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(201).result("Desktop updated successfully");
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
@@ -1289,7 +1305,8 @@ public class DeviceController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updateLaptop(request, ctx.attribute("username"));
+			service.updateLaptop(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(200).result("Laptop updated successfully");
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());
@@ -1377,7 +1394,8 @@ public class DeviceController {
 		try {
 			authorizationService.requireChapterEditAccess(ctx.<List<ChapterRole>>attribute("chapterRoles"),
 				request.chapterId());
-			service.updateTablet(request, ctx.attribute("username"));
+			service.updateTablet(request, ctx.attribute("username"),
+				authorizationService.mutationChapterIds(ctx.attribute("chapterRoles"), false));
 			ctx.status(200).result("Tablet updated successfully");
 		} catch (DeviceNotFoundException e) {
 			ctx.status(404).result(e.getMessage());

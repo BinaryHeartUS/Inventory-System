@@ -117,11 +117,13 @@ public class ToolRepository {
 		}
 	}
 
-	public void updateTool(InsertToolRequest request, String username) throws SQLException {
+	public void updateTool(InsertToolRequest request, String username, List<Integer> allowedChapterIds)
+		throws SQLException {
 		try (Connection conn = DatabaseConnectionService.getConnection()) {
 			conn.setAutoCommit(false);
 			try (PreparedStatement ps = conn.prepareStatement("SELECT set_config('app.current_username', ?, true)");
 				CallableStatement stmt = conn.prepareCall("call Update_Tool(?, ?, ?, ?, ?::Numeric::Money, ?)")) {
+				AssetMutationGuard.requireAccess(conn, request.assetId(), request.chapterId(), allowedChapterIds);
 				ps.setString(1, username);
 				ps.execute();
 				stmt.setInt(1, request.chapterId());
@@ -144,7 +146,7 @@ public class ToolRepository {
 				}
 				stmt.execute();
 				conn.commit();
-			} catch (SQLException e) {
+			} catch (SQLException | RuntimeException e) {
 				conn.rollback();
 				throw e;
 			} finally {
@@ -153,11 +155,20 @@ public class ToolRepository {
 		}
 	}
 
-	public void deleteTool(Integer toolID) throws SQLException {
-		try (Connection conn = DatabaseConnectionService.getConnection();
-			CallableStatement stmt = conn.prepareCall("call Delete_Tool(?)")) {
-			stmt.setInt(1, toolID);
-			stmt.execute();
+	public void deleteTool(Integer toolID, List<Integer> allowedChapterIds) throws SQLException {
+		try (Connection conn = DatabaseConnectionService.getConnection()) {
+			conn.setAutoCommit(false);
+			try (CallableStatement stmt = conn.prepareCall("call Delete_Tool(?)")) {
+				AssetMutationGuard.requireAccess(conn, toolID, null, allowedChapterIds);
+				stmt.setInt(1, toolID);
+				stmt.execute();
+				conn.commit();
+			} catch (SQLException | RuntimeException e) {
+				conn.rollback();
+				throw e;
+			} finally {
+				conn.setAutoCommit(true);
+			}
 		}
 	}
 

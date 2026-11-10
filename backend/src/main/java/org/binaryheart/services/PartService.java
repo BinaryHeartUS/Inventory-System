@@ -66,24 +66,25 @@ public class PartService {
 		return List.of(parts).stream().filter(p -> userChapterIds.contains(p.chapterId())).toArray(PartResponse[]::new);
 	}
 
-	public void deletePart(List<Integer> userChapterIds, Integer partId, String username)
+	public void deletePart(List<Integer> allowedChapterIds, Integer partId, String username)
 		throws SQLException, InvalidParameterException {
-		if (partId == null || partId < 0)
+		if (partId == null || partId <= 0)
 			throw new InvalidParameterException(
 				"Non-numeric or non-positive part ID provided, must be positive integer");
 
-		PartResponse part = repository.getPart(partId);
-		if ((part != null && userChapterIds.contains(part.chapterId()))
-			|| userChapterIds.contains(chapterService.getNationalChapterId())) {
-			repository.deletePart(partId, username);
-		} else {
-			throw new InvalidParameterException("Part not found");
+		try {
+			repository.deletePart(partId, username, allowedChapterIds);
+		} catch (SQLException e) {
+			if ("02000".equals(e.getSQLState()))
+				throw new InvalidParameterException("Part not found");
+			throw e;
 		}
 	}
 
-	public void updatePart(InsertPartRequest request, String username) throws PartNotFoundException, SQLException {
+	public void updatePart(InsertPartRequest request, String username, List<Integer> allowedChapterIds)
+		throws PartNotFoundException, SQLException {
 		try {
-			repository.updatePart(request, username);
+			repository.updatePart(request, username, allowedChapterIds);
 		} catch (SQLException e) {
 			if ("02000".equals(e.getSQLState())) {
 				throw new PartNotFoundException("Could not find part with specified ID: " + request.id());
