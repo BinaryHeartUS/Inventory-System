@@ -16,12 +16,12 @@ class NoteServiceTest {
 	@Test
 	void addNoteDelegatesToRepository() throws Exception {
 		NoteRepository repository = mock(NoteRepository.class);
-		NoteResponse note = new NoteResponse(3, "text", "today", 42);
-		expect(repository.addNote(42, "text")).andReturn(note);
+		NoteResponse note = new NoteResponse(3, "text", "today", 42, "Billy Bob");
+		expect(repository.addNote(42, 7, "text")).andReturn(note);
 		replay(repository);
 		NoteService service = new NoteService(repository);
 
-		assertSame(note, service.addNote(42, "text"));
+		assertSame(note, service.addNote(42, 7, "text"));
 
 		verify(repository);
 	}
@@ -29,7 +29,7 @@ class NoteServiceTest {
 	@Test
 	void getNotesDelegatesToRepository() throws Exception {
 		NoteRepository repository = mock(NoteRepository.class);
-		NoteResponse[] notes = {new NoteResponse(3, "text", "today", 42)};
+		NoteResponse[] notes = { new NoteResponse(3, "text", "today", 42, "Billy Bob") };
 		expect(repository.getNotes(42)).andReturn(notes);
 		replay(repository);
 		NoteService service = new NoteService(repository);

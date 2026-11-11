@@ -68,14 +68,15 @@ class NoteControllerTest {
 		NoteService service = mock(NoteService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
-		NoteResponse note = new NoteResponse(3, "text", "today", 42);
+		NoteResponse note = new NoteResponse(3, "text", "today", 42, "Billy Bob");
 		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("text"));
 		expect(context.pathParam("id")).andReturn("42");
+		expect(context.pathParam("volunteerId")).andReturn("7");
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
 		expect(service.getAssetType(42)).andReturn("Tool");
 		expect(service.getAssetChapterId(42)).andReturn(2);
 		authorization.requireChapterEditAccess(CHAPTER_ROLES, 2);
-		expect(service.addNote(42, "text")).andReturn(note);
+		expect(service.addNote(42, 7, "text")).andReturn(note);
 		expectJson(context, 200, note);
 		replay(service, authorization, context);
 
@@ -83,6 +84,7 @@ class NoteControllerTest {
 
 		verify(service, authorization, context);
 	}
+	// should probably add more of these...
 
 	@Test
 	void postNoteRejectsWhenNoChapterEditAccess() throws Exception {
@@ -108,7 +110,7 @@ class NoteControllerTest {
 		NoteService service = mock(NoteService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
-		NoteResponse[] notes = {new NoteResponse(3, "text", "today", 42)};
+		NoteResponse[] notes = { new NoteResponse(3, "text", "today", 42, "Billy Bob") };
 		expect(context.pathParam("id")).andReturn("42");
 		expect(service.getAssetType(42)).andReturn("Tool");
 		expect(service.getAssetChapterId(42)).andReturn(2);
@@ -167,13 +169,13 @@ class NoteControllerTest {
 		NoteService service = mock(NoteService.class);
 		AuthorizationService authorization = mock(AuthorizationService.class);
 		Context context = mock(Context.class);
-		NoteResponse note = new NoteResponse(3, "text", "today", 42);
+		NoteResponse note = new NoteResponse(3, "text", "today", 42, "Billy Bob");
 		expect(context.bodyAsClass(PostNoteRequest.class)).andReturn(new PostNoteRequest("text"));
 		expect(context.pathParam("id")).andReturn("42");
 		expect(context.<List<ChapterRole>>attribute("chapterRoles")).andReturn(CHAPTER_ROLES);
 		expect(service.getAssetType(42)).andReturn("Misc");
 		authorization.requireInventoryEditAccess(CHAPTER_ROLES);
-		expect(service.addNote(42, "text")).andReturn(note);
+		expect(service.addNote(42, 7, "text")).andReturn(note);
 		expectJson(context, 200, note);
 		replay(service, authorization, context);
 
